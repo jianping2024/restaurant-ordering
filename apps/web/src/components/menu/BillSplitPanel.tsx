@@ -114,7 +114,7 @@ export function BillSplitPanel({
     <>
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitMode}</h2>
-        <div className="grid gap-2 mb-4 grid-cols-2">
+        <div className="grid gap-2 mb-4 grid-cols-3">
           {GUEST_SPLIT_MODE_ORDER.map((mode) => (
             <button
               key={mode}
@@ -122,7 +122,7 @@ export function BillSplitPanel({
               disabled={submitting || splitLocked}
               onClick={() => onSplitModeClick(mode)}
               className={`py-2.5 rounded-xl text-sm border transition-all ${
-                splitMode === mode
+                splitMode === mode || (mode === 'whole_table' && splitMode == null)
                   ? `${mesaSelectionChipStrongClass(true)} font-semibold`
                   : mesaSelectionChipStrongClass(false)
               }`}
@@ -134,7 +134,7 @@ export function BillSplitPanel({
         {splitLocked ? (
           <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitPlanLocked}</p>
         ) : null}
-        {!splitMode && !splitLocked ? (
+        {(splitMode === 'whole_table' || splitMode == null) && !splitLocked ? (
           <p className="text-brand-text-muted text-[13px] mb-2">{splitGuidance.optionalHint}</p>
         ) : null}
         {selectedWhen && !splitLocked ? (
@@ -169,6 +169,7 @@ export function BillSplitPanel({
         {splitMode === 'by_item' ? byItemContent : null}
       </div>
 
+      {results.length > 0 ? (
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitResult}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
@@ -280,6 +281,7 @@ export function BillSplitPanel({
           })}
         </div>
       </div>
+      ) : null}
 
       {splitValidationMessage ? (
         <p className="px-4 pb-2 text-[13px] text-red-500">{splitValidationMessage}</p>

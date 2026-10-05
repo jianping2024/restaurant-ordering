@@ -184,39 +184,61 @@ export async function POST(
 
   const caller = await resolveCheckoutRequestCaller(slug);
 
-  // A guest phone calls only its own by-item ticket.
+  // Guest phone: by-item → one ticket; whole_table / even → shared table plan.
   if (caller.kind === 'customer') {
     const guestClientId = parseGuestClientId(body.guest_client_id);
     if (!guestClientId) {
       return NextResponse.json({ error: 'invalid_guest_client_id' }, { status: 400 });
     }
-    if (splitMode !== 'by_item') {
-      return NextResponse.json({ error: 'split_mode_locked' }, { status: 409 });
+    if (splitMode === 'by_item') {
+      const individual = await submitIndividualCall(admin, {
+        restaurantId: loaded.restaurant.id,
+        tableId,
+        clientId: guestClientId,
+        persons,
+        result,
+      });
+      if (!individual.ok) {
+        return NextResponse.json(
+          {
+            error: individual.error,
+            message: individual.message,
+            line_keys: individual.lineKeys,
+            names: individual.names,
+          },
+          { status: individual.status },
+        );
+      }
+      return NextResponse.json({
+        ok: true,
+        bill_split_id: individual.bill_split_id,
+        session_id: individual.session_id,
+        result: individual.result,
+        total_amount: individual.total_amount,
+      });
     }
-    const individual = await submitIndividualCall(admin, {
-      restaurantId: loaded.restaurant.id,
+    if (splitMode !== 'whole_table' && splitMode !== 'even') {
+      return NextResponse.json({ error: 'invalid_split_mode' }, { status: 400 });
+    }
+    const submitResult = await submitCheckoutRequestForTable(
+      admin,
+      loaded.restaurant.id,
       tableId,
-      clientId: guestClientId,
-      persons,
-      result,
-    });
-    if (!individual.ok) {
+      { splitMode, persons, result, customerNif },
+      { allowPartialByItem: false },
+    );
+    if (!submitResult.ok) {
       return NextResponse.json(
-        {
-          error: individual.error,
-          message: individual.message,
-          line_keys: individual.lineKeys,
-          names: individual.names,
-        },
-        { status: individual.status },
+        { error: submitResult.error, message: submitResult.message },
+        { status: submitResult.status },
       );
     }
     return NextResponse.json({
       ok: true,
-      bill_split_id: individual.bill_split_id,
-      session_id: individual.session_id,
-      result: individual.result,
-      total_amount: individual.total_amount,
+      bill_split_id: submitResult.bill_split_id,
+      session_id: submitResult.session_id,
+      result: submitResult.result,
+      total_amount: submitResult.total_amount,
     });
   }
 

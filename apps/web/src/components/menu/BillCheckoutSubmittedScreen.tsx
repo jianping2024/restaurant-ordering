@@ -52,13 +52,13 @@ interface Props {
    * This phone called its own ticket. Ordering is paused until the guest resumes (unlocks) it;
    * staff can also unlock at the counter.
    */
-  called: {
+  called?: {
     hint: string;
     resumeLabel: string;
     resumeBusyLabel: string;
     resumeBusy: boolean;
     onResume: () => void;
-  };
+  } | null;
   showFeedback: boolean;
   reviewableItems: ReviewableItem[];
   feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>;
@@ -117,7 +117,9 @@ export function BillCheckoutSubmittedScreen({
             <CheckoutSubmittedHeroIllustration />
           </div>
           <p className="font-heading text-lg text-brand-gold leading-snug px-1">{copy.checkoutSubmittedHint}</p>
-          <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{called.hint}</p>
+          {called ? (
+            <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{called.hint}</p>
+          ) : null}
         </section>
 
         <section className="bg-brand-card border border-brand-border rounded-xl px-4 py-5 text-center">
@@ -136,16 +138,18 @@ export function BillCheckoutSubmittedScreen({
           }}
         />
 
-        <Button
-          type="button"
-          variant="outline"
-          size="action"
-          className="w-full"
-          disabled={called.resumeBusy}
-          onClick={called.onResume}
-        >
-          {called.resumeBusy ? called.resumeBusyLabel : called.resumeLabel}
-        </Button>
+        {called ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="action"
+            className="w-full"
+            disabled={called.resumeBusy}
+            onClick={called.onResume}
+          >
+            {called.resumeBusy ? called.resumeBusyLabel : called.resumeLabel}
+          </Button>
+        ) : null}
 
         <section className="grid grid-cols-1 gap-3 pt-1 min-[400px]:grid-cols-2">
           <Button type="button" variant="gold" size="action" className="w-full" onClick={onRefreshPage}>

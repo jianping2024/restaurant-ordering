@@ -18,6 +18,8 @@ import {
   GuestClaimDishCard,
   type GuestClaimDishCardLabels,
 } from '@/components/menu/GuestClaimDishCard';
+import { lockedGuestClaimUnitDen } from '@/lib/guest-claim-qty-stack';
+import { rationalFromGuestClaimRow } from '@/lib/guest-claim-qty-stack';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 
 export type GuestClaimPanelLabels = GuestClaimDishCardLabels & {
@@ -150,7 +152,7 @@ export function GuestClaimPanel({
   };
 
   return (
-    <div className="px-4 py-4 space-y-3">
+    <div className="space-y-3">
       <div className="bg-brand-card border border-brand-border rounded-xl p-3.5">
         <label htmlFor="guest-claim-name" className="text-brand-text font-medium text-sm block mb-1.5">
           {labels.nameLabel}
@@ -199,16 +201,33 @@ export function GuestClaimPanel({
         const item = orderLineByKey[spec.key];
         if (!item) return null;
         const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
+        const availability = lineAvailability(spec, others);
+        const row = claimRowFor(claim, spec);
+        const lockedUnitDen = lockedGuestClaimUnitDen(
+          (others[spec.key] ?? []).map((share) => share.qty),
+        );
+        const mineEmpty =
+          spec.mode === 'menu'
+            ? rationalFromGuestClaimRow(row).num <= 0
+            : !(Number.parseInt(row.adultQty || '0', 10) || 0) &&
+              !(Number.parseInt(row.childQty || '0', 10) || 0);
+        const noRemaining =
+          availability.mode === 'menu'
+            ? availability.remaining.num <= 0
+            : availability.adultsRemaining <= 0 && availability.childrenRemaining <= 0;
+        const lineLocked = noRemaining && mineEmpty;
         return (
           <GuestClaimDishCard
             key={spec.key}
             lineKey={spec.key}
             title={`${formatLocalizedMenuItemLabel(item, lang, itemCode)} ${formatByItemSplitQuantityLabel(spec, item)}`}
             mode={spec.mode}
-            row={claimRowFor(claim, spec)}
-            availability={lineAvailability(spec, others)}
+            row={row}
+            availability={availability}
             over={overClaimedKeys.has(spec.key)}
             disabled={disabled}
+            lineLocked={lineLocked}
+            lockedUnitDen={lockedUnitDen}
             labels={labels}
             onChange={(patch) => onRowChange(spec, patch)}
           />

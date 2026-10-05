@@ -11,13 +11,10 @@ describe('guest split mode guidance', () => {
   for (const lang of ['zh', 'en', 'pt'] as const) {
     it(`${lang}: has all modes, intro step, and preview demo`, () => {
       const g = getGuestSplitGuidance(lang);
+      assert.deepEqual([...GUEST_SPLIT_MODE_ORDER], ['whole_table', 'even', 'by_item']);
       for (const mode of GUEST_SPLIT_MODE_ORDER) {
         assert.ok(g.modes[mode].label.trim());
-        if (mode === 'by_item') {
-          assert.equal(g.modes[mode].when.trim(), '');
-        } else {
-          assert.ok(g.modes[mode].when.trim());
-        }
+        assert.ok(g.modes[mode].when.trim());
       }
       assert.ok(g.optionalHint.trim());
       assert.ok(g.introStep.title.trim());
@@ -37,7 +34,7 @@ describe('guest split mode guidance', () => {
   it('pt recommends Por prato wording (not Por consumo / Manual)', () => {
     const { modes, optionalHint } = GUEST_SPLIT_GUIDANCE.pt;
     assert.equal(modes.by_item.label, 'Por prato');
-    assert.match(optionalHint, /Quer dividir/i);
+    assert.match(optionalHint, /Mesa é o padrão/i);
     assert.doesNotMatch(optionalHint, /diretamente ou escolher/i);
   });
 });

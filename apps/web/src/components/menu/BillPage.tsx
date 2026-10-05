@@ -31,7 +31,16 @@ import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
 import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
+import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen, type ReviewableItem } from '@/components/menu/BillCheckoutSubmittedScreen';
+import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
+import {
+  type GuestBillSplitMode,
+  guestTablePlanHoldsCheckout,
+  resolveGuestBillSplitMode,
+} from '@/lib/guest-bill-split-mode';
+import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
+import type { SplitMode } from '@/types';
 
 function BillCheckoutGateBanner({
   message,
@@ -207,6 +216,23 @@ function GuestBillPage({
   /** Live session from bill sync — never keep SSR session id after table reopen. */
   const activeSessionId = liveSessionId ?? sessionId;
 
+  const [draftMode, setDraftMode] = useState<GuestBillSplitMode>('whole_table');
+  const { mode: guestMode, locked: modeLocked } = resolveGuestBillSplitMode({
+    draft: draftMode,
+    existingSplit: liveSplit,
+    collectedPaymentCount: collectedPayments.length,
+  });
+
+  const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
+  const evenSplit = useGuestEvenSplit({
+    existingSplit: liveSplit,
+    total,
+    guestName,
+    collectedPayments,
+    lang,
+    locked: modeLocked,
+  });
+
   const claim = useGuestClaim({
     restaurantId: restaurant.id,
     sessionId: activeSessionId,
@@ -232,6 +258,7 @@ function GuestBillPage({
   const [callBillBusy, setCallBillBusyState] = useState(false);
   /** Sole yield: GuestClaimPanel via guestClaimNameHidesCallCheckout (focus ∧ keyboard). */
   const [hideFixedCallCheckout, setHideFixedCallCheckout] = useState(false);
+  const [tablePlanLocalSubmitted, setTablePlanLocalSubmitted] = useState(false);
 
   useEffect(() => {
     setCallBillBusy(callBillBusy);
@@ -241,6 +268,10 @@ function GuestBillPage({
     () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
     [orders, lang, itemCodeByMenuId],
   );
+
+  const tablePlanSubmitted =
+    tablePlanLocalSubmitted || guestTablePlanHoldsCheckout(liveSplit);
+  const billSubmitted = submitted || tablePlanSubmitted;
 
   const { myTicket } = claim;
   const { isCallBillBusy, submitCall } = useGuestCallCheckout({
@@ -252,10 +283,17 @@ function GuestBillPage({
     refreshOrders,
     commitOrders,
     guestClientId,
+    mode: guestMode,
     getTicket: () => myTicket,
-    onCalled: async () => {
+    getEvenPayload: () => evenSplit.buildPayload(),
+    total,
+    onByItemCalled: async () => {
       ownCalledKeysRef.current.add(splitPartyKey(claim.claim.partyId, claim.claim.name));
       await commitIndividualCalled();
+    },
+    onTablePlanCalled: async () => {
+      setTablePlanLocalSubmitted(true);
+      await refreshBill();
     },
     onBusyChange: setCallBillBusyState,
     showToast,
@@ -269,8 +307,23 @@ function GuestBillPage({
       individualNothingClaimed: t.individualNothingClaimed,
       individualClaimConflict: t.individualClaimConflict,
       individualNameTaken: t.individualNameTaken,
+      splitAmountMismatch: t.splitAmountMismatch,
     },
   });
+
+  const callAmountShown =
+    guestMode === 'by_item'
+      ? myTicket.amount
+      : guestMode === 'even'
+        ? total
+        : total;
+
+  const handleModeClick = (mode: SplitMode) => {
+    if (modeLocked) return;
+    if (mode === 'whole_table' || mode === 'even' || mode === 'by_item') {
+      setDraftMode(mode);
+    }
+  };
 
   const resolveLineName = useCallback(
     (lineKey: string) => {
@@ -290,10 +343,17 @@ function GuestBillPage({
     />
   );
 
-  /** The called screen lists only this phone's own ticket(s). */
+  /** The called screen lists this phone's ticket (by-item) or the whole-table/even plan. */
   const calledMine = useMemo(() => {
-    if (!submitted) return null;
+    if (!billSubmitted) return null;
     const results = (liveSplit?.result ?? []) as SplitResult[];
+    if (tablePlanSubmitted || guestMode !== 'by_item') {
+      const rows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total);
+      return {
+        rows,
+        total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
+      };
+    }
     const mineKeys = new Set(
       individualTickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
     );
@@ -307,7 +367,15 @@ function GuestBillPage({
       rows,
       total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
     };
-  }, [submitted, liveSplit?.result, individualTickets, collectedPayments, total]);
+  }, [
+    billSubmitted,
+    tablePlanSubmitted,
+    guestMode,
+    liveSplit?.result,
+    individualTickets,
+    collectedPayments,
+    total,
+  ]);
 
   const [resumeBusy, setResumeBusy] = useState(false);
   /** Guest「恢复点单」: unlock this phone's called ticket, then reload the shared plan. */
@@ -333,12 +401,6 @@ function GuestBillPage({
 
   const claimLabels = useMemo(
     () => ({
-      wholeLabel: t.qtyWholePlaceholder,
-      numLabel: t.qtyNumPlaceholder,
-      denLabel: t.qtyDenPlaceholder,
-      missingDen: t.qtyMissingDen,
-      zeroDen: t.qtyZeroDen,
-      improperFraction: t.qtyImproperFraction,
       claimedByOthers: t.claimOthers,
       left: t.claimLeft,
       over: t.claimOver,
@@ -351,6 +413,13 @@ function GuestBillPage({
       nameTaken: t.individualNameTaken,
       intro: t.claimIntro,
       claimAll: t.claimAll,
+      mineLabel: t.claimMineLabel,
+      unitPickerLabel: t.claimUnitPicker,
+      stackLabel: t.claimStack,
+      paidLockedHint: t.claimPaidLocked,
+      othersLockedHint: t.claimOthersLocked,
+      expandLabel: t.claimExpand,
+      collapseLabel: t.claimCollapse,
     }),
     [t],
   );
@@ -382,7 +451,7 @@ function GuestBillPage({
       showToast(t.partyMergeRequired, 'error');
       return;
     }
-    if (claim.issue) {
+    if (guestMode === 'by_item' && claim.issue) {
       showToast(
         claim.issue === 'name_required'
           ? t.claimNameRequired
@@ -430,7 +499,7 @@ function GuestBillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !activeSessionId || initialFeedbackSubmitted || initialFeedbackSkipped) {
+    if (!billSubmitted || !activeSessionId || initialFeedbackSubmitted || initialFeedbackSkipped) {
       return;
     }
     setFeedbackHydrating(true);
@@ -465,7 +534,7 @@ function GuestBillPage({
     };
     void syncFeedbackState().finally(() => setFeedbackHydrating(false));
   }, [
-    submitted,
+    billSubmitted,
     activeSessionId,
     restaurant.slug,
     tableId,
@@ -573,7 +642,7 @@ function GuestBillPage({
     return <div className="min-h-screen bg-brand-bg" aria-busy="true" />;
   }
 
-  if (submitted) {
+  if (billSubmitted) {
     return (
       <>
       {individualNotice}
@@ -601,13 +670,17 @@ function GuestBillPage({
         }}
         total={calledMine?.total ?? total}
         splitRows={calledMine?.rows ?? []}
-        called={{
-          hint: t.individualCalledHint,
-          resumeLabel: t.individualResume,
-          resumeBusyLabel: t.individualResumeBusy,
-          resumeBusy,
-          onResume: () => void handleResume(),
-        }}
+        called={
+          guestMode === 'by_item' && submitted
+            ? {
+                hint: t.individualCalledHint,
+                resumeLabel: t.individualResume,
+                resumeBusyLabel: t.individualResumeBusy,
+                resumeBusy,
+                onResume: () => void handleResume(),
+              }
+            : null
+        }
         backHref={backHref}
         backLabel={t.backToMenu}
         onRefreshPage={() => window.location.reload()}
@@ -659,24 +732,60 @@ function GuestBillPage({
         }
       />
 
-      <GuestClaimPanel
+      <BillSplitPanel
         lang={lang}
-        labels={claimLabels}
-        claim={claim.claim}
-        lineSpecs={lineSpecs}
-        orderLines={splitOrderLines}
-        others={claim.others}
-        overClaimedKeys={claim.overClaimedKeys}
-        nameTaken={claim.nameTaken}
-        disabled={isCallBillBusy}
-        itemCodeByMenuId={itemCodeByMenuId}
-        onNameChange={claim.setName}
-        onHideCallCheckoutChange={setHideFixedCallCheckout}
-        onRowChange={claim.updateRow}
-        onClaimAll={claim.claimRest}
+        copy={{
+          splitMode: t.splitMode,
+          splitPlanLocked: t.splitPlanLocked,
+          people: t.people,
+          splitResult: t.splitResult,
+          splitPaid: t.splitPaid,
+          splitPartialPaid: t.splitPartialPaid,
+          splitAmountBreakdown: t.splitAmountBreakdown,
+        }}
+        splitGuidance={getGuestSplitGuidance(lang)}
+        splitMode={guestMode}
+        splitLocked={modeLocked}
+        submitting={isCallBillBusy}
+        personCount={evenSplit.personCount}
+        splitPeople={evenSplit.splitPeople}
+        results={guestMode === 'even' ? evenSplit.results : []}
+        splitDisplayRows={guestMode === 'even' ? evenSplit.splitDisplayRows : []}
+        lockedPersonNames={new Set()}
+        splitValidationMessage={null}
+        guestName={guestName}
+        editingSplitNameIndex={evenSplit.editingSplitNameIndex}
+        editingSplitNameValue={evenSplit.editingSplitNameValue}
+        onSplitModeClick={handleModeClick}
+        onDecrementPersonCount={evenSplit.decrementPersonCount}
+        onIncrementPersonCount={evenSplit.incrementPersonCount}
+        onStartInlineRename={evenSplit.startInlineRename}
+        onCommitInlineRename={evenSplit.commitInlineRename}
+        onEditingSplitNameValueChange={evenSplit.setEditingSplitNameValue}
+        onCancelInlineRename={evenSplit.cancelInlineRename}
+        byItemContent={
+          guestMode === 'by_item' ? (
+            <GuestClaimPanel
+              lang={lang}
+              labels={claimLabels}
+              claim={claim.claim}
+              lineSpecs={lineSpecs}
+              orderLines={splitOrderLines}
+              others={claim.others}
+              overClaimedKeys={claim.overClaimedKeys}
+              nameTaken={claim.nameTaken}
+              disabled={isCallBillBusy}
+              itemCodeByMenuId={itemCodeByMenuId}
+              onNameChange={claim.setName}
+              onHideCallCheckoutChange={setHideFixedCallCheckout}
+              onRowChange={claim.updateRow}
+              onClaimAll={claim.claimRest}
+            />
+          ) : null
+        }
       />
 
-      {claimIssueMessage ? (
+      {guestMode === 'by_item' && claimIssueMessage ? (
         <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueMessage}</p>
       ) : null}
 
@@ -705,10 +814,10 @@ function GuestBillPage({
             || isCallBillBusy
             || !guestCountConfirmed
             || !partyCheckoutAllowed
-            || claim.issue !== null
+            || (guestMode === 'by_item' && claim.issue !== null)
           }
         >
-          🔔 {t.callBill} — €{myTicket.amount.toFixed(2)}
+          🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
         </Button>
       </div>
     </div>

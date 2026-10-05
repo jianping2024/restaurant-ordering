@@ -37,7 +37,7 @@ describe('resolveSushiStickyStatusFragment', () => {
         labels: en,
         nowMs,
       })?.text,
-      'max 40/round',
+      'max 40',
     );
     assert.equal(
       resolveSushiStickyStatusFragment({
@@ -49,7 +49,7 @@ describe('resolveSushiStickyStatusFragment', () => {
         labels: pt,
         nowMs,
       })?.text,
-      'máx. 40/ronda',
+      'máx. 40',
     );
   });
 

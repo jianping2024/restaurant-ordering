@@ -89,7 +89,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: '开始点餐',
   },
   en: {
-    stickyRoundCapHint: 'max {cap}/round',
+    stickyRoundCapHint: 'max {cap}',
     stickyRoundProgress: '{qty}/{cap}',
     stickyCooldown: 'wait {seconds}s',
     stickyPending: 'kitchen in {seconds}s',
@@ -128,7 +128,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   pt: {
-    stickyRoundCapHint: 'máx. {cap}/ronda',
+    stickyRoundCapHint: 'máx. {cap}',
     stickyRoundProgress: '{qty}/{cap}',
     stickyCooldown: 'espera {seconds}s',
     stickyPending: 'cozinha em {seconds}s',
@@ -167,7 +167,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Começar a pedir',
   },
   es: {
-    stickyRoundCapHint: 'máx. {cap}/ronda',
+    stickyRoundCapHint: 'máx. {cap}',
     stickyRoundProgress: '{qty}/{cap}',
     stickyCooldown: 'espera {seconds}s',
     stickyPending: 'cocina en {seconds}s',
@@ -206,7 +206,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Empezar a pedir',
   },
   fr: {
-    stickyRoundCapHint: 'max {cap}/round',
+    stickyRoundCapHint: 'max {cap}',
     stickyRoundProgress: '{qty}/{cap}',
     stickyCooldown: 'wait {seconds}s',
     stickyPending: 'kitchen in {seconds}s',
@@ -246,7 +246,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   de: {
-    stickyRoundCapHint: 'max {cap}/round',
+    stickyRoundCapHint: 'max {cap}',
     stickyRoundProgress: '{qty}/{cap}',
     stickyCooldown: 'wait {seconds}s',
     stickyPending: 'kitchen in {seconds}s',

@@ -352,6 +352,14 @@ export function StaffByItemSplitWorkbench({
   const currentKey = staffByItemRailPersonKey(currentPerson);
   const currentSettled = Boolean(currentKey && settledTicketKeys.has(currentKey));
   const currentLocked = Boolean(currentKey && lockedTicketKeys.has(currentKey));
+  /** Footer actions use the same ticket key as unlockableKeys / onUnlock. */
+  const currentUnlockKey = splitPartyKey(currentPartyId, currentName);
+  const showResumeOrdering = Boolean(
+    ticketUnlock &&
+      !currentSettled &&
+      ticketUnlock.unlockableKeys.has(currentUnlockKey),
+  );
+  const showCollectCurrent = Boolean(onCollectCurrent && !currentSettled);
   /** Rename locked when settled or has collection history; shares lock per paidLocked row. */
   const nameEditDisabled = disabled || currentSettled || currentLocked;
   const poolAddDisabled = disabled || currentSettled || currentLocked;
@@ -1046,40 +1054,39 @@ export function StaffByItemSplitWorkbench({
                       </p>
                     ) : null}
                   </div>
-                  {ticketUnlock &&
-                  !currentSettled &&
-                  ticketUnlock.unlockableKeys.has(splitPartyKey(currentPartyId, currentName)) ? (
-                    <button
-                      type="button"
-                      disabled={
-                        disabled ||
-                        ticketUnlock.unlockingKeys.has(splitPartyKey(currentPartyId, currentName))
-                      }
-                      onClick={() =>
-                        ticketUnlock.onUnlock(splitPartyKey(currentPartyId, currentName))
-                      }
-                      className="text-sm font-semibold px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50"
-                    >
-                      {ticketUnlock.unlockingKeys.has(splitPartyKey(currentPartyId, currentName))
-                        ? ticketUnlock.busyLabel
-                        : ticketUnlock.label}
-                    </button>
-                  ) : null}
-                  {onCollectCurrent && !currentSettled ? (
-                    <button
-                      type="button"
-                      disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
-                      onClick={() => {
-                        userPickedChipRef.current = false;
-                        onCollectCurrent({
-                          personName: currentName,
-                          partyId: currentPartyId,
-                        });
-                      }}
-                      className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
-                    >
-                      {labels.collect}
-                    </button>
+                  {showResumeOrdering || showCollectCurrent ? (
+                    <div className="flex shrink-0 items-center gap-2">
+                      {showResumeOrdering && ticketUnlock ? (
+                        <button
+                          type="button"
+                          disabled={
+                            disabled || ticketUnlock.unlockingKeys.has(currentUnlockKey)
+                          }
+                          onClick={() => ticketUnlock.onUnlock(currentUnlockKey)}
+                          className="text-sm font-semibold px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50"
+                        >
+                          {ticketUnlock.unlockingKeys.has(currentUnlockKey)
+                            ? ticketUnlock.busyLabel
+                            : ticketUnlock.label}
+                        </button>
+                      ) : null}
+                      {showCollectCurrent && onCollectCurrent ? (
+                        <button
+                          type="button"
+                          disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
+                          onClick={() => {
+                            userPickedChipRef.current = false;
+                            onCollectCurrent({
+                              personName: currentName,
+                              partyId: currentPartyId,
+                            });
+                          }}
+                          className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                        >
+                          {labels.collect}
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               </>

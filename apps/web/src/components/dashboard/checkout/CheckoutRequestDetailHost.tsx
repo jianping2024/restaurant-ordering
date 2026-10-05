@@ -237,9 +237,9 @@ export function CheckoutRequestDetailHost({
     onMutated: onResumeMutated,
     showToast,
     messages: {
-      success: t.unlockTicketSuccess,
-      failed: t.unlockTicketFailed,
-      collecting: t.unlockTicketCollecting,
+      success: t.resumeOrderingSuccess,
+      failed: t.resumeOrderingFailed,
+      collecting: t.resumeOrderingTicketCollecting,
     },
   });
   const isIndividualPlan = request.individual_tickets !== undefined;
@@ -253,8 +253,8 @@ export function CheckoutRequestDetailHost({
             ),
             unlockingKeys,
             onUnlock: (ticketKey) => void unlockTicket(ticketKey),
-            label: t.unlockTicket,
-            busyLabel: t.unlockTicketOperating,
+            label: t.resumeOrdering,
+            busyLabel: t.resumeOrderingOperating,
           }
         : undefined,
     [getCollectedForSession, isIndividualPlan, request, t, unlockTicket, unlockingKeys],

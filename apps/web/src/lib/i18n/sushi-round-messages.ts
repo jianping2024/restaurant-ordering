@@ -6,6 +6,9 @@ import { messageForSushiLimitError, MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-p
 export const SUSHI_ROUND_MESSAGES: Record<
   Language,
   {
+    /** Empty round: guests · this hint (cap = round_cap_total). */
+    stickyRoundCapHint: string;
+    /** Collecting with lines: guests · this (qty/cap from snapshot). */
     stickyRoundProgress: string;
     stickyCooldown: string;
     stickyPending: string;
@@ -45,6 +48,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
   }
 > = {
   zh: {
+    stickyRoundCapHint: '每轮免费菜最多 {cap} 份',
     stickyRoundProgress: '本轮 {qty}/{cap}',
     stickyCooldown: '桌级冷却 {seconds}s',
     stickyPending: '{seconds} 秒后送厨 · 请抓紧点餐',
@@ -82,6 +86,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: '开始点餐',
   },
   en: {
+    stickyRoundCapHint: 'up to {cap} free dishes per round',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',
@@ -120,6 +125,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   pt: {
+    stickyRoundCapHint: 'até {cap} pratos grátis por ronda',
     stickyRoundProgress: 'Esta ronda {qty}/{cap}',
     stickyCooldown: 'Espera da mesa {seconds}s',
     stickyPending: '{seconds}s até à cozinha · continue a pedir',
@@ -158,6 +164,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Começar a pedir',
   },
   es: {
+    stickyRoundCapHint: 'hasta {cap} platos gratis por ronda',
     stickyRoundProgress: 'Esta ronda {qty}/{cap}',
     stickyCooldown: 'Espera de mesa {seconds}s',
     stickyPending: '{seconds}s hasta cocina · sigue pidiendo',
@@ -196,6 +203,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Empezar a pedir',
   },
   fr: {
+    stickyRoundCapHint: 'up to {cap} free dishes per round',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',
@@ -235,6 +243,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   de: {
+    stickyRoundCapHint: 'up to {cap} free dishes per round',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',
@@ -274,6 +283,24 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
 };
+
+/**
+ * Sole sticky first-line round-limit fragment (after table headcount).
+ * qty=0 → max-per-round hint; qty>0 → this-round progress. Never hide for countdown.
+ */
+export function formatSushiStickyRoundLimitLabel(
+  qty: number,
+  cap: number,
+  labels: Pick<(typeof SUSHI_ROUND_MESSAGES)[Language], 'stickyRoundCapHint' | 'stickyRoundProgress'>,
+): string | null {
+  const q = Number.isFinite(qty) ? Math.max(0, Math.floor(qty)) : 0;
+  const c = Number.isFinite(cap) ? Math.max(0, Math.floor(cap)) : 0;
+  if (c < 1) return null;
+  if (q > 0) {
+    return labels.stickyRoundProgress.replace('{qty}', String(q)).replace('{cap}', String(c));
+  }
+  return labels.stickyRoundCapHint.replace('{cap}', String(c));
+}
 
 export function messageForSushiRoundError(
   code: string | undefined,

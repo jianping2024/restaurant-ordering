@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
 import { isCooldownActive } from '@/lib/table-order-round/status';
-import type { SUSHI_ROUND_MESSAGES } from '@/lib/i18n/sushi-round-messages';
+import {
+  formatSushiStickyRoundLimitLabel,
+  type SUSHI_ROUND_MESSAGES,
+} from '@/lib/i18n/sushi-round-messages';
 import type { Language } from '@/types';
 import type { AllergenCode } from '@/lib/allergens';
 import { ALLERGENS, allergenLabel } from '@/lib/allergens';
@@ -71,7 +74,7 @@ export function SushiRoundStickyBar({
     );
   }
 
-  const showProgress = qty > 0 && !statusLine;
+  const roundLimitLabel = formatSushiStickyRoundLimitLabel(qty, cap, labels);
   const vegOn = Boolean(dietaryFilter?.vegetarianFilterEnabled);
   const allergenOn = Boolean(dietaryFilter?.allergenFilterEnabled);
   const showFilters = vegOn || allergenOn;
@@ -89,15 +92,13 @@ export function SushiRoundStickyBar({
       <div className="flex min-h-8 items-center justify-between gap-2.5">
         <p className="min-w-0 flex-1 text-[13px] leading-snug text-brand-text">
           <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
-          {showProgress ? (
+          {roundLimitLabel ? (
             <>
               <span aria-hidden className="mx-1.5 text-brand-text-muted">
                 ·
               </span>
               <span className="whitespace-nowrap text-[12px] tabular-nums text-brand-text-muted">
-                {labels.stickyRoundProgress
-                  .replace('{qty}', String(qty))
-                  .replace('{cap}', String(cap))}
+                {roundLimitLabel}
               </span>
             </>
           ) : null}

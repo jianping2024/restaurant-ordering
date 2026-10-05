@@ -2,10 +2,27 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   SUSHI_ROUND_MESSAGES,
+  formatSushiStickyRoundLimitLabel,
   messageForGuestRoundQtyPreview,
   messageForSushiRoundError,
 } from './sushi-round-messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+
+describe('formatSushiStickyRoundLimitLabel', () => {
+  const zh = SUSHI_ROUND_MESSAGES.zh;
+
+  it('shows max-per-round hint when basket empty', () => {
+    assert.equal(formatSushiStickyRoundLimitLabel(0, 40, zh), '每轮免费菜最多 40 份');
+  });
+
+  it('shows this-round progress when basket has qty', () => {
+    assert.equal(formatSushiStickyRoundLimitLabel(8, 40, zh), '本轮 8/40');
+  });
+
+  it('returns null when cap is not positive', () => {
+    assert.equal(formatSushiStickyRoundLimitLabel(3, 0, zh), null);
+  });
+});
 
 describe('messageForSushiRoundError', () => {
   const zh = SUSHI_ROUND_MESSAGES.zh;

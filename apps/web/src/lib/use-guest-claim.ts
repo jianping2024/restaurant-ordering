@@ -5,7 +5,8 @@
  *
  * Seed order per open session: this phone's unlocked ticket on the server (after「恢复点单」)
  * → this phone's local draft → a fresh claim. A claim whose ticket is already paid is never
- * reused: the next dish opens a new ticket with a new id and an empty name.
+ * reused: the next dish opens a new ticket id; the name is prefilled from this phone's last
+ * used name in the session (editable).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
@@ -23,19 +24,18 @@ import {
   guestOthersClaimBlocks,
   lineOverClaimed,
   loadGuestClaimDraft,
+  loadGuestClaimLastName,
+  mintGuestClaim,
   othersAllocation,
   pruneClaimRows,
+  rememberGuestClaimLastName,
   saveGuestClaimDraft,
   type GuestClaim,
 } from '@/lib/guest-claim';
 import type { UILanguage } from '@/lib/i18n';
 import type { IndividualTicketInfo } from '@/lib/individual-checkout';
-import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
+import { splitPartyKey } from '@/lib/split-party-id';
 import type { BillSplit } from '@/types';
-
-function freshClaim(): GuestClaim {
-  return { name: '', partyId: mintSplitPartyId(), rows: {} };
-}
 
 export function useGuestClaim(params: {
   restaurantId: string;
@@ -51,7 +51,7 @@ export function useGuestClaim(params: {
   const { restaurantId, sessionId, lineSpecs, orderLines, existingSplit, tickets, lang, submitted } =
     params;
 
-  const [claim, setClaim] = useState<GuestClaim>(freshClaim);
+  const [claim, setClaim] = useState<GuestClaim>(() => mintGuestClaim());
   const [hydratedFor, setHydratedFor] = useState<string | null>(null);
   const hydrateStateRef = useRef<{ sessionId: string | null; serverKey: string }>({
     sessionId: null,
@@ -101,17 +101,20 @@ export function useGuestClaim(params: {
           ),
         );
       } else {
-        setClaim(freshClaim());
+        setClaim(mintGuestClaim(loadGuestClaimLastName(restaurantId, sessionId)));
       }
     }
     setHydratedFor(sessionId);
   }, [sessionId, serverKey, serverTicket, restaurantId, lineSpecs, paidKeys, persons]);
 
-  // My previous ticket got paid: the next claim is a new ticket (new id, name asked again).
+  // Paid ticket → new ticket id; keep this phone's last name (in-memory, else remembered).
   useEffect(() => {
-    if (!hydratedFor || serverTicket) return;
-    if (paidKeys.has(splitPartyKey(claim.partyId, claim.name))) setClaim(freshClaim());
-  }, [hydratedFor, serverTicket, paidKeys, claim]);
+    if (!hydratedFor || !sessionId || serverTicket) return;
+    if (!paidKeys.has(splitPartyKey(claim.partyId, claim.name))) return;
+    const nextName = claim.name.trim() || loadGuestClaimLastName(restaurantId, sessionId);
+    if (nextName) rememberGuestClaimLastName(restaurantId, sessionId, nextName);
+    setClaim(mintGuestClaim(nextName));
+  }, [hydratedFor, serverTicket, paidKeys, claim, restaurantId, sessionId]);
 
   // Dishes that left the bill never linger in the claim.
   useEffect(() => {
@@ -128,6 +131,7 @@ export function useGuestClaim(params: {
   useEffect(() => {
     if (!sessionId || hydratedFor !== sessionId) return;
     if (submitted) {
+      rememberGuestClaimLastName(restaurantId, sessionId, claim.name);
       clearGuestClaimDraft(restaurantId, sessionId);
       return;
     }

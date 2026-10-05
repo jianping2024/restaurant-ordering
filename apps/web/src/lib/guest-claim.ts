@@ -34,7 +34,7 @@ import {
   type Rational,
 } from '@/lib/rational-qty';
 import { unpaidNameTakenByOther } from '@/lib/individual-checkout';
-import { splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
+import { mintSplitPartyId, splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
 import type { SplitPerson, SplitResult } from '@/types';
 
 export type GuestClaim = {
@@ -44,6 +44,15 @@ export type GuestClaim = {
   /** At most one row per dish line (menu: whole/num/den; buffet: adult/child headcounts). */
   rows: Record<string, ByItemConsumerRow>;
 };
+
+/**
+ * Sole mint for a new guest ticket on this phone.
+ * Prefill name when this phone already used one in the same session (after paid / fresh hydrate).
+ * Always a new {@link mintSplitPartyId} — never reuse a paid ticket id.
+ */
+export function mintGuestClaim(prefillName = ''): GuestClaim {
+  return { name: prefillName.trim(), partyId: mintSplitPartyId(), rows: {} };
+}
 
 export type GuestClaimIssue =
   | 'name_required'
@@ -551,12 +560,56 @@ export function pruneClaimRows(
 // Local draft (this phone only, keyed by restaurant + open session)
 // ---------------------------------------------------------------------------
 const DRAFT_KEY_PREFIX = 'mesa:guest-claim:';
+/** Sole localStorage key for last used claim name on this phone (same session). */
+const LAST_NAME_KEY_PREFIX = 'mesa:guest-claim-last-name:';
 const DRAFT_VERSION = 1 as const;
 
 type GuestClaimDraft = GuestClaim & { v: typeof DRAFT_VERSION; updatedAt: number };
 
 function draftKey(restaurantId: string, sessionId: string): string {
   return `${DRAFT_KEY_PREFIX}${restaurantId}:${sessionId}`;
+}
+
+function lastNameKey(restaurantId: string, sessionId: string): string {
+  return `${LAST_NAME_KEY_PREFIX}${restaurantId}:${sessionId}`;
+}
+
+function browserLocalStorage(): Storage | null {
+  try {
+    const ls = (globalThis as { localStorage?: Storage }).localStorage;
+    if (!ls || typeof ls.getItem !== 'function') return null;
+    return ls;
+  } catch {
+    return null;
+  }
+}
+
+/** Sole write: remember this phone's claim name for the open session (prefill after paid). */
+export function rememberGuestClaimLastName(
+  restaurantId: string,
+  sessionId: string,
+  name: string,
+): void {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const ls = browserLocalStorage();
+  if (!ls) return;
+  try {
+    ls.setItem(lastNameKey(restaurantId, sessionId), trimmed);
+  } catch {
+    /* private mode / quota */
+  }
+}
+
+/** Sole read: last claim name this phone used in the session (empty when none). */
+export function loadGuestClaimLastName(restaurantId: string, sessionId: string): string {
+  const ls = browserLocalStorage();
+  if (!ls) return '';
+  try {
+    return ls.getItem(lastNameKey(restaurantId, sessionId))?.trim() ?? '';
+  } catch {
+    return '';
+  }
 }
 
 function isClaimRow(value: unknown): value is ByItemConsumerRow {

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterEach, describe, it } from 'node:test';
+import { afterEach, before, beforeEach, describe, it } from 'node:test';
 import type { BillSplitOrderLine, ByItemLineSpec } from './bill-split-by-item-lines';
 import {
   applyGuestClaimRowPatch,
@@ -15,12 +15,15 @@ import {
   guestClaimPoolResults,
   lineAvailability,
   lineOverClaimed,
+  loadGuestClaimLastName,
+  mintGuestClaim,
   othersAllocation,
   guestOthersClaimBlocks,
   guestClaimLineEditableVisible,
   guestOthersClaimStyleSlot,
   parseGuestClaimDraft,
   pruneClaimRows,
+  rememberGuestClaimLastName,
   type GuestClaim,
 } from './guest-claim';
 import type { SplitPerson, SplitResult } from '../types';
@@ -427,5 +430,46 @@ describe('local draft parse', () => {
     assert.equal(parseGuestClaimDraft('nope'), null);
     assert.equal(parseGuestClaimDraft(JSON.stringify({ ...c, v: 2 })), null);
     assert.equal(parseGuestClaimDraft(JSON.stringify({ ...c, v: 1, partyId: '' })), null);
+  });
+});
+
+describe('mintGuestClaim + last name memory', () => {
+  const store = new Map<string, string>();
+  const rid = 'rest-1';
+  const sid = 'sess-1';
+
+  before(() => {
+    (globalThis as { localStorage?: Storage }).localStorage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        store.set(key, value);
+      },
+      removeItem: (key: string) => {
+        store.delete(key);
+      },
+      clear: () => store.clear(),
+      key: () => null,
+      length: 0,
+    };
+  });
+
+  beforeEach(() => store.clear());
+
+  it('mints a new party id and prefills a trimmed name', () => {
+    const a = mintGuestClaim('  Li  ');
+    const b = mintGuestClaim('Li');
+    assert.equal(a.name, 'Li');
+    assert.equal(b.name, 'Li');
+    assert.ok(a.partyId);
+    assert.notEqual(a.partyId, b.partyId);
+    assert.deepEqual(a.rows, {});
+  });
+
+  it('remembers and loads the last claim name for the session', () => {
+    assert.equal(loadGuestClaimLastName(rid, sid), '');
+    rememberGuestClaimLastName(rid, sid, '  John  ');
+    assert.equal(loadGuestClaimLastName(rid, sid), 'John');
+    rememberGuestClaimLastName(rid, sid, '   ');
+    assert.equal(loadGuestClaimLastName(rid, sid), 'John');
   });
 });

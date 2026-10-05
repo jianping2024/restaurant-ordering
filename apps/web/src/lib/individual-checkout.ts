@@ -8,6 +8,7 @@
  * Ticket identity is the sole {@link splitResultTicketKey} (party_id first, else name).
  */
 import {
+  allocateByItemShareAmounts,
   buildByItemAllocationsFromPersons,
   calcByItemSplitResults,
   getByItemLineStatusFromShares,
@@ -17,8 +18,9 @@ import {
   byItemSplitLineFromOrderLine,
   type BillSplitOrderLine,
 } from '@/lib/bill-split-by-item-lines';
+import type { IndividualCheckoutSignalItem } from '@/lib/individual-call-notice';
 import { splitPersonKey } from '@/lib/split-person-identity';
-import { splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
+import { splitPartyKey, splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { SplitPerson, SplitResult } from '@/types';
 
@@ -234,6 +236,59 @@ export function recomputeIndividualTicketAmounts(params: {
     const amount = amountByKey.get(key);
     return amount != null ? { ...row, amount } : row;
   });
+}
+
+/**
+ * Sole call-notice item stamp for `table_checkout_signals.items`.
+ * Same share money path as {@link allocateByItemShareAmounts}; trilingual names from order lines.
+ * Object keyed by ticket key for `individual_checkout_apply.p_ticket_signal_items`.
+ */
+export function buildIndividualCallSignalItemsByTicket(params: {
+  orderLines: ReadonlyArray<BillSplitOrderLine>;
+  lineSpecs: ReadonlyArray<ByItemLineSpec>;
+  persons: ReadonlyArray<SplitPerson>;
+  ticketKeys: ReadonlyArray<string>;
+}): Record<string, IndividualCheckoutSignalItem[]> {
+  const { orderLines, lineSpecs, persons, ticketKeys } = params;
+  const want = new Set(ticketKeys.filter(Boolean));
+  const out: Record<string, IndividualCheckoutSignalItem[]> = {};
+  for (const key of Array.from(want)) out[key] = [];
+
+  const allocations = buildByItemAllocationsFromPersons([...persons], [...lineSpecs]);
+  const lineByKey = new Map(orderLines.map((line) => [line.key, line]));
+
+  for (const [lineKey, shares] of Object.entries(allocations)) {
+    const live = shares.filter((share) => share.qty.num > 0 && share.qty.den > 0);
+    if (live.length === 0) continue;
+    const catalog = lineByKey.get(lineKey);
+    if (!catalog) continue;
+    const splitLine = byItemSplitLineFromOrderLine(
+      catalog,
+      resolveMenuItemLocalizedName(catalog, 'pt'),
+    );
+    const amounts = allocateByItemShareAmounts(splitLine, live);
+    const name_pt = (catalog.name_pt || catalog.name || '').trim();
+    const name_en = (catalog.name_en || '').trim();
+    const name_zh = (catalog.name_zh || '').trim();
+
+    for (let i = 0; i < live.length; i++) {
+      const share = live[i]!;
+      const ticketKey = splitPartyKey(share.partyId, share.name);
+      if (!ticketKey || !want.has(ticketKey)) continue;
+      const amount = amounts[i] ?? 0;
+      out[ticketKey]!.push({
+        key: lineKey,
+        qty_num: share.qty.num,
+        qty_den: share.qty.den,
+        amount: Math.round(amount * 100) / 100,
+        name_pt,
+        name_en,
+        name_zh,
+      });
+    }
+  }
+
+  return out;
 }
 
 /** True when this phone has a called ticket that is not yet paid (blocks ordering). */

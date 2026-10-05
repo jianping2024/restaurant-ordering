@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>呼叫结账通知 · 设计稿</title>
+  <style>
+    :root {
+      --bg: rgb(237, 234, 226);
+      --ink: rgb(31, 62, 82);
+      --gold: rgb(139, 101, 48);
+      --text: rgb(40, 38, 34);
+      --muted: rgb(110, 104, 94);
+      --card: rgb(248, 246, 240);
+      --border: rgb(210, 204, 192);
+      --on-ink: #f7f4ec;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "SF Pro Text", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+    .stage {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      margin: 24px auto;
+      overflow: hidden;
+      border-radius: 28px;
+      box-shadow: 0 24px 64px rgba(31, 62, 82, 0.22);
+      background: var(--bg);
+    }
+    .menu-bg {
+      position: absolute;
+      inset: 0;
+      padding: 72px 14px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      filter: blur(2.5px) saturate(0.85);
+      opacity: 0.55;
+    }
+    .dish {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 148px;
+    }
+    .dish .ph {
+      height: 88px;
+      background:
+        linear-gradient(135deg, rgba(31,62,82,0.12), rgba(139,101,48,0.18)),
+        #d9d2c4;
+    }
+    .dish .meta { padding: 8px 10px 12px; }
+    .dish .name { font-size: 12px; color: var(--ink); font-weight: 600; }
+    .dish .price { margin-top: 6px; font-size: 12px; color: var(--gold); }
+    .scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+    }
+    .modal {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      /* Fixed short sheet — people list scrolls; never grow with person count */
+      height: 340px;
+      background: var(--card);
+      border: 1px solid rgba(31, 62, 82, 0.18);
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .head h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .x {
+      width: 28px; height: 28px;
+      border: 0; background: transparent;
+      color: var(--muted);
+      font-size: 22px; line-height: 1;
+    }
+    .scroll-wrap {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .body {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 14px 16px 20px;
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-gutter: stable;
+    }
+    .body::-webkit-scrollbar { width: 4px; }
+    .body::-webkit-scrollbar-thumb {
+      background: rgba(31, 62, 82, 0.28);
+      border-radius: 4px;
+    }
+    /* Hint that more people are below */
+    .fade {
+      pointer-events: none;
+      position: absolute;
+      left: 0; right: 12px; bottom: 0;
+      height: 36px;
+      background: linear-gradient(to bottom, rgba(248,246,240,0), rgba(248,246,240,1));
+    }
+    .more-hint {
+      position: absolute;
+      left: 0; right: 0; bottom: 6px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .lead {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .person + .person {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .person-name {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .lines {
+      border: 1px solid rgba(31, 62, 82, 0.12);
+      border-radius: 12px;
+      background: rgba(237, 234, 226, 0.55);
+      overflow: hidden;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: baseline;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .row + .row { border-top: 1px solid rgba(210, 204, 192, 0.9); }
+    .row .n { color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row .q { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .row .a { color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; min-width: 3.6rem; text-align: right; }
+    .sum {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 8px;
+      padding: 0 2px;
+      font-size: 13px;
+    }
+    .sum .label { color: var(--muted); }
+    .sum .value { color: var(--ink); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+    .actions {
+      flex-shrink: 0;
+      padding: 10px 16px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 44px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--ink);
+      color: var(--on-ink);
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="shot">
+    <div class="menu-bg" aria-hidden="true">
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">三文鱼刺身</div><div class="price">€18.90</div></div></div>
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">吞拿鱼卷</div><div class="price">€14.50</div></div></div>
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">蔓越莓汁</div><div class="price">€12.99</div></div></div>
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">可乐 330ml</div><div class="price">€3.50</div></div></div>
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">毛豆</div><div class="price">€4.00</div></div></div>
+      <div class="dish"><div class="ph"></div><div class="meta"><div class="name">味噌汤</div><div class="price">€3.20</div></div></div>
+    </div>
+    <div class="scrim"></div>
+    <div class="modal" role="dialog" aria-labelledby="t">
+      <div class="head">
+        <h1 id="t">呼叫结账</h1>
+        <button class="x" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="scroll-wrap">
+        <div class="body">
+          <p class="lead">同桌有人呼叫结账</p>
+
+          <section class="person">
+            <h2 class="person-name">Jack</h2>
+            <div class="lines">
+              <div class="row"><span class="n">蔓越莓汁</span><span class="q">×1</span><span class="a">€12.99</span></div>
+              <div class="row"><span class="n">三文鱼刺身</span><span class="q">×1/2</span><span class="a">€9.50</span></div>
+            </div>
+            <div class="sum"><span class="label">合计</span><span class="value">€22.49</span></div>
+          </section>
+
+          <section class="person">
+            <h2 class="person-name">Amy</h2>
+            <div class="lines">
+              <div class="row"><span class="n">可乐 330ml</span><span class="q">×1</span><span class="a">€3.50</span></div>
+              <div class="row"><span class="n">毛豆</span><span class="q">×1</span><span class="a">€4.00</span></div>
+            </div>
+            <div class="sum"><span class="label">合计</span><span class="value">€7.50</span></div>
+          </section>
+
+          <section class="person">
+            <h2 class="person-name">Tom</h2>
+            <div class="lines">
+              <div class="row"><span class="n">吞拿鱼卷</span><span class="q">×1</span><span class="a">€14.50</span></div>
+              <div class="row"><span class="n">味噌汤</span><span class="q">×1</span><span class="a">€3.20</span></div>
+            </div>
+            <div class="sum"><span class="label">合计</span><span class="value">€17.70</span></div>
+          </section>
+
+          <section class="person">
+            <h2 class="person-name">Lisa</h2>
+            <div class="lines">
+              <div class="row"><span class="n">加州卷</span><span class="q">×2</span><span class="a">€16.00</span></div>
+            </div>
+            <div class="sum"><span class="label">合计</span><span class="value">€16.00</span></div>
+          </section>
+        </div>
+        <div class="fade" aria-hidden="true"></div>
+        <div class="more-hint" aria-hidden="true">下滑查看更多</div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">知道了</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

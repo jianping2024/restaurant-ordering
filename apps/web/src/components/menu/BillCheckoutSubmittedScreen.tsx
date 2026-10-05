@@ -3,21 +3,13 @@
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
 import type { DishFeedbackReasonKey } from '@/lib/dish-feedback-reasons';
+import type { GuestReviewableItem } from '@/lib/guest-reviewable-items';
 import type { DishFeedbackVote } from '@/types';
 import { CheckoutSubmittedHeroIllustration } from '@/components/menu/CheckoutSubmittedHeroIllustration';
 import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultList';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
-
-export type ReviewableItem = {
-  menu_item_id: string;
-  order_id: string;
-  name: string;
-  emoji: string;
-  image_url: string | null;
-  qty: number;
-};
 
 export type BillCheckoutSubmittedCopy = {
   checkoutSubmittedHint: string;
@@ -60,7 +52,7 @@ interface Props {
     onResume: () => void;
   } | null;
   showFeedback: boolean;
-  reviewableItems: ReviewableItem[];
+  reviewableItems: GuestReviewableItem[];
   feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>;
   feedbackReasonLabels: Record<DishFeedbackReasonKey, string>;
   feedbackReasonKeys: readonly DishFeedbackReasonKey[];

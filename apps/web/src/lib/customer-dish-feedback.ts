@@ -1,12 +1,17 @@
 import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { buildByItemSplitOrderLines } from '@/lib/bill-split-by-item-lines';
+import { loadActiveBillSplitForSession } from '@/lib/checkout-active-bill-split';
 import {
   parseDishFeedbackReasons,
   type DishFeedbackReasonKey,
   type ParsedDishFeedbackItem,
 } from '@/lib/dish-feedback-reasons';
-import type { DishFeedbackVote } from '@/types';
+import { mineByItemFeedbackOrderKeys } from '@/lib/guest-reviewable-items';
+import { loadIndividualTickets } from '@/lib/individual-checkout-reads';
+import { isBuffetBaseItem } from '@/lib/order-items';
+import type { DishFeedbackVote, Order, SplitPerson } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export type { ParsedDishFeedbackItem };
@@ -39,6 +44,55 @@ const UUID_RE =
 
 function isUuid(v: string): boolean {
   return UUID_RE.test(v);
+}
+
+function optionalMenuItemIdField(line: object): string {
+  const raw = (line as { menu_item_id?: unknown }).menu_item_id;
+  return typeof raw === 'string' ? raw.trim() : '';
+}
+
+function sessionOrderMenuKeys(orders: ReadonlyArray<Order>): {
+  orderIds: Set<string>;
+  allowed: Set<string>;
+} {
+  const allowed = new Set<string>();
+  const orderIds = new Set<string>();
+  for (const order of orders) {
+    if (typeof order.id !== 'string') continue;
+    orderIds.add(order.id);
+    const lines = Array.isArray(order.items) ? order.items : [];
+    for (const line of lines) {
+      if (!line || typeof line !== 'object') continue;
+      if (isBuffetBaseItem(line)) continue;
+      const fromField = optionalMenuItemIdField(line);
+      const fromId = typeof line.id === 'string' ? line.id.trim() : '';
+      const menuId =
+        fromField && isUuid(fromField)
+          ? fromField
+          : fromId && isUuid(fromId)
+            ? fromId
+            : '';
+      if (menuId) allowed.add(`${order.id}:${menuId}`);
+    }
+  }
+  return { orderIds, allowed };
+}
+
+function orderIdForMenuItem(
+  orders: ReadonlyArray<Order>,
+  menuItemId: string,
+  fallbackOrderId: string,
+): string {
+  for (const order of orders) {
+    if (typeof order.id !== 'string') continue;
+    for (const line of order.items ?? []) {
+      if (!line || typeof line !== 'object') continue;
+      const fromField = optionalMenuItemIdField(line);
+      const fromId = typeof line.id === 'string' ? line.id.trim() : '';
+      if (fromField === menuItemId || fromId === menuItemId) return order.id;
+    }
+  }
+  return fallbackOrderId;
 }
 
 export async function resolveCustomerDishFeedbackContext(params: {
@@ -166,44 +220,87 @@ export async function submitDishFeedback(params: {
   restaurantId: string;
   sessionId: string;
   items: ParsedDishFeedbackItem[];
+  /** Required when the active plan is by_item — scopes allowed dishes to this phone's tickets. */
+  guestClientId?: string | null;
 }): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   const { data: orders, error: ordersErr } = await params.admin
     .from('orders')
-    .select('id, items')
+    .select('id, items, created_at')
     .eq('restaurant_id', params.restaurantId)
     .eq('session_id', params.sessionId);
   if (ordersErr) {
     return { ok: false, status: 500, error: 'orders_load_failed' };
   }
 
-  const allowed = new Set<string>();
-  const orderIds = new Set<string>();
-  for (const order of orders ?? []) {
-    if (typeof order.id !== 'string') continue;
-    orderIds.add(order.id);
-    const lines = Array.isArray(order.items) ? order.items : [];
-    for (const line of lines) {
-      if (!line || typeof line !== 'object') continue;
-      const row = line as { menu_item_id?: unknown; id?: unknown; kind?: unknown };
-      if (row.kind === 'buffet_base') continue;
-      const fromField =
-        typeof row.menu_item_id === 'string' ? row.menu_item_id.trim() : '';
-      const fromId = typeof row.id === 'string' ? row.id.trim() : '';
-      const menuId =
-        fromField && isUuid(fromField)
-          ? fromField
-          : fromId && isUuid(fromId)
-            ? fromId
-            : '';
-      if (menuId) allowed.add(`${order.id}:${menuId}`);
+  const typedOrders = (orders ?? []) as Order[];
+  const { orderIds, allowed: sessionAllowed } = sessionOrderMenuKeys(typedOrders);
+  let allowedExact = sessionAllowed;
+  let allowedMenuIds: Set<string> | null = null;
+
+  const split = await loadActiveBillSplitForSession({
+    admin: params.admin,
+    restaurantId: params.restaurantId,
+    sessionId: params.sessionId,
+  });
+  if (split?.split_mode === 'by_item') {
+    const guestClientId =
+      typeof params.guestClientId === 'string' ? params.guestClientId.trim() : '';
+    if (!guestClientId) {
+      return { ok: false, status: 400, error: 'invalid_guest_client_id' };
     }
+    const tickets = await loadIndividualTickets(params.admin, {
+      billSplitId: split.id,
+      clientId: guestClientId,
+    });
+    const mineTicketKeys = new Set(
+      tickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
+    );
+    const fallbackOrderId = typedOrders[0]?.id ?? '';
+    const catalogByLineKey = new Map<string, { menuItemId: string; orderId: string }>();
+    for (const line of buildByItemSplitOrderLines(typedOrders)) {
+      if (isBuffetBaseItem(line) || line.item_status === 'voided') continue;
+      const key = typeof line.key === 'string' ? line.key.trim() : '';
+      if (!key || !isUuid(line.id) || catalogByLineKey.has(key)) continue;
+      const orderId =
+        line.order_id && orderIds.has(line.order_id)
+          ? line.order_id
+          : orderIdForMenuItem(typedOrders, line.id, fallbackOrderId);
+      catalogByLineKey.set(key, {
+        menuItemId: line.id,
+        orderId,
+      });
+    }
+    const mineAllowed = mineByItemFeedbackOrderKeys({
+      persons: (Array.isArray(split.persons) ? split.persons : []) as SplitPerson[],
+      mineTicketKeys,
+      catalogByLineKey,
+    });
+    allowedMenuIds = new Set<string>();
+    for (const key of Array.from(mineAllowed)) {
+      const sep = key.indexOf(':');
+      if (sep < 0) continue;
+      const menuId = key.slice(sep + 1);
+      if (
+        menuId &&
+        Array.from(sessionAllowed).some((row) => row.endsWith(`:${menuId}`))
+      ) {
+        allowedMenuIds.add(menuId);
+      }
+    }
+    allowedExact = new Set();
   }
 
   for (const item of params.items) {
     if (!orderIds.has(item.order_id)) {
       return { ok: false, status: 400, error: 'order_not_in_session' };
     }
-    if (!allowed.has(`${item.order_id}:${item.menu_item_id}`)) {
+    if (allowedMenuIds) {
+      if (!allowedMenuIds.has(item.menu_item_id)) {
+        return { ok: false, status: 400, error: 'menu_item_not_on_ticket' };
+      }
+      continue;
+    }
+    if (!allowedExact.has(`${item.order_id}:${item.menu_item_id}`)) {
       return { ok: false, status: 400, error: 'menu_item_not_on_order' };
     }
   }

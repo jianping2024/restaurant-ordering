@@ -10,6 +10,7 @@ import { parseDishFeedbackSubmitItems } from '@/lib/dish-feedback-reasons';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 
 export const runtime = 'nodejs';
 
@@ -103,7 +104,12 @@ export async function POST(
     return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   }
 
-  let body: { table_id?: unknown; action?: unknown; items?: unknown };
+  let body: {
+    table_id?: unknown;
+    action?: unknown;
+    items?: unknown;
+    guest_client_id?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -159,6 +165,7 @@ export async function POST(
     restaurantId: ctx.restaurantId,
     sessionId: ctx.session.id,
     items: parsed.items,
+    guestClientId: parseGuestClientId(body.guest_client_id),
   });
   if (!submitted.ok) {
     return NextResponse.json(

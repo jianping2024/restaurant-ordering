@@ -8,6 +8,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import {
+  individualPhoneHoldsOrdering,
+  individualReadOnlyTicketKeys,
+  type IndividualTicketInfo,
+} from '@/lib/individual-checkout';
+import {
   deriveBillView,
   syncCustomerBill,
   type CustomerBillSyncSnapshot,
@@ -29,10 +34,15 @@ export function useCustomerBillReadModel(
     collectedPayments: SessionCollectedPayment[];
     sessionId: string | null;
     sessionStatus: SessionStatus;
+    /** Session stamped individual_checkout (SSR boot). */
+    individualCheckout?: boolean;
+    individualTickets?: IndividualTicketInfo[];
   },
   params: {
     slug: string;
     tableId: string;
+    /** Asking phone — lets the server mark which called tickets are `mine`. */
+    guestClientId?: string | null;
     /** Always reconcile on bill surfaces (incl. success page) so resume flips without hard reload. */
     enabled?: boolean;
   },
@@ -46,13 +56,34 @@ export function useCustomerBillReadModel(
   const [collectedPayments, setCollectedPayments] = useState(initial.collectedPayments);
   const [sessionId, setSessionId] = useState<string | null>(initial.sessionId);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(initial.sessionStatus);
+  const [individualCheckout, setIndividualCheckout] = useState(
+    () => initial.individualCheckout === true,
+  );
+  const [individualTickets, setIndividualTickets] = useState<IndividualTicketInfo[]>(
+    () => initial.individualTickets ?? [],
+  );
   const [submitted, setSubmitted] = useState(() =>
-    shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
+    initial.individualCheckout === true
+      ? individualPhoneHoldsOrdering(
+          initial.individualTickets ?? [],
+          initial.existingSplit?.result ?? [],
+        )
+      : shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
   );
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
-  const syncInFlightRef = useRef<Promise<CustomerBillSyncSnapshot | null> | null>(null);
+  // The in-flight read is keyed by the asking phone: a read started before the phone id was known
+  // (no `mine`) must neither be reused for, nor overwrite, a read that carries the id.
+  const syncInFlightRef = useRef<{
+    clientId: string | null;
+    promise: Promise<CustomerBillSyncSnapshot | null>;
+  } | null>(null);
+  const syncSeqRef = useRef(0);
+  const guestClientIdRef = useRef<string | null>(params.guestClientId ?? null);
+  guestClientIdRef.current = params.guestClientId ?? null;
   const callBillBusyRef = useRef(false);
+  /** Individual sessions render only after one read that carried this phone's id. */
+  const [individualReady, setIndividualReady] = useState(false);
 
   const markSynced = useCallback(() => {
     setLastSyncedAt(Date.now());
@@ -72,9 +103,16 @@ export function useCustomerBillReadModel(
     setCollectedPayments(initial.collectedPayments);
     setSessionId(initial.sessionId);
     setSessionStatus(initial.sessionStatus);
+    setIndividualCheckout(initial.individualCheckout === true);
+    setIndividualTickets(initial.individualTickets ?? []);
     if (!callBillBusyRef.current) {
       setSubmitted(
-        shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
+        initial.individualCheckout === true
+          ? individualPhoneHoldsOrdering(
+              initial.individualTickets ?? [],
+              initial.existingSplit?.result ?? [],
+            )
+          : shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
       );
     }
   }, [
@@ -82,7 +120,14 @@ export function useCustomerBillReadModel(
     initial.collectedPayments,
     initial.sessionId,
     initial.sessionStatus,
+    initial.individualCheckout,
+    initial.individualTickets,
   ]);
+
+  const individualReadOnlyKeys = useMemo(
+    () => individualReadOnlyTicketKeys(individualTickets),
+    [individualTickets],
+  );
 
   const { orderLines, splitOrderLines, lineSpecs, total } = useMemo(
     () => deriveBillView(orders),
@@ -97,9 +142,16 @@ export function useCustomerBillReadModel(
       setCollectedPayments(synced.collectedPayments);
       setSessionId(synced.sessionId);
       if (synced.sessionStatus) setSessionStatus(synced.sessionStatus);
+      setIndividualCheckout(synced.individualCheckout);
+      setIndividualTickets(synced.individualTickets);
       if (!callBillBusyRef.current) {
         setSubmitted(
-          shouldShowCheckoutSubmitted(synced.existingSplit, synced.sessionStatus),
+          synced.individualCheckout
+            ? individualPhoneHoldsOrdering(
+                synced.individualTickets,
+                synced.existingSplit?.result ?? [],
+              )
+            : shouldShowCheckoutSubmitted(synced.existingSplit, synced.sessionStatus),
         );
       }
       markSynced();
@@ -108,25 +160,38 @@ export function useCustomerBillReadModel(
   );
 
   const refreshBill = useCallback(async (): Promise<CustomerBillSyncSnapshot | null> => {
-    if (syncInFlightRef.current) {
-      return syncInFlightRef.current;
+    const clientId = guestClientIdRef.current;
+    const inFlight = syncInFlightRef.current;
+    if (inFlight && inFlight.clientId === clientId) {
+      return inFlight.promise;
     }
 
-    const promise = (async () => {
+    const seq = syncSeqRef.current + 1;
+    syncSeqRef.current = seq;
+    const handle: { promise?: Promise<CustomerBillSyncSnapshot | null> } = {};
+    handle.promise = (async () => {
       setIsSyncing(true);
       try {
-        const synced = await syncCustomerBill(params.slug, params.tableId);
-        if (!synced) return null;
-        applySnapshot(synced);
+        const synced = await syncCustomerBill(params.slug, params.tableId, clientId);
+        if (!synced) {
+          // Do not hold the page blank forever when the id'd read fails; writes stay server-guarded.
+          if (clientId && seq === syncSeqRef.current) setIndividualReady(true);
+          return null;
+        }
+        // A newer read owns the state; an older response (e.g. before the phone id) is dropped.
+        if (seq === syncSeqRef.current) {
+          applySnapshot(synced);
+          if (clientId) setIndividualReady(true);
+        }
         return synced;
       } finally {
         setIsSyncing(false);
-        syncInFlightRef.current = null;
+        if (syncInFlightRef.current?.promise === handle.promise) syncInFlightRef.current = null;
       }
     })();
 
-    syncInFlightRef.current = promise;
-    return promise;
+    syncInFlightRef.current = { clientId, promise: handle.promise };
+    return handle.promise;
   }, [applySnapshot, params.slug, params.tableId]);
 
   const commitOrders = useCallback((next: Order[]) => {
@@ -148,6 +213,15 @@ export function useCustomerBillReadModel(
     callBillBusyRef.current = busy;
   }, []);
 
+  /**
+   * Individual-checkout call success: reload the shared plan + ticket states, then show the
+   * called (待结账) screen for this phone. Never commit a local split — the plan holds other tickets.
+   */
+  const commitIndividualCalled = useCallback(async () => {
+    await refreshBill();
+    setSubmitted(true);
+  }, [refreshBill]);
+
   /** Call-bill success: split + submitted land together (never submitted over the pre-submit split). */
   const commitSubmittedCheckout = useCallback((submittedSplit: BillSplit) => {
     setExistingSplit(submittedSplit);
@@ -165,6 +239,9 @@ export function useCustomerBillReadModel(
     sessionId,
     sessionStatus,
     submitted,
+    individualCheckout,
+    individualTickets,
+    individualReadOnlyKeys,
     orderLines,
     splitOrderLines,
     lineSpecs,
@@ -177,5 +254,7 @@ export function useCustomerBillReadModel(
     syncOrders,
     setCallBillBusy,
     commitSubmittedCheckout,
+    commitIndividualCalled,
+    individualReady,
   };
 }

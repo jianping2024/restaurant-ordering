@@ -6,6 +6,7 @@ import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
 import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
+import { guardIndividualClaims } from '@/lib/individual-claim-guard';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import type { Order, OrderItem } from '@/types';
@@ -43,7 +44,9 @@ export type PatchOrderItemsResult =
         | 'invalid_reason'
         | 'reason_detail_required'
         | 'update_failed'
-        | 'menu_decrement_not_allowed';
+        | 'menu_decrement_not_allowed'
+        | 'claimed_by_ticket';
+      lineKeys?: string[];
     };
 
 function toAuditContext(
@@ -97,6 +100,18 @@ export async function patchOrderItemsWithVoidAudit(
     newlyVoided.map((row) => row.itemIndex),
     trimmedReason,
   );
+
+  const claimGuard = await guardIndividualClaims(input.admin, {
+    restaurantId: input.restaurantId,
+    sessionId: input.existing.session_id,
+    nextOrders: (current) =>
+      current.map((order) =>
+        order.id === input.orderId ? { ...order, items: itemsToSave } : order,
+      ),
+  });
+  if (!claimGuard.ok) {
+    return { ok: false, code: 'claimed_by_ticket', lineKeys: claimGuard.lineKeys };
+  }
 
   const persist = await persistOrderItemsUpdate(input.admin, {
     orderId: input.orderId,

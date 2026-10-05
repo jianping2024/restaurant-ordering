@@ -1,3 +1,4 @@
+import type { IndividualTicketInfo } from '@/lib/individual-checkout';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { BillSplit, Order, TableSession } from '@/types';
@@ -66,6 +67,11 @@ export type CustomerBillContext = {
   collected_payments: CustomerBillCollectedPayment[];
   /** Together-group size for this table (0 = not in a party). */
   party_member_count: number;
+  /**
+   * Individual-checkout sessions only: call state of each ticket (`mine` = asking phone).
+   * Always [] otherwise. Never carries the phone id.
+   */
+  individual_tickets: IndividualTicketInfo[];
 };
 
 /**
@@ -117,7 +123,7 @@ export function applyCustomerSessionScopeMerge(
 
 /** Columns needed for guest ordering gate + menu session identity. */
 const CUSTOMER_SESSION_SELECT =
-  'id, restaurant_id, table_id, status, opened_at';
+  'id, restaurant_id, table_id, status, opened_at, individual_checkout';
 
 /** Columns needed for menu footer / ordered drawer (billable lines + display). */
 const CUSTOMER_SESSION_ORDER_SELECT =

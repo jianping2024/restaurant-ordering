@@ -3,7 +3,7 @@ import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/aud
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
-import { tableInActiveCheckout, tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
+import { tableInActiveCheckout, sessionBillingResponse } from '@/lib/waiter-session-guard';
 import { fetchWaiterTablePageModel } from '@/lib/staff-board';
 import type { PermissionKey } from '@/lib/permissions/registry';
 
@@ -58,7 +58,8 @@ export async function POST(
     if (fromCheckout || toCheckout) {
       return sessionBillingResponse();
     }
-  } else if (await tableSessionBlocksWaiterMutation(admin, ctx.restaurant_id, fromTableId)) {
+  } else if (await tableInActiveCheckout(admin, ctx.restaurant_id, fromTableId)) {
+    // billing session OR an active checkout request (individual checkout never enters billing).
     return sessionBillingResponse();
   }
 

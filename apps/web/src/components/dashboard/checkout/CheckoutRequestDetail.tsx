@@ -1,5 +1,6 @@
 'use client';
 
+import type { StaffTicketUnlock } from '@/components/dashboard/checkout/staff-ticket-unlock';
 import { useMemo, type ReactNode } from 'react';
 import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
 import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
@@ -27,6 +28,7 @@ import {
 } from '@/lib/format-dashboard-date';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
+import { splitResultTicketKey } from '@/lib/split-party-id';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import { checkoutSettlementBarStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
@@ -73,6 +75,8 @@ interface Props {
   onDiscountRateFocus: () => void;
   onConfirmPersonPaid: (rowIndex: number) => void;
   onResumeOrderingClick: () => void;
+  /** Individual-checkout plans: send a called, uncollected ticket back to draft. */
+  ticketUnlock?: StaffTicketUnlock;
   paymentLabels?: Record<import('@/lib/bill-sync-payload').BillSyncPaymentMethod, string>;
 }
 
@@ -184,6 +188,7 @@ export function CheckoutSessionActions(props: {
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
       <div className="flex flex-wrap items-center gap-2">{leading}</div>
       <div className="flex flex-wrap items-center gap-2">
+        {resumeBlockReason === 'individual_session' ? null : (
         <div className="flex flex-col items-end gap-1">
           <button
             type="button"
@@ -200,6 +205,7 @@ export function CheckoutSessionActions(props: {
             </p>
           ) : null}
         </div>
+        )}
       </div>
     </div>
   );
@@ -240,6 +246,7 @@ export function CheckoutRequestDetail({
   onDiscountRateFocus,
   onConfirmPersonPaid,
   onResumeOrderingClick,
+  ticketUnlock,
   paymentLabels,
 }: Props) {
   const canExpandPersonDishes = request.split_mode === 'by_item';
@@ -374,6 +381,23 @@ export function CheckoutRequestDetail({
                     }
                     trailing={
                       <>
+                        {(() => {
+                          const ticketKey = splitResultTicketKey(request.result[row.index] ?? {});
+                          if (!ticketUnlock || !ticketKey || !ticketUnlock.unlockableKeys.has(ticketKey)) {
+                            return null;
+                          }
+                          const unlocking = ticketUnlock.unlockingKeys.has(ticketKey);
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => ticketUnlock.onUnlock(ticketKey)}
+                              disabled={detailLocked || unlocking}
+                              className="text-sm font-semibold px-3 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            >
+                              {unlocking ? ticketUnlock.busyLabel : ticketUnlock.label}
+                            </button>
+                          );
+                        })()}
                         <span className={CHECKOUT_ACTION_AMOUNT_CLASS}>
                           €{collectNow.toFixed(2)}
                         </span>

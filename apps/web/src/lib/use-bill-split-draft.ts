@@ -156,6 +156,11 @@ export function useBillSplitDraft(params: {
   byItemEditor: BillSplitByItemEditor;
   /** Bill-level discount % — settlement display obligation is fold-discounted. */
   discountRate?: number;
+  /**
+   * Individual-checkout session (guest editor): ticket keys this phone cannot edit.
+   * The plan is shared, so the split mode is locked once any ticket exists.
+   */
+  individualReadOnlyKeys?: ReadonlySet<string> | null;
 }) {
   const {
     restaurantId,
@@ -173,6 +178,7 @@ export function useBillSplitDraft(params: {
     lang,
     byItemEditor,
     discountRate: discountRateParam,
+    individualReadOnlyKeys,
   } = params;
 
   const discountRate =
@@ -384,6 +390,7 @@ export function useBillSplitDraft(params: {
     collectedPayments,
     enabled: byItemEditor === 'guest',
     draftOwnerKey,
+    extraLockedKeys: individualReadOnlyKeys ?? undefined,
   });
   const staffByItem = useByItemSplitState({
     splitMode,
@@ -537,15 +544,23 @@ export function useBillSplitDraft(params: {
   /** Server snapshot at page load — paid floors must not follow client submit state. */
   const lockAnchorSplit = existingSplit;
   const splitLocked = useMemo(
-    () => isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive),
-    [lockAnchorSplit, collectedLedgerActive],
+    () =>
+      isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive) ||
+      // Individual checkout: one shared plan — the mode cannot change once a ticket exists.
+      (!!individualReadOnlyKeys && (lockAnchorSplit?.persons?.length ?? 0) > 0),
+    [lockAnchorSplit, collectedLedgerActive, individualReadOnlyKeys],
   );
   const lockedPersonLineMins = useMemo(
     () =>
       splitLocked
-        ? buildLockedPersonLineMins(lockAnchorSplit, collectedLedgerActive, collectedPayments)
+        ? buildLockedPersonLineMins(
+            lockAnchorSplit,
+            collectedLedgerActive,
+            collectedPayments,
+            individualReadOnlyKeys ?? undefined,
+          )
         : { menu: new Map(), buffet: new Map() },
-    [splitLocked, lockAnchorSplit, collectedLedgerActive, collectedPayments],
+    [splitLocked, lockAnchorSplit, collectedLedgerActive, collectedPayments, individualReadOnlyKeys],
   );
   const lockedPersonNames = useMemo(
     () => allocationLockedPersonNames(lockAnchorSplit, collectedPayments),
@@ -604,8 +619,13 @@ export function useBillSplitDraft(params: {
   );
 
   const { results: computedResults, validation: splitValidation } = useMemo(
-    () => validateSplitDraft(splitDraftInput),
-    [splitDraftInput],
+    () =>
+      validateSplitDraft(splitDraftInput, {
+        // Individual checkout: a guest may call with part of the pool still unclaimed.
+        allowPartialByItem: !!individualReadOnlyKeys,
+        ignoreUnnamedRows: !!individualReadOnlyKeys,
+      }),
+    [splitDraftInput, individualReadOnlyKeys],
   );
 
   const results = billSplitDisplayResults({

@@ -1,5 +1,6 @@
 'use client';
 
+import { checkoutRequestLocksTable } from '@/lib/waiter-board-session';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -163,7 +164,7 @@ function WaiterTableDetailInner({
     detailLoaded,
     paintPhase,
     activeSessionByTableId,
-    checkoutRequested: isCheckoutPending,
+    checkoutRequested: checkoutRequestedRaw,
     demoTables,
   } = useWaiterTableDetail(
     restaurant,
@@ -176,6 +177,7 @@ function WaiterTableDetailInner({
     skipEntryReconcile,
     embeddedInDashboard ? waiterBoard?.openTableDefaults ?? null : null,
   );
+  const isCheckoutPending = checkoutRequestLocksTable(sessionMeta, checkoutRequestedRaw);
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
 
@@ -914,6 +916,10 @@ function WaiterTableDetailInner({
       const apiErr = err as Error & { status?: number; code?: string };
       if (apiErr.status === 409 && apiErr.code === 'session_billing') {
         notifyCheckoutLocked();
+        return;
+      }
+      if (apiErr.status === 409 && apiErr.code === 'claimed_by_ticket') {
+        showToast(t.claimedByTicket, 'error');
         return;
       }
       if (apiErr.status === 409) {

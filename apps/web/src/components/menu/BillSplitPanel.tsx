@@ -73,6 +73,11 @@ interface Props {
   editingCustomAmountIndex: number | null;
   editingCustomAmountValue: string;
   onSplitModeClick: (mode: SplitMode) => void;
+  /**
+   * Individual-checkout session: one shared plan, so only「按菜分单」is offered and the
+   * paid-lock notice does not apply.
+   */
+  individualMode?: boolean;
   onDecrementPersonCount: () => void;
   onIncrementPersonCount: () => void;
   onAllocationChange: (key: string, rows: ByItemConsumerRow[]) => void;
@@ -144,6 +149,7 @@ export function BillSplitPanel({
   editingCustomAmountIndex,
   editingCustomAmountValue,
   onSplitModeClick,
+  individualMode = false,
   onDecrementPersonCount,
   onIncrementPersonCount,
   onAllocationChange,
@@ -191,8 +197,8 @@ export function BillSplitPanel({
     <>
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitMode}</h2>
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {GUEST_SPLIT_MODE_ORDER.map((mode) => (
+        <div className={`grid gap-2 mb-4 ${individualMode ? 'grid-cols-1' : 'grid-cols-3'}`}>
+          {GUEST_SPLIT_MODE_ORDER.filter((mode) => !individualMode || mode === 'by_item').map((mode) => (
             <button
               key={mode}
               type="button"
@@ -208,7 +214,7 @@ export function BillSplitPanel({
             </button>
           ))}
         </div>
-        {splitLocked ? (
+        {splitLocked && !individualMode ? (
           <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitPlanLocked}</p>
         ) : null}
         {!splitMode && !splitLocked ? (

@@ -115,6 +115,12 @@ export async function POST(
     ) {
       return NextResponse.json({ error: result.code }, { status: 400 });
     }
+    if (result.code === 'claimed_by_ticket') {
+      return NextResponse.json(
+        { error: 'claimed_by_ticket', line_keys: result.lineKeys },
+        { status: 409 },
+      );
+    }
     if (result.code === 'conflict') {
       return NextResponse.json({ error: 'conflict' }, { status: 409 });
     }

@@ -206,7 +206,7 @@ export function hasConfirmedPerson(split: BillSplit): boolean {
   );
 }
 
-export type ResumeCheckoutBlockReason = 'whole_table_paid';
+export type ResumeCheckoutBlockReason = 'whole_table_paid' | 'individual_session';
 
 export type ResumeOrderingConfirmVariant =
   | 'preserve_by_item'
@@ -228,6 +228,8 @@ export function resumeCheckoutBlockReason(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],
 ): ResumeCheckoutBlockReason | null {
+  // Individual-checkout plans resume per ticket (「解锁」), never as a whole table.
+  if (split.individual_tickets) return 'individual_session';
   if (!isWholeTableSplit(split)) return null;
   if (hasConfirmedPerson(split)) return 'whole_table_paid';
   if (collectedPayments.length > 0) return 'whole_table_paid';

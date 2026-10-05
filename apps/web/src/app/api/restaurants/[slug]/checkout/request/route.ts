@@ -7,6 +7,11 @@ import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/aud
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
+import {
+  loadTableIndividualCheckout,
+  submitIndividualCall,
+} from '@/lib/individual-checkout-server';
+import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -135,6 +140,7 @@ export async function POST(
     result?: unknown;
     customer_nif?: unknown;
     allow_partial_by_item?: unknown;
+    guest_client_id?: unknown;
   };
   try {
     body = await req.json();
@@ -173,6 +179,43 @@ export async function POST(
   }
 
   const caller = await resolveCheckoutRequestCaller(slug);
+
+  // Individual-checkout sessions: a guest phone calls only its own by-item ticket(s).
+  if (caller.kind === 'customer' && (await loadTableIndividualCheckout(admin, loaded.restaurant.id, tableId))) {
+    const guestClientId = parseGuestClientId(body.guest_client_id);
+    if (!guestClientId) {
+      return NextResponse.json({ error: 'invalid_guest_client_id' }, { status: 400 });
+    }
+    if (splitMode !== 'by_item') {
+      return NextResponse.json({ error: 'split_mode_locked' }, { status: 409 });
+    }
+    const individual = await submitIndividualCall(admin, {
+      restaurantId: loaded.restaurant.id,
+      tableId,
+      clientId: guestClientId,
+      persons,
+      result,
+    });
+    if (!individual.ok) {
+      return NextResponse.json(
+        {
+          error: individual.error,
+          message: individual.message,
+          line_keys: individual.lineKeys,
+          names: individual.names,
+        },
+        { status: individual.status },
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      bill_split_id: individual.bill_split_id,
+      session_id: individual.session_id,
+      result: individual.result,
+      total_amount: individual.total_amount,
+    });
+  }
+
   const allowPartialByItem =
     body.allow_partial_by_item === true && caller.kind === 'authorized_staff';
 

@@ -115,7 +115,9 @@ export async function loadTableOrderRoundContext(params: {
     };
   }
 
-  const writeContext = await loadAppendWriteContext(admin, restaurant.restaurantId, tableId);
+  const writeContext = await loadAppendWriteContext(admin, restaurant.restaurantId, tableId, {
+    guestClientId,
+  });
   if (!writeContext.ok) {
     return {
       ok: false,

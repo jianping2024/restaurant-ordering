@@ -10,6 +10,10 @@ export type CheckoutRequestErrorLabels = {
   tableNotAvailable: string;
   invalidNif: string;
   splitPlanLocked: string;
+  /** Individual checkout (optional — only the guest bill page passes these). */
+  individualClaimConflict?: string;
+  individualNameTaken?: string;
+  individualNothingClaimed?: string;
   /** Network / unknown — last resort only. */
   fallback: string;
 };
@@ -34,6 +38,13 @@ export function messageForCheckoutRequestError(
   if (code === 'no_active_session') return labels.noActiveSession;
   if (code === 'table_not_available') return labels.tableNotAvailable;
   if (code === 'invalid_nif') return labels.invalidNif;
+  if (code === 'claim_conflict' && labels.individualClaimConflict) {
+    return labels.individualClaimConflict;
+  }
+  if (code === 'name_taken' && labels.individualNameTaken) return labels.individualNameTaken;
+  if (code === 'empty_ticket' && labels.individualNothingClaimed) {
+    return labels.individualNothingClaimed;
+  }
   if (LOCKED_CODES.has(code)) return labels.splitPlanLocked;
   return labels.fallback;
 }

@@ -25,13 +25,20 @@ export function lockedBuffetHeadcountByBuffetId(
   split: BillSplit | null | undefined,
   hasCollectedLedger = false,
   collectedPayments: SessionCollectedPayment[] = [],
+  /** Individual checkout: called tickets also floor the headcount. */
+  extraLockedKeys: ReadonlySet<string> = new Set(),
 ): Map<string, BuffetGuestCounts> {
   const byBuffet = new Map<string, BuffetGuestCounts>();
-  if (!isCheckoutSplitLocked(split, hasCollectedLedger)) {
+  if (!isCheckoutSplitLocked(split, hasCollectedLedger) && extraLockedKeys.size === 0) {
     return byBuffet;
   }
 
-  const locks = buildLockedPersonLineMins(split, hasCollectedLedger, collectedPayments);
+  const locks = buildLockedPersonLineMins(
+    split,
+    hasCollectedLedger,
+    collectedPayments,
+    extraLockedKeys,
+  );
   for (const [mapKey, mins] of Array.from(locks.buffet.entries())) {
     const sep = mapKey.lastIndexOf('::');
     if (sep < 0) continue;

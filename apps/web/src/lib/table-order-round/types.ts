@@ -55,6 +55,7 @@ export type TableOrderRoundErrorCode =
   | 'round_confirm_pending'
   | 'round_cooldown_active'
   | 'session_billing'
+  | 'individual_called'
   | 'guest_client_limit'
   | 'per_person_limit_exceeded'
   | 'over_limit_price_missing'

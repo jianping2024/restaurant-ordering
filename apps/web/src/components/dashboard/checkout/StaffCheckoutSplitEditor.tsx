@@ -1,5 +1,6 @@
 'use client';
 
+import type { StaffTicketUnlock } from '@/components/dashboard/checkout/staff-ticket-unlock';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import {
@@ -85,6 +86,8 @@ type Props = {
   onDiscountRateCommit: (rate: number) => void;
   onDiscountRateFocus: () => void;
   onResumeOrderingClick: () => void;
+  /** Individual-checkout plans: staff「解锁」for called, uncollected tickets. */
+  ticketUnlock?: StaffTicketUnlock;
   onCollectPerson: (
     index: number,
     amount: number,
@@ -140,6 +143,7 @@ export function StaffCheckoutSplitEditor({
   onDiscountRateCommit,
   onDiscountRateFocus,
   onResumeOrderingClick,
+  ticketUnlock,
   onCollectPerson,
   onSplitPersisted,
   onRegisterPersist,
@@ -815,6 +819,7 @@ export function StaffCheckoutSplitEditor({
             onRenamePerson={({ oldName, newName, partyId }) => {
               splitDraft.renameByItemConsumer(oldName, newName, partyId);
             }}
+            ticketUnlock={ticketUnlock}
             onCollectCurrent={({ personName, partyId }) => {
               const trimmed = personName.trim();
               if (!trimmed) {

@@ -2,7 +2,7 @@
 
 > 写给后续接手的 agent 或工程师：**不需要看过之前的对话**，读完这一篇就知道为什么做、做成什么样、哪些已经定了、哪些还没定、从哪里开始。
 >
-> 状态：**分析和方案已和需求方（Will）逐条确认，代码一行未改。** 分四期交付，餐厅级开关默认关。
+> 状态：**已实现**（分支 `feat/guest-individual-checkout`，一次完成、不分期合并）；餐厅级开关 `guest_individual_checkout` **默认关**。方案与实现的偏差见第 14 节。
 > 文档中的结论分「已证实」（读过代码或迁移，附文件位置）和「未证实」（明确标出，开工前要核对）。**未证实的不要当结论用。**
 
 ---
@@ -157,6 +157,8 @@
 - 新点的菜只进菜池，不进已锁定的票。
 - 新票名字由顾客呼叫时自己填，不从旧票预填。
 - 恢复点单后重新呼叫同一张票，沿用原名，`party_id` 不变，不算重名。
+- **解锁（员工按票解锁，或顾客恢复点单）后，票不删除，留在服务端，标记为「未呼叫」。** 它继续占着认领的菜（别人抢不走，手机换浏览器也能恢复内容），但不再算「已呼叫」，不影响 `bill_splits.status`。解锁时清除冻结金额。顾客一直不改的话，由员工在前台处理。
+- 呼叫结账必须至少认领一份菜，空票服务端直接拒绝。
 
 ### 4.2 谁是「我」
 
@@ -176,10 +178,9 @@
 
 ### 4.5 金额冻结
 
-- **呼叫结账时调用 `stampCollectTicketFrozenAmounts` 冻结这批票金额；收款确认时再调用一次**（幂等：已冻结的原样保留）。函数仍然只有一个，只是多一个触发点。
-- 必须保留收款时的冻结：员工自建的票、被解锁修改过的票、上线前的老数据都没有呼叫时的冻结。
-- 需要放宽 `bill-split-by-item.ts:477` 的条件为「有 `lockedAmount` 就生效」。
-- 按票解锁要同时清掉冻结。
+- **实际实现：只在收款确认时冻结**（沿用现有 `stampCollectTicketFrozenAmounts`，唯一冻结点）。原方案「呼叫时提前冻结」未落地，原因见第 14 节第 1 条。
+- 呼叫时服务端用 `recomputeIndividualTicketAmounts` 按菜池份额重算本票金额存入 `result[].amount`，顾客手机的「待结账」页显示这个已存金额，不再随别人变动重算；收款时员工端仍按份额重算并冻结。
+- 员工编辑已呼叫的票（没收款前）不受冻结约束；按票解锁不需要清冻结（呼叫时本来没写）。
 
 ### 4.6 其它
 
@@ -199,6 +200,9 @@
 - `result[]` 的每张票增加「已呼叫」标记和呼叫它的手机编号。具体字段形态实现时定，并写进 `docs/ai-schema.md`。
 - **新增窄表「呼叫通知」：** 只存会话编号、票编号、名字、认领的菜和份数。顾客订阅这张表，**不订阅 `bill_splits`**。权限用 `SECURITY DEFINER` 的会话检查（见第 8 节的坑），按会话过滤。加入实时发布；**店内部署还要加进 `deploy/on-prem/schema/ensure_realtime_publication.sql`**。
 - **迁移兼容：** 上线时已是 `requested` 的票一律视为「已呼叫」，不绑定手机，不拦任何手机点单。
+- **开关值在开台那一刻记到会话上**，这桌整个用餐过程固定用同一套逻辑；之后开关被切换，只对新开的桌生效，避免用餐中途新旧逻辑混用。
+- **通知分两类：** 「呼叫」类（有人呼叫结账）→ 其他手机弹框并刷新；「静默」类（员工收款、解锁、员工改单、顾客恢复点单）→ 手机只刷新数据，不弹框。收款、解锁等也要写通知行，否则手机会一直停在「待结账」，直到顾客手动刷新。
+- **手机编号不能泄露给其他手机。** 顾客账单接口会把 `bill_splits` 整行（含 `persons`、`result`）返回给同桌每一台手机，以便叠加已锁定的票。所以「呼叫它的手机编号」**不能存进 `result[]` 或 `persons` 里**，要存在不返回给顾客的地方（例如单独的列或表，只在服务端使用）。编号既是点单拦截的依据，也是顾客自己恢复票的凭证，泄露就能被冒用。
 
 ### 5.2 服务端
 
@@ -209,6 +213,11 @@
 5. **加菜闸口：** 在 `loadAppendWriteContext` 加一次「这台手机在当前会话是否有已呼叫且没付清的票」检查，3 个调用点共用。普通下单需把 `guest_client_id` 传过来，复用 `ensureGuestClientId`。
 6. **减菜、改菜守卫：** 份数不得低于已锁定票认领总和。三个闸口：`patchOrderItemsWithVoidAudit`（含后厨作废）、`decrement-order-item.service`、`buffet-waiter-pipeline`。复用 `buildLockedPersonLineMins`、`allocationLockedTicketKeys`（`lib/checkout-split-continuation.ts`）。守卫做成**一个共用函数**，不在各接口里各写一份。
 7. 新增错误码要接入 `messageForCheckoutRequestError`（`lib/checkout-request-error-message`，错误提示的唯一入口），不要在组件里内联。
+8. **已锁定的票，任何顾客请求都不能改。** 不论请求带的手机编号是谁，只要请求里的票 `party_id` 对应的是已呼叫（锁定）的票，顾客写入一律拒绝；只有票的主人通过「恢复」接口才能解锁。防止 A 手机伪造一张带 B 的 `party_id` 的票，把 B 已呼叫的票覆盖掉。
+9. **点单拦截只对顾客点单生效，不影响服务员代点**（`orders/append` 里 `waiter_flow` 为真时跳过）。服务员的手机编号如果因为代顾客呼叫结账而绑定了票，不能因此被拦住给别的桌点单。
+10. 呼叫、恢复、解锁、收款接口都要幂等（重复点击、重试不产生重复票或重复通知）。
+11. ~~解锁、强制改票等员工操作要写审计记录~~ **未做**：现有整桌「恢复点单」也没有审计，新增审计事件会牵动操作记录表约束和列表，留作后续（见第 14 节）。
+12. 所有新增文案（提示、弹框、错误提示）要补齐项目现有的三种语言（中文、英文、葡萄牙语）。
 
 ### 5.3 顾客手机
 
@@ -283,14 +292,14 @@
 
 ## 9. 分期
 
-1. **数据库和服务端**（开关关，用户无感）：票状态、按票合并、冲突兜底、`bill_splits.status` 维护、冻结提前、恢复接口、加菜与减菜守卫、转台并桌拦截、测试。
+1. **数据库和服务端**（开关关，用户无感）：票状态、按票合并、冲突兜底、`bill_splits.status` 维护、（冻结提前已改为只在收款，见第 14 节）、恢复接口、加菜与减菜守卫、转台并桌拦截、测试。
 2. **顾客端：** 呼叫不锁桌、待结账页、恢复点单、拉数据标红、评价。
 3. **通知：** 通知表、实时订阅、弹框。
 4. **员工端：** 详情页不踢走、按票解锁、待结账提示。
 
 ### 第一期具体任务（从这里开始）
 
-1. 新迁移：票状态与手机编号、按票合并、名字与菜池并发兜底、冻结提前、恢复接口、`bill_splits.status` 维护（呼叫 / 恢复 / 部分收款 / 全部付清）。
+1. 新迁移：票状态与手机编号、按票合并、名字与菜池并发兜底、（冻结提前已改为只在收款，见第 14 节）、恢复接口、`bill_splits.status` 维护（呼叫 / 恢复 / 部分收款 / 全部付清）。
 2. 共用守卫函数：加菜闸口（`loadAppendWriteContext`）、减菜三个闸口、转台并桌拦截。
 3. 对应测试（见第 10 节）。
 4. 开关与默认关；`docs/ai-schema.md` 更新。
@@ -301,7 +310,7 @@
 
 - 按票合并：A、B 同时提交，互不覆盖。
 - 菜池超额认领、重名并发，只有先到者成功。
-- 冻结：分数份数的菜、**整单打折加部分分单**，已呼叫票金额不随他人变化；收款时冻结幂等。
+- 冻结（分数份数的菜、**整单打折加部分分单**）：原计划的呼叫时冻结已改为只在收款确认，本项只验证现有收款冻结不受影响；整单打折加部分分单仍待专门验证。
 - `bill_splits.status` 流转：呼叫、恢复、部分收款、全部付清、关台（`close_table_session_settled`）。
 - 减菜、改人数、后厨作废，低于已锁定认领时被拒绝。
 - 所有加菜入口对已呼叫手机的拦截；已付款后自动恢复。
@@ -320,6 +329,8 @@
 - 评价状态是按会话还是按手机记的；别人后加的菜是否会出现在已评价页面。
 - 今日「未收」`liveSessionUncollectedAmount` 在部分呼叫场景下是否正确。
 - 寿司轮次拦截已呼叫手机时，转台后篮子和手机编号是否需要跟着走。
+- 部分分单时员工手动打印预结账单，内容是否正确（目前按 `bill_split_id` 打，分单里只有已呼叫的票，可能漏掉未认领的菜）。
+- 顾客账单接口目前返回的 `bill_splits` 整行里是否已含 `customer_nif` 等不该给其他顾客看的字段（现有行为，需核对）。
 
 **需求方未决事项：** 无。（呼叫前「还有菜品未分配，请到前台继续结账」的确认弹窗，需求方已明确**不需要**，见第 1.5、12 节。）
 
@@ -342,7 +353,11 @@
 | 自动关台 | 维持原样 |
 | 并桌转台 | 有已呼叫票时都拦截 |
 | 范围 | 只做按菜分单，所有点单模式通用 |
-| 冻结 | 呼叫和收款两个触发点，同一个函数 |
+| 冻结 | **实际只在收款确认冻结**（呼叫时写冻结会让员工编辑器把票当只读，见第 14 节） |
+| 解锁后的票 | 不删除，留在服务端标「未呼叫」，继续占着菜 |
+| 开关的生效范围 | 开台时记到会话上，用餐中途切换只对新开的桌生效 |
+| 收款、解锁后手机如何更新 | 也写通知行，类型为「静默」，只刷新数据不弹框 |
+| 手机编号 | 不得出现在返回给顾客的数据里 |
 | 交付 | 餐厅级开关默认关，分四期 |
 
 ---
@@ -358,3 +373,44 @@
 - 门禁：提交前 lint + typecheck（`bash scripts/agent-gates/gate.sh check`），push 前生产构建加定向测试（`gate.sh build`，逻辑改动用 `node --import tsx --test …`）。
 - **不要擅自 commit / push / 开 PR**，用户要求才做。
 - 中文措辞要准确，不要用「大概、多半」下结论，未证实的明确写「未证实」（`.cursor/rules/evidence-based-conclusions.mdc`、`accurate-zh-wording.mdc`）。
+
+
+---
+
+## 14. 实现与方案的偏差、验证与代码地图（已实现）
+
+### 偏差
+
+1. **呼叫时不提前冻结金额。** 现有系统把「票上带 `locked_amount`」当作「这张票已锁定」（`allocationLockedTicketKeys` 把它和已付款同样处理，员工编辑器会把它当只读）。呼叫时写冻结会让员工没法在前台调整已呼叫的票，和「没收款前随时可调整」冲突。因此冻结只留在收款确认（原方案的备选）。窗口影响：仅「拆成几分之一」的菜在收款前可能差 1 分钱，收款时按冻结值收。
+2. **解锁不写审计。** 与现有整桌恢复点单一致；新增审计事件要改操作记录约束和界面，另行处理。
+3. **菜单页的呼叫弹框不带菜品明细**（菜单页没有该会话的账单行名称映射）；账单页弹框带明细。
+4. **菜品评价按会话记**（`loadDishFeedbackState(sessionId)`），不是按手机：同桌任一人评价或跳过后，其他人的待结账页不再弹评价。
+5. **后厨作废被已呼叫票占用时，只有通用失败提示**；服务员端减菜有专门提示（`claimedByTicket`）。服务端接口都返回 `claimed_by_ticket`。
+6. **顾客手机进入 individual 会话的账单页时，先等一次带手机编号的读取再渲染**（避免已呼叫的手机先闪出可编辑页）。读取失败会放行（服务端写入口仍然拦截）。
+7. 员工编辑器里已呼叫的票**不是只读**；「解锁」放在按菜分单工作台「当前人份额」的收款按钮旁，以及待收列表每人一行。
+
+### 数据库
+
+迁移 `supabase/migrations/20261005120000_guest_individual_checkout.sql`：`table_sessions.individual_checkout` 与开台触发器；会话永不进入 `billing`；`bill_splits.revision`；`bill_split_ticket_calls`（仅 service_role）；`table_checkout_signals`（匿名只读 + 实时）；`individual_checkout_apply`；`bill_splits_individual_sync` 触发器统一维护票状态与 `bill_splits.status`（员工整份写入、收款、恢复等所有写入者）。
+
+### 关键代码位置
+
+| 能力 | 位置 |
+|---|---|
+| 纯规则（合并、重名、超额、空票、只读键、占用） | `apps/web/src/lib/individual-checkout.ts` |
+| 服务端呼叫/解锁/读取 | `apps/web/src/lib/individual-checkout-server.ts`、`checkout/request`、`checkout/individual-unlock`、`checkout/unlock-ticket` |
+| 加菜闸口 | `append-write-context.ts`（`orders/append`、寿司轮次） |
+| 减菜守卫 | `individual-claim-guard.ts`（`patch-order-items.service`、`decrement-order-item.service`），自助餐人数 `buffet-paid-headcount-floor.ts` |
+| 顾客账单页 | `BillPage.tsx`、`use-customer-bill-read-model.ts`、`use-checkout-request-submit.ts`、`BillCheckoutSubmittedScreen.tsx` |
+| 菜单页占用 | `use-individual-checkout-hold.ts`、`customer/individual-hold`、`customer-menu-order-gate.ts` |
+| 实时通知弹框 | `use-individual-checkout-signals.ts`、`IndividualCheckoutNotice.tsx`、`individual-call-notice.ts` |
+| 员工端 | `staff-ticket-unlock.ts`、`StaffByItemSplitWorkbench.tsx`、`CheckoutRequestDetail.tsx`、`WaiterTableDetail.tsx`（`checkoutRequestLocksTable`） |
+| 转台并桌 | `staff/waiter/tables/action/route.ts`（`tableInActiveCheckout`） |
+
+### 验证（本地，`:3002`，白云测试店 A-12）
+
+- 单元测试：`npm run test:unit`（含 `individual-checkout`、`individual-call-notice`、`individual-claim-guard`、`staff-ticket-unlock`、`bill-split-draft` 新增用例）。
+- 数据库层：回滚事务脚本覆盖呼叫、他人改票、过期 revision、解锁、状态维护、旧写入者不进 `billing`。
+- 接口层场景（S0–S10，100+ 条断言）：旧会话不变；呼叫不锁桌；超额/重名/伪造/空票/非按菜；占用只拦本手机、服务员代点不受影响；解锁与状态；减菜守卫；转台并桌拦截；队列带票状态且不含手机编号；收款后状态与占用；全认领全付清后关台；开关中途切换；寿司轮次入口；员工 `ensure-entry`。
+- 浏览器：手机视口走完分单→呼叫→待结账页→菜单页占用提示与 toast→恢复点单→他人呼叫的弹框（被动页）→待结账手机不弹框→员工解锁→服务员详情不被踢走→功能开关页；旧会话回归。
+- **未能证明的一项：** 浏览器窗格被应用隐藏时（`visibilityState=hidden`）实时订阅不投递（设计如此，页面可见时才订阅），所以「员工收款后被动页面自动刷新」这条在隐藏窗格下只验证了「重新打开后状态正确」；呼叫弹框的实时投递是在窗格可见时验证过的。

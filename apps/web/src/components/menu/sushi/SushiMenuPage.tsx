@@ -1,5 +1,7 @@
 'use client';
 
+import { IndividualCheckoutNotice } from '@/components/menu/IndividualCheckoutNotice';
+import { useIndividualCheckoutHold } from '@/lib/use-individual-checkout-hold';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { APPEND_CART_QTY_MAX, clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
@@ -59,6 +61,7 @@ import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import {
   guestOrderGateFromCachedState,
   guestOrderGateFromSessionContext,
+  withIndividualHold,
   guestOrderingActionHint,
   guestOrderingBannerHint,
 } from '@/lib/customer-menu-order-gate';
@@ -237,16 +240,30 @@ export function SushiMenuPage({
     };
   }, [lang, roundT]);
 
+  // Individual checkout: a phone with a called, unpaid ticket cannot add dishes (table stays open).
+  const individualHold = useIndividualCheckoutHold({
+    slug: restaurant.slug,
+    restaurantId: restaurant.id,
+    tableId,
+    sessionId: activeSession?.id,
+    enabled: !!activeSession?.individual_checkout && !isDemo,
+  });
+
+  const markIndividualHold = individualHold.markHold;
+
   const ensureGuestCanPlaceOrder = useCallback(async () => {
-    if (!sessionResolved) {
+    const gate = await (async () => {
+      if (!sessionResolved) {
+        const data = await refreshSessionContext('gate');
+        return guestOrderGateFromSessionContext(data);
+      }
+      const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession);
+      if (cached) return cached;
       const data = await refreshSessionContext('gate');
       return guestOrderGateFromSessionContext(data);
-    }
-    const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession);
-    if (cached) return cached;
-    const data = await refreshSessionContext('gate');
-    return guestOrderGateFromSessionContext(data);
-  }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
+    })();
+    return withIndividualHold(gate, individualHold.hold);
+  }, [activeSession, individualHold.hold, isDemo, refreshSessionContext, sessionResolved]);
 
   const vegFilterEnabled = sushiRoundSettings.sushi_menu_vegetarian_filter_enabled;
   const allergenFilterEnabled = sushiRoundSettings.sushi_menu_allergen_filter_enabled;
@@ -291,8 +308,8 @@ export function SushiMenuPage({
 
   const menuItemCodeById = useMemo(() => menuItemCodeLookupFromRows(menuItems), [menuItems]);
   const guestCanOrder = useMemo(
-    () => sessionResolved && guestOrderingEnabled(activeSession),
-    [activeSession, sessionResolved],
+    () => sessionResolved && guestOrderingEnabled(activeSession) && !individualHold.hold,
+    [activeSession, individualHold.hold, sessionResolved],
   );
 
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
@@ -381,7 +398,7 @@ export function SushiMenuPage({
 
       const gate = await ensureGuestCanPlaceOrder();
       if (!gate.canPlace) {
-        showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
+        showToast(guestOrderingActionHint(lang, gate.sessionStatus, gate.individualHold), 'info');
         return;
       }
 
@@ -711,7 +728,10 @@ export function SushiMenuPage({
   const showSubmitFailure = useCallback(
     async (failure: MenuOrderSubmitFailure) => {
       if (failure.kind === 'gate') {
-        showToast(guestOrderingActionHint(lang, failure.sessionStatus), 'info');
+        showToast(
+          guestOrderingActionHint(lang, failure.sessionStatus, failure.individualHold),
+          'info',
+        );
         return;
       }
       if (failure.kind === 'geo') {
@@ -722,6 +742,11 @@ export function SushiMenuPage({
         return;
       }
       if (failure.kind === 'append') {
+        if (failure.code === 'individual_called') {
+          markIndividualHold();
+          showToast(t.individualCalledHint, 'info');
+          return;
+        }
         if (appendFailureNeedsSessionRefresh(failure.code)) {
           await refreshSessionContext('gate');
           showToast(t.billDisabledHint, 'info');
@@ -742,7 +767,7 @@ export function SushiMenuPage({
       }
       showToast(t.submitFailed, 'error');
     },
-    [lang, refreshSessionContext, roundT.basketLocked, t],
+    [lang, markIndividualHold, refreshSessionContext, roundT.basketLocked, t],
   );
 
   const submitCart = async () => {
@@ -893,6 +918,7 @@ export function SushiMenuPage({
         tableId,
         waiterFlow: false,
         clientRequestId: intent.clientRequestId,
+        guestClientId: individualHold.guestClientId,
         ensureGate: ensureGuestCanPlaceOrder,
         resolveGeo: () =>
           resolveCustomerGeoForOrder({
@@ -1072,9 +1098,16 @@ export function SushiMenuPage({
         />
       ) : null}
 
+      <IndividualCheckoutNotice
+        sessionId={activeSession?.id}
+        enabled={!!activeSession?.individual_checkout && !isDemo}
+        suppressModal={individualHold.hold}
+        onSignals={() => void individualHold.refresh()}
+      />
+
       {!isDemo && sessionResolved && !guestCanOrder ? (
         <CustomerMenuOrderGateBanner
-          message={guestOrderingBannerHint(lang, activeSession?.status ?? null)}
+          message={guestOrderingBannerHint(lang, activeSession?.status ?? null, individualHold.hold)}
         />
       ) : null}
 

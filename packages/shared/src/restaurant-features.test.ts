@@ -66,6 +66,7 @@ describe('mergeRestaurantFeatureFlagsJsonb', () => {
     assert.equal(merged.bill_receipt_print, false);
     assert.equal(merged.bill_sync_to_fiscal, false);
     assert.equal(merged.menu_flavor_hints_enabled, false);
+    assert.equal(merged.guest_individual_checkout, false);
   });
 });
 
@@ -76,6 +77,7 @@ describe('normalizeRestaurantFeatureFlags', () => {
     assert.equal(flags.kitchen_serve_to_table, false);
     assert.equal(flags.bill_sync_to_fiscal, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);
+    assert.equal(flags.guest_individual_checkout, false);
     assert.equal('kitchen_board' in flags, false);
   });
 });

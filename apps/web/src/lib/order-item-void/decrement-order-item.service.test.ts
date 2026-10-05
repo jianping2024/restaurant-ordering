@@ -76,6 +76,22 @@ function mockAdmin(): MockAdmin {
           },
         };
       }
+      if (table === 'table_sessions') {
+        // Individual-claim guard: an ordinary (non-individual) session is a no-op.
+        return {
+          select() {
+            return {
+              eq() {
+                return {
+                  async maybeSingle() {
+                    return { data: { individual_checkout: false }, error: null };
+                  },
+                };
+              },
+            };
+          },
+        };
+      }
       if (table === 'abnormal_operations') {
         return {
           insert() {

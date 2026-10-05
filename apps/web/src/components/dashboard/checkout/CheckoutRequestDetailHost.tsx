@@ -1,5 +1,9 @@
 'use client';
 
+import {
+  unlockableIndividualTicketKeys,
+  type StaffTicketUnlock,
+} from '@/components/dashboard/checkout/staff-ticket-unlock';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -35,6 +39,7 @@ import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-orderi
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
+import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
 import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
@@ -226,6 +231,34 @@ export function CheckoutRequestDetailHost({
       success: t.resumeOrderingSuccess,
     },
   });
+  const { unlockingKeys, unlockTicket } = useIndividualTicketUnlock({
+    restaurantSlug,
+    tableId: request.table_id,
+    onMutated: onResumeMutated,
+    showToast,
+    messages: {
+      success: t.unlockTicketSuccess,
+      failed: t.unlockTicketFailed,
+      collecting: t.unlockTicketCollecting,
+    },
+  });
+  const isIndividualPlan = request.individual_tickets !== undefined;
+  const ticketUnlock = useMemo<StaffTicketUnlock | undefined>(
+    () =>
+      isIndividualPlan
+        ? {
+            unlockableKeys: unlockableIndividualTicketKeys(
+              request,
+              getCollectedForSession(request.session_id),
+            ),
+            unlockingKeys,
+            onUnlock: (ticketKey) => void unlockTicket(ticketKey),
+            label: t.unlockTicket,
+            busyLabel: t.unlockTicketOperating,
+          }
+        : undefined,
+    [getCollectedForSession, isIndividualPlan, request, t, unlockTicket, unlockingKeys],
+  );
   const discountReasonOptionsList = useMemo(
     () => abnormalReasonOptions(lang, 'discount'),
     [lang],
@@ -636,10 +669,10 @@ export function CheckoutRequestDetailHost({
           <CheckoutPathChooser
             wholeTableLabel={t.pathChooserWholeTable}
             splitLabel={t.pathChooserSplit}
-            resumeLabel={t.resumeOrdering}
+            resumeLabel={isIndividualPlan ? undefined : t.resumeOrdering}
             onWholeTable={() => setPathChoice('whole_table')}
             onSplit={() => setPathChoice('split')}
-            onResume={() => setResumeConfirmOpen(true)}
+            onResume={isIndividualPlan ? undefined : () => setResumeConfirmOpen(true)}
           />
         </div>
       ) : null}
@@ -669,6 +702,7 @@ export function CheckoutRequestDetailHost({
             billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
           }
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
+          ticketUnlock={ticketUnlock}
           onCollectPerson={(index, amount, personName, partyId, preDiscountAmount) => {
             setCollectPending({
               rowIndex: index,
@@ -759,6 +793,7 @@ export function CheckoutRequestDetailHost({
           });
         }}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
+        ticketUnlock={ticketUnlock}
         paymentLabels={paymentMethodLabels}
       />
       ) : null}      <ReasonConfirmDialog

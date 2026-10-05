@@ -6,7 +6,17 @@ import type { Language, SessionStatus, TableSession } from '@/types';
 export type GuestOrderGateResult = {
   canPlace: boolean;
   sessionStatus: SessionStatus | null;
+  /** Individual checkout: this phone has a called, unpaid ticket (table itself stays orderable). */
+  individualHold?: boolean;
 };
+
+/** Sole merge of the per-phone individual-checkout hold into a table-level gate result. */
+export function withIndividualHold(
+  gate: GuestOrderGateResult,
+  hold: boolean,
+): GuestOrderGateResult {
+  return hold ? { ...gate, canPlace: false, individualHold: true } : gate;
+}
 
 export function guestOrderGateFromSessionContext(
   context: CustomerSessionContext | null,
@@ -21,8 +31,10 @@ export function guestOrderGateFromSessionContext(
 export function guestOrderingActionHint(
   lang: Language,
   sessionStatus: SessionStatus | null,
+  individualHold = false,
 ): string {
   const messages = MENU_PAGE_MESSAGES[lang];
+  if (individualHold) return messages.individualCalledHint;
   if (sessionStatus === 'billing') return messages.billDisabledHint;
   return messages.buffetRequired;
 }
@@ -31,8 +43,10 @@ export function guestOrderingActionHint(
 export function guestOrderingBannerHint(
   lang: Language,
   sessionStatus: SessionStatus | null,
+  individualHold = false,
 ): string {
   const messages = MENU_PAGE_MESSAGES[lang];
+  if (individualHold) return messages.individualCalledHint;
   if (sessionStatus === 'billing') return messages.billDisabledHint;
   return messages.waitingForBuffet;
 }

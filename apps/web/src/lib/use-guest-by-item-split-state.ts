@@ -42,6 +42,11 @@ export function useGuestByItemSplitState(params: {
   /** When false (staff draft page), skip all guest editor work. */
   enabled?: boolean;
   /**
+   * Individual checkout: tickets this phone cannot edit (called, or held by another phone).
+   * They overlay as read-only like paid tickets; this phone's own unlocked tickets stay draft.
+   */
+  extraLockedKeys?: ReadonlySet<string>;
+  /**
    * Sole session-isolation key for this working map.
    * When it changes, wipe rows + reconcile fingerprint — never keep prior session's Alice/Bob.
    */
@@ -54,6 +59,7 @@ export function useGuestByItemSplitState(params: {
     collectedPayments = [],
     enabled = true,
     draftOwnerKey = null,
+    extraLockedKeys,
   } = params;
 
   const [byItemAllocations, setByItemAllocationsState] = useState<Record<string, ByItemConsumerRow[]>>({});
@@ -70,13 +76,14 @@ export function useGuestByItemSplitState(params: {
         existingSplit,
         collectedPayments.length > 0,
         collectedPayments,
+        extraLockedKeys,
       ),
-    [existingSplit, collectedPayments],
+    [existingSplit, collectedPayments, extraLockedKeys],
   );
 
   const lockedTicketKeys = useMemo(
-    () => allocationLockedTicketKeys(existingSplit, collectedPayments),
-    [existingSplit, collectedPayments],
+    () => allocationLockedTicketKeys(existingSplit, collectedPayments, extraLockedKeys),
+    [existingSplit, collectedPayments, extraLockedKeys],
   );
   const lockedTicketKeysRef = useRef(lockedTicketKeys);
   lockedTicketKeysRef.current = lockedTicketKeys;

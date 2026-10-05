@@ -12,11 +12,27 @@ export type WaiterTableSessionMeta = {
   /** From table_sessions.opened_by_name (stamped at open) — sole board opener label. */
   openedByName?: string | null;
   /**
+   * Stamped at open (feature `guest_individual_checkout`): guests call checkout per ticket and
+   * the table stays orderable — detail never treats a checkout request as a table-wide lock.
+   */
+  individualCheckout?: boolean;
+  /**
    * Title-badge relation for this active session (merge target / transferred-in).
    * Sole board field — loaded in occupancy; merge wins over transfer.
    */
   boardRelation?: WaiterBoardSessionRelation | null;
 };
+
+/**
+ * Sole rule: a checkout request locks the table (ordering / actions) unless the session is
+ * individual-checkout — there a called ticket is a reminder (board card + queue), never a lock.
+ */
+export function checkoutRequestLocksTable(
+  sessionMeta: Pick<WaiterTableSessionMeta, 'individualCheckout'> | null | undefined,
+  checkoutRequested: boolean,
+): boolean {
+  return checkoutRequested && !sessionMeta?.individualCheckout;
+}
 
 export type WaiterBoardFilter = 'all' | 'checkout' | 'dining' | 'idle';
 

@@ -174,8 +174,10 @@ export function isCheckoutSplitLocked(
 export function allocationLockedTicketKeys(
   split: BillSplit | null | undefined,
   collectedPayments: SessionCollectedPayment[] = [],
+  /** Individual checkout: called tickets lock for guests / headcount floors (never for staff edit). */
+  extraLockedKeys: ReadonlySet<string> = new Set(),
 ): ReadonlySet<string> {
-  const keys = new Set<string>();
+  const keys = new Set<string>(Array.from(extraLockedKeys));
   const result = split?.result ?? [];
 
   for (const row of result) {
@@ -264,6 +266,7 @@ export function buildLockedPersonLineMins(
   split: BillSplit | null | undefined,
   hasCollectedLedger = false,
   collectedPayments: SessionCollectedPayment[] = [],
+  extraLockedKeys: ReadonlySet<string> = new Set(),
 ): LockedPersonLineMins {
   const menu = new Map<string, Rational>();
   const buffet = new Map<string, { adults: number; children: number }>();
@@ -271,7 +274,7 @@ export function buildLockedPersonLineMins(
     return { menu, buffet };
   }
 
-  const lockedKeys = allocationLockedTicketKeys(split, collectedPayments);
+  const lockedKeys = allocationLockedTicketKeys(split, collectedPayments, extraLockedKeys);
   const lockAllAssignedShares = hasCollectedLedger && lockedKeys.size === 0;
 
   for (const person of split.persons ?? []) {

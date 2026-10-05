@@ -9,6 +9,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { resolveOrderRestaurant } from '@/lib/order-restaurant-context';
 import { verifyOrderAppendGate } from '@/lib/order-submit-gate';
 import { loadAppendWriteContext } from '@/lib/append-write-context';
+import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 import { writeAppendBatch } from '@/lib/append-write-batch';
 import {
   claimAppendIdempotency,
@@ -54,6 +55,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     longitude?: unknown;
     waiter_flow?: unknown;
     client_request_id?: unknown;
+    guest_client_id?: unknown;
   };
   try {
     body = await req.json();
@@ -115,7 +117,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'table_not_available' }, { status: 400 });
   }
 
-  const writeContext = await loadAppendWriteContext(admin, rid, tableId);
+  const writeContext = await loadAppendWriteContext(admin, rid, tableId, {
+    guestClientId: waiterFlow ? null : parseGuestClientId(body.guest_client_id),
+  });
   if (!writeContext.ok) {
     return NextResponse.json({ error: writeContext.error }, { status: writeContext.status });
   }

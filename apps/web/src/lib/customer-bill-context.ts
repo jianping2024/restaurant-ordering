@@ -10,6 +10,7 @@ import {
   type CustomerBillScope,
   type CustomerResolvedTableContext,
 } from '@/lib/customer-session-context';
+import { loadIndividualTickets } from '@/lib/individual-checkout-reads';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -22,6 +23,8 @@ export async function loadCustomerBillContext(params: {
   tableContext?: CustomerResolvedTableContext | null;
   /** Default full — bill SSR/API boot keeps split and ledger. */
   scope?: CustomerBillScope;
+  /** Asking phone (individual-checkout sessions): marks which called tickets are `mine`. */
+  guestClientId?: string | null;
 }): Promise<CustomerBillContext | null> {
   const scope = params.scope ?? 'full';
   const tableContext =
@@ -42,6 +45,7 @@ export async function loadCustomerBillContext(params: {
       existing_split: null,
       collected_payments: [],
       party_member_count: 0,
+      individual_tickets: [],
     };
   }
 
@@ -66,6 +70,13 @@ export async function loadCustomerBillContext(params: {
       .then(({ data }) => parseSessionCollectedPayments(data)),
   ]);
 
+  const individualTickets = tableContext.activeSession.individual_checkout
+    ? await loadIndividualTickets(params.admin, {
+        billSplitId: existingSplit?.id,
+        clientId: params.guestClientId,
+      })
+    : [];
+
   return {
     table_id: tableContext.tableId,
     display_name: tableContext.displayName,
@@ -74,5 +85,6 @@ export async function loadCustomerBillContext(params: {
     existing_split: existingSplit,
     collected_payments: collectedPayments,
     party_member_count: partyMemberCount,
+    individual_tickets: individualTickets,
   };
 }

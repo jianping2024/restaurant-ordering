@@ -8,6 +8,7 @@ import {
   applyOrderItemDecrement,
   type DecrementOrderItemCode,
 } from '@/lib/order-item-void/decrement-order-item';
+import { guardIndividualClaims } from '@/lib/individual-claim-guard';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
@@ -44,7 +45,9 @@ export type DecrementOrderItemServiceResult =
         | 'reason_required'
         | 'invalid_reason'
         | 'reason_detail_required'
-        | 'menu_decrement_not_allowed';
+        | 'menu_decrement_not_allowed'
+        | 'claimed_by_ticket';
+      lineKeys?: string[];
     };
 
 export async function decrementOrderItemWithAudit(
@@ -89,6 +92,18 @@ export async function decrementOrderItemWithAudit(
       [applied.itemIndex],
       resolvedVoidReason,
     );
+  }
+
+  const claimGuard = await guardIndividualClaims(input.admin, {
+    restaurantId: input.restaurantId,
+    sessionId: input.existing.session_id,
+    nextOrders: (current) =>
+      current.map((order) =>
+        order.id === input.orderId ? { ...order, items: itemsToSave } : order,
+      ),
+  });
+  if (!claimGuard.ok) {
+    return { ok: false, code: 'claimed_by_ticket', lineKeys: claimGuard.lineKeys };
   }
 
   const persist = await persistOrderItemsUpdate(input.admin, {

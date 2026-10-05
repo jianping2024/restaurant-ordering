@@ -9,11 +9,14 @@ export async function requestCheckoutRequest(params: {
   result: SplitResult[];
   customerNif?: string | null;
   allowPartialByItem?: boolean;
+  /** Guest phone id — individual-checkout sessions bind the called tickets to it. */
+  guestClientId?: string | null;
 }): Promise<
   | { ok: true; bill_split_id: string; session_id: string; result: SplitResult[] }
-  | { ok: false; error: string }
+  | { ok: false; error: string; lineKeys?: string[]; names?: string[] }
 > {
-  const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem } = params;
+  const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem, guestClientId } =
+    params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/request`,
@@ -28,6 +31,7 @@ export async function requestCheckoutRequest(params: {
           result,
           ...(customerNif ? { customer_nif: customerNif } : {}),
           ...(allowPartialByItem ? { allow_partial_by_item: true } : {}),
+          ...(guestClientId ? { guest_client_id: guestClientId } : {}),
         }),
       },
     );
@@ -36,9 +40,16 @@ export async function requestCheckoutRequest(params: {
       session_id?: string;
       error?: string;
       result?: SplitResult[];
+      line_keys?: string[];
+      names?: string[];
     };
     if (!res.ok || !data.bill_split_id || !data.session_id) {
-      return { ok: false, error: data.error || 'checkout_request_failed' };
+      return {
+        ok: false,
+        error: data.error || 'checkout_request_failed',
+        ...(data.line_keys ? { lineKeys: data.line_keys } : {}),
+        ...(data.names ? { names: data.names } : {}),
+      };
     }
     return {
       ok: true,

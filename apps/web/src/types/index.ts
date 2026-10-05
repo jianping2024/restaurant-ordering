@@ -391,6 +391,17 @@ export interface BillSplit {
   discount_rate?: number;
   discount_reason?: string | null;
   discount_reason_detail?: string | null;
+  /** Plan revision (bumped on every write) — optimistic concurrency for individual checkout. */
+  revision?: number;
+  /**
+   * Staff queue only, individual-checkout sessions: call state per ticket (no phone id).
+   * Undefined for ordinary whole-table / legacy plans.
+   */
+  individual_tickets?: Array<{
+    ticket_key: string;
+    name: string;
+    state: 'called' | 'unlocked';
+  }>;
 }
 
 export interface FeedbackSession {
@@ -430,6 +441,8 @@ export interface TableSession {
   opened_by_user_id?: string | null;
   /** Opener label stamped at open — sole board/history display source. */
   opened_by_name?: string | null;
+  /** Stamped at open from feature `guest_individual_checkout` (sticky for the whole meal). */
+  individual_checkout?: boolean;
 }
 
 // 购物车条目

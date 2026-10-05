@@ -60,6 +60,7 @@ export const WAITER_TEXT = {
       '已有收款锁定，不能把自助餐人数降到低于已付客人已分配的人数。',
     buffetNoRule: '当前时段无匹配价格，请在后台配置规则。',
     buffetNotConfigured: '请先在后台启用并配置自助餐，再开台。',
+    claimedByTicket: '这道菜已被已呼叫结账的客人认领，不能减少；请先在结账页解锁对应的票。',
     checkoutPendingBanner: '顾客已呼叫结账，请通知收银收款；桌台暂停点餐与改单。',
     orderedItems: '已点菜品',
     serveToTable: '上桌',
@@ -197,6 +198,7 @@ export const WAITER_TEXT = {
       'Collections started — buffet headcount cannot drop below paid guests’ allocated seats.',
     buffetNoRule: 'No matching price for this time slot. Configure rules in dashboard.',
     buffetNotConfigured: 'Enable and configure buffet in dashboard before opening a table.',
+    claimedByTicket: 'This dish is claimed by a ticket that already called for the bill, so it cannot be reduced. Unlock that ticket on the checkout page first.',
     checkoutPendingBanner: 'Guests requested checkout — notify cashier to collect payment. Ordering and edits are paused.',
     orderedItems: 'Ordered items',
     serveToTable: 'Serve',
@@ -335,6 +337,7 @@ export const WAITER_TEXT = {
       'Ja houve cobranca — nao pode baixar o buffet abaixo dos lugares ja atribuidos aos pagos.',
     buffetNoRule: 'Sem preco para este horario. Configure no painel.',
     buffetNotConfigured: 'Ative e configure o buffet no painel antes de abrir a mesa.',
+    claimedByTicket: 'Este prato foi escolhido num talao que ja pediu a conta e nao pode ser reduzido. Desbloqueie esse talao na pagina de checkout primeiro.',
     checkoutPendingBanner: 'Clientes pediram a conta — avise o caixa para receber. Pedidos e alteracoes estao suspensos.',
     orderedItems: 'Itens pedidos',
     serveToTable: 'Servir',
@@ -474,6 +477,7 @@ export const WAITER_TEXT = {
       'Ya hay cobros registrados: no puedes bajar los comensales del bufé por debajo de las plazas ya pagadas.',
     buffetNoRule: 'No hay precio para esta franja horaria. Configura las reglas en el panel.',
     buffetNotConfigured: 'Activa y configura el bufé en el panel antes de abrir la mesa.',
+    claimedByTicket: 'Este plato está elegido en un ticket que ya pidió la cuenta, no se puede reducir. Desbloquea ese ticket en la página de cobro primero.',
     checkoutPendingBanner:
       'Los clientes han pedido la cuenta: avisa a caja para cobrar. Los pedidos y cambios están en pausa.',
     orderedItems: 'Platos pedidos',
@@ -621,6 +625,7 @@ export const WAITER_TEXT = {
     buffetNoRule: 'Aucun tarif pour ce créneau. Configurez les règles dans le tableau de bord.',
     buffetNotConfigured:
       'Activez et configurez le buffet dans le tableau de bord avant d’ouvrir une table.',
+    claimedByTicket: 'Ce plat est pris par un ticket qui a déjà demandé l’addition, impossible de le réduire. Déverrouillez d’abord ce ticket sur la page d’encaissement.',
     checkoutPendingBanner:
       'Les clients demandent l’addition — prévenez la caisse. Commandes et modifications sont suspendues.',
     orderedItems: 'Plats commandés',
@@ -768,6 +773,7 @@ export const WAITER_TEXT = {
     buffetNoRule: 'Für diesen Zeitraum gibt es keinen Preis. Regeln im Dashboard einrichten.',
     buffetNotConfigured:
       'Buffet im Dashboard aktivieren und einrichten, bevor ein Tisch geöffnet wird.',
+    claimedByTicket: 'Dieses Gericht gehört zu einem Ticket, das die Rechnung bereits angefordert hat, und kann nicht reduziert werden. Zuerst das Ticket auf der Kassenseite entsperren.',
     checkoutPendingBanner:
       'Gäste möchten zahlen — bitte die Kasse informieren. Bestellungen und Änderungen sind pausiert.',
     orderedItems: 'Bestellte Gerichte',

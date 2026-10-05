@@ -39,11 +39,13 @@ export function requestCustomerBillContext(
   slug: string,
   tableId: string,
   scope: CustomerBillScope = 'full',
+  guestClientId?: string | null,
 ) {
   const params = new URLSearchParams({
     table_id: tableId,
     scope,
   });
+  if (guestClientId) params.set('guest_client_id', guestClientId);
   return fetchJson<CustomerBillResponse>(
     `/api/restaurants/${encodeURIComponent(slug)}/customer/bill?${params.toString()}`,
   );

@@ -4,7 +4,10 @@ import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
+import {
+  checkoutRequestLocksTable,
+  type WaiterTableSessionMeta,
+} from '@/lib/waiter-board-session';
 import { ACTIVE_ORDER_STATUSES } from '@/lib/waiter-board-query';
 import { defaultActiveBuffet } from '@/lib/waiter-table-detail-view';
 import {
@@ -31,7 +34,7 @@ function isCheckoutPending(
   sessionMeta: WaiterTableSessionMeta,
   checkoutRequested: boolean,
 ): boolean {
-  return checkoutRequested || sessionMeta.status === 'billing';
+  return checkoutRequestLocksTable(sessionMeta, checkoutRequested) || sessionMeta.status === 'billing';
 }
 
 async function fetchCheckoutRequestedForTable(
@@ -85,7 +88,7 @@ async function loadTableAndSession(
       .maybeSingle(),
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, individual_checkout')
       .eq('restaurant_id', restaurantId)
       .eq('table_id', tableId)
       .in('status', ['open', 'billing'])

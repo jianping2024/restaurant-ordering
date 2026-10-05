@@ -42,7 +42,7 @@ export function buildSubmitPersons(params: {
 export function validateSubmitSplitDraft(
   splitDraftInput: BillSplitDraftInput,
   orders: Order[],
-  options?: { allowPartialByItem?: boolean },
+  options?: { allowPartialByItem?: boolean; ignoreUnnamedRows?: boolean },
 ): {
   ok: true;
   submitResults: SplitResult[];
@@ -58,7 +58,10 @@ export function validateSubmitSplitDraft(
       orderLines: freshView.splitOrderLines,
       lineSpecs: freshView.lineSpecs,
     },
-    { allowPartialByItem: options?.allowPartialByItem },
+    {
+      allowPartialByItem: options?.allowPartialByItem,
+      ignoreUnnamedRows: options?.ignoreUnnamedRows,
+    },
   );
   if (!validation.ok) {
     return { ok: false, issue: validation.issue };

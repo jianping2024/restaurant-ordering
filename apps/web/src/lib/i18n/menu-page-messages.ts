@@ -13,6 +13,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   placeOrder: string;
   viewBillLink: string;
   billDisabledHint: string;
+  individualCalledHint: string;
   submitCooldownWait: string;
   orderSuccess: string;
   demoMode: string;
@@ -110,6 +111,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     placeOrder: 'Enviar pedido',
     viewBillLink: 'Ver conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
+    individualCalledHint: 'Pediu a conta: nao pode adicionar pratos. Na pagina da conta, toque em Retomar pedidos para continuar.',
     submitCooldownWait: 'Aguarde {seconds} s',
     orderSuccess: 'Pedido enviado!',
     demoMode: 'Modo demo · os dados sao apenas ilustrativos, o pedido nao sera enviado',
@@ -203,6 +205,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     placeOrder: 'Place order',
     viewBillLink: 'View bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
+    individualCalledHint: 'You have called for your bill, so ordering is paused. Tap Resume ordering on the bill page to continue.',
     submitCooldownWait: 'Wait {seconds}s',
     orderSuccess: 'Order placed!',
     demoMode: 'Demo mode · data is for display only, orders are not submitted',
@@ -296,6 +299,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     placeOrder: '去下单',
     viewBillLink: '查看账单',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
+    individualCalledHint: '你已呼叫结账，暂时不能点单。需要加菜请到账单页点「恢复点单」。',
     submitCooldownWait: '请等待 {seconds} 秒',
     orderSuccess: '下单成功！',
     demoMode: '演示模式 · 数据仅供展示，订单不会真实提交',
@@ -389,6 +393,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     placeOrder: 'Enviar pedido',
     viewBillLink: 'Ver cuenta',
     billDisabledHint: 'Esta mesa está cerrando la cuenta. Ahora no se pueden añadir platos.',
+    individualCalledHint: 'Has pedido la cuenta, por eso no puedes pedir ahora. En la página de la cuenta pulsa Reanudar pedido.',
     submitCooldownWait: 'Espera {seconds} s',
     orderSuccess: '¡Pedido enviado!',
     demoMode: 'Modo demo · los datos son solo de muestra, el pedido no se envía',
@@ -491,6 +496,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     viewBillLink: 'Voir l’addition',
     billDisabledHint:
       'Cette table est en cours d’encaissement. Impossible d’ajouter des plats pour le moment.',
+    individualCalledHint: 'Vous avez demandé l’addition : la commande est suspendue. Sur la page de l’addition, appuyez sur Reprendre la commande.',
     submitCooldownWait: 'Patientez {seconds} s',
     orderSuccess: 'Commande envoyée !',
     demoMode: 'Mode démo · données fictives, la commande ne sera pas envoyée',
@@ -594,6 +600,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     viewBillLink: 'Rechnung ansehen',
     billDisabledHint:
       'Dieser Tisch wird gerade abgerechnet. Es können vorerst keine Gerichte hinzugefügt werden.',
+    individualCalledHint: 'Sie haben die Rechnung angefordert, Bestellen ist pausiert. Auf der Rechnungsseite „Bestellen fortsetzen“ tippen.',
     submitCooldownWait: 'Bitte {seconds} s warten',
     orderSuccess: 'Bestellung aufgegeben!',
     demoMode: 'Demomodus · Daten dienen nur zur Anzeige, es wird nichts bestellt',

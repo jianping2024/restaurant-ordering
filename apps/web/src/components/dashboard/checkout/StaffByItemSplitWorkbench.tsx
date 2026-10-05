@@ -1,5 +1,6 @@
 'use client';
 
+import type { StaffTicketUnlock } from '@/components/dashboard/checkout/staff-ticket-unlock';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildByItemAllocationsFromRows,
@@ -214,6 +215,8 @@ type Props = {
     partyId?: string;
   }) => void;
   onCollectCurrent?: (args: { personName: string; partyId?: string }) => void;
+  /** Individual checkout: send the current called ticket back to draft. */
+  ticketUnlock?: StaffTicketUnlock;
   /** Sole staff delete memory — trash / empty-qty blur commit. */
   onRecordShareOmit?: (lineKey: string, ticketKey: string) => void;
   /** Clear omit when pool + / 1/N re-adds that ticket×line. */
@@ -247,6 +250,7 @@ export function StaffByItemSplitWorkbench({
   onAllocationChange,
   onRenamePerson,
   onCollectCurrent,
+  ticketUnlock,
   onRecordShareOmit,
   onClearShareOmit,
 }: Props) {
@@ -1042,6 +1046,25 @@ export function StaffByItemSplitWorkbench({
                       </p>
                     ) : null}
                   </div>
+                  {ticketUnlock &&
+                  !currentSettled &&
+                  ticketUnlock.unlockableKeys.has(splitPartyKey(currentPartyId, currentName)) ? (
+                    <button
+                      type="button"
+                      disabled={
+                        disabled ||
+                        ticketUnlock.unlockingKeys.has(splitPartyKey(currentPartyId, currentName))
+                      }
+                      onClick={() =>
+                        ticketUnlock.onUnlock(splitPartyKey(currentPartyId, currentName))
+                      }
+                      className="text-sm font-semibold px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50"
+                    >
+                      {ticketUnlock.unlockingKeys.has(splitPartyKey(currentPartyId, currentName))
+                        ? ticketUnlock.busyLabel
+                        : ticketUnlock.label}
+                    </button>
+                  ) : null}
                   {onCollectCurrent && !currentSettled ? (
                     <button
                       type="button"

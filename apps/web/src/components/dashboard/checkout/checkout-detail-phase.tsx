@@ -39,10 +39,11 @@ export function canReturnToCheckoutPathChooser(input: {
 type PathChooserProps = {
   wholeTableLabel: string;
   splitLabel: string;
-  resumeLabel: string;
+  /** Omitted for individual-checkout plans (resume is per ticket, not whole table). */
+  resumeLabel?: string;
   onWholeTable: () => void;
   onSplit: () => void;
-  onResume: () => void;
+  onResume?: () => void;
 };
 
 export function CheckoutPathChooser({
@@ -70,13 +71,15 @@ export function CheckoutPathChooser({
         >
           {splitLabel}
         </button>
-        <button
-          type="button"
-          onClick={onResume}
-          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30"
-        >
-          {resumeLabel}
-        </button>
+        {onResume && resumeLabel ? (
+          <button
+            type="button"
+            onClick={onResume}
+            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30"
+          >
+            {resumeLabel}
+          </button>
+        ) : null}
       </div>
     </div>
   );

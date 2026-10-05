@@ -1,25 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-/** True when the table's active session is in billing (guest requested checkout). */
-export async function tableSessionBlocksWaiterMutation(
-  admin: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<boolean> {
-  const { data: session } = await admin
-    .from('table_sessions')
-    .select('status')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return session?.status === 'billing';
-}
-
 /** Matches waiter board 「待结账」: billing session or active checkout request on table. */
 export async function tableInActiveCheckout(
   admin: SupabaseClient,

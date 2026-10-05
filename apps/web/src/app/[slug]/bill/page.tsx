@@ -114,6 +114,8 @@ export default async function BillRoute({ params, searchParams }: Props) {
       itemCodeByMenuId={itemCodeByMenuId}
       imageUrlByMenuId={imageUrlByMenuId}
       initialPartyMemberCount={bill.party_member_count}
+      initialIndividualCheckout={bill.active_session.individual_checkout === true}
+      initialIndividualTickets={bill.individual_tickets}
     />
   );
 }

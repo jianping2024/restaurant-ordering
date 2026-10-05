@@ -14,6 +14,7 @@
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单；未勾选时跳过自动预账单（厨房单不受影响）。确认收款后的账单/发票由结账页询问决定，走手动入队，不受此开关限制 |
 | `bill_sync_to_fiscal` | **关闭** | 勾选后：确认收款界面填写税号/客户名。收款后：有效 NIF 或付款方式为 Multibanco/混合时**直接**入队 `auto_issue` 打发票（不弹「是否打印发票」）；其余（现金且无有效 NIF）仍问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则不打）。未勾选时不问发票，改为问「是否打印账单」。桌台详情仍按开关切换「关台结账」/「呼叫结账」。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
 | `menu_flavor_hints_enabled` | **关闭** | 勾选后：菜单编辑可标菜品风味，顾客菜单显示风味 chip。未勾选：编辑无风味区、顾客不显示（已写入的 `flavor_codes` 保留）。产品定稿见 [`product/menu-flavor-hints.zh.md`](./product/menu-flavor-hints.zh.md) |
+| `guest_individual_checkout` | **关闭** | 勾选后，**之后新开的桌台**里顾客可在手机上按菜分单、每人各自呼叫结账：呼叫只锁定自己的票和这台手机的点单，桌子保持可点单；员工前台没收款前可调整或「解锁」。开关在开台时记到会话上，用餐中途切换不影响已开的桌。详见 [`guest-individual-checkout.zh.md`](./guest-individual-checkout.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 

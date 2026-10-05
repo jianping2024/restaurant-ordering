@@ -4,6 +4,7 @@ import { loadCustomerBillContext } from '@/lib/customer-bill-context';
 import { CUSTOMER_READ_NO_STORE_HEADERS } from '@/lib/customer-read-http-headers';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { parseCustomerBillScope } from '@/lib/customer-session-context';
+import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 
 export const runtime = 'nodejs';
 
@@ -41,6 +42,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     restaurantId: restaurant.id,
     tableIdParam: searchParams.get('table_id'),
     scope: parseCustomerBillScope(searchParams.get('scope')),
+    guestClientId: parseGuestClientId(searchParams.get('guest_client_id')),
   });
   if (!bill) {
     return NextResponse.json(

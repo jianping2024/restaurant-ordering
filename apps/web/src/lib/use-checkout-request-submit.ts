@@ -18,6 +18,8 @@ import {
 } from '@/lib/checkout-request-submit';
 import { stageCheckoutRequestForQueue } from '@/lib/checkout-request-staging';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
+import { selectMyIndividualTickets } from '@/lib/individual-checkout';
+import { splitResultTicketKey } from '@/lib/split-party-id';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -48,6 +50,9 @@ type Messages = {
   actionFailed: string;
   guestCountRequired: string;
   partyMergeRequired: string;
+  individualNothingClaimed?: string;
+  individualClaimConflict?: string;
+  individualNameTaken?: string;
   redirectTimeout?: string;
 };
 
@@ -65,6 +70,16 @@ type Params = {
   checkoutRedirectHref: string | null;
   /** Customer success: commit the server-accepted split as the read-model truth. */
   onCustomerSubmitSuccess: (submittedSplit: BillSplit) => void;
+  /**
+   * Individual-checkout session (guest phone): only this phone's editable tickets are sent and the
+   * read model is refreshed from the server instead of committing a local split.
+   */
+  individual?: {
+    guestClientId: string | null;
+    readOnlyTicketKeys: ReadonlySet<string>;
+    /** Ticket keys this phone just called (its own realtime signal must not pop a notice). */
+    onCalled: (ticketKeys: string[]) => Promise<void>;
+  } | null;
   onBusyChange?: (busy: boolean) => void;
   showToast: (message: string, kind: 'error' | 'success') => void;
   messages: Messages;
@@ -93,6 +108,7 @@ export function useCheckoutRequestSubmit(params: Params) {
     customerNifInput,
     checkoutRedirectHref,
     onCustomerSubmitSuccess,
+    individual = null,
     onBusyChange,
     showToast,
     messages,
@@ -163,18 +179,38 @@ export function useCheckoutRequestSubmit(params: Params) {
       const validated = validateSubmitSplitDraft(
         splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput,
         fresh.orders,
+        { allowPartialByItem: !!individual, ignoreUnnamedRows: !!individual },
       );
       if (!validated.ok) {
         showToast(splitValidationToast(validated.issue, messages), 'error');
         return;
       }
 
-      const persons = buildSubmitPersons({
+      const allPersons = buildSubmitPersons({
         splitMode: splitDraft.splitMode,
         submitResults: validated.submitResults,
         splitPeople: splitDraft.splitPeople,
         buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
       });
+      let persons = allPersons;
+      let submitResults = validated.submitResults;
+      if (individual) {
+        if (!individual.guestClientId) {
+          showToast(messages.actionFailed, 'error');
+          return;
+        }
+        const mine = selectMyIndividualTickets({
+          persons: allPersons,
+          results: validated.submitResults,
+          readOnlyKeys: individual.readOnlyTicketKeys,
+        });
+        if (!mine.hasClaim) {
+          showToast(messages.individualNothingClaimed ?? messages.splitUnassignedItems, 'error');
+          return;
+        }
+        persons = mine.persons;
+        submitResults = mine.results;
+      }
 
       const customerNif = guestBillCollectsCustomerNif(splitDraft.splitMode)
         ? normalizePortugueseNif(customerNifInput) || null
@@ -185,11 +221,17 @@ export function useCheckoutRequestSubmit(params: Params) {
         tableId,
         splitMode: splitDraft.splitMode,
         persons,
-        result: validated.submitResults,
+        result: submitResults,
         customerNif,
+        guestClientId: individual?.guestClientId,
       });
 
       if (!requestResult.ok) {
+        if (individual) {
+          // The plan moved under us (claim / name conflict, stale plan): reload the truth so the
+          // editor shows the newly locked tickets and the over-claimed dishes turn red.
+          void refreshOrders();
+        }
         showToast(
           messageForCheckoutRequestError(requestResult.error, {
             guestCountRequired: messages.guestCountRequired,
@@ -199,9 +241,23 @@ export function useCheckoutRequestSubmit(params: Params) {
             tableNotAvailable: messages.actionFailed,
             invalidNif: messages.nifInvalid,
             splitPlanLocked: messages.splitPlanLocked,
+            individualClaimConflict: messages.individualClaimConflict,
+            individualNameTaken: messages.individualNameTaken,
+            individualNothingClaimed: messages.individualNothingClaimed,
             fallback: messages.actionFailed,
           }),
           'error',
+        );
+        return;
+      }
+
+      if (individual) {
+        await individual.onCalled(
+          selectMyIndividualTickets({
+            persons,
+            results: submitResults,
+            readOnlyKeys: new Set(),
+          }).persons.map((person) => splitResultTicketKey(person)),
         );
         return;
       }
@@ -249,6 +305,8 @@ export function useCheckoutRequestSubmit(params: Params) {
     displayName,
     messages,
     onCustomerSubmitSuccess,
+    individual,
+    refreshOrders,
     resolveFreshBill,
     restaurant.id,
     restaurant.slug,

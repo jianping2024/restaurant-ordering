@@ -16,6 +16,7 @@ export type AppendOrderFailureCode =
   | 'location_too_far'
   | 'location_required'
   | 'session_billing'
+  | 'individual_called'
   | 'buffet_required'
   | 'rate_limited'
   | 'append_in_progress'
@@ -36,7 +37,7 @@ export type MenuOrderSubmitSuccess = {
 };
 
 export type MenuOrderSubmitFailure =
-  | { kind: 'gate'; sessionStatus: SessionStatus | null }
+  | { kind: 'gate'; sessionStatus: SessionStatus | null; individualHold?: boolean }
   | { kind: 'geo'; reason: CustomerGeoOrderFailure }
   | { kind: 'append'; code: AppendOrderFailureCode; clientRequestId: string }
   | { kind: 'network'; clientRequestId: string };
@@ -120,6 +121,8 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'location_required';
     case 'session_billing':
       return 'session_billing';
+    case 'individual_called':
+      return 'individual_called';
     case 'buffet_required':
       return 'buffet_required';
     case 'per_person_limit_exceeded':
@@ -154,6 +157,8 @@ export async function postMenuOrderAppend(params: {
   latitude?: number;
   longitude?: number;
   waiterFlow: boolean;
+  /** Guest phone id — lets the server refuse a phone with a called, unpaid ticket. */
+  guestClientId?: string | null;
   fetchImpl?: typeof fetch;
 }): Promise<
   | {
@@ -178,6 +183,9 @@ export async function postMenuOrderAppend(params: {
       latitude: params.latitude,
       longitude: params.longitude,
       waiter_flow: params.waiterFlow,
+      ...(!params.waiterFlow && params.guestClientId
+        ? { guest_client_id: params.guestClientId }
+        : {}),
     }),
   });
 
@@ -215,6 +223,7 @@ export async function executeMenuOrderSubmit(params: {
   tableId: string;
   waiterFlow: boolean;
   clientRequestId: string;
+  guestClientId?: string | null;
   ensureGate: () => Promise<GuestOrderGateResult>;
   resolveGeo: () => Promise<CustomerGeoOrderResult>;
   fetchImpl?: typeof fetch;
@@ -223,7 +232,11 @@ export async function executeMenuOrderSubmit(params: {
 
   const gate = await params.ensureGate();
   if (!gate.canPlace) {
-    return { kind: 'gate', sessionStatus: gate.sessionStatus };
+    return {
+      kind: 'gate',
+      sessionStatus: gate.sessionStatus,
+      ...(gate.individualHold ? { individualHold: true } : {}),
+    };
   }
 
   const geo = await params.resolveGeo();
@@ -249,6 +262,7 @@ export async function executeMenuOrderSubmit(params: {
       latitude: geo.latitude,
       longitude: geo.longitude,
       waiterFlow: params.waiterFlow,
+      guestClientId: params.guestClientId,
       fetchImpl: params.fetchImpl,
     });
     if (!append.ok) {

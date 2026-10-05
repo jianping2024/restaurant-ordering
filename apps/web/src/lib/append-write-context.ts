@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, OrderItem } from '@/types';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
+import { guestPhoneHoldsOrdering } from '@/lib/individual-checkout-server';
 import { findActiveTableSession, type TableSessionRef } from '@/lib/table-session-open';
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'cooking', 'done'] as const;
@@ -37,6 +38,13 @@ export async function loadAppendWriteContext(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
+  options?: {
+    /**
+     * Guest phone id. Individual-checkout sessions refuse dishes from a phone that has a
+     * called, unpaid ticket (waiter flow never passes this).
+     */
+    guestClientId?: string | null;
+  },
 ): Promise<LoadAppendWriteContextResult> {
   const session = await findActiveTableSession(admin, restaurantId, tableId);
   if (!session) {
@@ -44,6 +52,14 @@ export async function loadAppendWriteContext(
   }
   if (session.status === 'billing') {
     return { ok: false, status: 409, error: 'session_billing' };
+  }
+  if (session.individual_checkout && options?.guestClientId) {
+    const holds = await guestPhoneHoldsOrdering(admin, {
+      restaurantId,
+      sessionId: session.id,
+      clientId: options.guestClientId,
+    });
+    if (holds) return { ok: false, status: 409, error: 'individual_called' };
   }
 
   const { data: sessionOrders, error } = await admin

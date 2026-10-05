@@ -1,3 +1,4 @@
+import type { IndividualTicketInfo } from '@/lib/individual-checkout';
 import {
   buildBillSplitOrderLines,
   buildByItemSplitOrderLines,
@@ -42,6 +43,9 @@ export function deriveBillView(orders: Order[]) {
 
 /** Sole client bill reconcile snapshot — same fields as SSR / customer/bill full. */
 export type CustomerBillSyncSnapshot = {
+  /** Session stamped individual_checkout — guests call per ticket, the table never locks. */
+  individualCheckout: boolean;
+  individualTickets: IndividualTicketInfo[];
   orders: Order[];
   partyMemberCount: number;
   existingSplit: BillSplit | null;
@@ -62,8 +66,9 @@ export type CustomerBillSyncSnapshot = {
 export async function syncCustomerBill(
   slug: string,
   tableId: string,
+  guestClientId?: string | null,
 ): Promise<CustomerBillSyncSnapshot | null> {
-  const data = await requestCustomerBillContext(slug, tableId, 'full');
+  const data = await requestCustomerBillContext(slug, tableId, 'full', guestClientId);
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
   const partyMemberCount =
@@ -76,6 +81,8 @@ export async function syncCustomerBill(
       ? data.active_session.id
       : null;
   return {
+    individualCheckout: data.active_session?.individual_checkout === true,
+    individualTickets: data.individual_tickets ?? [],
     orders,
     partyMemberCount,
     existingSplit: data.existing_split ?? null,

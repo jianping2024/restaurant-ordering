@@ -1,3 +1,4 @@
+import { loadCalledTicketKeys } from '@/lib/individual-checkout-reads';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order } from '@/types';
 import {
@@ -217,10 +218,12 @@ export async function runBuffetWaiterOpenPipeline(
           sessionId,
         );
 
+        const calledKeys = await loadCalledTicketKeys(admin, split?.id);
         const floors = lockedBuffetHeadcountByBuffetId(
           split,
           collectedPayments.length > 0,
           collectedPayments,
+          calledKeys,
         );
         const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
         if (floorViolation) {

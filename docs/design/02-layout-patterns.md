@@ -131,13 +131,13 @@
 
 ### 客人手机（`/{slug}/bill`）
 
-**组件**：`BillPage`、`ByItemSplitSection`、`BuffetDishAllocator`
+**组件**：`BillPage`、`GuestClaimPanel`、`GuestClaimDishCard`
 
 | 阶段 | 布局 |
 |------|------|
 | 浏览消费 | 订单行列表 + 合计 |
 | 选模式 | 均摊 / 按菜 / 自定义 分段控件 |
-| 按菜分单 | 每道菜一张分配卡 `ByItemDishAllocator` + 顶部进度条 |
+| 按菜分单 | 每道菜一张认领卡 `GuestClaimDishCard`（顶部 `GuestClaimPanel` 填名字 + 全部认领） |
 | 确认 | 固定底栏或显眼 gold 按钮「呼叫结账」 |
 
 **要点**
@@ -159,7 +159,7 @@
 
 **剩余真相唯一**：池剩余与右侧已分均经 `parseConsumerRows` / 具名份额（`staff-by-item-workbench`）；禁止第二套 remaining 算法。
 
-**禁止**：在员工 `split_edit` 再挂客人 `ByItemSplitSection` 菜卡。算法仍唯一走 `bill-split-by-item*` / `useBillSplitDraft`。
+**禁止**：在员工 `split_edit` 再挂客人 `GuestClaimDishCard` 菜卡。算法仍唯一走 `bill-split-by-item*` / `useBillSplitDraft`。
 
 ---
 

@@ -8,7 +8,8 @@ export type CheckoutRequestErrorLabels = {
   emptySession: string;
   noActiveSession: string;
   tableNotAvailable: string;
-  invalidNif: string;
+  /** Staff NIF paths only; the guest phone never sends a NIF. */
+  invalidNif?: string;
   splitPlanLocked: string;
   /** Individual checkout (optional — only the guest bill page passes these). */
   individualClaimConflict?: string;
@@ -37,7 +38,7 @@ export function messageForCheckoutRequestError(
   if (code === 'empty_session') return labels.emptySession;
   if (code === 'no_active_session') return labels.noActiveSession;
   if (code === 'table_not_available') return labels.tableNotAvailable;
-  if (code === 'invalid_nif') return labels.invalidNif;
+  if (code === 'invalid_nif' && labels.invalidNif) return labels.invalidNif;
   if (code === 'claim_conflict' && labels.individualClaimConflict) {
     return labels.individualClaimConflict;
   }

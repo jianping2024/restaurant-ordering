@@ -1,6 +1,6 @@
 /**
- * Guest individual checkout (feature `guest_individual_checkout`): each guest calls checkout for
- * their own by-item ticket(s). Spec: docs/guest-individual-checkout.zh.md.
+ * Guest per-ticket checkout: each guest phone calls checkout for its own single by-item ticket.
+ * Spec: docs/guest-individual-checkout.zh.md (§15).
  *
  * Pure rules shared by the API and the phone UI. Persistence + locks live in the SQL function
  * `individual_checkout_apply`; this module only merges and validates the plan the app sends.
@@ -47,7 +47,6 @@ export type IndividualCheckoutErrorCode =
   | 'locked_ticket_changed'
   | 'stale_plan'
   | 'split_mode_locked'
-  | 'not_individual_session'
   | 'no_active_session'
   | 'invalid_request'
   | 'individual_apply_failed';
@@ -65,6 +64,24 @@ type IndividualCallIssue =
 
 function personTicketKey(person: Pick<SplitPerson, 'name' | 'party_id'>): string {
   return splitResultTicketKey(person);
+}
+
+/**
+ * Sole name-collision rule: an unpaid ticket of someone else already uses this name
+ * (case-insensitive). A paid ticket never blocks — the name may start a new ticket.
+ */
+export function unpaidNameTakenByOther(
+  result: ReadonlyArray<SplitResult>,
+  mine: { key: string; name: string },
+): boolean {
+  const nameKey = splitPersonKey(mine.name);
+  if (!nameKey) return false;
+  return result.some(
+    (other) =>
+      !other.paid &&
+      splitResultTicketKey(other) !== mine.key &&
+      splitPersonKey(other.name) === nameKey,
+  );
 }
 
 /** Unique, non-empty ticket keys of result rows (call order). */
@@ -130,7 +147,7 @@ export function mergeIndividualTickets(params: {
 
 /**
  * Validate the merged plan for a call. Pure: no I/O.
- * - every called ticket claims at least one positive share
+ * - the call is exactly one ticket and it claims at least one positive share
  * - an unpaid name may not be used by two different tickets (paid tickets do not block)
  * - no dish is claimed beyond its qty (first-come: the stored plan already holds earlier claims)
  */
@@ -142,6 +159,8 @@ export function validateIndividualCall(params: {
 }): IndividualCallIssue {
   const { lineSpecs, persons, result, myKeys } = params;
   if (myKeys.length === 0) return { ok: false, code: 'empty_ticket' };
+  // One phone, one ticket: a call never carries more than its own single ticket.
+  if (myKeys.length > 1) return { ok: false, code: 'invalid_ticket' };
 
   const resultByKey = new Map<string, SplitResult>();
   for (const row of result) {
@@ -165,19 +184,10 @@ export function validateIndividualCall(params: {
     if (!claimsSomething || !(row.amount > 0)) return { ok: false, code: 'empty_ticket' };
   }
 
-  const takenNames: string[] = [];
-  for (const key of myKeys) {
+  const takenNames = myKeys.flatMap((key) => {
     const mine = resultByKey.get(key)!;
-    const nameKey = splitPersonKey(mine.name);
-    for (const other of result) {
-      if (splitResultTicketKey(other) === key) continue;
-      if (other.paid) continue;
-      if (splitPersonKey(other.name) === nameKey) {
-        takenNames.push(mine.name);
-        break;
-      }
-    }
-  }
+    return unpaidNameTakenByOther(result, { key, name: mine.name }) ? [mine.name] : [];
+  });
   if (takenNames.length > 0) return { ok: false, code: 'name_taken', names: takenNames };
 
   const allocations = buildByItemAllocationsFromPersons([...persons], [...lineSpecs]);
@@ -226,21 +236,6 @@ export function recomputeIndividualTicketAmounts(params: {
   });
 }
 
-/**
- * Ticket keys this phone must treat as read-only: every called ticket (its own included) and
- * the unlocked tickets other phones still hold. Only this phone's own unlocked tickets are
- * editable draft here.
- */
-export function individualReadOnlyTicketKeys(
-  tickets: ReadonlyArray<IndividualTicketInfo>,
-): ReadonlySet<string> {
-  const keys = new Set<string>();
-  for (const ticket of tickets) {
-    if (ticket.state === 'called' || !ticket.mine) keys.add(ticket.ticket_key);
-  }
-  return keys;
-}
-
 /** True when this phone has a called ticket that is not yet paid (blocks ordering). */
 export function individualPhoneHoldsOrdering(
   tickets: ReadonlyArray<IndividualTicketInfo>,
@@ -256,25 +251,4 @@ export function individualPhoneHoldsOrdering(
   return tickets.some(
     (ticket) => ticket.mine && ticket.state === 'called' && !paid.has(ticket.ticket_key),
   );
-}
-
-/**
- * Individual call payload: only this phone's editable tickets (never the read-only overlay of
- * called / held tickets). `hasClaim` is false when nothing was claimed.
- */
-export function selectMyIndividualTickets(params: {
-  persons: ReadonlyArray<SplitPerson>;
-  results: ReadonlyArray<SplitResult>;
-  readOnlyKeys: ReadonlySet<string>;
-}): { persons: SplitPerson[]; results: SplitResult[]; hasClaim: boolean } {
-  const persons = params.persons.filter((person) => {
-    const key = personTicketKey(person);
-    return !!key && !params.readOnlyKeys.has(key);
-  });
-  const keys = new Set(persons.map(personTicketKey));
-  const results = params.results.filter((row) => keys.has(splitResultTicketKey(row)));
-  const hasClaim = persons.some((person) =>
-    (person.item_shares ?? []).some((share) => share.qty_num > 0 && share.qty_den > 0),
-  );
-  return { persons, results, hasClaim };
 }

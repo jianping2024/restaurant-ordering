@@ -246,46 +246,6 @@ describe('validateSplitDraft', () => {
   });
 });
 
-describe('individual checkout: unnamed rows are unclaimed', () => {
-  const key = 'o1-0';
-  const baseInput = {
-    splitMode: 'by_item' as const,
-    total: 20,
-    orderLines: [menuLine(key, 2, 10)],
-    lineSpecs: [menuSpec(key, 2, 10)],
-    personCount: 1,
-    splitPeople: [{ name: 'Guest 1' }],
-    parsedByItemAllocations: { [key]: [] },
-    lang: 'pt' as const,
-  };
-
-  it('ignores a blank seed row so a guest can call with the pool untouched elsewhere', () => {
-    const input = {
-      ...baseInput,
-      byItemDraftRows: { [key]: [consumerRow('row-1', '', '1')] },
-    };
-    assert.equal(validateSplitDraft(input, { allowPartialByItem: true }).validation.ok, false);
-    assert.equal(
-      validateSplitDraft(input, { allowPartialByItem: true, ignoreUnnamedRows: true }).validation.ok,
-      true,
-    );
-  });
-
-  it('still rejects a named row with an invalid quantity', () => {
-    const outcome = validateSplitDraft(
-      {
-        ...baseInput,
-        byItemDraftRows: { [key]: [consumerRow('row-1', 'Guest 1', '3')] },
-        parsedByItemAllocations: {
-          [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 3, den: 1 } }],
-        },
-      },
-      { allowPartialByItem: true, ignoreUnnamedRows: true },
-    );
-    assert.equal(outcome.validation.ok, false);
-  });
-});
-
 describe('resolvePersistedSplitModeForDraft', () => {
   it('returns null when no existing split', () => {
     assert.equal(resolvePersistedSplitModeForDraft(null), null);

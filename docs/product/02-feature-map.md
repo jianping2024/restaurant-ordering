@@ -382,7 +382,7 @@
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/[slug]/bill/page.tsx` |
-| UI | `apps/web/src/components/menu/BillPage.tsx`、`ByItemSplitSection.tsx`、`BuffetDishAllocator.tsx` |
+| UI | `apps/web/src/components/menu/BillPage.tsx`、`GuestClaimPanel.tsx`、`GuestClaimDishCard.tsx` |
 | Lib | `apps/web/src/lib/bill-split-by-item.ts`、`bill-split-draft.ts`、`bill-split-local-draft.ts`、`bill-split-validate.ts`、`use-by-item-split-state.ts` |
 | API | `apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts` |
 

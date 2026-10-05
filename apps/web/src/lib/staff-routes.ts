@@ -1,4 +1,3 @@
-import { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 
 export { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 
@@ -87,14 +86,6 @@ function isSlugWaiterReturnPath(returnPath: string, slug: string): boolean {
   return returnPath === prefix || returnPath.startsWith(`${prefix}/`);
 }
 
-/** After bill checkout request — only when assisted flow allows desk checkout. */
-export function checkoutRedirectAfterBillRequest(
-  tableId: string,
-  canAssistBillCheckout: boolean,
-): string | null {
-  return canAssistBillCheckout ? dashboardCheckoutTableHref(tableId) : null;
-}
-
 function isSafeInternalReturnPath(path: string): boolean {
   return path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
 }
@@ -108,8 +99,6 @@ export type StaffAssistedFlow = {
   redirectAfterSubmit: boolean;
   showBillCta: boolean;
   skipGeoFence: boolean;
-  skipFeedback: boolean;
-  checkoutRedirectHref: string | null;
 };
 
 export type ResolveStaffAssistedFlowOptions = WaiterRouteOptions & {
@@ -127,7 +116,6 @@ export function resolveStaffAssistedFlow(
   from: string | undefined,
   returnPath: string | undefined,
   slug: string,
-  tableId: string,
   options: ResolveStaffAssistedFlowOptions = {},
 ): StaffAssistedFlow | null {
   const returnHref = resolveWaiterMenuReturnHref(from, returnPath, slug, options);
@@ -142,8 +130,6 @@ export function resolveStaffAssistedFlow(
     redirectAfterSubmit: true,
     showBillCta: canAssistBillCheckout,
     skipGeoFence: true,
-    skipFeedback: true,
-    checkoutRedirectHref: checkoutRedirectAfterBillRequest(tableId, canAssistBillCheckout),
   };
 }
 

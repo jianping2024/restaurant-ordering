@@ -43,8 +43,6 @@ export function deriveBillView(orders: Order[]) {
 
 /** Sole client bill reconcile snapshot — same fields as SSR / customer/bill full. */
 export type CustomerBillSyncSnapshot = {
-  /** Session stamped individual_checkout — guests call per ticket, the table never locks. */
-  individualCheckout: boolean;
   individualTickets: IndividualTicketInfo[];
   orders: Order[];
   partyMemberCount: number;
@@ -81,7 +79,6 @@ export async function syncCustomerBill(
       ? data.active_session.id
       : null;
   return {
-    individualCheckout: data.active_session?.individual_checkout === true,
     individualTickets: data.individual_tickets ?? [],
     orders,
     partyMemberCount,

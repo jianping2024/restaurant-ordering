@@ -8,7 +8,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
 import {
-  loadTableIndividualCheckout,
   submitIndividualCall,
 } from '@/lib/individual-checkout-server';
 import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
@@ -185,8 +184,8 @@ export async function POST(
 
   const caller = await resolveCheckoutRequestCaller(slug);
 
-  // Individual-checkout sessions: a guest phone calls only its own by-item ticket(s).
-  if (caller.kind === 'customer' && (await loadTableIndividualCheckout(admin, loaded.restaurant.id, tableId))) {
+  // A guest phone calls only its own by-item ticket.
+  if (caller.kind === 'customer') {
     const guestClientId = parseGuestClientId(body.guest_client_id);
     if (!guestClientId) {
       return NextResponse.json({ error: 'invalid_guest_client_id' }, { status: 400 });

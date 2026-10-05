@@ -12,7 +12,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { deriveBillView } from '@/lib/customer-bill-sync';
-import { loadCalledTicketKeys, loadSessionIndividualFlag } from '@/lib/individual-checkout-reads';
+import { loadCalledTicketKeys } from '@/lib/individual-checkout-reads';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import { splitResultTicketKey } from '@/lib/split-party-id';
 import type { Order, SplitPerson, SplitResult } from '@/types';
@@ -49,7 +49,7 @@ export function claimBreakLineKeys(params: {
 
 /**
  * Check an order change against the live plan. `nextOrders` is the session's orders as they
- * would be after the write. No-op for sessions that are not individual-checkout.
+ * would be after the write.
  */
 export async function guardIndividualClaims(
   admin: SupabaseClient,
@@ -61,8 +61,6 @@ export async function guardIndividualClaims(
 ): Promise<ClaimGuardResult> {
   const { restaurantId, sessionId } = params;
   if (!sessionId) return { ok: true };
-
-  if (!(await loadSessionIndividualFlag(admin, sessionId))) return { ok: true };
 
   const split = await loadActiveBillSplitForSession({ admin, restaurantId, sessionId });
   if (!split || split.split_mode !== 'by_item') return { ok: true };

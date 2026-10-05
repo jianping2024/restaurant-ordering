@@ -4,10 +4,7 @@ import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import {
-  checkoutRequestLocksTable,
-  type WaiterTableSessionMeta,
-} from '@/lib/waiter-board-session';
+import { isCheckoutPending, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { ACTIVE_ORDER_STATUSES } from '@/lib/waiter-board-query';
 import { defaultActiveBuffet } from '@/lib/waiter-table-detail-view';
 import {
@@ -29,13 +26,6 @@ export {
   sessionMetaFromRow,
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
-
-function isCheckoutPending(
-  sessionMeta: WaiterTableSessionMeta,
-  checkoutRequested: boolean,
-): boolean {
-  return checkoutRequestLocksTable(sessionMeta, checkoutRequested) || sessionMeta.status === 'billing';
-}
 
 async function fetchCheckoutRequestedForTable(
   client: SupabaseClient,
@@ -88,7 +78,7 @@ async function loadTableAndSession(
       .maybeSingle(),
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, individual_checkout')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
       .eq('restaurant_id', restaurantId)
       .eq('table_id', tableId)
       .in('status', ['open', 'billing'])
@@ -156,7 +146,6 @@ export function buildActiveWaiterTablePageModel(input: {
 
 export {
   fetchCheckoutRequestedForTable,
-  isCheckoutPending,
   loadActiveBuffets,
   loadTableAndSession,
   loadTableOrdersForSession,
@@ -191,7 +180,7 @@ export async function loadWaiterTableDetailSnapshot(
   }
 
   const checkout = await fetchCheckoutRequestedForTable(admin, restaurantId, tableId);
-  const checkoutPending = isCheckoutPending(sessionMeta, checkout.requested);
+  const checkoutPending = isCheckoutPending(sessionMeta);
 
   if (!includeOpenTableDefaults) {
     const orders = await loadTableOrdersForSession(admin, restaurantId, sessionMeta.sessionId);

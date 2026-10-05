@@ -170,8 +170,6 @@ describe('deriveMenuPageFooter', () => {
       redirectAfterSubmit: true,
       showBillCta: false,
       skipGeoFence: true,
-      skipFeedback: true,
-      checkoutRedirectHref: null,
     };
     const view = deriveMenuPageFooter({
       ...base,

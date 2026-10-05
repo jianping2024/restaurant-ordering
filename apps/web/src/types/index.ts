@@ -441,8 +441,6 @@ export interface TableSession {
   opened_by_user_id?: string | null;
   /** Opener label stamped at open — sole board/history display source. */
   opened_by_name?: string | null;
-  /** Stamped at open from feature `guest_individual_checkout` (sticky for the whole meal). */
-  individual_checkout?: boolean;
 }
 
 // 购物车条目

@@ -1,31 +1,24 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import {
-  customerBillCallAmount,
-  submittedSplitResult,
-} from '@/lib/customer-bill-split-display';
+import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
-import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
-import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
-import { guestBillCollectsCustomerNif } from '@/lib/checkout-request-submit';
-import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import type { IndividualTicketInfo } from '@/lib/individual-checkout';
-import { splitResultTicketKey } from '@/lib/split-party-id';
+import { splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import { requestGuestUnlockTickets } from '@/lib/request-individual-checkout';
 import { IndividualCheckoutNotice } from '@/components/menu/IndividualCheckoutNotice';
 import { useGuestClientId } from '@/lib/table-order-round/use-guest-client-id';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useCustomerBillReadModel } from '@/lib/use-customer-bill-read-model';
-import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
+import { useGuestClaim } from '@/lib/use-guest-claim';
+import { useGuestCallCheckout } from '@/lib/use-guest-call-checkout';
 import {
   DISH_FEEDBACK_REASON_KEYS,
   parseDishFeedbackReasons,
@@ -37,10 +30,8 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
 import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
-import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
+import { GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
 import { BillCheckoutSubmittedScreen, type ReviewableItem } from '@/components/menu/BillCheckoutSubmittedScreen';
-import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
-import { GuestConsumerNameEditChromeProvider } from '@/components/menu/guest-consumer-name-edit-chrome';
 
 function BillCheckoutGateBanner({
   message,
@@ -71,6 +62,7 @@ interface Props {
   sessionStatus: SessionStatus;
   existingSplit: BillSplit | null;
   initialCollectedPayments?: SessionCollectedPayment[];
+  /** Waiter opened the bill from the floor: read-only bill details, no claiming or calling. */
   staffAssisted?: StaffAssistedFlow | null;
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
@@ -78,12 +70,19 @@ interface Props {
   /** Catalog photo per menu item id — feedback card thumb (emoji fallback). */
   imageUrlByMenuId?: Record<string, string>;
   initialPartyMemberCount?: number;
-  /** Session stamped individual_checkout (feature `guest_individual_checkout`). */
-  initialIndividualCheckout?: boolean;
   initialIndividualTickets?: IndividualTicketInfo[];
 }
 
-export function BillPage({
+/** Customer phone: claim your own dishes and call checkout. Waiter view: details only. */
+export function BillPage(props: Props) {
+  return props.staffAssisted ? (
+    <StaffBillDetailsView {...props} staffAssisted={props.staffAssisted} />
+  ) : (
+    <GuestBillPage {...props} />
+  );
+}
+
+function StaffBillDetailsView({
   restaurant,
   tableId,
   displayName,
@@ -92,26 +91,71 @@ export function BillPage({
   sessionStatus,
   existingSplit,
   initialCollectedPayments = [],
-  staffAssisted = null,
+  staffAssisted,
+  itemCodeByMenuId = {},
+  initialPartyMemberCount = 0,
+}: Props & { staffAssisted: StaffAssistedFlow }) {
+  const { lang } = useLanguage();
+  const t = getMessages(lang).bill;
+  const { orders, total } = useCustomerBillReadModel(
+    {
+      orders: initialOrders,
+      partyMemberCount: initialPartyMemberCount,
+      existingSplit,
+      collectedPayments: initialCollectedPayments,
+      sessionId,
+      sessionStatus,
+    },
+    { slug: restaurant.slug, tableId },
+  );
+  const detailLines = useMemo(
+    () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
+    [orders, lang, itemCodeByMenuId],
+  );
+  return (
+    <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-24">
+      <CustomerOrderingHeader
+        restaurantName={restaurant.name}
+        displayName={displayName}
+        tableLabel={t.table}
+        staffAssisted={staffAssisted}
+        subtitle={t.settlement}
+        headingSize="bill"
+        backLink={{
+          href: staffAssisted.returnHref,
+          label: staffAssistedReturnLabel(staffAssisted, lang),
+        }}
+      />
+      <BillDetailsSection
+        title={t.details}
+        totalLabel={t.total}
+        lines={detailLines}
+        total={total}
+        formatChargeableHint={(qty, unitPrice) => formatChargeableShareHint(lang, qty, unitPrice)}
+      />
+    </div>
+  );
+}
+
+function GuestBillPage({
+  restaurant,
+  tableId,
+  displayName,
+  orders: initialOrders,
+  sessionId,
+  sessionStatus,
+  existingSplit,
+  initialCollectedPayments = [],
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   initialPartyMemberCount = 0,
-  initialIndividualCheckout = false,
   initialIndividualTickets = [],
 }: Props) {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
-  const backHref = staffAssisted?.returnHref
-    ?? `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
-  const backLabel = staffAssisted
-    ? staffAssistedReturnLabel(staffAssisted, lang)
-    : t.backToMenu;
-  const checkoutRedirectHref = staffAssisted?.checkoutRedirectHref ?? null;
-
-  const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
+  const backHref = `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
   const guestClientId = useGuestClientId(restaurant.id, tableId);
 
   const {
@@ -129,13 +173,10 @@ export function BillPage({
     commitOrders,
     lastSyncedAt,
     setCallBillBusy,
-    commitSubmittedCheckout,
     commitIndividualCalled,
     refreshBill,
-    individualCheckout: individualSession,
-    individualReady,
+    ticketsReady,
     individualTickets,
-    individualReadOnlyKeys,
   } = useCustomerBillReadModel(
     {
       orders: initialOrders,
@@ -144,25 +185,13 @@ export function BillPage({
       collectedPayments: initialCollectedPayments,
       sessionId,
       sessionStatus,
-      individualCheckout: initialIndividualCheckout,
       individualTickets: initialIndividualTickets,
     },
-    {
-      slug: restaurant.slug,
-      tableId,
-      guestClientId,
-      enabled: true,
-    },
+    { slug: restaurant.slug, tableId, guestClientId, enabled: true },
   );
-  // Staff driving the guest bill page keeps the staff checkout path (whole plan, redirect).
-  const individualGuest = individualSession && !staffAssisted;
 
-  // Own just-called tickets: their realtime signal must not pop a notice on this phone.
+  // Own just-called ticket: its realtime signal must not pop a notice on this phone.
   const ownCalledKeysRef = useRef(new Set<string>());
-  const handleIndividualCalled = async (ticketKeys: string[]) => {
-    for (const key of ticketKeys) ownCalledKeysRef.current.add(key);
-    await commitIndividualCalled();
-  };
   const getIgnoreTicketKeys = useCallback(() => {
     const keys = new Set(ownCalledKeysRef.current);
     for (const ticket of individualTickets) {
@@ -172,17 +201,24 @@ export function BillPage({
   }, [individualTickets]);
   // The phone id is only known after mount: reload once so `mine` ticket states are right.
   useEffect(() => {
-    if (!guestClientId || !individualGuest) return;
+    if (!guestClientId) return;
     void refreshBill();
-  }, [guestClientId, individualGuest, refreshBill]);
+  }, [guestClientId, refreshBill]);
 
   /** Live session from bill sync — never keep SSR session id after table reopen. */
   const activeSessionId = liveSessionId ?? sessionId;
 
-  const persistedResult = useMemo(
-    () => submittedSplitResult(liveSplit?.result as SplitResult[] | null, submitted),
-    [liveSplit?.result, submitted],
-  );
+  const claim = useGuestClaim({
+    restaurantId: restaurant.id,
+    sessionId: activeSessionId,
+    lineSpecs,
+    orderLines: splitOrderLines,
+    existingSplit: liveSplit,
+    tickets: individualTickets,
+    lang,
+    submitted,
+  });
+
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
@@ -191,12 +227,9 @@ export function BillPage({
     () =>
       !!existingSplit &&
       !!activeSessionId &&
-      !staffAssisted?.skipFeedback &&
       !initialFeedbackSubmitted &&
       !initialFeedbackSkipped,
   );
-  const [customerNifInput, setCustomerNifInput] = useState('');
-  const [editingConsumerName, setEditingConsumerName] = useState(false);
   const [callBillBusy, setCallBillBusyState] = useState(false);
 
   useEffect(() => {
@@ -208,65 +241,26 @@ export function BillPage({
     [orders, lang, itemCodeByMenuId],
   );
 
-  // Individual checkout: `requested` means "someone called", not "this phone is checking out" —
-  // the draft machinery must keep treating this phone as editable while it holds no called ticket.
-  const draftSplit = useMemo(
-    () =>
-      individualGuest && liveSplit && liveSplit.status === 'requested'
-        ? { ...liveSplit, status: 'confirmed' as const }
-        : liveSplit,
-    [individualGuest, liveSplit],
-  );
-
-  const splitDraft = useBillSplitDraft({
-    restaurantId: restaurant.id,
-    sessionId: activeSessionId,
-    existingSplit: draftSplit,
-    continuationSplit: draftSplit,
-    collectedPayments,
-    total,
-    orderLines: splitOrderLines,
-    lineSpecs,
-    lang,
-    guestName,
-    submitted,
-    persistedResult,
-    submitting: callBillBusy,
-    byItemEditor: 'guest',
-    ...(individualGuest
-      ? { individualReadOnlyKeys, discountRate: 0 }
-      : {}),
-  });
-
-  const { isCallBillBusy, submitCallBill } = useCheckoutRequestSubmit({
+  const { myTicket } = claim;
+  const { isCallBillBusy, submitCall } = useGuestCallCheckout({
     restaurant,
     tableId,
-    displayName,
     orders,
     partyMemberCount,
     lastSyncedAt,
     refreshOrders,
     commitOrders,
-    splitDraft,
-    customerNifInput,
-    checkoutRedirectHref,
-    onCustomerSubmitSuccess: commitSubmittedCheckout,
-    individual: individualGuest
-      ? {
-          guestClientId,
-          readOnlyTicketKeys: individualReadOnlyKeys,
-          onCalled: handleIndividualCalled,
-        }
-      : null,
+    guestClientId,
+    getTicket: () => myTicket,
+    onCalled: async () => {
+      ownCalledKeysRef.current.add(splitPartyKey(claim.claim.partyId, claim.claim.name));
+      await commitIndividualCalled();
+    },
     onBusyChange: setCallBillBusyState,
     showToast,
     messages: {
       billSyncFailed: t.billSyncFailed,
       billIncomplete: t.billIncomplete,
-      splitUnassignedItems: t.splitUnassignedItems,
-      splitIncompleteQty: t.splitIncompleteQty,
-      splitAmountMismatch: t.splitAmountMismatch,
-      nifInvalid: t.nifInvalid,
       splitPlanLocked: t.splitPlanLocked,
       actionFailed: t.actionFailed,
       guestCountRequired: t.guestCountRequired,
@@ -287,7 +281,7 @@ export function BillPage({
   const individualNotice = (
     <IndividualCheckoutNotice
       sessionId={activeSessionId}
-      enabled={individualGuest}
+      enabled
       suppressModal={submitted}
       onSignals={() => void refreshBill()}
       getIgnoreTicketKeys={getIgnoreTicketKeys}
@@ -295,26 +289,28 @@ export function BillPage({
     />
   );
 
-  /** Individual checkout: the called screen lists only this phone's tickets. */
-  const individualMine = useMemo(() => {
-    if (!individualGuest || !submitted) return null;
+  /** The called screen lists only this phone's own ticket(s). */
+  const calledMine = useMemo(() => {
+    if (!submitted) return null;
     const results = (liveSplit?.result ?? []) as SplitResult[];
     const mineKeys = new Set(
       individualTickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
     );
-    const rows = splitDraft.splitDisplayRows.filter((_, index) => {
-      const row = results[index];
-      return !!row && mineKeys.has(splitResultTicketKey(row));
-    });
+    const rows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total).filter(
+      (_, index) => {
+        const row = results[index];
+        return !!row && mineKeys.has(splitResultTicketKey(row));
+      },
+    );
     return {
       rows,
       total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
     };
-  }, [individualGuest, submitted, liveSplit?.result, individualTickets, splitDraft.splitDisplayRows]);
+  }, [submitted, liveSplit?.result, individualTickets, collectedPayments, total]);
 
   const [resumeBusy, setResumeBusy] = useState(false);
-  /** Guest「恢复点单」: unlock this phone's called tickets, then reload the shared plan. */
-  const handleIndividualResume = async () => {
+  /** Guest「恢复点单」: unlock this phone's called ticket, then reload the shared plan. */
+  const handleResume = async () => {
     if (resumeBusy || !guestClientId) return;
     setResumeBusy(true);
     try {
@@ -327,8 +323,6 @@ export function BillPage({
         const collecting =
           outcome.error === 'ticket_collecting' || outcome.error === 'ticket_paid';
         showToast(collecting ? t.individualResumeCollecting : t.individualResumeFailed, 'error');
-        await refreshBill();
-        return;
       }
       await refreshBill();
     } finally {
@@ -336,82 +330,39 @@ export function BillPage({
     }
   };
 
-  useEffect(() => {
-    if (!checkoutRedirectHref || !submitted) return;
-    router.replace(checkoutRedirectHref);
-  }, [checkoutRedirectHref, submitted, router]);
-
-  const callBillAmount = useMemo(
-    () => customerBillCallAmount({ total, collectedPayments }),
-    [total, collectedPayments],
-  );
-  // Individual checkout offers a single split mode (按菜): select it once so the editor is ready.
-  const { splitMode: draftSplitMode, handleSplitModeClick: selectSplitMode } = splitDraft;
-  useEffect(() => {
-    if (!individualGuest || submitted || callBillBusy || draftSplitMode != null) return;
-    selectSplitMode('by_item');
-  }, [individualGuest, submitted, callBillBusy, draftSplitMode, selectSplitMode]);
-
-  // Individual checkout: the button amount is what THIS phone claims (not the whole bill).
-  const individualDraftAmount = useMemo(() => {
-    if (!individualGuest) return null;
-    if (splitDraft.splitMode !== 'by_item') return 0;
-    const sum = splitDraft.results
-      .filter((row) => !individualReadOnlyKeys.has(splitResultTicketKey(row)))
-      .reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
-    return Math.round(sum * 100) / 100;
-  }, [individualGuest, individualReadOnlyKeys, splitDraft.results, splitDraft.splitMode]);
-  const callAmountShown = individualDraftAmount ?? callBillAmount;
-
-  const byItemAllocatorLabels = useMemo(
+  const claimLabels = useMemo(
     () => ({
-      addConsumer: t.addConsumer,
-      namePlaceholder: t.consumerNamePlaceholder,
-      typeNewName: t.consumerNameTypeNew,
       wholeLabel: t.qtyWholePlaceholder,
       numLabel: t.qtyNumPlaceholder,
       denLabel: t.qtyDenPlaceholder,
       missingDen: t.qtyMissingDen,
       zeroDen: t.qtyZeroDen,
       improperFraction: t.qtyImproperFraction,
-      complete: t.byItemComplete,
-      remaining: t.byItemRemaining,
-      over: t.byItemOver,
-      missingNames: t.byItemMissingNames,
-      duplicateNames: t.byItemDuplicateNames,
-      unassigned: t.byItemUnassigned,
-      invalidQty: t.byItemInvalidQty,
-      buffetComplete: t.byItemBuffetComplete,
-      buffetShortAdult: t.byItemBuffetShortAdult,
-      buffetShortChild: t.byItemBuffetShortChild,
-      buffetOverAdult: t.byItemBuffetOverAdult,
-      buffetOverChild: t.byItemBuffetOverChild,
-      buffetAdultProgress: t.byItemBuffetAdultProgress,
-      buffetChildProgress: t.byItemBuffetChildProgress,
+      claimedByOthers: t.claimOthers,
+      left: t.claimLeft,
+      over: t.claimOver,
       buffetAdultQtyLabel: t.byItemGuestTypeAdult,
       buffetChildQtyLabel: t.byItemGuestTypeChild,
-      remove: t.removeConsumer,
-      expandDetails: t.byItemExpandDetails,
-      collapseDetails: t.byItemCollapseDetails,
-      byItemProgress: t.byItemProgress,
+      buffetGuestCounts: t.buffetGuestCounts,
+      nameLabel: t.claimNameLabel,
+      namePlaceholder: t.claimNamePlaceholder,
+      nameRequired: t.claimNameRequired,
+      nameTaken: t.individualNameTaken,
+      intro: t.claimIntro,
+      claimAll: t.claimAll,
     }),
     [t],
   );
 
-  const splitValidationMessage =
-    splitDraft.splitValidation.ok
-      ? null
-      : splitDraft.splitValidation.issue === 'unassigned_items'
-        ? t.splitUnassignedItems
-        : splitDraft.splitValidation.issue === 'incomplete_qty'
-          ? t.splitIncompleteQty
-          : t.splitAmountMismatch;
-
-  const collectsCustomerNif = guestBillCollectsCustomerNif(splitDraft.splitMode);
-  const customerNifInvalid =
-    collectsCustomerNif
-    && customerNifInput.trim().length > 0
-    && !validatePortugueseNif(customerNifInput);
+  /** Name problems are shown in the name field itself; the rest under the dish list. */
+  const claimIssueMessage =
+    claim.issue === 'nothing_claimed'
+      ? t.individualNothingClaimed
+      : claim.issue === 'over_claim'
+        ? t.claimOver
+        : claim.issue === 'invalid_qty'
+          ? t.byItemInvalidQty
+          : null;
 
   const guestCountConfirmed = isBillGuestCountConfirmed(orders);
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
@@ -430,15 +381,18 @@ export function BillPage({
       showToast(t.partyMergeRequired, 'error');
       return;
     }
-    if (customerNifInvalid) {
-      showToast(t.nifInvalid, 'error');
+    if (claim.issue) {
+      showToast(
+        claim.issue === 'name_required'
+          ? t.claimNameRequired
+          : claim.issue === 'name_taken'
+            ? t.individualNameTaken
+            : (claimIssueMessage ?? t.actionFailed),
+        'error',
+      );
       return;
     }
-    if (splitDraft.splitMode && !splitDraft.splitValidation.ok) {
-      showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
-      return;
-    }
-    void submitCallBill();
+    void submitCall();
   };
 
   const reviewableItems = useMemo(() => {
@@ -475,7 +429,7 @@ export function BillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !activeSessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) {
+    if (!submitted || !activeSessionId || initialFeedbackSubmitted || initialFeedbackSkipped) {
       return;
     }
     setFeedbackHydrating(true);
@@ -514,7 +468,6 @@ export function BillPage({
     activeSessionId,
     restaurant.slug,
     tableId,
-    staffAssisted,
     initialFeedbackSubmitted,
     initialFeedbackSkipped,
   ]);
@@ -613,9 +566,9 @@ export function BillPage({
     }
   };
 
-  // Individual sessions render only after a read that carried this phone's id, so the editor
-  // never flashes for a phone whose own ticket is already called.
-  if (individualGuest && !individualReady) {
+  // The editor renders only after a read that carried this phone's id, so it never flashes
+  // for a phone whose own ticket is already called.
+  if (!ticketsReady) {
     return <div className="min-h-screen bg-brand-bg" aria-busy="true" />;
   }
 
@@ -645,24 +598,19 @@ export function BillPage({
           thumbsDown: t.thumbsDown,
           noFeedbackItems: t.noFeedbackItems,
         }}
-        total={individualMine ? individualMine.total : total}
-        splitRows={individualMine ? individualMine.rows : splitDraft.splitDisplayRows}
-        individual={
-          individualGuest
-            ? {
-                hint: t.individualCalledHint,
-                resumeLabel: t.individualResume,
-                resumeBusyLabel: t.individualResumeBusy,
-                resumeBusy,
-                onResume: () => void handleIndividualResume(),
-              }
-            : null
-        }
+        total={calledMine?.total ?? total}
+        splitRows={calledMine?.rows ?? []}
+        called={{
+          hint: t.individualCalledHint,
+          resumeLabel: t.individualResume,
+          resumeBusyLabel: t.individualResumeBusy,
+          resumeBusy,
+          onResume: () => void handleResume(),
+        }}
         backHref={backHref}
-        backLabel={backLabel}
+        backLabel={t.backToMenu}
         onRefreshPage={() => window.location.reload()}
-        staffAssisted={staffAssisted}
-        showFeedback={!staffAssisted?.skipFeedback && !feedbackSkipped}
+        showFeedback={!feedbackSkipped}
         reviewableItems={reviewableItems}
         feedbackDraft={feedbackDraft}
         feedbackReasonLabels={feedbackReasonLabels}
@@ -680,26 +628,20 @@ export function BillPage({
     );
   }
 
-  /** Sole guest bill fixed-CTA yield: consumer-name focus. */
-  const hideFixedCallCheckout = editingConsumerName;
-  // Name edit keeps pb-24 (rail needs bottom air).
-  const pagePadClass = checkoutGateMessage && !hideFixedCallCheckout ? 'pb-40' : 'pb-24';
+  const pagePadClass = checkoutGateMessage ? 'pb-40' : 'pb-24';
 
   return (
-    <GuestConsumerNameEditChromeProvider onActiveChange={setEditingConsumerName}>
+    <>
     {individualNotice}
-    <div
-      data-editing-consumer-name={editingConsumerName ? '1' : '0'}
-      className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
-    >
+    <div className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}>
       <CustomerOrderingHeader
         restaurantName={restaurant.name}
         displayName={displayName}
         tableLabel={t.table}
-        staffAssisted={staffAssisted}
+        staffAssisted={null}
         subtitle={t.settlement}
         headingSize="bill"
-        backLink={{ href: backHref, label: backLabel }}
+        backLink={{ href: backHref, label: t.backToMenu }}
       />
 
       <BillDetailsSection
@@ -712,89 +654,27 @@ export function BillPage({
         }
       />
 
-      <BillSplitPanel
+      <GuestClaimPanel
         lang={lang}
-        copy={{
-          splitMode: t.splitMode,
-          splitPlanLocked: t.splitPlanLocked,
-          people: t.people,
-          splitResult: t.splitResult,
-          splitPaid: t.splitPaid,
-          splitPartialPaid: t.splitPartialPaid,
-          splitAmountBreakdown: t.splitAmountBreakdown,
-        }}
-        splitGuidance={getGuestSplitGuidance(lang)}
-        individualMode={individualGuest}
-        splitMode={splitDraft.splitMode}
-        splitLocked={splitDraft.splitLocked}
-        submitting={isCallBillBusy}
-        personCount={splitDraft.personCount}
-        splitPeople={splitDraft.splitPeople}
-        results={splitDraft.results}
-        splitDisplayRows={splitDraft.splitDisplayRows}
-        lockedPersonNames={splitDraft.lockedPersonNames}
-        lockedPersonLineMins={splitDraft.lockedPersonLineMins}
+        labels={claimLabels}
+        claim={claim.claim}
         lineSpecs={lineSpecs}
         orderLines={splitOrderLines}
-        byItemAllocations={splitDraft.byItemAllocations}
-        consumerRoster={splitDraft.consumerRoster}
-        byItemProgress={splitDraft.byItemProgress}
-        byItemAllocatorLabels={byItemAllocatorLabels}
+        others={claim.others}
+        overClaimedKeys={claim.overClaimedKeys}
+        nameTaken={claim.nameTaken}
+        disabled={isCallBillBusy}
         itemCodeByMenuId={itemCodeByMenuId}
-        splitValidationMessage={splitValidationMessage}
-        guestName={guestName}
-        editingSplitNameIndex={splitDraft.editingSplitNameIndex}
-        editingSplitNameValue={splitDraft.editingSplitNameValue}
-        onSplitModeClick={splitDraft.handleSplitModeClick}
-        onDecrementPersonCount={splitDraft.decrementPersonCount}
-        onIncrementPersonCount={splitDraft.incrementPersonCount}
-        onAllocationChange={(key, rows) => {
-          splitDraft.setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
-        }}
-        onRememberConsumerName={splitDraft.rememberConsumerName}
-        onStartInlineRename={splitDraft.startInlineRename}
-        onCommitInlineRename={splitDraft.commitInlineRename}
-        onEditingSplitNameValueChange={splitDraft.setEditingSplitNameValue}
-        onCancelInlineRename={() => {
-          splitDraft.setEditingSplitNameIndex(null);
-          splitDraft.setEditingSplitNameValue('');
-        }}
+        onNameChange={claim.setName}
+        onRowChange={claim.updateRow}
+        onClaimAll={claim.claimRest}
       />
 
-      {!submitted && collectsCustomerNif ? (
-        <div className="px-4 pb-3">
-          <label htmlFor="customer-nif" className="text-brand-text font-medium text-sm block mb-1.5">
-            {t.nifLabel}
-          </label>
-          <input
-            id="customer-nif"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            value={customerNifInput}
-            onChange={(e) => setCustomerNifInput(formatPortugueseNif(e.target.value))}
-            placeholder={t.nifPlaceholder}
-            className={`${customerNifInputClass} ${
-              customerNifInvalid
-                ? 'border-red-500 focus:ring-red-500/40'
-                : 'border-brand-border focus:ring-brand-gold/40'
-            }`}
-          />
-          <p className={`text-[12px] mt-1.5 ${customerNifInvalid ? 'text-red-500' : 'text-brand-text-muted'}`}>
-            {customerNifInvalid ? t.nifInvalid : t.nifHint}
-          </p>
-        </div>
+      {claimIssueMessage ? (
+        <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueMessage}</p>
       ) : null}
 
-      {/* Sole guest bill CTA chrome — stay mounted; `hidden` (display:none) while
-          consumer-name edit. It is fixed, so flow layout does not
-          change, and iOS drops the layer (visibility:hidden left ghost copies). */}
-      <div
-        className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${
-          hideFixedCallCheckout ? 'hidden' : ''
-        }`}
-        aria-hidden={hideFixedCallCheckout || undefined}
-      >
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
         {checkoutGateMessage ? (
           <BillCheckoutGateBanner
             message={checkoutGateMessage}
@@ -807,21 +687,18 @@ export function BillPage({
           onClick={handleCallBill}
           loading={isCallBillBusy}
           disabled={
-            hideFixedCallCheckout
-            || orderLines.length === 0
+            orderLines.length === 0
             || !activeSessionId
             || isCallBillBusy
             || !guestCountConfirmed
             || !partyCheckoutAllowed
-            || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
-            || customerNifInvalid
-            || (individualGuest && !((individualDraftAmount ?? 0) > 0))
+            || claim.issue !== null
           }
         >
-          🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
+          🔔 {t.callBill} — €{myTicket.amount.toFixed(2)}
         </Button>
       </div>
     </div>
-    </GuestConsumerNameEditChromeProvider>
+    </>
   );
 }

@@ -53,7 +53,7 @@
 
 ### 3.2 手机端已分好单的请求
 
-- 手机端提交链为：`BillPage` → `useBillSplitDraft` → `useGuestByItemSplitState` → `buildSplitPersonsFromAllocations` → checkout request。
+- 手机端提交链为：`BillPage` → `useGuestClaim`（一机一人一票）→ `buildMyTicket` → `useGuestCallCheckout` → checkout request（顾客手机不再走 `useBillSplitDraft`）。
 - 电脑端将请求本身作为 `existingSplit/continuationSplit` hydrate。
 - 未付 persons 会进入电脑端 draft；已锁票进入 committed，避免 Realtime 覆盖本地未付编辑。
 
@@ -231,7 +231,7 @@ TS 和 SQL 的 `mergeByItemSplitResultWithLedger` 都按如下方式合并：
 
 - hydrate key 包含 `lineSpecs`：`apps/web/src/lib/use-guest-by-item-split-state.ts:90`
 - hydrate 后整体 `setByItemAllocationsState(...)`：`apps/web/src/lib/use-guest-by-item-split-state.ts:95`
-- 提交前发现订单变化会 commit 新 orders 并中止：`apps/web/src/lib/use-checkout-request-submit.ts:116`
+- 提交前发现订单变化会 commit 新 orders 并中止：`apps/web/src/lib/use-guest-call-checkout.ts`（`resolveFreshBill`）
 - 电脑端采用 merge-missing、保留本地 draft：`apps/web/src/lib/use-by-item-split-state.ts:119`
 
 #### 影响

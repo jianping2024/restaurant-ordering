@@ -11,7 +11,6 @@ import {
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
-  countByItemAllocationProgress,
   normalizeByItemDraftPartyIds,
   withDefaultByItemLineRows,
   type ByItemConsumerRow,
@@ -35,13 +34,12 @@ import {
   buildLockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
 /**
  * Sole *staff* checkout by-item editing state (person rail / pool).
- * Locked committed + unpaid named draft dual-layer — guest phone must not use this hook
- * (guest sole editor: useGuestByItemSplitState). Submit wire is still buildSplitPersonsFromAllocations.
+ * Locked committed + unpaid named draft dual-layer. The guest phone has its own single-ticket
+ * model ({@link useGuestClaim}). Submit wire is still buildSplitPersonsFromAllocations.
  * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on draft write / seed.
  *
  * Unpaid persons hydrate: sole path is {@link mergeMissingByItemDraftTickets} against
@@ -52,8 +50,6 @@ export function useByItemSplitState(params: {
   lineSpecs: ByItemLineSpec[];
   existingSplit: BillSplit | null;
   collectedPayments?: SessionCollectedPayment[];
-  /** When false (guest bill page), skip staff dual-layer work. Default true. */
-  enabled?: boolean;
   /**
    * Sole session-isolation key for unpaid draft rows.
    * When it changes, wipe draft — never keep prior session's shares in the new session key.
@@ -65,7 +61,6 @@ export function useByItemSplitState(params: {
     lineSpecs,
     existingSplit,
     collectedPayments = [],
-    enabled = true,
     draftOwnerKey = null,
   } = params;
 
@@ -98,14 +93,14 @@ export function useByItemSplitState(params: {
    * committed / seed via extract* — do not call buildByItemConsumerRowsFromPersons twice.
    */
   const personsHydrateRows = useMemo(() => {
-    if (!enabled || splitMode !== 'by_item') return {};
+    if (splitMode !== 'by_item') return {};
     if (!existingSplit?.persons?.length || lineSpecs.length === 0) return {};
     return buildByItemConsumerRowsFromPersons(
       existingSplit.persons,
       lineSpecs,
       paidLocks,
     );
-  }, [enabled, splitMode, existingSplit, lineSpecs, paidLocks]);
+  }, [splitMode, existingSplit, lineSpecs, paidLocks]);
 
   /** Persons hydrate → locked rows only. Realtime may rebuild; never touches draft. */
   const committedAllocations = useMemo(
@@ -173,7 +168,7 @@ export function useByItemSplitState(params: {
   );
 
   const byItemAllocations = useMemo(() => {
-    if (!enabled || splitMode !== 'by_item') return {};
+    if (splitMode !== 'by_item') return {};
     return normalizeByItemDraftPartyIds(
       withDefaultByItemLineRows(
         mergeByItemCommittedAndDraft(
@@ -186,7 +181,6 @@ export function useByItemSplitState(params: {
       lockedTicketKeys,
     );
   }, [
-    enabled,
     splitMode,
     committedAllocations,
     draftWithPersons,
@@ -196,7 +190,6 @@ export function useByItemSplitState(params: {
 
   const setByItemAllocations = useCallback(
     (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
-      if (!enabled) return;
       setDraftAllocations((prevDraft) => {
         const prevMerged = withDefaultByItemLineRows(
           mergeByItemCommittedAndDraft(
@@ -219,7 +212,7 @@ export function useByItemSplitState(params: {
         return extractByItemDraftAllocations(normalized, lockedKeysRef.current);
       });
     },
-    [enabled, lineSpecs],
+    [lineSpecs],
   );
 
   const recordStaffByItemShareOmit = useCallback(
@@ -247,23 +240,10 @@ export function useByItemSplitState(params: {
     });
   }, []);
 
-  const consumerRoster = useMemo(
-    () => collectActiveConsumerNames(byItemAllocations),
-    [byItemAllocations],
-  );
-
   const parsedByItemAllocations = useMemo<ByItemLineAllocation>(
     () => buildByItemAllocationsFromRows(lineSpecs, byItemAllocations),
     [lineSpecs, byItemAllocations],
   );
-
-  const byItemProgress = useMemo(
-    () => countByItemAllocationProgress(lineSpecs, byItemAllocations),
-    [lineSpecs, byItemAllocations],
-  );
-
-  const rememberConsumerName: (name: string, fromList: boolean) => void =
-    useCallback(() => {}, []);
 
   const renameByItemConsumer = useCallback(
     (oldName: string, newName: string, partyId?: string) => {
@@ -295,10 +275,7 @@ export function useByItemSplitState(params: {
   return {
     byItemAllocations,
     setByItemAllocations,
-    consumerRoster,
-    rememberConsumerName,
     parsedByItemAllocations,
-    byItemProgress,
     renameByItemConsumer,
     buildPersonsForSubmit,
     recordStaffByItemShareOmit,

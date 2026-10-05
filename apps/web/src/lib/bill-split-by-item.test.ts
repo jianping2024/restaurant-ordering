@@ -2,13 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { ByItemConsumerRow } from './bill-split-by-item';
 import {
-  appendByItemConsumerRow,
   buildByItemAllocationsFromRows,
   byItemLinePriceShare,
-  byItemLineStatusSummary,
   calcByItemSplitResults,
   consumersForLineFromPersons,
-  countByItemAllocationProgress,
   getBuffetLineStatusFromRows,
   getBuffetLineStatusFromShares,
   getByItemLineStatusFromRows,
@@ -16,7 +13,6 @@ import {
   locateByItemSplitResult,
   parseConsumerRows,
   rationalToRowQtyFields,
-  removeByItemConsumerRow,
   resolveBuffetRowCounts,
   shareQtyLabel,
   validateQtyParts,
@@ -76,23 +72,6 @@ function buffetSpec(
   };
 }
 
-const statusLabels = {
-  complete: '已分完 · {qty}',
-  remaining: '还差 {qty} · 已分 {allocated}',
-  over: '超出 {qty} · 已分 {allocated}',
-  missingNames: '请填写姓名',
-  duplicateNames: '不能重复',
-  unassigned: '还差 {qty}',
-  invalidQty: '数量有误',
-  buffetComplete: '已分完',
-  buffetShortAdult: '还差 {n}成人',
-  buffetShortChild: '还差 {n}儿童',
-  buffetOverAdult: '超出 {n}成人',
-  buffetOverChild: '超出 {n}儿童',
-  buffetAdultProgress: '成人 {allocated}/{total}',
-  buffetChildProgress: '儿童 {allocated}/{total}',
-};
-
 describe('validateQtyParts', () => {
   it('composes whole and fraction without symbols', () => {
     const mixed = validateQtyParts({ whole: '2', num: '1', den: '3' });
@@ -113,77 +92,23 @@ describe('withDefaultByItemLineRows', () => {
   });
 });
 
-describe('appendByItemConsumerRow', () => {
-  it('prefills menu remainder after a named partial share', () => {
-    const spec = menuSpec('wine', 1);
-    const rows = [row('1', 'Cindy', { num: '1', den: '3' })];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next.length, 2);
-    assert.equal(next[1]?.qtyNum, '2');
-    assert.equal(next[1]?.qtyDen, '3');
-    assert.equal(next[1]?.name, '');
-  });
-
-  it('prefills integer menu remainder for multi-qty lines', () => {
-    const spec = menuSpec('beer', 3);
-    const rows = [row('1', 'John', { whole: '1' })];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next[1]?.qtyWhole, '2');
-  });
-
-  it('subtracts cumulative named menu shares', () => {
-    const spec = menuSpec('beer', 3);
-    const rows = [
-      row('1', 'John', { whole: '1' }),
-      row('2', 'Mary', { whole: '1' }),
-    ];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next[2]?.qtyWhole, '1');
-  });
-
-  it('ignores unnamed rows when computing menu remainder', () => {
-    const spec = menuSpec('wine', 1);
-    const rows = [
-      row('1', 'Cindy', { num: '1', den: '3' }),
-      row('2', '', { num: '1', den: '3' }),
-    ];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next.length, 3);
-    assert.equal(next[2]?.qtyNum, '2');
-    assert.equal(next[2]?.qtyDen, '3');
-  });
-
-  it('prefills buffet adult and child remainders', () => {
-    const spec = buffetSpec('buffet-0', 3, 2);
-    const rows = [buffetRow('1', 'Cindy', '1', '1')];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next[1]?.adultQty, '2');
-    assert.equal(next[1]?.childQty, '1');
-  });
-
-  it('marks a line complete after sequential buffet fills', () => {
-    const spec = buffetSpec('buffet-0', 3, 2);
-    const rows = appendByItemConsumerRow(
-      [buffetRow('1', 'Cindy', '1', '1')],
-      spec,
-    );
-    rows[1] = { ...rows[1]!, name: 'John' };
-    const status = getBuffetLineStatusFromRows(rows, spec);
-    assert.equal(status.kind, 'complete');
-  });
-
-  it('adds an empty row when the line is already fully allocated', () => {
-    const spec = menuSpec('wine', 1);
-    const rows = [row('1', 'Cindy', { whole: '1' })];
-    const next = appendByItemConsumerRow(rows, spec);
-    assert.equal(next[1]?.qtyWhole, '');
-    assert.equal(next[1]?.qtyNum, '');
-    assert.equal(next[1]?.qtyDen, '');
-  });
-
-  it('formats rational remainders consistently with hydration', () => {
-    const fields = rationalToRowQtyFields({ num: 2, den: 3 });
-    assert.deepEqual(fields, { qtyWhole: '', qtyNum: '2', qtyDen: '3' });
+describe('rationalToRowQtyFields', () => {
+  it('maps whole, fraction and mixed quantities to the qty input fields', () => {
+    assert.deepEqual(rationalToRowQtyFields({ num: 2, den: 1 }), {
+      qtyWhole: '2',
+      qtyNum: '',
+      qtyDen: '',
+    });
+    assert.deepEqual(rationalToRowQtyFields({ num: 2, den: 3 }), {
+      qtyWhole: '',
+      qtyNum: '2',
+      qtyDen: '3',
+    });
+    assert.deepEqual(rationalToRowQtyFields({ num: 5, den: 2 }), {
+      qtyWhole: '2',
+      qtyNum: '1',
+      qtyDen: '2',
+    });
   });
 });
 
@@ -197,12 +122,6 @@ describe('buffet by-item', () => {
     const spec = buffetSpec('buffet-0', 2, 1);
     const status = getBuffetLineStatusFromRows([buffetRow('1', 'John', '2', '1')], spec);
     assert.equal(status.kind, 'complete');
-    if (status.kind === 'complete') {
-      assert.equal(
-        byItemLineStatusSummary(status, statusLabels, undefined, { buffet: true }).text,
-        '已分完 · 成人 2/2 · 儿童 1/1',
-      );
-    }
   });
 
   it('prices buffet by headcount per payer', () => {
@@ -260,10 +179,6 @@ describe('buffet by-item', () => {
   it('shows short status with progress counts', () => {
     const partial = getBuffetLineStatusFromRows([buffetRow('1', 'John', '1', '')], { adults: 2, children: 0 });
     assert.equal(partial.kind, 'buffet_short');
-    assert.equal(
-      byItemLineStatusSummary(partial, statusLabels, undefined, { buffet: true }).text,
-      '还差 1成人 · 成人 1/2',
-    );
   });
 });
 
@@ -275,19 +190,6 @@ describe('getByItemLineStatus', () => {
       spec,
     );
     assert.equal(status.kind, 'complete');
-  });
-});
-
-describe('countByItemAllocationProgress', () => {
-  it('counts only complete lines', () => {
-    const progress = countByItemAllocationProgress(
-      [menuSpec('a', 1), menuSpec('b', 2)],
-      {
-        a: [row('1', 'John', { whole: '1' })],
-        b: [row('2', 'Mary', { whole: '1' })],
-      },
-    );
-    assert.deepEqual(progress, { complete: 1, total: 2 });
   });
 });
 
@@ -361,32 +263,6 @@ describe('validateBillSplit by_item', () => {
       { name: 'Alex', partyId: 'party-b', guestType: 'adult', qty: { num: 1, den: 1 } },
     ]);
     assert.equal(status.kind, 'complete');
-  });
-});
-
-describe('removeByItemConsumerRow', () => {
-  it('drops the target row when multiple rows exist', () => {
-    const rows = [row('a', 'John', {}), row('b', 'Mary', {})];
-    const next = removeByItemConsumerRow(rows, 'a');
-    assert.equal(next.length, 1);
-    assert.equal(next[0]?.name, 'Mary');
-  });
-
-  it('keeps one empty row when removing the last remaining row', () => {
-    const rows = [row('a', 'John', { whole: '1' })];
-    const next = removeByItemConsumerRow(rows, 'a');
-    assert.equal(next.length, 1);
-    assert.notEqual(next[0]?.id, 'a');
-    assert.equal(next[0]?.name, '');
-    assert.equal(next[0]?.qtyWhole, '1');
-  });
-
-  it('creates a buffet default row when the last buffet row is removed', () => {
-    const rows = [{ ...row('a', 'John', {}), adultQty: '2', childQty: '' }];
-    const next = removeByItemConsumerRow(rows, 'a', { buffet: true });
-    assert.equal(next.length, 1);
-    assert.equal(next[0]?.adultQty, '1');
-    assert.equal(next[0]?.childQty, '');
   });
 });
 

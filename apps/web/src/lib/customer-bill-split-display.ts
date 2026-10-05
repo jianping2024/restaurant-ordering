@@ -1,35 +1,9 @@
-import {
-  outstandingAmount,
-  totalCollectedAmount,
-  type SessionCollectedPayment,
-} from '@/lib/checkout-session-payments';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
   buildSplitSettlementRows,
   type SplitSettlementStatus,
 } from '@/lib/checkout-split-settlement';
 import type { SplitResult } from '@/types';
-
-/** Bill page split rows: draft while editing, persisted snapshot after checkout submit. */
-export function billSplitDisplayResults(params: {
-  checkoutSubmitted: boolean;
-  persistedResult: SplitResult[] | null;
-  draftResults: SplitResult[];
-}): SplitResult[] {
-  const { checkoutSubmitted, persistedResult, draftResults } = params;
-  if (checkoutSubmitted && persistedResult?.length) {
-    return persistedResult;
-  }
-  return draftResults;
-}
-
-/** Post-submit success screen rows: read-model split result only while submitted. */
-export function submittedSplitResult(
-  existingResult: SplitResult[] | null | undefined,
-  checkoutSubmitted: boolean,
-): SplitResult[] | null {
-  if (!checkoutSubmitted) return null;
-  return existingResult?.length ? existingResult : null;
-}
 
 export type CustomerSplitRowDisplay = {
   name: string;
@@ -60,15 +34,4 @@ export function buildCustomerSplitDisplayRows(
       settlementStatus,
     }),
   );
-}
-
-/**
- * Customer「呼叫结账」button amount — sole bill-level pending: total − ledger collected
- * (same semantic as checkout summary「待收」; not Σ person outstanding).
- */
-export function customerBillCallAmount(params: {
-  total: number;
-  collectedPayments: SessionCollectedPayment[];
-}): number {
-  return outstandingAmount(params.total, totalCollectedAmount(params.collectedPayments));
 }

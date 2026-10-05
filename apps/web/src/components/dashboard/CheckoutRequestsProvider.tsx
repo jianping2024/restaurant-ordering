@@ -22,7 +22,6 @@ import {
 } from '@/lib/checkout-confirm-payment-outcome';
 import { mergeBillSplitsFromRefresh } from '@/lib/checkout-request-state';
 import { upsertCheckoutRequestInQueue } from '@/lib/checkout-request-submit';
-import { consumeStagedCheckoutRequest } from '@/lib/checkout-request-staging';
 import {
   parseSessionCollectedPaymentsWithSession,
   SESSION_COLLECTED_PAYMENT_SELECT,
@@ -114,13 +113,6 @@ export function CheckoutRequestsProvider({
   const upsertRequestFromSubmit = useCallback((row: BillSplit) => {
     setRequests((prev) => upsertCheckoutRequestInQueue(prev, row));
   }, []);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const staged = consumeStagedCheckoutRequest();
-    if (!staged) return;
-    upsertRequestFromSubmit(staged);
-  }, [enabled, upsertRequestFromSubmit]);
 
   useEffect(() => {
     if (!enabled) {

@@ -55,8 +55,8 @@
 
 ## 客人手机按菜编辑（与职员隔离）
 
-- 客人进行中状态唯一写法：`useGuestByItemSplitState`（按菜行 + 允许空名槽 /「添加消费者」；不经职员 dual-layer）。
-- 客人同步唯一写法：`reconcileGuestByItemAllocations`（锁票覆盖服务端、未付本地编辑保留、新 line 只追加默认槽）；禁止因 `lineSpecs` 扩展整表替换本地未付。
+- 客人进行中状态唯一写法：`useGuestClaim`（一机一人一票：名字一次 + 每道菜一行份数；不经职员 dual-layer，也不支持同机多人）。
+- 客人同步唯一写法：`othersAllocation`（别人的票只读叠加）+ `useGuestClaim` 的三级种子（服务端已解锁票 → 本机草稿 → 新票）；付清后新票换新 `party_id` 并重填名字。
 - `useBillSplitDraft({ byItemEditor: 'guest' | 'staff' })` 只选编辑器；交卷仍 `buildSplitPersonsFromAllocations` → 与职员同一套账单线。
 - **未付同名合票唯一写法：** `coalesceUnpaidSameNamePartyIds`（跨菜复用未付 `party_id`；已付/锁票不吸收、不改写）。客人与职员编辑器每次 write/hydrate 都走这一处；禁止另开按名字汇总的第二条路径。
 - 职员人轨票 sole：`resolveStaffByItemRailPeople` + `syncStaffByItemRailPeople`（只注入**已锁** ledger ∪ allocations；等 hydrate 时禁 mint「客人 N」；权威名单无重叠时整表替换丢掉空壳；串行收款空白票靠 overlap+append 保留）。禁止把 `result` 里未付碎票直接铺进芯片，禁止 hydrate 后仍 append-only 留幽灵芯片。
@@ -84,7 +84,7 @@
 | 收款 upsert 允许部分/冻结差额 | `allow_partial_by_item: true`（仅职员 by-item 确认收款） |
 | 锁票集合（含盖章即锁） | `allocationLockedTicketKeys`（`result.paid` ∪ 台账 ∪ persons.`locked_amount`） |
 | 锁票 committed + 未付 draft UI（职员） | `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `mergeMissingByItemDraftTickets` + `useByItemSplitState`（Realtime 只重建锁票；未付按 persons 指纹 merge-missing） |
-| 客人手机按菜进行中编辑 | `useGuestByItemSplitState`（`byItemEditor: 'guest'`；空名槽可写） |
+| 客人手机按菜进行中编辑 | `useGuestClaim` + `guest-claim.ts`（一机一人一票） |
 | 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
 
 已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）；单票 `mergeCurrentByItemTicketForCollect`（跨票挪菜后会留下旧未付份额）。均摊/手填仍用 `persistBeforePay`。按菜恢复点单前走同一未付整案落库。

@@ -49,7 +49,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
 
   const { data: session } = await admin
     .from('table_sessions')
-    .select('id, individual_checkout')
+    .select('id')
     .eq('restaurant_id', loaded.restaurant.id)
     .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
@@ -57,9 +57,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     .limit(1)
     .maybeSingle();
 
-  if (!session?.id || session.individual_checkout !== true) {
+  if (!session?.id) {
     return NextResponse.json(
-      { individual: false, hold: false },
+      { hold: false },
       { headers: CUSTOMER_READ_NO_STORE_HEADERS },
     );
   }
@@ -69,7 +69,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     clientId: guestClientId,
   });
   return NextResponse.json(
-    { individual: true, hold },
+    { hold },
     { headers: CUSTOMER_READ_NO_STORE_HEADERS },
   );
 }

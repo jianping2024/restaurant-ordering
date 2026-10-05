@@ -88,7 +88,7 @@ async function loadWaiterBoardOccupancyCore(
   const [{ data: sessions }, checkoutRequested, partyLoaded] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, individual_checkout')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     fetchCheckoutRequestedBoard(admin, restaurantId),
@@ -301,7 +301,7 @@ export async function fetchWaiterTableActionTargets(
     await Promise.all([
       admin
         .from('table_sessions')
-        .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, individual_checkout')
+        .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
         .eq('restaurant_id', restaurantId)
         .in('status', ['open', 'billing']),
       admin

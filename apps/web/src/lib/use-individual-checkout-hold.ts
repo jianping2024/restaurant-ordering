@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Menu-page ordering hold for individual-checkout sessions: this phone called checkout for its own
- * ticket(s), so it cannot add dishes until it resumes (unlocks) or the ticket is paid.
+ * Menu-page ordering hold: this phone called checkout for its own
+ * ticket, so it cannot add dishes until it resumes (unlocks) or the ticket is paid.
  * Server write endpoints enforce the same rule; this only drives the banner / early toast.
  */
 import { useCallback, useEffect, useState } from 'react';

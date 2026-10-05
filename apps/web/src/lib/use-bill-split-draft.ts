@@ -35,15 +35,11 @@ import {
   splitDraftPersonCount,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { billSplitDisplayResults, buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
-import { useGuestByItemSplitState } from '@/lib/use-guest-by-item-split-state';
+import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import type { BillSplit, SplitMode, SplitResult } from '@/types';
+import type { BillSplit, SplitMode } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
-
-/** Which by-item *editor* owns in-progress rows (submit wire is shared). */
-export type BillSplitByItemEditor = 'guest' | 'staff';
 
 export type SplitPersonSlot = {
   id: string;
@@ -82,19 +78,10 @@ export function useBillSplitDraft(params: {
   orderLines: BillSplitOrderLine[];
   lineSpecs: ByItemLineSpec[];
   guestName: (n: number) => string;
-  submitted: boolean;
-  persistedResult: SplitResult[] | null;
   submitting: boolean;
   lang: UILanguage;
-  /** Guest phone vs staff checkout — two editors, one submit wire. */
-  byItemEditor: BillSplitByItemEditor;
   /** Bill-level discount % — settlement display obligation is fold-discounted. */
   discountRate?: number;
-  /**
-   * Individual-checkout session (guest editor): ticket keys this phone cannot edit.
-   * The plan is shared, so the split mode is locked once any ticket exists.
-   */
-  individualReadOnlyKeys?: ReadonlySet<string> | null;
 }) {
   const {
     restaurantId,
@@ -106,13 +93,9 @@ export function useBillSplitDraft(params: {
     orderLines,
     lineSpecs,
     guestName,
-    submitted,
-    persistedResult,
     submitting,
     lang,
-    byItemEditor,
     discountRate: discountRateParam,
-    individualReadOnlyKeys,
   } = params;
 
   const discountRate =
@@ -192,12 +175,10 @@ export function useBillSplitDraft(params: {
   useLayoutEffect(() => {
     const canRestore = shouldRestoreBillSplitLocalDraft({
       existingSplit,
-      submitted,
       collectedPaymentCount: collectedPayments.length,
     });
     const authorityKey = billSplitDraftAuthorityKey({
       existingSplit,
-      submitted,
       collectedPaymentCount: collectedPayments.length,
     });
 
@@ -260,7 +241,6 @@ export function useBillSplitDraft(params: {
     restaurantId,
     sessionId,
     existingSplit,
-    submitted,
     collectedPayments.length,
     applyServerSeedToMemory,
     applyLocalDraftToMemory,
@@ -270,39 +250,21 @@ export function useBillSplitDraft(params: {
     ? billSplitLocalDraftOwnerKey(restaurantId, sessionId)
     : null;
 
-  // Both hooks always called (Rules of Hooks); only the selected editor is active.
-  const guestByItem = useGuestByItemSplitState({
-    splitMode,
-    lineSpecs,
-    existingSplit: continuationSplit,
-    collectedPayments,
-    enabled: byItemEditor === 'guest',
-    draftOwnerKey,
-    extraLockedKeys: individualReadOnlyKeys ?? undefined,
-  });
-  const staffByItem = useByItemSplitState({
-    splitMode,
-    lineSpecs,
-    existingSplit: continuationSplit,
-    collectedPayments,
-    enabled: byItemEditor === 'staff',
-    draftOwnerKey,
-  });
   const {
     byItemAllocations,
     setByItemAllocations,
-    consumerRoster,
-    rememberConsumerName,
     parsedByItemAllocations,
-    byItemProgress,
     renameByItemConsumer,
     buildPersonsForSubmit,
-  } = byItemEditor === 'guest' ? guestByItem : staffByItem;
-  const guestRestoreLocalDraft = guestByItem.restoreLocalDraft;
-  const recordStaffByItemShareOmit =
-    byItemEditor === 'staff' ? staffByItem.recordStaffByItemShareOmit : undefined;
-  const clearStaffByItemShareOmit =
-    byItemEditor === 'staff' ? staffByItem.clearStaffByItemShareOmit : undefined;
+    recordStaffByItemShareOmit,
+    clearStaffByItemShareOmit,
+  } = useByItemSplitState({
+    splitMode,
+    lineSpecs,
+    existingSplit: continuationSplit,
+    collectedPayments,
+    draftOwnerKey,
+  });
 
   useLayoutEffect(() => {
     if (!sessionId || !storageReady || byItemLocalAppliedRef.current) return;
@@ -310,33 +272,24 @@ export function useBillSplitDraft(params: {
     const draft = loadedLocalDraftRef.current;
     const canRestore = shouldRestoreBillSplitLocalDraft({
       existingSplit,
-      submitted,
       collectedPaymentCount: collectedPayments.length,
     });
     const action = resolveByItemLocalDraftApplyAction({
-      byItemEditor,
       canRestore,
       hasServerItemShares: billSplitHasServerItemShares(existingSplit),
       hasByItemLocalDraft: draft?.splitMode === 'by_item',
     });
 
     byItemLocalAppliedRef.current = true;
-    // leave_reconcile: guest|staff sole hydrate — never setByItemAllocations({}) here.
+    // leave_reconcile: staff sole hydrate — never setByItemAllocations({}) here.
     if (action !== 'apply_local' || !draft) return;
-    if (byItemEditor === 'guest') {
-      guestRestoreLocalDraft(draft.byItemAllocations);
-      return;
-    }
     setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
   }, [
     sessionId,
     storageReady,
     lineSpecs,
-    byItemEditor,
-    guestRestoreLocalDraft,
     setByItemAllocations,
     existingSplit,
-    submitted,
     collectedPayments.length,
   ]);
 
@@ -357,12 +310,7 @@ export function useBillSplitDraft(params: {
   }, [splitMode, personCount, splitPeople, guestName]);
 
   useEffect(() => {
-    if (!sessionId || !submitted) return;
-    clearBillSplitLocalDraft(restaurantId, sessionId);
-  }, [restaurantId, sessionId, submitted]);
-
-  useEffect(() => {
-    if (!storageReady || !sessionId || submitted) return;
+    if (!storageReady || !sessionId) return;
     if (
       !mayPersistBillSplitLocalDraft({
         hydratedOwnerKey: hydratedOwnerKeyRef.current,
@@ -375,7 +323,6 @@ export function useBillSplitDraft(params: {
     if (
       !shouldRestoreBillSplitLocalDraft({
         existingSplit,
-        submitted,
         collectedPaymentCount: collectedPayments.length,
       })
     ) {
@@ -406,7 +353,6 @@ export function useBillSplitDraft(params: {
     storageReady,
     restaurantId,
     sessionId,
-    submitted,
     existingSplit,
     collectedPayments.length,
     splitMode,
@@ -419,23 +365,15 @@ export function useBillSplitDraft(params: {
   /** Server snapshot at page load — paid floors must not follow client submit state. */
   const lockAnchorSplit = existingSplit;
   const splitLocked = useMemo(
-    () =>
-      isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive) ||
-      // Individual checkout: one shared plan — the mode cannot change once a ticket exists.
-      (!!individualReadOnlyKeys && (lockAnchorSplit?.persons?.length ?? 0) > 0),
-    [lockAnchorSplit, collectedLedgerActive, individualReadOnlyKeys],
+    () => isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive),
+    [lockAnchorSplit, collectedLedgerActive],
   );
   const lockedPersonLineMins = useMemo(
     () =>
       splitLocked
-        ? buildLockedPersonLineMins(
-            lockAnchorSplit,
-            collectedLedgerActive,
-            collectedPayments,
-            individualReadOnlyKeys ?? undefined,
-          )
+        ? buildLockedPersonLineMins(lockAnchorSplit, collectedLedgerActive, collectedPayments)
         : { menu: new Map(), buffet: new Map() },
-    [splitLocked, lockAnchorSplit, collectedLedgerActive, collectedPayments, individualReadOnlyKeys],
+    [splitLocked, lockAnchorSplit, collectedLedgerActive, collectedPayments],
   );
   const lockedPersonNames = useMemo(
     () => allocationLockedPersonNames(lockAnchorSplit, collectedPayments),
@@ -492,20 +430,11 @@ export function useBillSplitDraft(params: {
   );
 
   const { results: computedResults, validation: splitValidation } = useMemo(
-    () =>
-      validateSplitDraft(splitDraftInput, {
-        // Individual checkout: a guest may call with part of the pool still unclaimed.
-        allowPartialByItem: !!individualReadOnlyKeys,
-        ignoreUnnamedRows: !!individualReadOnlyKeys,
-      }),
-    [splitDraftInput, individualReadOnlyKeys],
+    () => validateSplitDraft(splitDraftInput),
+    [splitDraftInput],
   );
 
-  const results = billSplitDisplayResults({
-    checkoutSubmitted: submitted,
-    persistedResult,
-    draftResults: computedResults,
-  });
+  const results = computedResults;
 
   const splitDisplayRows = useMemo(
     () => buildCustomerSplitDisplayRows(results, collectedPayments, discountRate, total),
@@ -648,10 +577,7 @@ export function useBillSplitDraft(params: {
     splitDisplayRows,
     byItemAllocations,
     setByItemAllocations,
-    consumerRoster,
-    rememberConsumerName,
     renameByItemConsumer,
-    byItemProgress,
     recordStaffByItemShareOmit,
     clearStaffByItemShareOmit,
     buildPersonsForSubmit: buildPersonsForSubmitCommitted,

@@ -123,7 +123,7 @@ export function applyCustomerSessionScopeMerge(
 
 /** Columns needed for guest ordering gate + menu session identity. */
 const CUSTOMER_SESSION_SELECT =
-  'id, restaurant_id, table_id, status, opened_at, individual_checkout';
+  'id, restaurant_id, table_id, status, opened_at';
 
 /** Columns needed for menu footer / ordered drawer (billable lines + display). */
 const CUSTOMER_SESSION_ORDER_SELECT =

@@ -11,17 +11,14 @@ export type WaiterTableSessionRow = {
   opened_by_user_id?: string | null;
   /** Sole board opener label — stamped at open. */
   opened_by_name?: string | null;
-  individual_checkout?: boolean | null;
 };
 
 function withOpenedByName(
   meta: WaiterTableSessionMeta,
   openedByName: string | null | undefined,
-  individualCheckout?: boolean | null,
 ): WaiterTableSessionMeta {
   const name = openedByName?.trim();
-  const named = name ? { ...meta, openedByName: name } : meta;
-  return individualCheckout === true ? { ...named, individualCheckout: true } : named;
+  return name ? { ...meta, openedByName: name } : meta;
 }
 
 /** Board meta from a session row — opener is only `opened_by_name` (no id resolve). */
@@ -42,7 +39,6 @@ export function sessionMetaFromRow(
       status: sessionRow.status as 'open' | 'billing',
     },
     sessionRow.opened_by_name,
-    sessionRow.individual_checkout,
   );
 }
 
@@ -69,7 +65,6 @@ export function sessionMetaFromEnsuredSession(
       status: ensured.status as 'open' | 'billing',
     },
     ensured.opened_by_name,
-    ensured.individual_checkout,
   );
 }
 

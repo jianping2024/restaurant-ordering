@@ -1,13 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import type { ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
-import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 import type { SplitPersonSlot } from '@/lib/use-bill-split-draft';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
-import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
-import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import {
   isSplitSettlementPending,
@@ -50,33 +45,18 @@ interface Props {
   results: SplitResult[];
   splitDisplayRows: CustomerSplitRowDisplay[];
   lockedPersonNames: ReadonlySet<string>;
-  lockedPersonLineMins: LockedPersonLineMins;
-  lineSpecs: ByItemLineSpec[];
-  orderLines: BillSplitOrderLine[];
-  byItemAllocations: Record<string, ByItemConsumerRow[]>;
-  consumerRoster: string[];
-  byItemProgress: { complete: number; total: number };
-  byItemAllocatorLabels: ByItemDishAllocatorLabels & { byItemProgress: string };
-  itemCodeByMenuId?: Record<string, string>;
   splitValidationMessage: string | null;
   guestName: (n: number) => string;
   editingSplitNameIndex: number | null;
   editingSplitNameValue: string;
   onSplitModeClick: (mode: SplitMode) => void;
-  /**
-   * Individual-checkout session: one shared plan, so only「按菜分单」is offered and the
-   * paid-lock notice does not apply.
-   */
-  individualMode?: boolean;
   onDecrementPersonCount: () => void;
   onIncrementPersonCount: () => void;
-  onAllocationChange: (key: string, rows: ByItemConsumerRow[]) => void;
-  onRememberConsumerName: (name: string, fromList: boolean) => void;
   onStartInlineRename: (index: number) => void;
   onCommitInlineRename: (index: number) => void;
   onEditingSplitNameValueChange: (value: string) => void;
   onCancelInlineRename: () => void;
-  /** Staff even row collect. Guest omits this. */
+  /** Staff even row collect. */
   staffRowActions?: {
     collectLabel: string;
     busy: boolean;
@@ -86,10 +66,7 @@ interface Props {
     /** Template `折前 €{amount}` when discount active. */
     discountPreLabel?: string;
   };
-  /**
-   * Staff checkout injects Fatura-like by-item workbench here.
-   * Guest BillPage omits this → sole guest UI remains ByItemSplitSection.
-   */
+  /** Staff by-item workbench (Fatura-like) — the sole by-item editor in this panel. */
   byItemContent?: ReactNode;
 }
 
@@ -114,24 +91,13 @@ export function BillSplitPanel({
   results,
   splitDisplayRows,
   lockedPersonNames,
-  lockedPersonLineMins,
-  lineSpecs,
-  orderLines,
-  byItemAllocations,
-  consumerRoster,
-  byItemProgress,
-  byItemAllocatorLabels,
-  itemCodeByMenuId = {},
   splitValidationMessage,
   guestName,
   editingSplitNameIndex,
   editingSplitNameValue,
   onSplitModeClick,
-  individualMode = false,
   onDecrementPersonCount,
   onIncrementPersonCount,
-  onAllocationChange,
-  onRememberConsumerName,
   onStartInlineRename,
   onCommitInlineRename,
   onEditingSplitNameValueChange,
@@ -148,8 +114,8 @@ export function BillSplitPanel({
     <>
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitMode}</h2>
-        <div className={`grid gap-2 mb-4 ${individualMode ? 'grid-cols-1' : 'grid-cols-2'}`}>
-          {GUEST_SPLIT_MODE_ORDER.filter((mode) => !individualMode || mode === 'by_item').map((mode) => (
+        <div className="grid gap-2 mb-4 grid-cols-2">
+          {GUEST_SPLIT_MODE_ORDER.map((mode) => (
             <button
               key={mode}
               type="button"
@@ -165,7 +131,7 @@ export function BillSplitPanel({
             </button>
           ))}
         </div>
-        {splitLocked && !individualMode ? (
+        {splitLocked ? (
           <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitPlanLocked}</p>
         ) : null}
         {!splitMode && !splitLocked ? (
@@ -200,23 +166,7 @@ export function BillSplitPanel({
           </div>
         ) : null}
 
-        {splitMode === 'by_item' ? (
-          byItemContent ?? (
-            <ByItemSplitSection
-              lang={lang}
-              lineSpecs={lineSpecs}
-              orderLines={orderLines}
-              byItemAllocations={byItemAllocations}
-              consumerRoster={consumerRoster}
-              labels={byItemAllocatorLabels}
-              itemCodeByMenuId={itemCodeByMenuId}
-              progress={byItemProgress}
-              lockedPersonLineMins={lockedPersonLineMins}
-              onAllocationChange={onAllocationChange}
-              onRememberConsumerName={onRememberConsumerName}
-            />
-          )
-        ) : null}
+        {splitMode === 'by_item' ? byItemContent : null}
       </div>
 
       <div className="px-4 py-4">

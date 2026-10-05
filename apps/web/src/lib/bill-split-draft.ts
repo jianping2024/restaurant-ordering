@@ -70,7 +70,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
 
 export function validateSplitDraft(
   input: BillSplitDraftInput,
-  options?: { allowPartialByItem?: boolean; ignoreUnnamedRows?: boolean },
+  options?: { allowPartialByItem?: boolean },
 ) {
   const results = computeSplitResults(input);
   if (input.splitMode === 'by_item') {
@@ -78,7 +78,6 @@ export function validateSplitDraft(
       lineSpecs: input.lineSpecs,
       rowsByKey: input.byItemDraftRows,
       allowPartialByItem: options?.allowPartialByItem,
-      ignoreUnnamedRows: options?.ignoreUnnamedRows,
     });
     if (!draftValidation.ok) return { results, validation: draftValidation };
   }

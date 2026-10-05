@@ -172,47 +172,9 @@ export function StaffCheckoutSplitEditor({
     lineSpecs,
     lang,
     guestName,
-    submitted: false,
-    persistedResult: null,
     submitting,
-    byItemEditor: 'staff',
     discountRate,
   });
-
-  const byItemAllocatorLabels = useMemo(
-    () => ({
-      addConsumer: billT.addConsumer,
-      namePlaceholder: billT.consumerNamePlaceholder,
-      typeNewName: billT.consumerNameTypeNew,
-      wholeLabel: billT.qtyWholePlaceholder,
-      numLabel: billT.qtyNumPlaceholder,
-      denLabel: billT.qtyDenPlaceholder,
-      missingDen: billT.qtyMissingDen,
-      zeroDen: billT.qtyZeroDen,
-      improperFraction: billT.qtyImproperFraction,
-      complete: billT.byItemComplete,
-      remaining: billT.byItemRemaining,
-      over: billT.byItemOver,
-      missingNames: billT.byItemMissingNames,
-      duplicateNames: billT.byItemDuplicateNames,
-      unassigned: billT.byItemUnassigned,
-      invalidQty: billT.byItemInvalidQty,
-      buffetComplete: billT.byItemBuffetComplete,
-      buffetShortAdult: billT.byItemBuffetShortAdult,
-      buffetShortChild: billT.byItemBuffetShortChild,
-      buffetOverAdult: billT.byItemBuffetOverAdult,
-      buffetOverChild: billT.byItemBuffetOverChild,
-      buffetAdultProgress: billT.byItemBuffetAdultProgress,
-      buffetChildProgress: billT.byItemBuffetChildProgress,
-      buffetAdultQtyLabel: billT.byItemGuestTypeAdult,
-      buffetChildQtyLabel: billT.byItemGuestTypeChild,
-      remove: billT.removeConsumer,
-      expandDetails: billT.byItemExpandDetails,
-      collapseDetails: billT.byItemCollapseDetails,
-      byItemProgress: billT.byItemProgress,
-    }),
-    [billT],
-  );
 
   const staffByItemLabels = useMemo(
     () => ({
@@ -730,14 +692,6 @@ export function StaffCheckoutSplitEditor({
             : splitDraft.splitDisplayRows
         }
         lockedPersonNames={splitDraft.lockedPersonNames}
-        lockedPersonLineMins={splitDraft.lockedPersonLineMins}
-        lineSpecs={lineSpecs}
-        orderLines={splitOrderLines}
-        byItemAllocations={splitDraft.byItemAllocations}
-        consumerRoster={splitDraft.consumerRoster}
-        byItemProgress={splitDraft.byItemProgress}
-        byItemAllocatorLabels={byItemAllocatorLabels}
-        itemCodeByMenuId={itemCodeByMenuId}
         splitValidationMessage={splitValidationMessage}
         guestName={guestName}
         editingSplitNameIndex={splitDraft.editingSplitNameIndex}
@@ -745,10 +699,6 @@ export function StaffCheckoutSplitEditor({
         onSplitModeClick={splitDraft.handleSplitModeClick}
         onDecrementPersonCount={splitDraft.decrementPersonCount}
         onIncrementPersonCount={splitDraft.incrementPersonCount}
-        onAllocationChange={(key, rows) => {
-          splitDraft.setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
-        }}
-        onRememberConsumerName={splitDraft.rememberConsumerName}
         onStartInlineRename={splitDraft.startInlineRename}
         onCommitInlineRename={splitDraft.commitInlineRename}
         onEditingSplitNameValueChange={splitDraft.setEditingSplitNameValue}

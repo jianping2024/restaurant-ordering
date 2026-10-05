@@ -262,7 +262,7 @@ export function MenuOrderingController({
     restaurantId: restaurant.id,
     tableId,
     sessionId: activeSession?.id,
-    enabled: !!activeSession?.individual_checkout && !isDemo && !staffAssisted,
+    enabled: !!activeSession && !isDemo && !staffAssisted,
   });
 
   const markIndividualHold = individualHold.markHold;
@@ -931,7 +931,7 @@ export function MenuOrderingController({
 
       <IndividualCheckoutNotice
         sessionId={activeSession?.id}
-        enabled={!!activeSession?.individual_checkout && !isDemo && !staffAssisted}
+        enabled={!!activeSession && !isDemo && !staffAssisted}
         suppressModal={individualHold.hold}
         onSignals={() => void individualHold.refresh()}
       />

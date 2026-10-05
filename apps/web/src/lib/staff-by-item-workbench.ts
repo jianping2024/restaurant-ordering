@@ -1,6 +1,6 @@
 /**
  * Sole helpers for staff checkout by-item workbench (Fatura-like pool + current person).
- * Guest dish-card UI stays in ByItemSplitSection; do not duplicate this layout there.
+ * Guest dish-card UI is GuestClaimDishCard (one ticket per phone); do not duplicate this layout there.
  */
 import {
   allocateByItemShareAmounts,

@@ -4,7 +4,6 @@ import {
   parseBuffetHeadcountInput,
   parseConsumerRowQty,
   rationalToRowQtyFields,
-  removeByItemConsumerRow,
   type ByItemConsumerRow,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
@@ -166,7 +165,7 @@ export function isCheckoutSplitLocked(
 export function allocationLockedTicketKeys(
   split: BillSplit | null | undefined,
   collectedPayments: SessionCollectedPayment[] = [],
-  /** Individual checkout: called tickets lock for guests / headcount floors (never for staff edit). */
+  /** Called tickets lock headcount floors on the server (never for staff edit). */
   extraLockedKeys: ReadonlySet<string> = new Set(),
 ): ReadonlySet<string> {
   const keys = new Set<string>(Array.from(extraLockedKeys));
@@ -229,17 +228,6 @@ export function paidSplitPersonNames(split: BillSplit | null | undefined): Reado
       .filter((row) => row.paid)
       .map((row) => row.name.trim().toLowerCase()),
   );
-}
-
-/** Bill page shows post-request success only while checkout is actively requested. */
-export function shouldShowCheckoutSubmitted(
-  split: BillSplit | null | undefined,
-  sessionStatus: string | null | undefined,
-): boolean {
-  if (!split) return false;
-  if (split.status === 'requested') return true;
-  if (isPausedCheckoutSplit(split, sessionStatus)) return false;
-  return split.status === 'pending';
 }
 
 export function lockedPersonLineKey(
@@ -662,42 +650,6 @@ export function validateCheckoutContinuation(params: {
   return { ok: true };
 }
 
-/** Apply a draft patch while the guest is typing (qtyReadOnly rows reject qty patches). */
-export function applyByItemConsumerRowEdit(params: {
-  row: ByItemConsumerRow;
-  patch: Partial<ByItemConsumerRow>;
-  ctx: ByItemLineEditContext;
-}): ByItemConsumerRow {
-  const { row, patch, ctx } = params;
-  const lockBefore = byItemRowEditLock({
-    lineKey: ctx.lineKey,
-    row,
-    locks: ctx.locks,
-    spec: ctx.spec,
-  });
-
-  let next: ByItemConsumerRow = { ...row, ...patch };
-  if (lockBefore.qtyReadOnly) {
-    next = {
-      ...next,
-      qtyWhole: row.qtyWhole,
-      qtyNum: row.qtyNum,
-      qtyDen: row.qtyDen,
-      adultQty: row.adultQty,
-      childQty: row.childQty,
-    };
-  }
-  if (
-    lockBefore.nameReadOnly
-    && patch.name !== undefined
-    && patch.name.trim().toLowerCase() !== row.name.trim().toLowerCase()
-  ) {
-    next = { ...next, name: row.name };
-  }
-
-  return next;
-}
-
 /** Commit one row after edit (blur/submit): exact restore when qtyReadOnly. */
 export function commitByItemConsumerRowEdit(params: {
   row: ByItemConsumerRow;
@@ -747,25 +699,4 @@ export function commitAllByItemAllocations(params: {
     next[spec.key] = commitByItemLineRows(rows, ctx);
   }
   return next;
-}
-
-/** Remove a consumer row only when paid-allocation rules allow it. */
-export function applyByItemConsumerRowRemove(params: {
-  rows: ByItemConsumerRow[];
-  rowId: string;
-  ctx: ByItemLineEditContext;
-}): ByItemConsumerRow[] {
-  const { rows, rowId, ctx } = params;
-  const row = rows.find((candidate) => candidate.id === rowId);
-  if (!row) return rows;
-
-  const lock = byItemRowEditLock({
-    lineKey: ctx.lineKey,
-    row,
-    locks: ctx.locks,
-    spec: ctx.spec,
-  });
-  if (!lock.removable || rows.length <= 1) return rows;
-
-  return removeByItemConsumerRow(rows, rowId, { buffet: ctx.spec.mode === 'buffet' });
 }

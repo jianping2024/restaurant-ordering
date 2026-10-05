@@ -519,7 +519,7 @@
 
 ### 相关代码位置
 
-`lib/bill-split-by-item.ts`、`lib/checkout-by-item-collect.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/ByItemSplitSection.tsx`、`components/dashboard/checkout/StaffByItemSplitWorkbench.tsx`、`lib/checkout-split-continuation.ts`
+`lib/bill-split-by-item.ts`、`lib/checkout-by-item-collect.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/GuestClaimPanel.tsx`、`components/dashboard/checkout/StaffByItemSplitWorkbench.tsx`、`lib/checkout-split-continuation.ts`
 
 ---
 

@@ -40,8 +40,7 @@ export async function loadAppendWriteContext(
   tableId: string,
   options?: {
     /**
-     * Guest phone id. Individual-checkout sessions refuse dishes from a phone that has a
-     * called, unpaid ticket (waiter flow never passes this).
+     * Guest phone id. A phone that has a called, unpaid ticket is refused dishes (waiter flow never passes this).
      */
     guestClientId?: string | null;
   },
@@ -53,7 +52,7 @@ export async function loadAppendWriteContext(
   if (session.status === 'billing') {
     return { ok: false, status: 409, error: 'session_billing' };
   }
-  if (session.individual_checkout && options?.guestClientId) {
+  if (options?.guestClientId) {
     const holds = await guestPhoneHoldsOrdering(admin, {
       restaurantId,
       sessionId: session.id,

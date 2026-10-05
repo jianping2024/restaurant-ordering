@@ -15,6 +15,3 @@ export const customerQtyInputAlertClass =
 
 export const customerInlineEditInputClass =
   `${FORM_CONTROL_TEXT_CLASS} text-brand-text bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]`;
-
-export const customerNifInputClass =
-  `w-full rounded-xl border bg-brand-card px-3 py-2.5 ${FORM_CONTROL_TEXT_CLASS} text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-1`;

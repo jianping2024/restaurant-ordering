@@ -6,12 +6,7 @@
  * Soft menu→bill must not keep a frozen half shell; do not gate reconcile on submitted.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
-import {
-  individualPhoneHoldsOrdering,
-  individualReadOnlyTicketKeys,
-  type IndividualTicketInfo,
-} from '@/lib/individual-checkout';
+import { individualPhoneHoldsOrdering, type IndividualTicketInfo } from '@/lib/individual-checkout';
 import {
   deriveBillView,
   syncCustomerBill,
@@ -34,8 +29,6 @@ export function useCustomerBillReadModel(
     collectedPayments: SessionCollectedPayment[];
     sessionId: string | null;
     sessionStatus: SessionStatus;
-    /** Session stamped individual_checkout (SSR boot). */
-    individualCheckout?: boolean;
     individualTickets?: IndividualTicketInfo[];
   },
   params: {
@@ -56,19 +49,14 @@ export function useCustomerBillReadModel(
   const [collectedPayments, setCollectedPayments] = useState(initial.collectedPayments);
   const [sessionId, setSessionId] = useState<string | null>(initial.sessionId);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(initial.sessionStatus);
-  const [individualCheckout, setIndividualCheckout] = useState(
-    () => initial.individualCheckout === true,
-  );
   const [individualTickets, setIndividualTickets] = useState<IndividualTicketInfo[]>(
     () => initial.individualTickets ?? [],
   );
   const [submitted, setSubmitted] = useState(() =>
-    initial.individualCheckout === true
-      ? individualPhoneHoldsOrdering(
-          initial.individualTickets ?? [],
-          initial.existingSplit?.result ?? [],
-        )
-      : shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
+    individualPhoneHoldsOrdering(
+      initial.individualTickets ?? [],
+      initial.existingSplit?.result ?? [],
+    ),
   );
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
@@ -82,8 +70,8 @@ export function useCustomerBillReadModel(
   const guestClientIdRef = useRef<string | null>(params.guestClientId ?? null);
   guestClientIdRef.current = params.guestClientId ?? null;
   const callBillBusyRef = useRef(false);
-  /** Individual sessions render only after one read that carried this phone's id. */
-  const [individualReady, setIndividualReady] = useState(false);
+  /** The guest editor renders only after one read that carried this phone's id (`mine` tickets). */
+  const [ticketsReady, setTicketsReady] = useState(false);
 
   const markSynced = useCallback(() => {
     setLastSyncedAt(Date.now());
@@ -103,16 +91,13 @@ export function useCustomerBillReadModel(
     setCollectedPayments(initial.collectedPayments);
     setSessionId(initial.sessionId);
     setSessionStatus(initial.sessionStatus);
-    setIndividualCheckout(initial.individualCheckout === true);
     setIndividualTickets(initial.individualTickets ?? []);
     if (!callBillBusyRef.current) {
       setSubmitted(
-        initial.individualCheckout === true
-          ? individualPhoneHoldsOrdering(
-              initial.individualTickets ?? [],
-              initial.existingSplit?.result ?? [],
-            )
-          : shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
+        individualPhoneHoldsOrdering(
+          initial.individualTickets ?? [],
+          initial.existingSplit?.result ?? [],
+        ),
       );
     }
   }, [
@@ -120,14 +105,8 @@ export function useCustomerBillReadModel(
     initial.collectedPayments,
     initial.sessionId,
     initial.sessionStatus,
-    initial.individualCheckout,
     initial.individualTickets,
   ]);
-
-  const individualReadOnlyKeys = useMemo(
-    () => individualReadOnlyTicketKeys(individualTickets),
-    [individualTickets],
-  );
 
   const { orderLines, splitOrderLines, lineSpecs, total } = useMemo(
     () => deriveBillView(orders),
@@ -142,16 +121,13 @@ export function useCustomerBillReadModel(
       setCollectedPayments(synced.collectedPayments);
       setSessionId(synced.sessionId);
       if (synced.sessionStatus) setSessionStatus(synced.sessionStatus);
-      setIndividualCheckout(synced.individualCheckout);
       setIndividualTickets(synced.individualTickets);
       if (!callBillBusyRef.current) {
         setSubmitted(
-          synced.individualCheckout
-            ? individualPhoneHoldsOrdering(
-                synced.individualTickets,
-                synced.existingSplit?.result ?? [],
-              )
-            : shouldShowCheckoutSubmitted(synced.existingSplit, synced.sessionStatus),
+          individualPhoneHoldsOrdering(
+            synced.individualTickets,
+            synced.existingSplit?.result ?? [],
+          ),
         );
       }
       markSynced();
@@ -175,13 +151,13 @@ export function useCustomerBillReadModel(
         const synced = await syncCustomerBill(params.slug, params.tableId, clientId);
         if (!synced) {
           // Do not hold the page blank forever when the id'd read fails; writes stay server-guarded.
-          if (clientId && seq === syncSeqRef.current) setIndividualReady(true);
+          if (clientId && seq === syncSeqRef.current) setTicketsReady(true);
           return null;
         }
         // A newer read owns the state; an older response (e.g. before the phone id) is dropped.
         if (seq === syncSeqRef.current) {
           applySnapshot(synced);
-          if (clientId) setIndividualReady(true);
+          if (clientId) setTicketsReady(true);
         }
         return synced;
       } finally {
@@ -214,19 +190,13 @@ export function useCustomerBillReadModel(
   }, []);
 
   /**
-   * Individual-checkout call success: reload the shared plan + ticket states, then show the
-   * called (待结账) screen for this phone. Never commit a local split — the plan holds other tickets.
+   * Call success: reload the shared plan + ticket states, then show the called (待结账) screen
+   * for this phone. Never commit a local split — the plan holds other tickets.
    */
   const commitIndividualCalled = useCallback(async () => {
     await refreshBill();
     setSubmitted(true);
   }, [refreshBill]);
-
-  /** Call-bill success: split + submitted land together (never submitted over the pre-submit split). */
-  const commitSubmittedCheckout = useCallback((submittedSplit: BillSplit) => {
-    setExistingSplit(submittedSplit);
-    setSubmitted(true);
-  }, []);
 
   // Entry + visibility: full bill truth (orders + split + ledger). Never disable for submitted.
   useRestaurantStaffEntryReconcile(enabled, refreshBill, params.tableId);
@@ -239,9 +209,7 @@ export function useCustomerBillReadModel(
     sessionId,
     sessionStatus,
     submitted,
-    individualCheckout,
     individualTickets,
-    individualReadOnlyKeys,
     orderLines,
     splitOrderLines,
     lineSpecs,
@@ -253,8 +221,7 @@ export function useCustomerBillReadModel(
     commitOrders,
     syncOrders,
     setCallBillBusy,
-    commitSubmittedCheckout,
     commitIndividualCalled,
-    individualReady,
+    ticketsReady,
   };
 }

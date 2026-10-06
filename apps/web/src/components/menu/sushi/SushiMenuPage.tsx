@@ -115,8 +115,8 @@ import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemD
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
 import { buildTableRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
 import { sushiFreeItemDisplayQty } from '@/lib/table-order-round/client-api';
-import { customerSessionOrdersRealtimeEnabled } from '@/lib/customer-session-orders-realtime-enabled';
-import { CustomerSessionOrdersRealtimeLazy } from '@/components/menu/CustomerSessionOrdersRealtimeLazy';
+import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
+import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
 
 type Props = {
   restaurant: MenuOrderingRestaurant;
@@ -201,12 +201,11 @@ export function SushiMenuPage({
     void refreshSessionContext('full');
   }, [refreshSessionContext]);
 
-  const sessionOrdersRealtimeEnabled = customerSessionOrdersRealtimeEnabled({
+  const tableSessionRealtimeEnabled = customerTableSessionRealtimeEnabled({
     isDemo,
     staffAssisted: null,
     sessionResolved,
-    sessionStatus: activeSession?.status,
-    sessionId: activeSession?.id,
+    tableId,
   });
 
   const round = useTableOrderRound({
@@ -1357,9 +1356,9 @@ export function SushiMenuPage({
         />
       ) : null}
 
-      <CustomerSessionOrdersRealtimeLazy
-        sessionId={activeSession?.id ?? null}
-        enabled={sessionOrdersRealtimeEnabled}
+      <CustomerTableSessionRealtimeLazy
+        tableId={tableId}
+        enabled={tableSessionRealtimeEnabled}
         onRefresh={refreshOrderedFromRealtime}
       />
     </div>

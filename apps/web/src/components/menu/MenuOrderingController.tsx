@@ -100,8 +100,8 @@ import {
   resolveGuestOrderingNoticeForDisplay,
   type GuestOrderingNotice,
 } from '@/lib/guest-ordering-notice';
-import { customerSessionOrdersRealtimeEnabled } from '@/lib/customer-session-orders-realtime-enabled';
-import { CustomerSessionOrdersRealtimeLazy } from '@/components/menu/CustomerSessionOrdersRealtimeLazy';
+import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
+import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
 
 type StaffOverageDialog =
   | {
@@ -237,12 +237,11 @@ export function MenuOrderingController({
     void refreshSessionContext('full');
   }, [refreshSessionContext]);
 
-  const sessionOrdersRealtimeEnabled = customerSessionOrdersRealtimeEnabled({
+  const tableSessionRealtimeEnabled = customerTableSessionRealtimeEnabled({
     isDemo,
     staffAssisted,
     sessionResolved,
-    sessionStatus: activeSession?.status,
-    sessionId: activeSession?.id,
+    tableId,
   });
 
   const orderingAudience = useMemo(
@@ -1113,9 +1112,9 @@ export function MenuOrderingController({
         />
       ) : null}
 
-      <CustomerSessionOrdersRealtimeLazy
-        sessionId={activeSession?.id ?? null}
-        enabled={sessionOrdersRealtimeEnabled}
+      <CustomerTableSessionRealtimeLazy
+        tableId={tableId}
+        enabled={tableSessionRealtimeEnabled}
         onRefresh={refreshOrderedFromRealtime}
       />
     </div>

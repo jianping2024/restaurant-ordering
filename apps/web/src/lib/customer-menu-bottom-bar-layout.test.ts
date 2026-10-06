@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
+  customerBottomDockSurfaceClass,
   customerMenuBottomBarCountBadgeClass,
   customerMenuBottomBarIconBoxClass,
   customerMenuBottomBarDockClass,
@@ -69,14 +70,30 @@ describe('customerMenuPageBottomPaddingClass', () => {
 
 describe('customerMenuBottomBar dock stick', () => {
   it('sticks flush bottom-0 with opaque shell + safe-area pad; no translate clip', () => {
+    assert.ok(customerBottomDockSurfaceClass.includes('bottom-0'));
+    assert.ok(customerBottomDockSurfaceClass.includes('left-0'));
+    assert.ok(customerBottomDockSurfaceClass.includes('right-0'));
+    assert.ok(customerBottomDockSurfaceClass.includes('mx-auto'));
+    assert.ok(customerBottomDockSurfaceClass.includes(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS));
+    assert.ok(customerBottomDockSurfaceClass.includes('bg-brand-card'));
+    assert.ok(!customerBottomDockSurfaceClass.includes('-translate-x-1/2'));
+    // Width belongs to each page, not the shared surface.
+    assert.ok(!customerBottomDockSurfaceClass.includes('max-w-'));
+  });
+
+  it('menu footer = shared surface + menu shell width', () => {
+    assert.ok(customerMenuBottomBarDockClass.includes(customerBottomDockSurfaceClass));
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
-    assert.ok(customerMenuBottomBarDockClass.includes('bottom-0'));
-    assert.ok(customerMenuBottomBarDockClass.includes('left-0'));
-    assert.ok(customerMenuBottomBarDockClass.includes('right-0'));
-    assert.ok(customerMenuBottomBarDockClass.includes('mx-auto'));
-    assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS));
-    assert.ok(customerMenuBottomBarDockClass.includes('bg-brand-card'));
-    assert.ok(!customerMenuBottomBarDockClass.includes('-translate-x-1/2'));
+  });
+
+  it('guest bill call-checkout docks on the same surface (no floating translate bar)', () => {
+    const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
+    const bill = readFileSync(join(webSrc, 'components/menu/BillPage.tsx'), 'utf8');
+    assert.match(
+      bill,
+      /data-guest-call-checkout-dock=""\s*className=\{`\$\{customerBottomDockSurfaceClass\} w-full max-w-mobile`\}/,
+    );
+    assert.doesNotMatch(bill, /fixed bottom-4 left-1\/2 -translate-x-1\/2/);
   });
 
   it('centers the interactive row so CTA is optically mid-bar', () => {

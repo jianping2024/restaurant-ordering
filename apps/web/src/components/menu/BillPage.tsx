@@ -24,6 +24,7 @@ import {
   type DishFeedbackReasonKey,
 } from '@/lib/dish-feedback-reasons';
 import { Button } from '@/components/ui/Button';
+import { customerBottomDockSurfaceClass } from '@/lib/customer-menu-bottom-bar-layout';
 import type {
   BillSplit,
   DishFeedbackVote,
@@ -49,17 +50,11 @@ import {
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
 import type { SplitMode } from '@/types';
 
-function BillCheckoutGateBanner({
-  message,
-  className = '',
-}: {
-  message: string;
-  className?: string;
-}) {
+function BillCheckoutGateBanner({ message }: { message: string }) {
   return (
     <div
       role="status"
-      className={`flex gap-2.5 rounded-xl border border-amber-500 bg-amber-100 px-4 py-3 text-[14px] font-medium text-amber-950 ${className}`}
+      className="flex gap-2.5 rounded-xl border border-amber-500 bg-amber-100 px-4 py-3 text-[14px] font-medium text-amber-950"
     >
       <span className="shrink-0 text-base leading-5" aria-hidden>
         ⚠️
@@ -702,7 +697,10 @@ function GuestBillPage({
     );
   }
 
-  const pagePadClass = checkoutGateMessage ? 'pb-40' : 'pb-24';
+  // Clears the solid call-checkout dock (button row, + gate banner) and the bottom safe area.
+  const pagePadClass = checkoutGateMessage
+    ? 'pb-[calc(10rem+var(--mesa-customer-menu-bottom-safe))]'
+    : 'pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]';
 
   return (
     <>
@@ -790,30 +788,29 @@ function GuestBillPage({
       {/* Yields while a bill-page text field is focused — sole rule in globals.css. */}
       <div
         data-guest-call-checkout-dock=""
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2"
+        className={`${customerBottomDockSurfaceClass} w-full max-w-mobile`}
       >
-        {checkoutGateMessage ? (
-          <BillCheckoutGateBanner
-            message={checkoutGateMessage}
-            className="shadow-md shadow-amber-900/15"
-          />
-        ) : null}
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={handleCallBill}
-          loading={isCallBillBusy}
-          disabled={
-            orderLines.length === 0
-            || !activeSessionId
-            || isCallBillBusy
-            || !guestCountConfirmed
-            || !partyCheckoutAllowed
-            || (guestMode === 'by_item' && claim.issue !== null)
-          }
-        >
-          🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
-        </Button>
+        <div className="space-y-2 px-4 py-3">
+          {checkoutGateMessage ? (
+            <BillCheckoutGateBanner message={checkoutGateMessage} />
+          ) : null}
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleCallBill}
+            loading={isCallBillBusy}
+            disabled={
+              orderLines.length === 0
+              || !activeSessionId
+              || isCallBillBusy
+              || !guestCountConfirmed
+              || !partyCheckoutAllowed
+              || (guestMode === 'by_item' && claim.issue !== null)
+            }
+          >
+            🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
+          </Button>
+        </div>
       </div>
     </div>
     </>

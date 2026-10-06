@@ -24,6 +24,7 @@ import {
   type DishFeedbackReasonKey,
 } from '@/lib/dish-feedback-reasons';
 import { Button } from '@/components/ui/Button';
+import { customerBottomDockSurfaceClass } from '@/lib/customer-menu-bottom-bar-layout';
 import type {
   BillSplit,
   DishFeedbackVote,
@@ -49,17 +50,11 @@ import {
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
 import type { SplitMode } from '@/types';
 
-function BillCheckoutGateBanner({
-  message,
-  className = '',
-}: {
-  message: string;
-  className?: string;
-}) {
+function BillCheckoutGateBanner({ message }: { message: string }) {
   return (
     <div
       role="status"
-      className={`flex gap-2.5 rounded-xl border border-amber-500 bg-amber-100 px-4 py-3 text-[14px] font-medium text-amber-950 ${className}`}
+      className="flex gap-2.5 rounded-xl border border-amber-500 bg-amber-100 px-4 py-3 text-[14px] font-medium text-amber-950"
     >
       <span className="shrink-0 text-base leading-5" aria-hidden>
         ⚠️
@@ -263,8 +258,6 @@ function GuestBillPage({
       !initialFeedbackSkipped,
   );
   const [callBillBusy, setCallBillBusyState] = useState(false);
-  /** Sole yield: GuestClaimPanel via guestClaimNameHidesCallCheckout (focus ∧ keyboard). */
-  const [hideFixedCallCheckout, setHideFixedCallCheckout] = useState(false);
   const [tablePlanLocalSubmitted, setTablePlanLocalSubmitted] = useState(false);
 
   useEffect(() => {
@@ -704,15 +697,16 @@ function GuestBillPage({
     );
   }
 
-  // Keep pb-24 while CTA is yielded (keyboard open on name) — do not tighten pad.
-  const pagePadClass =
-    checkoutGateMessage && !hideFixedCallCheckout ? 'pb-40' : 'pb-24';
+  // Clears the solid call-checkout dock (button row, + gate banner) and the bottom safe area.
+  const pagePadClass = checkoutGateMessage
+    ? 'pb-[calc(10rem+var(--mesa-customer-menu-bottom-safe))]'
+    : 'pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]';
 
   return (
     <>
     {individualNotice}
     <div
-      data-hide-call-checkout={hideFixedCallCheckout ? '1' : '0'}
+      data-guest-bill-page=""
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
     >
       <CustomerOrderingHeader
@@ -780,7 +774,6 @@ function GuestBillPage({
               disabled={isCallBillBusy}
               itemCodeByMenuId={itemCodeByMenuId}
               onNameChange={claim.setName}
-              onHideCallCheckoutChange={setHideFixedCallCheckout}
               onRowChange={claim.updateRow}
               onClaimAll={claim.claimRest}
             />
@@ -792,36 +785,32 @@ function GuestBillPage({
         <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueMessage}</p>
       ) : null}
 
-      {/* Stay mounted; hide only while name focused ∧ soft keyboard open. */}
+      {/* Yields while a bill-page text field is focused — sole rule in globals.css. */}
       <div
-        className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${
-          hideFixedCallCheckout ? 'invisible pointer-events-none' : ''
-        }`}
-        aria-hidden={hideFixedCallCheckout || undefined}
+        data-guest-call-checkout-dock=""
+        className={`${customerBottomDockSurfaceClass} w-full max-w-mobile`}
       >
-        {checkoutGateMessage ? (
-          <BillCheckoutGateBanner
-            message={checkoutGateMessage}
-            className="shadow-md shadow-amber-900/15"
-          />
-        ) : null}
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={handleCallBill}
-          loading={isCallBillBusy}
-          disabled={
-            hideFixedCallCheckout
-            || orderLines.length === 0
-            || !activeSessionId
-            || isCallBillBusy
-            || !guestCountConfirmed
-            || !partyCheckoutAllowed
-            || (guestMode === 'by_item' && claim.issue !== null)
-          }
-        >
-          🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
-        </Button>
+        <div className="space-y-2 px-4 py-3">
+          {checkoutGateMessage ? (
+            <BillCheckoutGateBanner message={checkoutGateMessage} />
+          ) : null}
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleCallBill}
+            loading={isCallBillBusy}
+            disabled={
+              orderLines.length === 0
+              || !activeSessionId
+              || isCallBillBusy
+              || !guestCountConfirmed
+              || !partyCheckoutAllowed
+              || (guestMode === 'by_item' && claim.issue !== null)
+            }
+          >
+            🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
+          </Button>
+        </div>
       </div>
     </div>
     </>

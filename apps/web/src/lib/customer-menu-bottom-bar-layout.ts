@@ -13,16 +13,20 @@ export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =
 export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
   'pb-[calc(3.5rem+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
 
-/** Flush dock: bottom-0 opaque shell; SAFE_AREA_PB pads the interactive row.
- * `left-0 right-0 mx-auto` (not translate-x) so the bar never paints past the
- * viewport edge on narrow phones — sole dock positioning for this footer.
+/**
+ * Sole guest bottom-dock surface (menu footer + bill call-checkout): flush
+ * bottom-0 opaque shell so scrolling content never shows through; SAFE_AREA_PB
+ * pads the interactive row. `left-0 right-0 mx-auto` (not translate-x) so the
+ * bar never paints past the viewport edge on narrow phones. Callers add width.
  */
-export const customerMenuBottomBarDockClass = [
+export const customerBottomDockSurfaceClass = [
   'fixed bottom-0 left-0 right-0 z-30 mx-auto box-border min-w-0',
-  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   'border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)]',
   CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS,
 ].join(' ');
+
+/** Menu footer dock: shared surface at the menu shell width. */
+export const customerMenuBottomBarDockClass = `${customerBottomDockSurfaceClass} ${CUSTOMER_MENU_SHELL_WIDTH_CLASS}`;
 
 export const customerMenuBottomBarRowClass = `flex w-full min-w-0 ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4`;
 

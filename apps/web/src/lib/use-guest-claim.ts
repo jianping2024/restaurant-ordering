@@ -5,8 +5,8 @@
  *
  * Seed order per open session: this phone's unlocked ticket on the server (after「恢复点单」)
  * → this phone's local draft → a fresh claim. A claim whose ticket is already paid is never
- * reused: the next dish opens a new ticket id; the name is prefilled from this phone's last
- * used name in the session (editable).
+ * reused: the next dish opens a new ticket id; the name is prefilled via sole
+ * {@link resolveGuestClaimPrefillName} (local last name, else this phone's server `mine` name).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
@@ -24,11 +24,11 @@ import {
   guestOthersClaimBlocks,
   lineOverClaimed,
   loadGuestClaimDraft,
-  loadGuestClaimLastName,
   mintGuestClaim,
   othersAllocation,
   pruneClaimRows,
   rememberGuestClaimLastName,
+  resolveGuestClaimPrefillName,
   saveGuestClaimDraft,
   type GuestClaim,
 } from '@/lib/guest-claim';
@@ -101,20 +101,54 @@ export function useGuestClaim(params: {
           ),
         );
       } else {
-        setClaim(mintGuestClaim(loadGuestClaimLastName(restaurantId, sessionId)));
+        const name = resolveGuestClaimPrefillName({
+          restaurantId,
+          sessionId,
+          tickets,
+        });
+        if (name) rememberGuestClaimLastName(restaurantId, sessionId, name);
+        setClaim(mintGuestClaim(name));
       }
     }
     setHydratedFor(sessionId);
-  }, [sessionId, serverKey, serverTicket, restaurantId, lineSpecs, paidKeys, persons]);
+  }, [
+    sessionId,
+    serverKey,
+    serverTicket,
+    restaurantId,
+    lineSpecs,
+    paidKeys,
+    persons,
+    tickets,
+  ]);
 
-  // Paid ticket → new ticket id; keep this phone's last name (in-memory, else remembered).
+  // Paid ticket → new ticket id; keep this phone's last name (in-memory, local, or mine ticket).
   useEffect(() => {
     if (!hydratedFor || !sessionId || serverTicket) return;
     if (!paidKeys.has(splitPartyKey(claim.partyId, claim.name))) return;
-    const nextName = claim.name.trim() || loadGuestClaimLastName(restaurantId, sessionId);
+    const nextName = resolveGuestClaimPrefillName({
+      preferredName: claim.name,
+      restaurantId,
+      sessionId,
+      tickets,
+    });
     if (nextName) rememberGuestClaimLastName(restaurantId, sessionId, nextName);
     setClaim(mintGuestClaim(nextName));
-  }, [hydratedFor, serverTicket, paidKeys, claim, restaurantId, sessionId]);
+  }, [hydratedFor, serverTicket, paidKeys, claim, restaurantId, sessionId, tickets]);
+
+  // Tickets often arrive after first hydrate (guest_client_id). Fill empty name once from sole prefill.
+  useEffect(() => {
+    if (!sessionId || hydratedFor !== sessionId || serverTicket || submitted) return;
+    if (claim.name.trim()) return;
+    const name = resolveGuestClaimPrefillName({
+      restaurantId,
+      sessionId,
+      tickets,
+    });
+    if (!name) return;
+    rememberGuestClaimLastName(restaurantId, sessionId, name);
+    setClaim((prev) => (prev.name.trim() ? prev : { ...prev, name }));
+  }, [sessionId, hydratedFor, serverTicket, submitted, claim.name, restaurantId, tickets]);
 
   // Dishes that left the bill never linger in the claim.
   useEffect(() => {

@@ -612,6 +612,29 @@ export function loadGuestClaimLastName(restaurantId: string, sessionId: string):
   }
 }
 
+/**
+ * Sole prefill name for a **new** guest ticket (paid rollover / refresh with no unlocked ticket).
+ * Order: in-memory preferred → this phone's local last name → this phone's server `mine` ticket name.
+ * Does not read unpaid local drafts or unlocked server tickets (those hydrate elsewhere).
+ */
+export function resolveGuestClaimPrefillName(params: {
+  preferredName?: string | null;
+  restaurantId: string;
+  sessionId: string;
+  tickets?: ReadonlyArray<{ mine: boolean; name: string }>;
+}): string {
+  const preferred = params.preferredName?.trim() ?? '';
+  if (preferred) return preferred;
+  const remembered = loadGuestClaimLastName(params.restaurantId, params.sessionId);
+  if (remembered) return remembered;
+  for (const ticket of params.tickets ?? []) {
+    if (!ticket.mine) continue;
+    const name = ticket.name?.trim() ?? '';
+    if (name) return name;
+  }
+  return '';
+}
+
 function isClaimRow(value: unknown): value is ByItemConsumerRow {
   if (!value || typeof value !== 'object') return false;
   const row = value as Record<string, unknown>;

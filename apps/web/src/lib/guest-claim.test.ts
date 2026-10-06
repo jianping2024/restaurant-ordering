@@ -24,6 +24,7 @@ import {
   parseGuestClaimDraft,
   pruneClaimRows,
   rememberGuestClaimLastName,
+  resolveGuestClaimPrefillName,
   type GuestClaim,
 } from './guest-claim';
 import type { SplitPerson, SplitResult } from '../types';
@@ -471,5 +472,48 @@ describe('mintGuestClaim + last name memory', () => {
     assert.equal(loadGuestClaimLastName(rid, sid), 'John');
     rememberGuestClaimLastName(rid, sid, '   ');
     assert.equal(loadGuestClaimLastName(rid, sid), 'John');
+  });
+
+  it('prefills from preferred, then local memory, then this phone mine ticket', () => {
+    assert.equal(
+      resolveGuestClaimPrefillName({
+        preferredName: '  Amy  ',
+        restaurantId: rid,
+        sessionId: sid,
+        tickets: [{ mine: true, name: 'John' }],
+      }),
+      'Amy',
+    );
+
+    rememberGuestClaimLastName(rid, sid, 'Local');
+    assert.equal(
+      resolveGuestClaimPrefillName({
+        restaurantId: rid,
+        sessionId: sid,
+        tickets: [{ mine: true, name: 'John' }],
+      }),
+      'Local',
+    );
+
+    store.clear();
+    assert.equal(
+      resolveGuestClaimPrefillName({
+        restaurantId: rid,
+        sessionId: sid,
+        tickets: [
+          { mine: false, name: 'Other' },
+          { mine: true, name: '  John  ' },
+        ],
+      }),
+      'John',
+    );
+    assert.equal(
+      resolveGuestClaimPrefillName({
+        restaurantId: rid,
+        sessionId: sid,
+        tickets: [{ mine: false, name: 'Other' }],
+      }),
+      '',
+    );
   });
 });

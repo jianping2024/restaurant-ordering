@@ -45,6 +45,17 @@
   --mesa-toast-bottom: calc(3.5rem + var(--mesa-customer-menu-bottom-safe) + 0.75rem);
 }
 
+/*
+ * Guest bill: the fixed call-checkout dock yields while any text field on the
+ * page is focused (it would float over the soft keyboard). Focus only — never
+ * keyboard-height detection or programmatic scroll; `display: none` drops the
+ * fixed layer instead of repainting it.
+ */
+[data-guest-bill-page]:has(input:not([type='checkbox'], [type='radio']):focus, textarea:focus)
+  [data-guest-call-checkout-dock] {
+  display: none;
+}
+
 [data-theme='light'] {
   --color-brand-bg: 237 234 226;
   --color-brand-card: 247 244 238;

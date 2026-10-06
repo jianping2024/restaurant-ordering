@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { formatByItemSplitQuantityLabel } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow, ByItemLineAllocation } from '@/lib/bill-split-by-item';
@@ -15,12 +15,6 @@ import {
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
-import {
-  guestClaimNameHidesCallCheckout,
-  scrollElementIntoVisualViewport,
-  softKeyboardLayoutHeight,
-  softKeyboardOpen,
-} from '@/lib/soft-keyboard-viewport';
 import {
   GuestClaimDishCard,
   type GuestClaimDishCardLabels,
@@ -58,23 +52,9 @@ type Props = {
   disabled: boolean;
   itemCodeByMenuId?: Record<string, string>;
   onNameChange: (name: string) => void;
-  /**
-   * Bill page yields the fixed call-checkout CTA when this is true.
-   * Sole signal: {@link guestClaimNameHidesCallCheckout} (name focused ∧ soft keyboard open).
-   */
-  onHideCallCheckoutChange?: (hide: boolean) => void;
   onRowChange: (spec: ByItemLineSpec, patch: Partial<ByItemConsumerRow>) => void;
   onClaimAll: () => void;
 };
-
-function readLayoutHeight(): number {
-  const vv = window.visualViewport;
-  return softKeyboardLayoutHeight({
-    visualViewportHeight: vv?.height ?? 0,
-    innerHeight: window.innerHeight,
-    clientHeight: document.documentElement.clientHeight,
-  });
-}
 
 function fill(template: string, values: Record<string, string | number>): string {
   return Object.entries(values).reduce(
@@ -97,7 +77,6 @@ export function GuestClaimPanel({
   disabled,
   itemCodeByMenuId = {},
   onNameChange,
-  onHideCallCheckoutChange,
   onRowChange,
   onClaimAll,
 }: Props) {
@@ -106,72 +85,6 @@ export function GuestClaimPanel({
     [orderLines],
   );
   const nameMissing = claim.name.trim().length === 0;
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  /** Captured before/at focus — not live innerHeight (iOS shrinks that with the keyboard). */
-  const layoutHeightRef = useRef(0);
-  const [nameFocused, setNameFocused] = useState(false);
-  /** Optimistic true on focus so the CTA yields before the keyboard finishes opening. */
-  const [softKeyboardIsOpen, setSoftKeyboardIsOpen] = useState(false);
-
-  const hideCallCheckout = guestClaimNameHidesCallCheckout(
-    nameFocused,
-    softKeyboardIsOpen,
-  );
-
-  useEffect(() => {
-    onHideCallCheckoutChange?.(hideCallCheckout);
-    return () => {
-      onHideCallCheckoutChange?.(false);
-    };
-  }, [hideCallCheckout, onHideCallCheckoutChange]);
-
-  /**
-   * Sole name-field visualViewport path while focused: compare vv to the
-   * focus-time layout baseline (iOS-safe), and scroll into view. Never scroll
-   * on the focus event itself (that dismisses the iOS keyboard).
-   */
-  useEffect(() => {
-    if (!nameFocused) {
-      setSoftKeyboardIsOpen(false);
-      layoutHeightRef.current = 0;
-      return;
-    }
-    const el = nameInputRef.current;
-    if (layoutHeightRef.current <= 0) {
-      layoutHeightRef.current = readLayoutHeight();
-    }
-    const run = () => {
-      const vv = window.visualViewport;
-      if (!vv) return;
-      // Grow baseline if Safari reports a taller layout mid-session.
-      layoutHeightRef.current = Math.max(layoutHeightRef.current, readLayoutHeight());
-      const open = softKeyboardOpen(layoutHeightRef.current, vv.height);
-      setSoftKeyboardIsOpen(open);
-      if (el) {
-        scrollElementIntoVisualViewport(el, {
-          behavior: 'instant',
-          layoutHeight: layoutHeightRef.current,
-        });
-      }
-    };
-    // Do not call run() synchronously on focus — wait for vv resize/scroll so
-    // we do not scroll during the open animation (iOS dismisses the keyboard).
-    // Optimistic softKeyboardIsOpen=true already hides the CTA.
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', run);
-    vv?.addEventListener('scroll', run);
-    return () => {
-      vv?.removeEventListener('resize', run);
-      vv?.removeEventListener('scroll', run);
-    };
-  }, [nameFocused]);
-
-  const armNameFocus = () => {
-    // Pointer/touch arms the baseline before focus, while the viewport is still full.
-    if (layoutHeightRef.current <= 0) {
-      layoutHeightRef.current = readLayoutHeight();
-    }
-  };
 
   const lineTitle = (lineKey: string) => {
     const spec = lineSpecs.find((row) => row.key === lineKey);
@@ -196,28 +109,21 @@ export function GuestClaimPanel({
           {labels.nameLabel}
         </label>
         <input
-          ref={nameInputRef}
           id="guest-claim-name"
           type="text"
           autoComplete="off"
+          enterKeyHint="done"
           maxLength={40}
           value={claim.name}
           disabled={disabled}
-          onPointerDown={armNameFocus}
-          onTouchStart={armNameFocus}
-          onFocus={() => {
-            if (layoutHeightRef.current <= 0) {
-              layoutHeightRef.current = readLayoutHeight();
-            }
-            setNameFocused(true);
-            // Hide CTA immediately — do not wait for vv resize (covers the open animation).
-            setSoftKeyboardIsOpen(true);
-          }}
-          onBlur={() => {
-            setNameFocused(false);
-            setSoftKeyboardIsOpen(false);
-          }}
           onChange={(e) => onNameChange(e.target.value)}
+          onKeyDown={(e) => {
+            // Return/Done closes the keyboard so the call-checkout dock comes back.
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.currentTarget.blur();
+            }
+          }}
           placeholder={labels.namePlaceholder}
           aria-invalid={nameTaken || undefined}
           className={`${customerTextInputClass}${nameTaken ? ' !border-red-500' : ''}`}

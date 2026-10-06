@@ -263,8 +263,6 @@ function GuestBillPage({
       !initialFeedbackSkipped,
   );
   const [callBillBusy, setCallBillBusyState] = useState(false);
-  /** Sole yield: GuestClaimPanel via guestClaimNameHidesCallCheckout (focus ∧ keyboard). */
-  const [hideFixedCallCheckout, setHideFixedCallCheckout] = useState(false);
   const [tablePlanLocalSubmitted, setTablePlanLocalSubmitted] = useState(false);
 
   useEffect(() => {
@@ -704,15 +702,13 @@ function GuestBillPage({
     );
   }
 
-  // Keep pb-24 while CTA is yielded (keyboard open on name) — do not tighten pad.
-  const pagePadClass =
-    checkoutGateMessage && !hideFixedCallCheckout ? 'pb-40' : 'pb-24';
+  const pagePadClass = checkoutGateMessage ? 'pb-40' : 'pb-24';
 
   return (
     <>
     {individualNotice}
     <div
-      data-hide-call-checkout={hideFixedCallCheckout ? '1' : '0'}
+      data-guest-bill-page=""
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
     >
       <CustomerOrderingHeader
@@ -780,7 +776,6 @@ function GuestBillPage({
               disabled={isCallBillBusy}
               itemCodeByMenuId={itemCodeByMenuId}
               onNameChange={claim.setName}
-              onHideCallCheckoutChange={setHideFixedCallCheckout}
               onRowChange={claim.updateRow}
               onClaimAll={claim.claimRest}
             />
@@ -792,12 +787,10 @@ function GuestBillPage({
         <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueMessage}</p>
       ) : null}
 
-      {/* Stay mounted; hide only while name focused ∧ soft keyboard open. */}
+      {/* Yields while a bill-page text field is focused — sole rule in globals.css. */}
       <div
-        className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${
-          hideFixedCallCheckout ? 'invisible pointer-events-none' : ''
-        }`}
-        aria-hidden={hideFixedCallCheckout || undefined}
+        data-guest-call-checkout-dock=""
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2"
       >
         {checkoutGateMessage ? (
           <BillCheckoutGateBanner
@@ -811,8 +804,7 @@ function GuestBillPage({
           onClick={handleCallBill}
           loading={isCallBillBusy}
           disabled={
-            hideFixedCallCheckout
-            || orderLines.length === 0
+            orderLines.length === 0
             || !activeSessionId
             || isCallBillBusy
             || !guestCountConfirmed

@@ -98,19 +98,26 @@ export function LandingSection({
 }
 
 export function LandingSectionHeader({
+  kicker,
   title,
   subtitle,
 }: {
+  kicker: string;
   title: string;
   subtitle?: string;
 }) {
   return (
-    <div className="mb-8 text-center sm:mb-12">
-      <h2 className="font-heading text-2xl text-brand-text sm:text-3xl">{title}</h2>
-      {subtitle ? (
-        <p className="mx-auto mt-3 max-w-2xl text-[15px] leading-relaxed text-brand-text-muted sm:text-base">
-          {subtitle}
+    <div className="mb-10 grid gap-4 sm:mb-14 md:grid-cols-2 md:items-end md:gap-14">
+      <div>
+        <p className="inline-flex items-center gap-2.5 text-[12.5px] font-semibold uppercase tracking-[0.16em] text-brand-gold before:h-px before:w-[22px] before:bg-brand-gold before:content-['']">
+          {kicker}
         </p>
+        <h2 className="mt-3.5 whitespace-pre-line font-heading text-[clamp(1.7rem,3.1vw,2.5rem)] font-bold leading-[1.28] tracking-tight text-brand-text">
+          {title}
+        </h2>
+      </div>
+      {subtitle ? (
+        <p className="text-base leading-relaxed text-brand-text-muted sm:text-[17px]">{subtitle}</p>
       ) : null}
     </div>
   );

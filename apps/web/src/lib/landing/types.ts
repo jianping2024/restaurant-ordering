@@ -1,43 +1,31 @@
 import type { UILanguage } from '@/lib/i18n';
 
-export type LandingNavItem = {
-  id: string;
-  href: string;
-  label: string;
-};
-
 export type LandingPainPoint = {
   title: string;
   problem: string;
   solution: string;
 };
 
-export type LandingBuffetFeature = {
+export type LandingTextItem = {
   title: string;
   desc: string;
 };
 
-export type LandingSupportFeature = {
-  title: string;
-  desc: string;
-};
-
-export type LandingOnboardingStep = {
-  title: string;
-  desc: string;
-};
-
-export type LandingAgentRecruit = {
-  title: string;
-  subtitle: string;
-  note: string;
+export type LandingFounder = {
+  name: string;
+  role: string;
+  points: readonly [string, string, string];
 };
 
 export type LandingCopy = {
   nav: {
     solutions: string;
+    flow: string;
+    features: string;
+    team: string;
     caseStudy: string;
     contact: string;
+    demo: string;
     login: string;
   };
   hero: {
@@ -52,38 +40,116 @@ export type LandingCopy = {
     /** Quiet channel lead before agentCta (below proofs, not between CTAs). */
     agentLead: string;
     agentCta: string;
+    /** Demo-data screens drawn by `LandingHeroStage` (not real customer data). */
+    stage: {
+      ariaLabel: string;
+      demoNote: string;
+      offline: LandingTextItem;
+      print: LandingTextItem;
+      revenueLabel: string;
+      revenueSplit: string;
+      analytics: {
+        nav: readonly [string, string, string, string, string, string, string];
+        title: string;
+        ranges: readonly [string, string, string, string, string];
+        kpiRevenue: string;
+        kpiGuests: string;
+        kpiAvg: string;
+        kpiDelta: string;
+        revenueTrend: string;
+        thisPeriod: string;
+        lastPeriod: string;
+        ranking: string;
+        guestTrend: string;
+        adults: string;
+        children: string;
+        rankNames: readonly [string, string, string, string];
+      };
+      phone: {
+        table: string;
+        restaurant: string;
+        chips: readonly [string, string, string, string];
+        dishes: readonly [
+          { name: string; flavor: string },
+          { name: string; flavor: string },
+          { name: string; flavor: string },
+        ];
+        submit: string;
+      };
+    };
   };
-  /** Sole problem→solution block after hero (no parallel pillars cards). */
+  strip: readonly [LandingTextItem, LandingTextItem, LandingTextItem, LandingTextItem];
+  /** Sole problem→solution block after the trust strip. */
   pain: {
-    title: string;
-    items: LandingPainPoint[];
-  };
-  buffet: {
+    kicker: string;
     title: string;
     subtitle: string;
-    items: LandingBuffetFeature[];
+    items: readonly [
+      LandingPainPoint,
+      LandingPainPoint,
+      LandingPainPoint,
+      LandingPainPoint,
+      LandingPainPoint,
+    ];
   };
-  support: {
+  flow: {
+    kicker: string;
     title: string;
-    items: LandingSupportFeature[];
+    subtitle: string;
+    steps: readonly [LandingTextItem, LandingTextItem, LandingTextItem, LandingTextItem];
   };
-  /** Section chrome only; venue name/address/phone live in `LANDING_CASE_VENUE`. */
+  features: {
+    kicker: string;
+    title: string;
+    subtitle: string;
+    price: {
+      tag: string;
+      title: string;
+      desc: string;
+      slots: readonly [string, string, string];
+    };
+    language: { tag: string; title: string; desc: string };
+    collab: { tag: string; title: string; desc: string };
+    insights: { tag: string; title: string; desc: string };
+    printing: { tag: string; title: string; desc: string };
+  };
+  team: {
+    kicker: string;
+    title: string;
+    subtitle: string;
+    founders: readonly [LandingFounder, LandingFounder];
+    formulaTitle: string;
+    formulaDesc: string;
+  };
+  /** Venue name/address/phone live in `LANDING_CASE_VENUE`. */
   caseStudy: {
+    kicker: string;
     title: string;
+    placeLine: string;
+    desc: string;
+    results: readonly [LandingTextItem, LandingTextItem, LandingTextItem, LandingTextItem];
+    addressLabel: string;
+    phoneLabel: string;
+    hoursLabel: string;
     hours: string;
+    tags: readonly [string, string, string, string];
+    photoCaption: string;
   };
   contact: {
+    kicker: string;
     title: string;
     subtitle: string;
-    pricingNote: string;
+    panelTitle: string;
+    advisorsLabel: string;
     whatsappLabel: string;
     wechatLabel: string;
+    wechatIdLabel: string;
     wechatScanHint: string;
     wechatCopy: string;
     wechatCopied: string;
     stepsTitle: string;
-    steps: LandingOnboardingStep[];
-    agent: LandingAgentRecruit;
+    steps: readonly [LandingTextItem, LandingTextItem, LandingTextItem, LandingTextItem];
+    agent: { title: string; subtitle: string };
   };
   footer: {
     login: string;

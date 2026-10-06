@@ -72,7 +72,7 @@ function WeChatContactRow({ contact, wechatLabel, wechatCopy, wechatCopied }: We
   );
 }
 
-/** Sole WhatsApp + WeChat channel list — landing page and store renew modal. */
+/** Flat WhatsApp + WeChat channel list for the store renew modal and Pro gate (landing uses `LandingAdvisorContact`). */
 export function LandingContactChannels({ labels }: { labels: LandingContactChannelLabels }) {
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card">

@@ -1,5 +1,6 @@
 'use client';
 
+import { LANDING_BLOCK_CLASS, LANDING_WRAP_CLASS } from '@/components/landing/landing-chrome';
 import { LandingSection, LandingSectionHeader } from '@/components/landing/LandingPrimitives';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
@@ -7,23 +8,28 @@ export function LandingPainPoints() {
   const copy = useLandingCopy().pain;
 
   return (
-    <LandingSection
-      id="solutions"
-      className="border-t border-brand-border bg-brand-card/30 py-14 sm:py-16"
-    >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <LandingSectionHeader title={copy.title} />
-        <div className="grid gap-4 md:grid-cols-3 md:gap-x-4 md:gap-y-2">
-          {copy.items.map((item) => (
+    <LandingSection id="solutions" className={LANDING_BLOCK_CLASS}>
+      <div className={LANDING_WRAP_CLASS}>
+        <LandingSectionHeader kicker={copy.kicker} title={copy.title} subtitle={copy.subtitle} />
+        <div className="overflow-hidden rounded-[18px] border border-brand-border/70 bg-brand-card">
+          {copy.items.map((item, index) => (
             <article
               key={item.title}
-              className="flex h-full flex-col rounded-2xl border border-brand-border bg-brand-bg p-5 sm:p-6 md:row-span-3 md:grid md:h-auto md:grid-rows-subgrid"
+              className="grid border-brand-border/70 border-t first:border-t-0 md:grid-cols-[72px_1fr_56px_1.1fr]"
             >
-              <h3 className="font-heading text-lg text-brand-gold sm:text-xl">{item.title}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-brand-text-muted sm:text-[14px] md:mt-0">
-                {item.problem}
+              <p className="px-7 pt-7 font-heading text-sm font-bold text-brand-gold md:px-0 md:pl-[30px] md:pt-[34px]">
+                {String(index + 1).padStart(2, '0')}
               </p>
-              <p className="mt-auto border-l-2 border-brand-gold/60 bg-brand-gold/5 py-2.5 pl-3 pt-3 text-[14px] font-medium leading-relaxed text-brand-text sm:text-[15px] md:mt-0 md:h-full">
+              <div className="px-7 pb-1.5 pt-3 text-brand-text-muted md:py-[30px] md:pl-0 md:pr-5">
+                <h3 className="mb-1.5 font-heading text-lg font-bold text-brand-text">{item.title}</h3>
+                <p className="text-[15px] leading-relaxed">{item.problem}</p>
+              </div>
+              <div aria-hidden className="hidden items-center justify-center text-brand-gold md:flex">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </div>
+              <p className="bg-gradient-to-r from-brand-gold/10 to-transparent px-7 pb-7 pt-4 text-base font-medium leading-relaxed text-brand-text md:flex md:items-center md:px-8 md:py-[30px]">
                 {item.solution}
               </p>
             </article>

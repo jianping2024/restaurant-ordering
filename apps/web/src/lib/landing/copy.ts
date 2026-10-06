@@ -1,116 +1,188 @@
 import type { LandingCopy, LandingLanguage } from '@/lib/landing/types';
 
-const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
+/** Languages with authored landing copy (the language picker exposes these three). */
+type AuthoredLandingLanguage = 'zh' | 'en' | 'pt';
+
+const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
   zh: {
     nav: {
       solutions: '解决方案',
+      flow: '运作方式',
+      features: '功能',
+      team: '团队',
       caseStudy: '客户案例',
       contact: '联系开通',
+      demo: '预约演示',
       login: '登录',
     },
     hero: {
       tag: '葡萄牙堂食扫码点餐 · 中餐与寿司自助',
-      titleA: '少投入 · 断网不停业',
-      titleB: '权限清晰 · 全程可追溯',
-      desc: '顾客手机扫码点餐，不必每桌平板。云端 + 门店部署：外网中断仍可下单、结账、出票。开台到结账全程留痕。堂食按菜点餐与自助人头计费，同一套流程 — 覆盖中餐、寿司自助等业态。',
+      titleA: '手机扫码点餐，',
+      titleB: '断网也不停业',
+      desc: '顾客用自己的手机下单，不必每桌一台平板。云端 + 门店部署：外网中断，下单、结账、出票照常运行。开台到结账全程留痕，按菜点餐与自助人头计费走同一套流程。',
       whatsappCta: 'WhatsApp 咨询',
       wechatCta: '微信咨询',
       proofs: ['扫码点餐', '云端 + 门店部署', '少平板 · 省投入'],
       agentLead: '渠道合作？',
       agentCta: '诚招代理',
+      stage: {
+        ariaLabel: '增值分析看板与顾客点餐手机端示意（演示数据）',
+        demoNote: '演示数据',
+        offline: { title: '外网已断开 · 门店仍在运行', desc: '订单继续进入后厨' },
+        print: { title: '后厨已出票', desc: 'A3 · 2 项' },
+        revenueLabel: '今日营业额',
+        revenueSplit: '已收 / 未收',
+        analytics: {
+          nav: ['概览', '桌台', '结账', '菜单', '订单', '增值分析', '设置'],
+          title: '增值分析',
+          ranges: ['日', '周', '月', '季', '年'],
+          kpiRevenue: '区间营业额',
+          kpiGuests: '区间客流',
+          kpiAvg: '日均营业额',
+          kpiDelta: '环比',
+          revenueTrend: '营业额趋势',
+          thisPeriod: '本期',
+          lastPeriod: '上期',
+          ranking: '菜品销量排行',
+          guestTrend: '客流趋势',
+          adults: '成人',
+          children: '儿童',
+          rankNames: ['三文鱼寿司', '黑椒牛柳', '烤鳗鱼', '青岛啤酒'],
+        },
+        phone: {
+          table: '桌号 A3 · 本桌 4 人',
+          restaurant: 'Restaurante Demo',
+          chips: ['推荐', '寿司', '热菜', '饮料'],
+          dishes: [
+            { name: '三文鱼寿司', flavor: '鲜 · 清爽' },
+            { name: '黑椒牛柳', flavor: '微辣 · 浓香' },
+            { name: '清炒时蔬', flavor: '清淡' },
+          ],
+          submit: '提交订单',
+        },
+      },
     },
+    strip: [
+      { title: '断网不停业', desc: '云端 + 门店部署' },
+      { title: '0 台', desc: '每桌专用平板' },
+      { title: '全程留痕', desc: '开台 → 改单 → 结账' },
+      { title: '葡 · 英 · 中', desc: '菜单一键切换' },
+    ],
     pain: {
-      title: '堂食扫码常遇到的问题',
+      kicker: '为什么选择 FARVOO',
+      title: '堂食点餐系统，\n最容易踩的五个坑',
+      subtitle: '设备成本、营业连续性、责任追溯，再加上难用和不稳——我们把餐厅真正踩过的坑，一次说清、一次解决。',
       items: [
+        {
+          title: '传统软件杂乱难上手',
+          problem: '功能东一块西一块，设计不合理，学习成本高，老员工不愿意用。',
+          solution: '由餐饮运营专家定义流程：开台、点餐、出票、结账一条线走完，每个角色只看到自己该用的功能，学习几乎零成本。',
+        },
+        {
+          title: 'AI 速成软件频出 bug',
+          problem: '表面好看，高峰就出错，三天两头出问题。',
+          solution: '由 20+ 年经验的工程师负责架构与稳定性，关键流程经真实门店营业验证，不拿餐厅当试验场。',
+        },
         {
           title: '平板墙成本高',
           problem: '每桌一台专用平板，采购、充电、损坏与更换持续烧钱。',
-          solution: '顾客扫码点餐，无需每桌专用平板，大幅降低设备投入。',
+          solution: '顾客扫码用自己的手机点餐，无需每桌专用平板，大幅降低设备投入。',
         },
         {
           title: '依赖外网怕停业',
           problem: '纯云端系统一旦断网，下单结账一起停。',
-          solution: '云端 + 门店部署，外网挂了店照常营业。',
+          solution: '云端 + 门店部署：外网挂了，店照常营业，下单、结账、打印不受影响。',
         },
         {
           title: '权限与追溯不清',
           problem: '谁开台、谁改单、谁结账说不清，纠纷难查。',
-          solution: '按角色授权，订单历史完整留痕，责任清楚。',
+          solution: '按角色授权，订单历史完整留痕，每一步操作都能查到是谁做的。',
         },
       ],
     },
-    buffet: {
-      title: '为堂食与自助而生',
-      subtitle: '从开台到结账，核心场景完整覆盖。',
-      items: [
-        {
-          title: '价目自动切换',
-          desc: '工作日、周末、节假日与分时段价格提前设好，到点自动执行，不用每天手改。',
-        },
-        {
-          title: '手机电脑协同',
-          desc: '服务员与收银按权限在手机或电脑处理，不用反复跑前台。',
-        },
-        {
-          title: '开台后扫码点餐',
-          desc: '服务员开台后顾客扫码点餐；堂食按菜计价，自助可加人头规则。',
-        },
+    flow: {
+      kicker: '运作方式',
+      title: '从开台到结账，\n一条线走完',
+      subtitle: '服务员掌控开台，顾客自己点，后厨自动出票，收银一步结账——每个角色只看到自己该看的。',
+      steps: [
+        { title: '服务员开台', desc: '手机或电脑开台，设定人数；自助按人头计价。' },
+        { title: '顾客扫码点餐', desc: '用自己的手机，多语菜单，无需下载 App。' },
+        { title: '后厨 / 吧台出票', desc: '订单按档口自动打印，酒水与热菜各走各的。' },
+        { title: '收银结账', desc: '整桌、均分或按菜分单，权限内操作全程留痕。' },
       ],
     },
-    support: {
-      title: '全面支撑日常运营',
-      items: [
+    features: {
+      kicker: '为堂食与自助而生',
+      title: '核心场景，完整覆盖',
+      subtitle: '不是通用点餐模板，而是围绕葡萄牙中餐与寿司自助的真实营业流程设计。',
+      price: {
+        tag: '价目自动切换',
+        title: '工作日、周末、节假日、分时段，到点自动执行',
+        desc: '价格提前设好，不用每天手改，也不会忘记切换。',
+        slots: ['工作日午餐', '周末晚餐 · 当前', '节假日'],
+      },
+      language: { tag: '多语菜单', title: '一键切换，服务多元客群', desc: '葡语、英语、中文，顾客自己选。' },
+      collab: { tag: '手机电脑协同', title: '按权限各司其职', desc: '服务员与收银在手机或电脑处理，不用反复跑前台。' },
+      insights: { tag: '经营数据', title: '今日营业额、热销品一目了然', desc: '打开就是今天的生意。' },
+      printing: { tag: '吧台打印', title: '酒水单、结账单按站点自动打印', desc: '后厨、吧台、收银各自出票。' },
+    },
+    team: {
+      kicker: '创始团队',
+      title: '懂餐厅的人，\n加上能把系统做稳的人',
+      subtitle: 'FARVOO 由餐饮实战经验与资深软件工程能力共同打造，把效率、稳定性与服务体验真正落地。',
+      founders: [
         {
-          title: '多语菜单',
-          desc: '葡语、英语、中文等一键切换，服务多元客群。',
+          name: '李先生',
+          role: '餐饮运营 · 20+ 年从业经验',
+          points: ['熟悉前厅、后厨、收银与人员流程', '深度理解自助餐、点菜门店运营痛点', '从真实餐厅需求出发设计产品'],
         },
         {
-          title: '经营数据',
-          desc: '今日营业额、热销品一目了然。',
-        },
-        {
-          title: '吧台打印',
-          desc: '酒水单、结账单按站点自动打印。',
+          name: '陈先生',
+          role: '软件工程 · 20+ 年开发经验',
+          points: ['专注系统架构、稳定性与数据安全', '擅长企业级软件与复杂业务流程设计', '让系统在真实门店环境中长期稳定运行'],
         },
       ],
+      formulaTitle: 'FARVOO = 餐饮经验 × 稳定安全工程',
+      formulaDesc: '懂餐厅的人定义问题，懂技术的人把它在真实门店里做稳。',
     },
     caseStudy: {
-      title: '客户案例',
+      kicker: '客户案例',
+      title: '稳定运行半年，0 故障\n自助与点菜同店',
+      placeLine: 'Torres Vedras · 中餐 + 寿司自助',
+      desc: '自助餐、寿司与 Grill & Marisco 同店经营，开台、点餐、出票与结账由 FARVOO 一套系统承接。',
+      results: [
+        { title: '6 个月', desc: '稳定运行，0 故障' },
+        { title: '省人工', desc: '点餐、传菜少跑腿' },
+        { title: '提效率', desc: '开台到结账更顺' },
+        { title: '省纸', desc: '大幅减少打印纸耗用' },
+      ],
+      addressLabel: '地址',
+      phoneLabel: '电话',
+      hoursLabel: '营业',
       hours: '午餐 12:00–15:00 · 晚餐 19:00–23:00',
+      tags: ['中餐', '自助餐', '寿司', '多语言菜单'],
+      photoCaption: '收银台实拍\n楼面看板 + 小票打印机',
     },
     contact: {
-      title: '了解方案 · 预约演示',
+      kicker: '预约演示',
+      title: '了解方案，\n30 分钟看完整流程',
       subtitle: '价格与配置请直接联系我们。正式开通由专人一对一配置，无需自行注册。',
-      pricingNote: '联系获取定制方案',
+      panelTitle: '直接联系',
+      advisorsLabel: '选择联系人',
       whatsappLabel: 'WhatsApp',
       wechatLabel: '微信',
+      wechatIdLabel: '微信号',
       wechatScanHint: '扫码或搜索微信号添加',
       wechatCopy: '复制微信号',
       wechatCopied: '已复制',
       stepsTitle: '开通流程',
       steps: [
-        {
-          title: '联系咨询',
-          desc: '通过 WhatsApp 或微信说明餐厅情况',
-        },
-        {
-          title: '了解方案',
-          desc: '根据规模与需求介绍配置与报价',
-        },
-        {
-          title: '专人开通',
-          desc: '管理员配置账号、菜单与打印',
-        },
-        {
-          title: '培训上线',
-          desc: '远程或现场指导，顺利投入使用',
-        },
+        { title: '联系咨询', desc: '通过 WhatsApp 或微信说明餐厅情况' },
+        { title: '了解方案', desc: '根据规模与需求介绍配置与报价' },
+        { title: '专人开通', desc: '管理员配置账号、菜单与打印' },
+        { title: '培训上线', desc: '远程或现场指导，顺利投入使用' },
       ],
-      agent: {
-        title: '诚招代理',
-        subtitle: '区域合作 · 云端 + 门店部署支持',
-        note: '与预约演示使用同一套 WhatsApp / 微信联系方式。',
-      },
+      agent: { title: '诚招代理', subtitle: '区域合作 · 云端 + 门店部署支持' },
     },
     footer: {
       login: '已有账号？登录后台',
@@ -120,113 +192,182 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   en: {
     nav: {
       solutions: 'Solutions',
+      flow: 'How it works',
+      features: 'Features',
+      team: 'Team',
       caseStudy: 'Customers',
       contact: 'Contact',
+      demo: 'Book a demo',
       login: 'Sign in',
     },
     hero: {
       tag: 'Dine-in QR ordering in Portugal · Chinese & sushi buffet',
-      titleA: 'Lower spend · Offline-ready',
-      titleB: 'Clear roles · Full audit trail',
-      desc: 'Guests order on their phones — no tablet per table. Cloud + in-store deployment: ordering, checkout, and printing continue if the WAN drops. One flow for à la carte dine-in and buffet headcount — Chinese and sushi buffets included.',
+      titleA: 'Order by QR on any phone,',
+      titleB: 'keep serving offline',
+      desc: 'Guests order on their own phones — no tablet per table. Cloud + in-store deployment: ordering, checkout and printing keep running if the internet drops. Every step from opening a table to paying is logged, and à la carte and buffet headcount share one flow.',
       whatsappCta: 'Chat on WhatsApp',
       wechatCta: 'WeChat',
-      proofs: ['QR order', 'Cloud + in-store', 'Fewer tablets · Lower cost'],
+      proofs: ['QR ordering', 'Cloud + in-store', 'Fewer tablets · Lower cost'],
       agentLead: 'Channel partner?',
       agentCta: 'Become a partner',
+      stage: {
+        ariaLabel: 'Value analytics dashboard and guest phone ordering (demo data)',
+        demoNote: 'Demo data',
+        offline: { title: 'Internet down · store still running', desc: 'Orders keep reaching the kitchen' },
+        print: { title: 'Kitchen ticket printed', desc: 'A3 · 2 items' },
+        revenueLabel: 'Revenue today',
+        revenueSplit: 'Paid / unpaid',
+        analytics: {
+          nav: ['Overview', 'Tables', 'Checkout', 'Menu', 'Orders', 'Analytics', 'Settings'],
+          title: 'Value analytics',
+          ranges: ['D', 'W', 'M', 'Q', 'Y'],
+          kpiRevenue: 'Revenue',
+          kpiGuests: 'Guests',
+          kpiAvg: 'Daily avg',
+          kpiDelta: 'vs prev.',
+          revenueTrend: 'Revenue trend',
+          thisPeriod: 'This period',
+          lastPeriod: 'Previous',
+          ranking: 'Top dishes',
+          guestTrend: 'Guest trend',
+          adults: 'Adults',
+          children: 'Children',
+          rankNames: ['Salmon sushi', 'Black pepper beef', 'Grilled eel', 'Tsingtao beer'],
+        },
+        phone: {
+          table: 'Table A3 · 4 guests',
+          restaurant: 'Restaurante Demo',
+          chips: ['Popular', 'Sushi', 'Hot', 'Drinks'],
+          dishes: [
+            { name: 'Salmon sushi', flavor: 'Fresh · light' },
+            { name: 'Black pepper beef', flavor: 'Mild spicy · rich' },
+            { name: 'Stir-fried greens', flavor: 'Light' },
+          ],
+          submit: 'Place order',
+        },
+      },
     },
+    strip: [
+      { title: 'Works offline', desc: 'Cloud + in-store deployment' },
+      { title: '0 tablets', desc: 'dedicated to each table' },
+      { title: 'Full audit trail', desc: 'Open → edit → checkout' },
+      { title: 'PT · EN · 中文', desc: 'Menu in one tap' },
+    ],
     pain: {
-      title: 'What dine-in operators struggle with',
+      kicker: 'Why FARVOO',
+      title: 'Five traps of dine-in ordering systems',
+      subtitle: 'Hardware cost, uptime and accountability — plus clunky or fragile software. We name the traps restaurants actually hit, and fix them.',
       items: [
         {
-          title: 'Tablet fleet cost',
-          problem: 'One device per table means purchase, charging, breakage, and replacement forever.',
-          solution: 'QR ordering on guest phones — no dedicated tablet per seat.',
+          title: 'Traditional software is cluttered',
+          problem: 'Features scattered everywhere, poor design, a steep learning curve — veteran staff refuse to use it.',
+          solution: 'Workflows defined by a restaurant-operations expert: open, order, print, pay in one line. Each role sees only what it needs, so learning cost is close to zero.',
         },
         {
-          title: 'Cloud outages stop service',
-          problem: 'Cloud-only stacks freeze ordering and checkout when the WAN drops.',
-          solution: 'Cloud + in-store deployment keeps the floor running when the WAN drops.',
+          title: 'AI-rushed software keeps breaking',
+          problem: 'Looks good, fails at peak hours, new problems every few days.',
+          solution: 'Architecture and stability owned by an engineer with 20+ years of experience; critical flows proven in live restaurant service — not your restaurant as a test bed.',
         },
         {
-          title: 'Unclear accountability',
-          problem: 'Hard to see who opened, changed, or closed a table.',
-          solution: 'Permissions by role and complete order history.',
+          title: 'Tablet wall costs a lot',
+          problem: 'A dedicated device per table: purchase, charging, breakage and replacement keep draining money.',
+          solution: 'Guests order on their own phones — no dedicated tablet per table, far lower hardware spend.',
+        },
+        {
+          title: 'Dependent on the internet',
+          problem: 'Cloud-only systems stop ordering and checkout the moment the internet drops.',
+          solution: 'Cloud + in-store deployment: when the WAN is down the store keeps trading — ordering, checkout and printing are unaffected.',
+        },
+        {
+          title: 'Unclear roles and audit trail',
+          problem: 'Hard to tell who opened, edited or closed a table — disputes are hard to settle.',
+          solution: 'Role-based permissions and a complete order history — every action shows who did it.',
         },
       ],
     },
-    buffet: {
-      title: 'Built for dine-in and buffet',
-      subtitle: 'End-to-end coverage from open table to checkout.',
-      items: [
-        {
-          title: 'Auto price switching',
-          desc: 'Weekday, weekend, holiday, and time-slot prices run themselves.',
-        },
-        {
-          title: 'Phone + desktop',
-          desc: 'Waiters and cashiers work on phone or PC by permission.',
-        },
-        {
-          title: 'Open table, then QR order',
-          desc: 'Staff open the table; guests scan to order. À la carte by dish; buffet can add headcount rules.',
-        },
+    flow: {
+      kicker: 'How it works',
+      title: 'One line from opening a table to checkout',
+      subtitle: 'Staff open the table, guests order, the kitchen prints automatically, the cashier checks out — each role sees only what it should.',
+      steps: [
+        { title: 'Staff open the table', desc: 'On phone or PC, set headcount; buffet is priced per person.' },
+        { title: 'Guests scan and order', desc: 'On their own phones, multilingual menu, no app to install.' },
+        { title: 'Kitchen / bar tickets', desc: 'Orders print by station — drinks and hot dishes separately.' },
+        { title: 'Cashier checks out', desc: 'Whole table, even split or by item; every action logged by permission.' },
       ],
     },
-    support: {
-      title: 'Everything else you need',
-      items: [
+    features: {
+      kicker: 'Built for dine-in and buffet',
+      title: 'Core scenarios, fully covered',
+      subtitle: 'Not a generic ordering template — designed around real service in Portuguese Chinese and sushi buffet restaurants.',
+      price: {
+        tag: 'Auto price switching',
+        title: 'Weekday, weekend, holiday and time slots switch on schedule',
+        desc: 'Set prices once — no daily manual edits, no forgotten changes.',
+        slots: ['Weekday lunch', 'Weekend dinner · now', 'Holiday'],
+      },
+      language: { tag: 'Multilingual menu', title: 'One tap, every guest', desc: 'Portuguese, English and Chinese — guests choose.' },
+      collab: { tag: 'Phone + desktop', title: 'Every role in its lane', desc: 'Waiters and cashiers work on phone or PC by permission — no running to the front desk.' },
+      insights: { tag: 'Business data', title: 'Today’s revenue and top sellers at a glance', desc: 'Open it and see today’s business.' },
+      printing: { tag: 'Bar printing', title: 'Drinks tickets and receipts print by station', desc: 'Kitchen, bar and cashier each get their own tickets.' },
+    },
+    team: {
+      kicker: 'Founding team',
+      title: 'Someone who knows restaurants, and someone who makes systems solid',
+      subtitle: 'FARVOO combines hands-on restaurant experience with senior software engineering — efficiency, stability and service that actually land.',
+      founders: [
         {
-          title: 'Multilingual menu',
-          desc: 'Portuguese, English, Chinese, and more in one tap.',
+          name: 'Mr. Li',
+          role: 'Restaurant operations · 20+ years',
+          points: ['Knows front of house, kitchen, cashier and staffing flows', 'Deep understanding of buffet and à la carte pain points', 'Designs from real restaurant needs'],
         },
         {
-          title: 'Business insights',
-          desc: 'Today’s revenue and top sellers at a glance.',
-        },
-        {
-          title: 'Bar printing',
-          desc: 'Tickets and receipts by station.',
+          name: 'Mr. Chen',
+          role: 'Software engineering · 20+ years',
+          points: ['Focus on architecture, stability and data security', 'Strong in enterprise software and complex business flows', 'Keeps systems running reliably in real stores'],
         },
       ],
+      formulaTitle: 'FARVOO = restaurant experience × reliable, secure engineering',
+      formulaDesc: 'The restaurant person defines the problem; the engineer makes it solid in a live store.',
     },
     caseStudy: {
-      title: 'Customer story',
+      kicker: 'Customer story',
+      title: 'Half a year running, 0 faults\nBuffet and à la carte, one venue',
+      placeLine: 'Torres Vedras · Chinese + sushi buffet',
+      desc: 'Buffet, sushi and Grill & Marisco under one roof — opening tables, ordering, printing and checkout all run on FARVOO.',
+      results: [
+        { title: '6 months', desc: 'Stable, 0 faults' },
+        { title: 'Less labor', desc: 'Fewer trips for ordering and serving' },
+        { title: 'More efficient', desc: 'Smoother from opening to checkout' },
+        { title: 'Less paper', desc: 'Far less printing paper used' },
+      ],
+      addressLabel: 'Address',
+      phoneLabel: 'Phone',
+      hoursLabel: 'Hours',
       hours: 'Lunch 12:00–15:00 · Dinner 19:00–23:00',
+      tags: ['Chinese', 'Buffet', 'Sushi', 'Multilingual menu'],
+      photoCaption: 'At the cashier desk\nFloor board + receipt printer',
     },
     contact: {
-      title: 'Book a demo',
+      kicker: 'Book a demo',
+      title: 'See the whole flow in 30 minutes',
       subtitle: 'Pricing and setup are tailored. Onboarding is personal — no self-registration.',
-      pricingNote: 'Contact us for a tailored quote',
+      panelTitle: 'Contact directly',
+      advisorsLabel: 'Choose a contact',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
+      wechatIdLabel: 'WeChat ID',
       wechatScanHint: 'Scan or search WeChat ID',
       wechatCopy: 'Copy WeChat ID',
       wechatCopied: 'Copied',
       stepsTitle: 'How onboarding works',
       steps: [
-        {
-          title: 'Reach out',
-          desc: 'Tell us about your restaurant on WhatsApp or WeChat',
-        },
-        {
-          title: 'Plan',
-          desc: 'We recommend setup and pricing',
-        },
-        {
-          title: 'Provision',
-          desc: 'We configure accounts, menu, and printing',
-        },
-        {
-          title: 'Go live',
-          desc: 'Training until you run smoothly',
-        },
+        { title: 'Reach out', desc: 'Tell us about your restaurant on WhatsApp or WeChat' },
+        { title: 'Plan', desc: 'We recommend setup and pricing' },
+        { title: 'Provision', desc: 'We configure accounts, menu and printing' },
+        { title: 'Go live', desc: 'Training until you run smoothly' },
       ],
-      agent: {
-        title: 'Partners wanted',
-        subtitle: 'Regional partnership · Cloud + in-store support',
-        note: 'Same WhatsApp / WeChat channels as demo requests.',
-      },
+      agent: { title: 'Partners wanted', subtitle: 'Regional partnership · Cloud + in-store support' },
     },
     footer: {
       login: 'Already have an account? Sign in',
@@ -236,469 +377,191 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   pt: {
     nav: {
       solutions: 'Soluções',
+      flow: 'Como funciona',
+      features: 'Funcionalidades',
+      team: 'Equipa',
       caseStudy: 'Clientes',
       contact: 'Contacto',
+      demo: 'Marcar demo',
       login: 'Entrar',
     },
     hero: {
       tag: 'Pedidos por QR no salão · Buffet chinês e sushi',
-      titleA: 'Menos investimento · Sem depender da net',
-      titleB: 'Papéis claros · Rasto completo',
-      desc: 'O cliente pede no telemóvel — sem tablet por mesa. Cloud + instalação na loja: pedir, pagar e imprimir mesmo sem WAN. Um fluxo para à la carte e buffet por pessoa — chinês e sushi incluídos.',
+      titleA: 'Pedido por QR no telemóvel,',
+      titleB: 'sem parar sem internet',
+      desc: 'O cliente pede no próprio telemóvel — sem tablet por mesa. Cloud + instalação na loja: pedir, pagar e imprimir continuam mesmo sem internet. Do abrir mesa ao pagamento tudo fica registado, e à la carte e buffet por pessoa seguem o mesmo fluxo.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       proofs: ['Pedido por QR', 'Cloud + loja', 'Menos tablets · Menos custo'],
       agentLead: 'Parceiro de canal?',
       agentCta: 'Torne-se parceiro',
+      stage: {
+        ariaLabel: 'Painel de análise e pedido no telemóvel do cliente (dados de demonstração)',
+        demoNote: 'Dados de demonstração',
+        offline: { title: 'Sem internet · a loja continua', desc: 'Os pedidos continuam a chegar à cozinha' },
+        print: { title: 'Talão da cozinha impresso', desc: 'A3 · 2 itens' },
+        revenueLabel: 'Faturação hoje',
+        revenueSplit: 'Cobrado / por cobrar',
+        analytics: {
+          nav: ['Início', 'Mesas', 'Fechar', 'Menu', 'Pedidos', 'Análise', 'Definições'],
+          title: 'Análise de valor',
+          ranges: ['D', 'S', 'M', 'T', 'A'],
+          kpiRevenue: 'Faturação',
+          kpiGuests: 'Clientes',
+          kpiAvg: 'Média diária',
+          kpiDelta: 'vs anterior',
+          revenueTrend: 'Tendência de faturação',
+          thisPeriod: 'Período atual',
+          lastPeriod: 'Anterior',
+          ranking: 'Pratos mais vendidos',
+          guestTrend: 'Tendência de clientes',
+          adults: 'Adultos',
+          children: 'Crianças',
+          rankNames: ['Sushi de salmão', 'Vaca com pimenta preta', 'Enguia grelhada', 'Cerveja Tsingtao'],
+        },
+        phone: {
+          table: 'Mesa A3 · 4 pessoas',
+          restaurant: 'Restaurante Demo',
+          chips: ['Sugestões', 'Sushi', 'Quentes', 'Bebidas'],
+          dishes: [
+            { name: 'Sushi de salmão', flavor: 'Fresco · leve' },
+            { name: 'Vaca com pimenta preta', flavor: 'Picante suave · intenso' },
+            { name: 'Legumes salteados', flavor: 'Leve' },
+          ],
+          submit: 'Enviar pedido',
+        },
+      },
     },
+    strip: [
+      { title: 'Sem parar sem net', desc: 'Cloud + instalação na loja' },
+      { title: '0 tablets', desc: 'dedicados a cada mesa' },
+      { title: 'Rasto completo', desc: 'Abrir → alterar → pagar' },
+      { title: 'PT · EN · 中文', desc: 'Menu num toque' },
+    ],
     pain: {
-      title: 'Desafios do salão com QR',
+      kicker: 'Porquê FARVOO',
+      title: 'Cinco armadilhas dos sistemas de pedidos no salão',
+      subtitle: 'Custo de equipamento, continuidade do serviço e responsabilidade — e ainda software confuso ou instável. Dizemos as armadilhas em que os restaurantes realmente caem, e resolvemo-las.',
       items: [
         {
-          title: 'Custo da frota de tablets',
-          problem: 'Um dispositivo por mesa: compra, carga, avarias e substituição.',
-          solution: 'Pedidos por QR no telemóvel do cliente — sem tablet por lugar.',
+          title: 'Software tradicional confuso',
+          problem: 'Funções espalhadas, má conceção, aprendizagem difícil — os funcionários mais antigos recusam usar.',
+          solution: 'Fluxos definidos por um especialista em restauração: abrir, pedir, imprimir, pagar numa linha. Cada papel vê só o que precisa — custo de aprendizagem quase nulo.',
         },
         {
-          title: 'Queda de rede para o serviço',
-          problem: 'Só na cloud, a WAN cai e o pedido/pagamento param.',
-          solution: 'Cloud + instalação na loja mantém a sala a funcionar.',
+          title: 'Software feito à pressa com IA falha',
+          problem: 'Bonito por fora, falha na hora de ponta, problemas de poucos em poucos dias.',
+          solution: 'Arquitetura e estabilidade a cargo de um engenheiro com mais de 20 anos de experiência; fluxos críticos validados em serviço real — o seu restaurante não é um campo de testes.',
         },
         {
-          title: 'Responsabilidade pouco clara',
-          problem: 'Difícil saber quem abriu, alterou ou fechou a mesa.',
-          solution: 'Papéis com permissão e histórico completo.',
+          title: 'Parede de tablets cara',
+          problem: 'Um dispositivo por mesa: compra, carregamento, avarias e substituição consomem dinheiro.',
+          solution: 'O cliente pede no próprio telemóvel — sem tablet dedicado por mesa e com muito menos investimento.',
+        },
+        {
+          title: 'Dependência da internet',
+          problem: 'Sistemas só na cloud param pedidos e pagamentos assim que a internet cai.',
+          solution: 'Cloud + instalação na loja: sem internet a loja continua — pedir, pagar e imprimir não são afetados.',
+        },
+        {
+          title: 'Papéis e rasto pouco claros',
+          problem: 'Difícil saber quem abriu, alterou ou fechou a mesa — as disputas são difíceis de resolver.',
+          solution: 'Permissões por papel e histórico completo — cada ação mostra quem a fez.',
         },
       ],
     },
-    buffet: {
-      title: 'Feito para salão e buffet',
-      subtitle: 'Da abertura de mesa ao pagamento.',
-      items: [
-        {
-          title: 'Preços automáticos',
-          desc: 'Dias úteis, fim de semana, feriados e franjas — aplicam-se sozinhos.',
-        },
-        {
-          title: 'Telemóvel e computador',
-          desc: 'Empregados e caixa trabalham no telemóvel ou PC conforme a permissão.',
-        },
-        {
-          title: 'Abrir mesa, depois pedido por QR',
-          desc: 'A equipa abre a mesa; o cliente faz scan para pedir. À la carte por prato; buffet pode acrescentar regras por pessoa.',
-        },
+    flow: {
+      kicker: 'Como funciona',
+      title: 'Do abrir mesa ao pagamento, numa linha',
+      subtitle: 'A equipa abre a mesa, o cliente pede, a cozinha imprime sozinha, a caixa fecha — cada papel vê só o que deve.',
+      steps: [
+        { title: 'A equipa abre a mesa', desc: 'No telemóvel ou PC, define as pessoas; buffet cobrado por pessoa.' },
+        { title: 'O cliente faz scan e pede', desc: 'No próprio telemóvel, menu multilingue, sem instalar app.' },
+        { title: 'Talões cozinha / bar', desc: 'Os pedidos imprimem por estação — bebidas e pratos quentes à parte.' },
+        { title: 'Pagamento na caixa', desc: 'Mesa inteira, divisão igual ou por prato; ações registadas por permissão.' },
       ],
     },
-    support: {
-      title: 'Tudo o resto que precisa',
-      items: [
+    features: {
+      kicker: 'Feito para salão e buffet',
+      title: 'Cenários centrais, totalmente cobertos',
+      subtitle: 'Não é um modelo genérico — foi desenhado para o serviço real de restaurantes chineses e buffets de sushi em Portugal.',
+      price: {
+        tag: 'Preços automáticos',
+        title: 'Dias úteis, fim de semana, feriados e franjas mudam à hora certa',
+        desc: 'Defina os preços uma vez — sem alterações diárias nem esquecimentos.',
+        slots: ['Almoço dia útil', 'Jantar fim de semana · agora', 'Feriado'],
+      },
+      language: { tag: 'Menu multilingue', title: 'Um toque, todos os clientes', desc: 'Português, inglês e chinês — o cliente escolhe.' },
+      collab: { tag: 'Telemóvel e computador', title: 'Cada papel no seu lugar', desc: 'Empregados e caixa trabalham no telemóvel ou PC conforme a permissão — sem correr ao balcão.' },
+      insights: { tag: 'Dados do negócio', title: 'Faturação e tops do dia num relance', desc: 'Abra e veja o negócio de hoje.' },
+      printing: { tag: 'Impressão no balcão', title: 'Talões de bebidas e recibos por estação', desc: 'Cozinha, bar e caixa recebem os seus próprios talões.' },
+    },
+    team: {
+      kicker: 'Equipa fundadora',
+      title: 'Quem conhece restaurantes e quem torna o sistema sólido',
+      subtitle: 'A FARVOO junta experiência real de restauração com engenharia de software sénior — eficiência, estabilidade e serviço que realmente funcionam.',
+      founders: [
         {
-          title: 'Menu multilingue',
-          desc: 'Português, inglês, chinês e mais num toque.',
+          name: 'Sr. Li',
+          role: 'Operações de restauração · 20+ anos',
+          points: ['Conhece sala, cozinha, caixa e fluxos de pessoal', 'Compreende bem as dores do buffet e do à la carte', 'Desenha o produto a partir de necessidades reais'],
         },
         {
-          title: 'Dados do negócio',
-          desc: 'Faturação e tops do dia.',
-        },
-        {
-          title: 'Impressão no balcão',
-          desc: 'Talões e recibos por estação.',
+          name: 'Sr. Chen',
+          role: 'Engenharia de software · 20+ anos',
+          points: ['Foco em arquitetura, estabilidade e segurança de dados', 'Forte em software empresarial e fluxos complexos', 'Mantém o sistema estável em lojas reais'],
         },
       ],
+      formulaTitle: 'FARVOO = experiência de restauração × engenharia estável e segura',
+      formulaDesc: 'Quem conhece restaurantes define o problema; quem conhece tecnologia torna-o sólido numa loja real.',
     },
     caseStudy: {
-      title: 'Cliente',
+      kicker: 'Cliente',
+      title: 'Meio ano a funcionar, 0 falhas\nBuffet e à la carte, mesma casa',
+      placeLine: 'Torres Vedras · Chinês + buffet de sushi',
+      desc: 'Buffet, sushi e Grill & Marisco na mesma casa — abertura de mesa, pedidos, impressão e pagamento correm na FARVOO.',
+      results: [
+        { title: '6 meses', desc: 'Estável, 0 falhas' },
+        { title: 'Menos mão de obra', desc: 'Menos idas e vindas a pedir e servir' },
+        { title: 'Mais eficiência', desc: 'Do abrir ao pagar, mais fluido' },
+        { title: 'Menos papel', desc: 'Muito menos papel de impressão' },
+      ],
+      addressLabel: 'Morada',
+      phoneLabel: 'Telefone',
+      hoursLabel: 'Horário',
       hours: 'Almoço 12:00–15:00 · Jantar 19:00–23:00',
+      tags: ['Chinês', 'Buffet', 'Sushi', 'Menu multilingue'],
+      photoCaption: 'Na caixa\nPainel da sala + impressora de talões',
     },
     contact: {
-      title: 'Marcar demonstração',
+      kicker: 'Marcar demonstração',
+      title: 'Veja o fluxo completo em 30 minutos',
       subtitle: 'Preço e configuração à medida. Onboarding pessoal — sem registo por conta própria.',
-      pricingNote: 'Contacte-nos para proposta',
+      panelTitle: 'Contacto direto',
+      advisorsLabel: 'Escolha um contacto',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
+      wechatIdLabel: 'ID WeChat',
       wechatScanHint: 'Digitalize ou pesquise o ID WeChat',
       wechatCopy: 'Copiar ID WeChat',
       wechatCopied: 'Copiado',
       stepsTitle: 'Como funciona o onboarding',
       steps: [
-        {
-          title: 'Contacto',
-          desc: 'Fale connosco por WhatsApp ou WeChat',
-        },
-        {
-          title: 'Plano',
-          desc: 'Proposta conforme o seu restaurante',
-        },
-        {
-          title: 'Configuração',
-          desc: 'Contas, menu e impressão',
-        },
-        {
-          title: 'Arranque',
-          desc: 'Formação até estar operacional',
-        },
+        { title: 'Contacto', desc: 'Fale connosco por WhatsApp ou WeChat' },
+        { title: 'Plano', desc: 'Proposta conforme o seu restaurante' },
+        { title: 'Ativação', desc: 'Configuramos contas, menu e impressão' },
+        { title: 'Arranque', desc: 'Formação até estar tudo fluido' },
       ],
-      agent: {
-        title: 'Recrutamos parceiros',
-        subtitle: 'Parceria regional · suporte Cloud + loja',
-        note: 'Os mesmos canais WhatsApp / WeChat da demonstração.',
-      },
+      agent: { title: 'Procuramos parceiros', subtitle: 'Parceria regional · Cloud + apoio na loja' },
     },
     footer: {
       login: 'Já tem conta? Entrar',
-      copyright: 'Pedidos por QR no salão e buffet em Portugal',
-    },
-  },
-  es: {
-    nav: {
-      solutions: 'Soluciones',
-      caseStudy: 'Clientes',
-      contact: 'Contacto',
-      login: 'Iniciar sesión',
-    },
-    hero: {
-      tag: 'Pedidos QR en sala · Buffet chino y sushi',
-      titleA: 'Menos gasto · Sin depender de la red',
-      titleB: 'Roles claros · Rastro completo',
-      desc: 'El cliente pide en el móvil — sin tablet por mesa. Nube + instalación en el local: pedir, cobrar e imprimir si cae la WAN. Un flujo para carta y buffet por persona — chino y sushi incluidos.',
-      whatsappCta: 'WhatsApp',
-      wechatCta: 'WeChat',
-      proofs: ['Pedido por QR', 'Nube + local', 'Menos tablets · Menos coste'],
-      agentLead: '¿Canal partner?',
-      agentCta: 'Sé partner',
-    },
-    pain: {
-      title: 'Retos del salón con QR',
-      items: [
-        {
-          title: 'Coste de la flota de tablets',
-          problem: 'Un dispositivo por mesa: compra, carga, roturas y reemplazo.',
-          solution: 'Pedidos por QR en el móvil del cliente.',
-        },
-        {
-          title: 'Caídas de red paran el servicio',
-          problem: 'Solo en la nube, sin WAN se detienen pedidos y cobro.',
-          solution: 'Nube + instalación en el local mantiene la sala operativa.',
-        },
-        {
-          title: 'Responsabilidad poco clara',
-          problem: 'Difícil saber quién abrió, cambió o cerró la mesa.',
-          solution: 'Roles con permiso e historial completo.',
-        },
-      ],
-    },
-    buffet: {
-      title: 'Hecho para sala y buffet',
-      subtitle: 'De abrir mesa al cobro.',
-      items: [
-        {
-          title: 'Precios automáticos',
-          desc: 'Laborables, fin de semana, festivos y franjas se aplican solos.',
-        },
-        {
-          title: 'Móvil y escritorio',
-          desc: 'Camareros y caja en móvil o PC según permiso.',
-        },
-        {
-          title: 'Abrir mesa, luego pedido por QR',
-          desc: 'El personal abre la mesa; el cliente escanea para pedir. Carta por plato; el buffet puede añadir reglas por persona.',
-        },
-      ],
-    },
-    support: {
-      title: 'Todo lo demás que necesitas',
-      items: [
-        {
-          title: 'Menú multilingüe',
-          desc: 'Portugués, inglés, chino y más en un toque.',
-        },
-        {
-          title: 'Datos del negocio',
-          desc: 'Ingresos y más vendidos del día.',
-        },
-        {
-          title: 'Impresión de bar',
-          desc: 'Tickets y recibos por estación.',
-        },
-      ],
-    },
-    caseStudy: {
-      title: 'Historia de cliente',
-      hours: 'Comida 12:00–15:00 · Cena 19:00–23:00',
-    },
-    contact: {
-      title: 'Reservar una demo',
-      subtitle: 'Precio y configuración a medida. Onboarding personal — sin registro por su cuenta.',
-      pricingNote: 'Contáctanos para un presupuesto',
-      whatsappLabel: 'WhatsApp',
-      wechatLabel: 'WeChat',
-      wechatScanHint: 'Escanea o busca ID de WeChat',
-      wechatCopy: 'Copiar ID de WeChat',
-      wechatCopied: 'Copiado',
-      stepsTitle: 'Cómo funciona el onboarding',
-      steps: [
-        {
-          title: 'Contacta',
-          desc: 'Cuéntanos por WhatsApp o WeChat',
-        },
-        {
-          title: 'Planifica',
-          desc: 'Recomendamos configuración y precios',
-        },
-        {
-          title: 'Provisiona',
-          desc: 'Configuramos cuentas, menú e impresión',
-        },
-        {
-          title: 'En vivo',
-          desc: 'Formación hasta que funcione bien',
-        },
-      ],
-      agent: {
-        title: 'Buscamos partners',
-        subtitle: 'Colaboración regional · soporte Nube + local',
-        note: 'Los mismos canales WhatsApp / WeChat que para la demo.',
-      },
-    },
-    footer: {
-      login: '¿Ya tienes cuenta? Iniciar sesión',
-      copyright: 'Pedidos QR en sala y buffet en Portugal',
-    },
-  },
-  fr: {
-    nav: {
-      solutions: 'Solutions',
-      caseStudy: 'Clients',
-      contact: 'Contact',
-      login: 'Connexion',
-    },
-    hero: {
-      tag: 'Commande QR en salle · Buffet chinois et sushi',
-      titleA: 'Moins de dépenses · Hors ligne',
-      titleB: 'Rôles clairs · Traçabilité complète',
-      desc: 'Le client commande sur son téléphone — pas de tablette par table. Cloud + installation en magasin : commander, payer et imprimer si le WAN tombe. Un flux pour la carte et le buffet par tête — chinois et sushi inclus.',
-      whatsappCta: 'WhatsApp',
-      wechatCta: 'WeChat',
-      proofs: ['Commande QR', 'Cloud + magasin', 'Moins de tablettes · Moins de coût'],
-      agentLead: 'Partenaire canal ?',
-      agentCta: 'Devenir partenaire',
-    },
-    pain: {
-      title: 'Défis de la salle en QR',
-      items: [
-        {
-          title: 'Coût de la flotte de tablettes',
-          problem: 'Un appareil par table : achat, charge, casse et remplacement.',
-          solution: 'Commande QR sur le téléphone du client.',
-        },
-        {
-          title: 'Panne réseau = service arrêté',
-          problem: '100 % cloud : sans WAN, commandes et caisse s’arrêtent.',
-          solution: 'Cloud + installation en magasin maintient la salle.',
-        },
-        {
-          title: 'Responsabilité floue',
-          problem: 'Difficile de savoir qui a ouvert, modifié ou clôturé.',
-          solution: 'Rôles + historique complet.',
-        },
-      ],
-    },
-    buffet: {
-      title: 'Conçu pour la salle et le buffet',
-      subtitle: 'De l’ouverture de table au paiement.',
-      items: [
-        {
-          title: 'Prix automatiques',
-          desc: 'Semaine, week-end, fériés et créneaux s’appliquent seuls.',
-        },
-        {
-          title: 'Téléphone et bureau',
-          desc: 'Serveurs et caisse sur téléphone ou PC selon les droits.',
-        },
-        {
-          title: 'Ouvrir la table, puis commande QR',
-          desc: 'Le personnel ouvre la table ; le client scanne pour commander. Carte par plat ; le buffet peut ajouter des règles par tête.',
-        },
-      ],
-    },
-    support: {
-      title: 'Tout le reste dont vous avez besoin',
-      items: [
-        {
-          title: 'Menu multilingue',
-          desc: 'Portugais, anglais, chinois et plus en un geste.',
-        },
-        {
-          title: 'Indicateurs',
-          desc: 'CA du jour et best-sellers.',
-        },
-        {
-          title: 'Impression bar',
-          desc: 'Tickets et reçus par station.',
-        },
-      ],
-    },
-    caseStudy: {
-      title: 'Témoignage',
-      hours: 'Déjeuner 12:00–15:00 · Dîner 19:00–23:00',
-    },
-    contact: {
-      title: 'Réserver une démo',
-      subtitle: 'Tarifs et configuration sur mesure. Onboarding personnel — pas d’inscription par vous-même.',
-      pricingNote: 'Contactez-nous pour un devis',
-      whatsappLabel: 'WhatsApp',
-      wechatLabel: 'WeChat',
-      wechatScanHint: 'Scannez ou recherchez l’ID WeChat',
-      wechatCopy: 'Copier l’ID WeChat',
-      wechatCopied: 'Copié',
-      stepsTitle: 'Comment se passe l’onboarding',
-      steps: [
-        {
-          title: 'Contact',
-          desc: 'Parlez-nous via WhatsApp ou WeChat',
-        },
-        {
-          title: 'Plan',
-          desc: 'Nous proposons config et tarifs',
-        },
-        {
-          title: 'Provision',
-          desc: 'Comptes, menu et impression',
-        },
-        {
-          title: 'Mise en service',
-          desc: 'Formation jusqu’à un fonctionnement fluide',
-        },
-      ],
-      agent: {
-        title: 'Partenaires recherchés',
-        subtitle: 'Partenariat régional · support Cloud + magasin',
-        note: 'Mêmes canaux WhatsApp / WeChat que pour la démo.',
-      },
-    },
-    footer: {
-      login: 'Déjà un compte ? Connexion',
-      copyright: 'Commande QR en salle et buffet au Portugal',
-    },
-  },
-  de: {
-    nav: {
-      solutions: 'Lösungen',
-      caseStudy: 'Kunden',
-      contact: 'Kontakt',
-      login: 'Anmelden',
-    },
-    hero: {
-      tag: 'QR-Bestellung im Saal · China- & Sushi-Buffet',
-      titleA: 'Weniger Kosten · Offline-fähig',
-      titleB: 'Klare Rollen · Volle Nachverfolgung',
-      desc: 'Gäste bestellen am Handy — kein Tablet pro Tisch. Cloud + Installation vor Ort: Bestellen, Zahlen und Drucken bei WAN-Ausfall. Ein Ablauf für à la carte und Buffet pro Kopf — China und Sushi inklusive.',
-      whatsappCta: 'WhatsApp',
-      wechatCta: 'WeChat',
-      proofs: ['QR-Bestellung', 'Cloud + vor Ort', 'Weniger Tablets · Weniger Kosten'],
-      agentLead: 'Channel-Partner?',
-      agentCta: 'Partner werden',
-    },
-    pain: {
-      title: 'Herausforderungen im QR-Saal',
-      items: [
-        {
-          title: 'Kosten der Tablet-Flotte',
-          problem: 'Ein Gerät pro Tisch: Kauf, Laden, Bruch und Ersatz.',
-          solution: 'QR-Bestellung auf dem Gästehandy.',
-        },
-        {
-          title: 'Netzausfall stoppt den Service',
-          problem: 'Nur Cloud: ohne WAN stehen Bestellung und Kasse.',
-          solution: 'Cloud + Installation vor Ort hält den Saal am Laufen.',
-        },
-        {
-          title: 'Unklare Verantwortung',
-          problem: 'Schwer zu sehen, wer öffnete, änderte oder schloss.',
-          solution: 'Rollenrechte und vollständige Bestellhistorie.',
-        },
-      ],
-    },
-    buffet: {
-      title: 'Für Saal und Buffet gebaut',
-      subtitle: 'Vom Tischöffnen bis zur Kasse.',
-      items: [
-        {
-          title: 'Automatischer Preiswechsel',
-          desc: 'Werktag, Wochenende, Feiertag und Zeitslots gelten von selbst.',
-        },
-        {
-          title: 'Handy und Desktop',
-          desc: 'Service und Kasse am Handy oder PC gemäß Recht.',
-        },
-        {
-          title: 'Tisch öffnen, dann QR-Bestellung',
-          desc: 'Personal öffnet den Tisch; Gäste scannen zum Bestellen. À la carte nach Gericht; Buffet kann Kopfzahl-Regeln ergänzen.',
-        },
-      ],
-    },
-    support: {
-      title: 'Alles Weitere, was Sie brauchen',
-      items: [
-        {
-          title: 'Mehrsprachiges Menü',
-          desc: 'Portugiesisch, Englisch, Chinesisch und mehr.',
-        },
-        {
-          title: 'Kennzahlen',
-          desc: 'Tagesumsatz und Topseller.',
-        },
-        {
-          title: 'Bar-Druck',
-          desc: 'Tickets und Belege je Station.',
-        },
-      ],
-    },
-    caseStudy: {
-      title: 'Kundengeschichte',
-      hours: 'Mittag 12:00–15:00 · Abendessen 19:00–23:00',
-    },
-    contact: {
-      title: 'Demo buchen',
-      subtitle: 'Preis und Setup maßgeschneidert. Persönliches Onboarding — keine eigenständige Registrierung.',
-      pricingNote: 'Kontakt für ein Angebot',
-      whatsappLabel: 'WhatsApp',
-      wechatLabel: 'WeChat',
-      wechatScanHint: 'QR scannen oder WeChat-ID suchen',
-      wechatCopy: 'WeChat-ID kopieren',
-      wechatCopied: 'Kopiert',
-      stepsTitle: 'So läuft das Onboarding',
-      steps: [
-        {
-          title: 'Kontakt',
-          desc: 'Per WhatsApp oder WeChat melden',
-        },
-        {
-          title: 'Planen',
-          desc: 'Setup und Preise empfehlen',
-        },
-        {
-          title: 'Bereitstellen',
-          desc: 'Konten, Menü und Druck',
-        },
-        {
-          title: 'Go-live',
-          desc: 'Schulung bis zum reibungslosen Lauf',
-        },
-      ],
-      agent: {
-        title: 'Partner gesucht',
-        subtitle: 'Regionale Partnerschaft · Cloud + vor Ort',
-        note: 'Dieselben WhatsApp-/WeChat-Kanäle wie für die Demo.',
-      },
-    },
-    footer: {
-      login: 'Bereits ein Konto? Anmelden',
-      copyright: 'QR-Bestellung im Saal und Buffet-Betrieb in Portugal',
+      copyright: 'Pedidos por QR no salão e operação de buffet em Portugal',
     },
   },
 };
 
+/** es/fr/de are not exposed by the language picker; they read the English landing copy. */
 export function getLandingCopy(lang: LandingLanguage): LandingCopy {
-  return LANDING_COPY[lang];
+  return lang === 'zh' || lang === 'pt' ? LANDING_COPY[lang] : LANDING_COPY.en;
 }

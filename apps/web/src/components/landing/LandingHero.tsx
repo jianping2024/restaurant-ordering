@@ -1,6 +1,7 @@
 'use client';
 
-import { PreviewMenuContent } from '@/components/landing/preview/PreviewMenuScreen';
+import { LandingHeroStage } from '@/components/landing/LandingHeroStage';
+import { LANDING_WRAP_CLASS } from '@/components/landing/landing-chrome';
 import {
   LandingButton,
   LandingSection,
@@ -18,7 +19,7 @@ function HeroTitleLine({
 }) {
   const parts = text.split(' · ');
   if (parts.length < 2) {
-    return <span className={`block whitespace-nowrap ${className}`.trim()}>{text}</span>;
+    return <span className={`block ${className}`.trim()}>{text}</span>;
   }
   return (
     <span className={`block ${className}`.trim()}>
@@ -32,49 +33,36 @@ function HeroTitleLine({
   );
 }
 
-function HeroPhonePreview() {
-  return (
-    <div className="mx-auto w-full max-w-[340px] md:mx-0 md:justify-self-end lg:max-w-[360px]">
-      <PreviewMenuContent showLabel={false} />
-    </div>
-  );
-}
-
 export function LandingHero() {
   const copy = useLandingCopy().hero;
 
   return (
-    <LandingSection className="border-b border-brand-border/70 bg-gradient-to-b from-brand-card/55 to-brand-bg">
-      <div className="mx-auto grid max-w-6xl items-center gap-9 px-4 py-10 sm:px-6 sm:py-12 md:grid-cols-[minmax(0,1.15fr)_340px] md:gap-9 lg:grid-cols-[minmax(0,1.15fr)_360px]">
-        <div className="text-center md:text-left">
-          <p className="mb-3.5 text-[13px] font-medium uppercase tracking-widest text-brand-gold sm:text-sm">
+    <LandingSection className="relative overflow-hidden border-b border-brand-border/60 bg-[radial-gradient(900px_520px_at_85%_10%,rgb(var(--color-brand-gold)/0.14),transparent_60%)] pb-24 pt-14 sm:pt-[72px]">
+      <div className={`${LANDING_WRAP_CLASS} grid items-center gap-14 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10`}>
+        <div className="text-center lg:text-left">
+          <p className="inline-flex items-center gap-2.5 rounded-full border border-brand-border/70 bg-brand-card px-3.5 py-1.5 text-[13px] font-medium text-brand-text-muted">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-gold" />
             {copy.tag}
           </p>
-          <h1 className="font-heading text-[clamp(1.75rem,3vw,2.65rem)] leading-snug text-brand-text">
+          <h1 className="mt-5 font-heading text-[clamp(2.1rem,4.8vw,3.5rem)] font-bold leading-[1.16] tracking-tight text-brand-text">
             <HeroTitleLine text={copy.titleA} />
-            <HeroTitleLine className="mt-[0.14em] text-gold-gradient" text={copy.titleB} />
+            <HeroTitleLine className="text-brand-gold" text={copy.titleB} />
           </h1>
-          <p className="mx-auto mt-4 max-w-[38rem] text-base leading-relaxed text-brand-text-muted md:mx-0">
+          <p className="mx-auto mt-5 max-w-[34rem] text-base leading-relaxed text-brand-text-muted sm:text-lg lg:mx-0">
             {copy.desc}
           </p>
-          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap md:items-start">
-            <LandingWhatsAppButton className="w-full sm:w-auto">
-              {copy.whatsappCta}
-            </LandingWhatsAppButton>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap lg:items-start">
+            <LandingWhatsAppButton className="w-full sm:w-auto">{copy.whatsappCta}</LandingWhatsAppButton>
             <LandingButton href="#contact" variant="secondary" className="w-full sm:w-auto">
               {copy.wechatCta}
             </LandingButton>
           </div>
-          <ul className="mt-5 flex list-none flex-wrap justify-center gap-2 p-0 md:justify-start">
+          <ul className="mt-8 flex list-none flex-wrap justify-center gap-x-6 gap-y-2.5 border-t border-brand-border/60 p-0 pt-6 lg:justify-start">
             {copy.proofs.map((proof) => (
-              <li
-                key={proof}
-                className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-card px-3 py-2 text-[13px] font-medium text-brand-text"
-              >
-                <span
-                  aria-hidden
-                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold"
-                />
+              <li key={proof} className="inline-flex items-center gap-2 text-sm font-medium text-brand-text">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-gold" aria-hidden>
+                  <path d="M5 12.5 10 17.5 19 7" />
+                </svg>
                 {proof}
               </li>
             ))}
@@ -83,13 +71,13 @@ export function LandingHero() {
             {copy.agentLead}{' '}
             <a
               href="#agents"
-              className="text-brand-text-muted underline decoration-brand-border underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold/45"
+              className="underline decoration-brand-border underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold/45"
             >
               {copy.agentCta}
             </a>
           </p>
         </div>
-        <HeroPhonePreview />
+        <LandingHeroStage />
       </div>
     </LandingSection>
   );

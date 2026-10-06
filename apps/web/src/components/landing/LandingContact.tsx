@@ -1,62 +1,47 @@
 'use client';
 
-import { LandingContactChannels } from '@/components/landing/LandingContactChannels';
-import {
-  LandingSection,
-  LandingSectionHeader,
-} from '@/components/landing/LandingPrimitives';
+import { LandingAdvisorContact } from '@/components/landing/LandingAdvisorContact';
+import { LANDING_BLOCK_CLASS, LANDING_WRAP_CLASS } from '@/components/landing/landing-chrome';
+import { LandingSection } from '@/components/landing/LandingPrimitives';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
 export function LandingContact() {
   const { contact } = useLandingCopy();
 
   return (
-    <LandingSection id="contact" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-      <LandingSectionHeader title={contact.title} subtitle={contact.subtitle} />
-
-      <p className="mb-8 text-center text-[14px] font-medium text-brand-gold">{contact.pricingNote}</p>
-
-      <div
-        id="agents"
-        className="mx-auto mb-10 max-w-2xl rounded-2xl border border-brand-gold/40 bg-brand-gold/10 p-6 sm:p-8"
-      >
-        <h3 className="text-center font-heading text-2xl text-brand-gold sm:text-3xl">
-          {contact.agent.title}
-        </h3>
-        <p className="mt-2 text-center text-[15px] font-medium text-brand-text">
-          {contact.agent.subtitle}
-        </p>
-        <p className="mt-3 text-center text-[14px] text-brand-text-muted">{contact.agent.note}</p>
-      </div>
-
-      <div className="mx-auto max-w-lg">
-        <LandingContactChannels
-          labels={{
-            whatsappLabel: contact.whatsappLabel,
-            wechatLabel: contact.wechatLabel,
-            wechatScanHint: contact.wechatScanHint,
-            wechatCopy: contact.wechatCopy,
-            wechatCopied: contact.wechatCopied,
-          }}
-        />
-      </div>
-
-      <div className="mt-12">
-        <h3 className="text-center font-heading text-xl text-brand-text">{contact.stepsTitle}</h3>
-        <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {contact.steps.map((step, index) => (
-            <li
-              key={step.title}
-              className="rounded-2xl border border-brand-border bg-brand-bg p-4"
-            >
-              <p className="text-[12px] font-medium uppercase tracking-wider text-brand-gold">
-                {index + 1}
-              </p>
-              <p className="mt-2 font-heading text-lg text-brand-text">{step.title}</p>
-              <p className="mt-1 text-[14px] leading-relaxed text-brand-text-muted">{step.desc}</p>
-            </li>
-          ))}
-        </ol>
+    <LandingSection id="contact" className={LANDING_BLOCK_CLASS}>
+      <div className={LANDING_WRAP_CLASS}>
+        <div className="grid overflow-hidden rounded-[26px] border border-brand-border/70 bg-brand-card lg:grid-cols-2">
+          <div className="p-6 sm:p-12">
+            <p className="inline-flex items-center gap-2.5 text-[12.5px] font-semibold uppercase tracking-[0.16em] text-brand-gold before:h-px before:w-[22px] before:bg-brand-gold before:content-['']">
+              {contact.kicker}
+            </p>
+            <h2 className="mt-3.5 whitespace-pre-line font-heading text-[clamp(1.7rem,3.1vw,2.5rem)] font-bold leading-[1.28] tracking-tight text-brand-text">
+              {contact.title}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-brand-text-muted sm:text-[17px]">{contact.subtitle}</p>
+            <ol className="mt-8 grid list-none gap-3.5 p-0">
+              {contact.steps.map((step, index) => (
+                <li key={step.title} className="flex items-start gap-3.5 text-[15px]">
+                  <span
+                    aria-hidden
+                    className="mt-px grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-[#16222b] text-[13px] font-semibold text-white"
+                  >
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-brand-text">{step.title}</p>
+                    <p className="text-sm text-brand-text-muted">{step.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p id="agents" className="mt-8 scroll-mt-24 border-t border-dashed border-brand-border/70 pt-5 text-[14.5px] text-brand-text-muted">
+              <span className="font-semibold text-brand-gold">{contact.agent.title}</span> · {contact.agent.subtitle}
+            </p>
+          </div>
+          <LandingAdvisorContact />
+        </div>
       </div>
     </LandingSection>
   );

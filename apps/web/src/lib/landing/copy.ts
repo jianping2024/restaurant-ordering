@@ -147,7 +147,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       kicker: '客户案例',
-      title: '稳定运行半年，0 故障\n自助与点菜同店',
+      title: '稳定运行半年，0 故障',
       placeLine: 'Torres Vedras · 中餐 + 寿司自助',
       desc: '自助餐、寿司与 Grill & Marisco 同店经营，开台、点餐、出票与结账由 FARVOO 一套系统承接。',
       results: [
@@ -332,7 +332,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       kicker: 'Customer story',
-      title: 'Half a year running, 0 faults\nBuffet and à la carte, one venue',
+      title: 'Half a year running, 0 faults',
       placeLine: 'Torres Vedras · Chinese + sushi buffet',
       desc: 'Buffet, sushi and Grill & Marisco under one roof — opening tables, ordering, printing and checkout all run on FARVOO.',
       results: [
@@ -517,7 +517,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       kicker: 'Cliente',
-      title: 'Meio ano a funcionar, 0 falhas\nBuffet e à la carte, mesma casa',
+      title: 'Meio ano a funcionar, 0 falhas',
       placeLine: 'Torres Vedras · Chinês + buffet de sushi',
       desc: 'Buffet, sushi e Grill & Marisco na mesma casa — abertura de mesa, pedidos, impressão e pagamento correm na FARVOO.',
       results: [

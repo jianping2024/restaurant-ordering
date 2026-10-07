@@ -236,15 +236,6 @@ export function resumeCheckoutBlockReason(
   return null;
 }
 
-export function httpStatusForResumeOrderingRpcCode(code: string): number {
-  const map: Record<string, number> = {
-    no_session: 404,
-    whole_table_paid: 409,
-    resume_failed: 500,
-  };
-  return map[code] ?? 500;
-}
-
 /** Discounted obligation for one split row (matches RPC). */
 export function splitRowDiscountedObligation(
   preDiscountAmount: number,

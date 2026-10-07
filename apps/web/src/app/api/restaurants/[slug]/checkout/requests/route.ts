@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 
@@ -10,7 +11,7 @@ export async function GET(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req);
@@ -22,6 +23,6 @@ export async function GET(
     const requests = await fetchCheckoutRequestsQueue(auth.admin, auth.restaurantId);
     return NextResponse.json({ requests });
   } catch {
-    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
+    return checkoutErrorResponse('fetch_failed');
   }
 }

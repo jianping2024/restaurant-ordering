@@ -5,7 +5,6 @@ import type { BillSplit } from '@/types';
 import {
   applyDiscountToRows,
   confirmBillSplitPayment,
-  httpStatusForConfirmPaymentRpcCode,
   normalizeSplitRows,
 } from './checkout-confirm-payment';
 import { checkoutReceiptIdempotencyKey } from './order-receipt-enqueue';
@@ -89,21 +88,6 @@ describe('applyDiscountToRows', () => {
   });
 });
 
-describe('httpStatusForConfirmPaymentRpcCode', () => {
-  it('maps known RPC codes', () => {
-    assert.equal(httpStatusForConfirmPaymentRpcCode('bill_split_not_found'), 404);
-    assert.equal(httpStatusForConfirmPaymentRpcCode('empty_split'), 400);
-    assert.equal(httpStatusForConfirmPaymentRpcCode('invalid_person_index'), 400);
-    assert.equal(httpStatusForConfirmPaymentRpcCode('already_paid'), 409);
-    assert.equal(httpStatusForConfirmPaymentRpcCode('client_request_id_conflict'), 409);
-    assert.equal(httpStatusForConfirmPaymentRpcCode('session_close_failed'), 500);
-  });
-
-  it('defaults unknown codes to 500', () => {
-    assert.equal(httpStatusForConfirmPaymentRpcCode('unknown'), 500);
-  });
-});
-
 describe('checkoutReceiptIdempotencyKey', () => {
   it('builds pre_bill, split, and final keys', () => {
     assert.equal(
@@ -135,6 +119,7 @@ describe('confirmBillSplitPayment', () => {
     billSplitId: BILL_SPLIT_ID,
     personIndex: 0,
     paymentMethod: 'CASH' as const,
+    clientRequestId: '11111111-1111-4111-8111-111111111111',
   };
 
   it('maps RPC already_paid to 409', async () => {

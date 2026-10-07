@@ -1,7 +1,13 @@
 /**
- * Sole toast mapper for POST …/checkout/request failures.
- * Call sites only pass labels — never inline error→copy switches beside this.
+ * Sole toast mapper for checkout-chain failures (code → copy slot lives in `checkout-error-codes`).
+ * Call sites pass labels (and per-surface `overrides`) — never inline error→copy compares.
  */
+import {
+  CHECKOUT_ERROR_COPY,
+  isCheckoutErrorCode,
+  type CheckoutErrorCode,
+} from '@/lib/checkout-error-codes';
+
 export type CheckoutRequestErrorLabels = {
   guestCountRequired: string;
   partyMergeRequired: string;
@@ -17,49 +23,34 @@ export type CheckoutRequestErrorLabels = {
   individualNothingClaimed?: string;
   /** Ticket already locked / paid / owned by another phone, or the plan changed under it. */
   individualCallRefused?: string;
+  /** Split validation (guest whole/even/by-item plan rejected by the server). */
+  splitUnassignedItems?: string;
+  splitIncompleteQty?: string;
+  splitAmountMismatch?: string;
   /** Network / unknown — last resort only. */
   fallback: string;
 };
 
-const INDIVIDUAL_REFUSED_CODES = new Set([
-  'stale_plan',
-  'ticket_locked',
-  'locked_ticket_changed',
-  'not_your_ticket',
-  'ticket_paid',
-  'ticket_collecting',
-]);
-
-const LOCKED_CODES = new Set([
-  'split_mode_locked',
-  'locked_allocation_changed',
-  'split_shape_locked',
-]);
-
 export function messageForCheckoutRequestError(
   error: string | null | undefined,
   labels: CheckoutRequestErrorLabels,
+  /** A surface that words one code differently (e.g. resume: ticket_collecting). */
+  overrides?: Partial<Record<CheckoutErrorCode, string>>,
 ): string {
   const code = (error ?? '').trim();
-  if (!code || code === 'checkout_request_failed' || code === 'network_error') {
-    return labels.fallback;
-  }
-  if (code === 'guest_count_required') return labels.guestCountRequired;
-  if (code === 'party_merge_required') return labels.partyMergeRequired;
-  if (code === 'empty_session') return labels.emptySession;
-  if (code === 'no_active_session') return labels.noActiveSession;
-  if (code === 'table_not_available') return labels.tableNotAvailable;
-  if (code === 'invalid_nif' && labels.invalidNif) return labels.invalidNif;
-  if (code === 'claim_conflict' && labels.individualClaimConflict) {
-    return labels.individualClaimConflict;
-  }
-  if (code === 'name_taken' && labels.individualNameTaken) return labels.individualNameTaken;
-  if (code === 'empty_ticket' && labels.individualNothingClaimed) {
-    return labels.individualNothingClaimed;
-  }
-  if (INDIVIDUAL_REFUSED_CODES.has(code) && labels.individualCallRefused) {
-    return labels.individualCallRefused;
-  }
-  if (LOCKED_CODES.has(code)) return labels.splitPlanLocked;
-  return labels.fallback;
+  if (!isCheckoutErrorCode(code)) return labels.fallback;
+  const override = overrides?.[code];
+  if (override) return override;
+  const slot = CHECKOUT_ERROR_COPY[code];
+  return (slot && labels[slot]) || labels.fallback;
+}
+
+/** Surfaces with their own wording per code (no shared copy slot): typed codes, one fallback. */
+export function messageForCheckoutErrorOverrides(
+  error: string | null | undefined,
+  overrides: Partial<Record<CheckoutErrorCode, string>>,
+  fallback: string,
+): string {
+  const code = (error ?? '').trim();
+  return (isCheckoutErrorCode(code) && overrides[code]) || fallback;
 }

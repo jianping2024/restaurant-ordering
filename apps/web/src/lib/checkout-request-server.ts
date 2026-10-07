@@ -3,6 +3,7 @@ import {
   checkoutPayloadFromBillSplit,
   loadActiveBillSplitForSession,
 } from '@/lib/checkout-active-bill-split';
+import { checkoutErrorStatus, checkoutFailure } from '@/lib/checkout-error-codes';
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
 import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
@@ -89,7 +90,7 @@ export async function submitCheckoutRequestForTable(
     .is('deleted_at', null)
     .maybeSingle();
   if (tableErr || !tableRow) {
-    return { ok: false, error: 'table_not_available', status: 400 };
+    return checkoutFailure('table_not_available');
   }
 
   const { data: session, error: sessionErr } = await admin
@@ -110,7 +111,7 @@ export async function submitCheckoutRequestForTable(
     };
   }
   if (!session?.id) {
-    return { ok: false, error: 'no_active_session', status: 404 };
+    return checkoutFailure('no_active_session');
   }
 
   const sessionId = session.id as string;
@@ -136,10 +137,10 @@ export async function submitCheckoutRequestForTable(
         })
       : normalizedPayload;
   if (orderLines.length === 0) {
-    return { ok: false, error: 'empty_session', status: 400 };
+    return checkoutFailure('empty_session');
   }
   if (!isBillGuestCountConfirmed(orders)) {
-    return { ok: false, error: 'guest_count_required', status: 400 };
+    return checkoutFailure('guest_count_required');
   }
 
   let partyMemberCount: number;
@@ -154,11 +155,11 @@ export async function submitCheckoutRequestForTable(
     };
   }
   if (!isPartyMemberCountAllowedForCheckout(partyMemberCount)) {
-    return { ok: false, error: 'party_merge_required', status: 400 };
+    return checkoutFailure('party_merge_required');
   }
 
   if (!validation.ok) {
-    return { ok: false, error: validation.issue, status: 400 };
+    return checkoutFailure(validation.issue);
   }
 
   const existingSplitRow = await loadActiveBillSplitForSession({
@@ -192,7 +193,7 @@ export async function submitCheckoutRequestForTable(
       collectedPayments,
     });
     if (!continuation.ok) {
-      return { ok: false, error: continuation.issue, status: 409 };
+      return checkoutFailure(continuation.issue);
     }
   }
 
@@ -225,17 +226,7 @@ export async function submitCheckoutRequestForTable(
 
   if (!rpcPayload?.ok) {
     const code = rpcPayload?.code ?? 'upsert_failed';
-    const status =
-      code === 'no_active_session'
-        ? 404
-        : code === 'invalid_request'
-          ? 400
-          : code === 'split_shape_locked' ||
-              code === 'split_mode_locked' ||
-              code === 'locked_allocation_changed'
-            ? 409
-            : 500;
-    return { ok: false, error: code, status, message: rpcPayload?.message };
+    return { ok: false, error: code, status: checkoutErrorStatus(code), message: rpcPayload?.message };
   }
 
   const billSplitId = rpcPayload.bill_split_id as string;
@@ -290,7 +281,7 @@ export async function ensureStaffCheckoutEntryForTable(
     };
   }
   if (!session?.id) {
-    return { ok: false, error: 'no_active_session', status: 404 };
+    return checkoutFailure('no_active_session');
   }
 
   const existing = await loadActiveBillSplitForSession({
@@ -302,7 +293,7 @@ export async function ensureStaffCheckoutEntryForTable(
   if (existing) {
     const payload = checkoutPayloadFromBillSplit(existing);
     if (!payload) {
-      return { ok: false, error: 'invalid_existing_split', status: 500 };
+      return checkoutFailure('invalid_existing_split');
     }
     const alreadyRequested = existing.status === 'requested';
     return submitCheckoutRequestForTable(admin, restaurantId, tableId, payload, {

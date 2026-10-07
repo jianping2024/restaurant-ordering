@@ -20,6 +20,7 @@ import {
   validateIndividualCall,
   type IndividualCheckoutErrorCode,
 } from '@/lib/individual-checkout';
+import { checkoutErrorStatus, checkoutFailure } from '@/lib/checkout-error-codes';
 import { splitResultTicketKey } from '@/lib/split-party-id';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
@@ -50,27 +51,6 @@ type ActiveIndividualSession = {
   tableName: string;
 };
 
-const HTTP_STATUS_BY_CODE: Record<string, number> = {
-  invalid_request: 400,
-  invalid_ticket: 400,
-  empty_ticket: 400,
-  no_active_session: 404,
-  ticket_not_found: 404,
-  not_your_ticket: 403,
-  claim_conflict: 409,
-  name_taken: 409,
-  ticket_locked: 409,
-  ticket_paid: 409,
-  ticket_collecting: 409,
-  locked_ticket_changed: 409,
-  stale_plan: 409,
-  split_mode_locked: 409,
-};
-
-function httpStatusForCode(code: string): number {
-  return HTTP_STATUS_BY_CODE[code] ?? 500;
-}
-
 async function loadActiveIndividualSession(
   admin: SupabaseClient,
   restaurantId: string,
@@ -86,7 +66,7 @@ async function loadActiveIndividualSession(
     .eq('id', tableId)
     .is('deleted_at', null)
     .maybeSingle();
-  if (!tableRow) return { ok: false, status: 400, error: 'table_not_available' };
+  if (!tableRow) return checkoutFailure('table_not_available');
 
   const { data: session, error } = await admin
     .from('table_sessions')
@@ -97,8 +77,8 @@ async function loadActiveIndividualSession(
     .order('opened_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) return { ok: false, status: 500, error: 'session_lookup_failed' };
-  if (!session?.id) return { ok: false, status: 404, error: 'no_active_session' };
+  if (error) return checkoutFailure('session_lookup_failed');
+  if (!session?.id) return checkoutFailure('no_active_session');
   return {
     ok: true,
     session: {
@@ -137,7 +117,7 @@ export async function guestPhoneHoldsOrdering(
 }
 
 function applyFailure(code: string, message?: string): IndividualApplyResult {
-  return { ok: false, status: httpStatusForCode(code), error: code, message };
+  return { ok: false, status: checkoutErrorStatus(code), error: code, message };
 }
 
 /** Guest call: this phone's tickets are merged into the shared plan and locked. */
@@ -179,10 +159,10 @@ export async function submitIndividualCall(
     });
     const view = deriveBillView(orders);
     if (view.orderLines.length === 0) {
-      return { ok: false, status: 400, error: 'empty_session' };
+      return checkoutFailure('empty_session');
     }
     if (!isBillGuestCountConfirmed(orders)) {
-      return { ok: false, status: 400, error: 'guest_count_required' };
+      return checkoutFailure('guest_count_required');
     }
     let partyMemberCount: number;
     try {
@@ -196,7 +176,7 @@ export async function submitIndividualCall(
       };
     }
     if (!isPartyMemberCountAllowedForCheckout(partyMemberCount)) {
-      return { ok: false, status: 400, error: 'party_merge_required' };
+      return checkoutFailure('party_merge_required');
     }
 
     const existing = await loadActiveBillSplitForSession({ admin, restaurantId, sessionId });
@@ -219,7 +199,7 @@ export async function submitIndividualCall(
     if (!issue.ok) {
       return {
         ok: false,
-        status: httpStatusForCode(issue.code),
+        status: checkoutErrorStatus(issue.code),
         error: issue.code,
         lineKeys: issue.lineKeys,
         names: issue.names,

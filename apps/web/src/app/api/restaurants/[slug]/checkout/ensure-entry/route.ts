@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import {
   assertCheckoutRequestAllowed,
@@ -21,7 +22,7 @@ export async function POST(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   const auth = await assertCheckoutRequestAllowed(slug);
@@ -31,26 +32,26 @@ export async function POST(
 
   const caller = await resolveCheckoutRequestCaller(slug);
   if (caller.kind !== 'authorized_staff') {
-    return NextResponse.json({ error: 'staff_only' }, { status: 403 });
+    return checkoutErrorResponse('staff_only');
   }
 
   let body: { table_id?: unknown };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
 
   const tableId = parseTableIdParam(body.table_id);
   if (!tableId) {
-    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+    return checkoutErrorResponse('invalid_table_id');
   }
 
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+    return checkoutErrorResponse('server_misconfigured');
   }
 
   const loaded = await loadCustomerRestaurantForApi(admin, slug);

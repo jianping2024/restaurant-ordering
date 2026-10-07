@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { unlockIndividualTickets } from '@/lib/individual-checkout-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -11,16 +12,16 @@ export const runtime = 'nodejs';
  */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
   const slug = params.slug?.trim();
-  if (!slug) return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+  if (!slug) return checkoutErrorResponse('missing_slug');
 
   let body: { table_id?: unknown; ticket_keys?: unknown };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
   const tableId = parseTableIdParam(body.table_id);
-  if (!tableId) return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+  if (!tableId) return checkoutErrorResponse('invalid_table_id');
   const ticketKeys = Array.isArray(body.ticket_keys)
     ? body.ticket_keys
         .filter((key): key is string => typeof key === 'string')
@@ -29,7 +30,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
         .slice(0, 50)
     : [];
   if (ticketKeys.length === 0) {
-    return NextResponse.json({ error: 'missing_ticket_keys' }, { status: 400 });
+    return checkoutErrorResponse('missing_ticket_keys');
   }
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req);

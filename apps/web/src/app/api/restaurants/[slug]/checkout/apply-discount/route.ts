@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { applyBillSplitDiscount } from '@/lib/checkout-discount/apply-bill-split-discount';
 
@@ -10,7 +11,7 @@ export async function POST(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   let body: {
@@ -22,12 +23,12 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
 
   const billSplitId = typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
   if (!billSplitId) {
-    return NextResponse.json({ error: 'missing_bill_split_id' }, { status: 400 });
+    return checkoutErrorResponse('missing_bill_split_id');
   }
 
   const discountRate =

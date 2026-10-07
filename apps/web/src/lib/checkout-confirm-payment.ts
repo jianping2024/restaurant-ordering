@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { checkoutErrorStatus } from '@/lib/checkout-error-codes';
 import type { SplitPerson, SplitResult } from '@/types';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
@@ -65,28 +66,6 @@ type ConfirmBillSplitPaymentRpc = {
   should_print_final?: boolean;
   should_close_session?: boolean;
 };
-
-const RPC_ERROR_STATUS: Record<string, number> = {
-  bill_split_not_found: 404,
-  bill_split_cancelled: 409,
-  empty_split: 400,
-  invalid_person_index: 400,
-  invalid_collected_amount: 400,
-  missing_payment_method: 400,
-  invalid_payment_method: 400,
-  missing_payment_lines: 400,
-  invalid_payment_lines: 400,
-  payment_lines_amount_mismatch: 400,
-  already_paid: 409,
-  client_request_id_conflict: 409,
-  bill_update_failed: 500,
-  session_close_failed: 500,
-};
-
-/** HTTP status for confirm-payment RPC error codes (unit-tested). */
-export function httpStatusForConfirmPaymentRpcCode(code: string): number {
-  return RPC_ERROR_STATUS[code] ?? 500;
-}
 
 function parseCollectionRecord(
   payload: ConfirmBillSplitPaymentRpc,
@@ -204,7 +183,7 @@ export async function confirmBillSplitPayment(params: {
     const code = payload?.code ?? 'bill_update_failed';
     return {
       ok: false,
-      status: httpStatusForConfirmPaymentRpcCode(code),
+      status: checkoutErrorStatus(code),
       code,
       message: payload?.message,
     };

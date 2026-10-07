@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { CHECKOUT_REDIRECT_TIMEOUT_MS } from '@/lib/checkout-request-submit';
+import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
 import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
 import { waiterTableHref } from '@/lib/staff-routes';
 
@@ -90,10 +91,11 @@ export function useCheckoutResumeOrdering(params: Params) {
         tableId,
       });
       if (!outcome.ok) {
-        const message =
-          outcome.error === 'whole_table_paid'
-            ? messages.blockedWholeTable
-            : messages.failed;
+        const message = messageForCheckoutErrorOverrides(
+          outcome.error,
+          { whole_table_paid: messages.blockedWholeTable },
+          messages.failed,
+        );
         showToast(message, 'error');
         return;
       }

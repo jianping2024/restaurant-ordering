@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { parseAppendClientRequestId } from '@/lib/append-idempotency';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import {
@@ -19,7 +20,7 @@ export async function POST(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   let body: {
@@ -33,17 +34,17 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
 
   const billSplitId = typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
   if (!billSplitId) {
-    return NextResponse.json({ error: 'missing_bill_split_id' }, { status: 400 });
+    return checkoutErrorResponse('missing_bill_split_id');
   }
 
   const clientRequestId = parseAppendClientRequestId(body.client_request_id);
   if (!clientRequestId) {
-    return NextResponse.json({ error: 'invalid_client_request_id' }, { status: 400 });
+    return checkoutErrorResponse('invalid_client_request_id');
   }
 
   const personIndex =
@@ -59,11 +60,11 @@ export async function POST(
   const paymentMethodRaw =
     typeof body.payment_method === 'string' ? body.payment_method.trim() : '';
   if (!paymentMethodRaw) {
-    return NextResponse.json({ error: 'missing_payment_method' }, { status: 400 });
+    return checkoutErrorResponse('missing_payment_method');
   }
   const paymentMethod = parseBillSyncPaymentMethod(paymentMethodRaw);
   if (!paymentMethod) {
-    return NextResponse.json({ error: 'invalid_payment_method' }, { status: 400 });
+    return checkoutErrorResponse('invalid_payment_method');
   }
 
   const paymentLines =
@@ -71,7 +72,7 @@ export async function POST(
       ? null
       : parseBillSyncPaymentLines(body.payment_lines);
   if (body.payment_lines != null && paymentLines === null) {
-    return NextResponse.json({ error: 'invalid_payment_lines' }, { status: 400 });
+    return checkoutErrorResponse('invalid_payment_lines');
   }
   const linesErr = validatePaymentLinesForMethod(
     paymentMethod,

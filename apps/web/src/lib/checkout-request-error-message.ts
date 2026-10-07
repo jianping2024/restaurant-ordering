@@ -15,9 +15,20 @@ export type CheckoutRequestErrorLabels = {
   individualClaimConflict?: string;
   individualNameTaken?: string;
   individualNothingClaimed?: string;
+  /** Ticket already locked / paid / owned by another phone, or the plan changed under it. */
+  individualCallRefused?: string;
   /** Network / unknown — last resort only. */
   fallback: string;
 };
+
+const INDIVIDUAL_REFUSED_CODES = new Set([
+  'stale_plan',
+  'ticket_locked',
+  'locked_ticket_changed',
+  'not_your_ticket',
+  'ticket_paid',
+  'ticket_collecting',
+]);
 
 const LOCKED_CODES = new Set([
   'split_mode_locked',
@@ -45,6 +56,9 @@ export function messageForCheckoutRequestError(
   if (code === 'name_taken' && labels.individualNameTaken) return labels.individualNameTaken;
   if (code === 'empty_ticket' && labels.individualNothingClaimed) {
     return labels.individualNothingClaimed;
+  }
+  if (INDIVIDUAL_REFUSED_CODES.has(code) && labels.individualCallRefused) {
+    return labels.individualCallRefused;
   }
   if (LOCKED_CODES.has(code)) return labels.splitPlanLocked;
   return labels.fallback;

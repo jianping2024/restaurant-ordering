@@ -1455,6 +1455,7 @@ export const MESSAGES_DE = {
     "individualNothingClaimed": "Bitte zuerst mindestens ein Gericht wählen",
     "individualClaimConflict": "Einige Gerichte hat jemand anderes übernommen. Die Seite wurde aktualisiert, bitte markierte Gerichte anpassen",
     "individualNameTaken": "Dieser Name wird an diesem Tisch bereits verwendet, bitte einen anderen wählen oder das Personal fragen",
+    "individualCallRefused": "Diese Rechnung kann gerade nicht angefordert werden (gesperrt oder gerade aktualisiert). Bitte Seite neu laden oder Personal rufen",
     "claimNameLabel": "Ihr Name",
     "claimNamePlaceholder": "Name für Ihre Rechnung",
     "claimNameRequired": "Zuerst Ihren Namen eingeben, dann Ihre Gerichte wählen",

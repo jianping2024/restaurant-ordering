@@ -1457,6 +1457,7 @@ export const MESSAGES_FR = {
     "individualNothingClaimed": "Choisissez d’abord au moins un plat",
     "individualClaimConflict": "Certains plats ont été pris par quelqu’un d’autre. La page est actualisée, ajustez les plats en surbrillance",
     "individualNameTaken": "Ce nom est déjà utilisé à cette table, choisissez-en un autre ou demandez au personnel",
+    "individualCallRefused": "Cette addition ne peut pas être demandée pour le moment (verrouillée ou mise à jour). Rechargez la page ou appelez un serveur",
     "claimNameLabel": "Votre nom",
     "claimNamePlaceholder": "Nom pour votre addition",
     "claimNameRequired": "Saisissez d’abord votre nom, puis choisissez vos plats",

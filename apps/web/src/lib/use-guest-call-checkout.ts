@@ -27,6 +27,7 @@ type Messages = {
   individualNothingClaimed: string;
   individualClaimConflict: string;
   individualNameTaken: string;
+  individualCallRefused: string;
   splitUnassignedItems?: string;
   splitIncompleteQty?: string;
   splitAmountMismatch?: string;
@@ -166,6 +167,7 @@ export function useGuestCallCheckout(params: Params) {
               individualClaimConflict: messages.individualClaimConflict,
               individualNameTaken: messages.individualNameTaken,
               individualNothingClaimed: messages.individualNothingClaimed,
+              individualCallRefused: messages.individualCallRefused,
               fallback: messages.actionFailed,
             }),
             'error',

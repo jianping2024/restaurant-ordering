@@ -23,8 +23,16 @@ export function checkoutRequestCallerFromCapabilities(
   return 'forbidden_staff';
 }
 
-/** Who is calling checkout/request — customer QR flow vs staff-assisted vs blocked staff. */
-export async function resolveCheckoutRequestCaller(slug: string): Promise<CheckoutRequestCaller> {
+/**
+ * Who is calling checkout/request — customer QR flow vs staff-assisted vs blocked staff.
+ * A guest phone always sends `guest_client_id` (staff-assisted never does): that request is a
+ * customer even when this browser also holds a staff session (owner testing on their own phone).
+ */
+export async function resolveCheckoutRequestCaller(
+  slug: string,
+  opts?: { guestClientId?: unknown },
+): Promise<CheckoutRequestCaller> {
+  if (opts?.guestClientId != null) return { kind: 'customer' };
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,10 +49,14 @@ export async function resolveCheckoutRequestCaller(slug: string): Promise<Checko
 
 export async function assertCheckoutRequestAllowed(
   slug: string,
-): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
-  const caller = await resolveCheckoutRequestCaller(slug);
+  opts?: { guestClientId?: unknown },
+): Promise<
+  | { ok: true; caller: Exclude<CheckoutRequestCaller, { kind: 'forbidden_staff' }> }
+  | { ok: false; error: string; status: number }
+> {
+  const caller = await resolveCheckoutRequestCaller(slug, opts);
   if (caller.kind === 'forbidden_staff') {
     return { ok: false, error: 'staff_checkout_request_forbidden', status: 403 };
   }
-  return { ok: true };
+  return { ok: true, caller };
 }

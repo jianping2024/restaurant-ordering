@@ -307,6 +307,7 @@ function GuestBillPage({
       individualNothingClaimed: t.individualNothingClaimed,
       individualClaimConflict: t.individualClaimConflict,
       individualNameTaken: t.individualNameTaken,
+      individualCallRefused: t.individualCallRefused,
       splitAmountMismatch: t.splitAmountMismatch,
     },
   });

@@ -113,7 +113,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     conflict: '数据已更新，请重试',
     detailConfirm: '确认',
     detailDescriptionEmpty: '暂无菜品说明',
-    detailAllergensTitle: '过敏原',
+    detailAllergensTitle: '过敏源',
     detailAllergensUnmarked: '未标注',
     detailVegetarianBadge: '素食',
     dishThumbOpenDetail: '查看菜品详情',

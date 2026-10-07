@@ -154,8 +154,8 @@ export const ALLERGEN_SECTION_UI: Record<
   { title: string; hint: string }
 > = {
   zh: {
-    title: '含有过敏原',
-    hint: '可选。勾选本菜已知含有的过敏原（欧盟 14 类）。未勾选表示未标注，不等于无过敏原。',
+    title: '含有过敏源',
+    hint: '可选。勾选本菜已知含有的过敏源（欧盟 14 类）。未勾选表示未标注，不等于无过敏源。',
   },
   en: {
     title: 'Contains allergens',

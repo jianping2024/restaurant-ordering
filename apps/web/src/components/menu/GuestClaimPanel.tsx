@@ -29,9 +29,7 @@ import { customerTextInputClass } from '@/components/menu/customer-form-input-st
 export type GuestClaimPanelLabels = GuestClaimDishCardLabels & {
   nameLabel: string;
   namePlaceholder: string;
-  nameRequired: string;
   nameTaken: string;
-  intro: string;
   claimAll: string;
   /** Section title above read-only others' person blocks. */
   othersSection: string;
@@ -84,7 +82,7 @@ export function GuestClaimPanel({
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
     [orderLines],
   );
-  const nameMissing = claim.name.trim().length === 0;
+  const nameHint = nameTaken ? labels.nameTaken : null;
 
   const lineTitle = (lineKey: string) => {
     const spec = lineSpecs.find((row) => row.key === lineKey);
@@ -128,9 +126,13 @@ export function GuestClaimPanel({
           aria-invalid={nameTaken || undefined}
           className={`${customerTextInputClass}${nameTaken ? ' !border-red-500' : ''}`}
         />
-        <p className={`text-[12px] mt-1.5 ${nameTaken ? 'text-red-500' : 'text-brand-text-muted'}`}>
-          {nameTaken ? labels.nameTaken : nameMissing ? labels.nameRequired : labels.intro}
-        </p>
+        {nameHint ? (
+          <p
+            className={`text-[12px] mt-1.5 ${nameTaken ? 'text-red-500' : 'text-brand-text-muted'}`}
+          >
+            {nameHint}
+          </p>
+        ) : null}
         <button
           type="button"
           disabled={disabled}

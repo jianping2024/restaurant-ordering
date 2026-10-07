@@ -4,7 +4,7 @@ import {
 } from '@/lib/split-person-label';
 import type { BillSplit, SplitMode, SplitPerson, SplitResult } from '@/types';
 
-export const SPLIT_MODES = ['whole_table', 'even', 'by_item'] as const satisfies readonly SplitMode[];
+export const SPLIT_MODES = ['whole_table', 'by_item', 'even'] as const satisfies readonly SplitMode[];
 
 export type CheckoutRequestPayload = {
   splitMode: SplitMode;

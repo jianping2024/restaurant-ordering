@@ -11,7 +11,7 @@ describe('guest split mode guidance', () => {
   for (const lang of ['zh', 'en', 'pt'] as const) {
     it(`${lang}: has all modes, intro step, and preview demo`, () => {
       const g = getGuestSplitGuidance(lang);
-      assert.deepEqual([...GUEST_SPLIT_MODE_ORDER], ['whole_table', 'even', 'by_item']);
+      assert.deepEqual([...GUEST_SPLIT_MODE_ORDER], ['whole_table', 'by_item', 'even']);
       for (const mode of GUEST_SPLIT_MODE_ORDER) {
         assert.ok(g.modes[mode].label.trim());
         assert.ok(g.modes[mode].when.trim());

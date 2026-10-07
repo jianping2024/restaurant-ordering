@@ -116,6 +116,7 @@ describe('deriveMenuPageFooter', () => {
             price: 20,
             emoji: '🍽',
             kind: 'buffet_base',
+            buffet_id: 'buffet-1',
             adult_count: 2,
             child_count: 1,
           },
@@ -124,6 +125,59 @@ describe('deriveMenuPageFooter', () => {
       ],
     });
     assert.equal(view.submittedCount, 3);
+  });
+
+  it('shows ordered phase and enables bill when only buffet_base has money', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [
+        orderWithItems([
+          {
+            id: 'bf',
+            name: 'buffet',
+            name_pt: 'buffet',
+            qty: 1,
+            price: 79.8,
+            emoji: '🍽',
+            kind: 'buffet_base',
+            buffet_id: 'buffet-1',
+            adult_count: 4,
+            child_count: 0,
+          },
+        ]),
+      ],
+    });
+    assert.equal(view.phase, 'ordered');
+    assert.equal(view.primaryAction, 'viewBill');
+    assert.equal(view.submittedCount, 0);
+    assert.equal(view.submittedTotal, 79.8);
+    assert.equal(view.showOrderedCta, false);
+    assert.equal(view.billEnabled, true);
+  });
+
+  it('keeps bill disabled when buffet_base amount is zero', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [
+        orderWithItems([
+          {
+            id: 'bf',
+            name: 'buffet',
+            name_pt: 'buffet',
+            qty: 1,
+            price: 0,
+            emoji: '🍽',
+            kind: 'buffet_base',
+            buffet_id: 'buffet-1',
+            adult_count: 0,
+            child_count: 0,
+          },
+        ]),
+      ],
+    });
+    assert.equal(view.phase, 'idle');
+    assert.equal(view.submittedTotal, 0);
+    assert.equal(view.billEnabled, false);
   });
 
   it('uses ordered phase when cart is empty and submitted exist', () => {
@@ -149,7 +203,7 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.submittedTotal, 11);
   });
 
-  it('enables bill CTA when session has submitted items', () => {
+  it('enables bill CTA when session has billable total', () => {
     const view = deriveMenuPageFooter({
       ...base,
       recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
@@ -158,7 +212,7 @@ describe('deriveMenuPageFooter', () => {
     assert.match(view.billHref, /\/cafe\/bill\?table_id=table-1/);
   });
 
-  it('disables bill CTA when no submitted items', () => {
+  it('disables bill CTA when session billable total is zero', () => {
     const view = deriveMenuPageFooter({ ...base });
     assert.equal(view.billEnabled, false);
   });

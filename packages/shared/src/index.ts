@@ -116,7 +116,12 @@ export {
   todayLisbonCalendarDate,
   type ResolveLicenseCalendarDateResult,
 } from './license-calendar';
-export { kickStaffUserSessions, setStaffUserBanned } from './staff-user-ban';
+export {
+  kickStaffUserSessions,
+  retiredStaffAuthEmail,
+  retireStaffAuthUser,
+  setStaffUserBanned,
+} from './staff-user-ban';
 export { signPrintAgentJwt, verifyPrintAgentJwt, type PrintAgentJwtClaims } from './print-agent-jwt';
 export {
   PRINT_AGENT_SUPPORT_TOKEN_TTL_SEC,

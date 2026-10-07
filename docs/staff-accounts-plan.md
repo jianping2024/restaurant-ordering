@@ -42,7 +42,7 @@
 |------|------|
 | **停用** | 设 `disabled_at`；**立即踢下线**（撤销 refresh token / `signOut` 全局会话，按 Supabase 能力选型）；禁止登录直至启用 |
 | **启用** | 清空 `disabled_at`；解除 Auth ban（若曾 ban）；**同一 `user_id` / 合成邮箱** 可再次登录，**不重建** Auth 用户 |
-| **彻底删除** | 独立危险操作（二次确认）；删除 `restaurant_staff_accounts` 行 + **`auth.admin.deleteUser`**；不可恢复 |
+| **彻底删除** | 独立危险操作（二次确认）；踢线 + ban → 删 `restaurant_staff_accounts` → **`retireStaffAuthUser`**（能硬删 Auth 则删；被审计 FK 挡住则保留 ban 并改邮箱腾出 `{login}@mesa.in`）；业务成功以名单行为准 |
 
 列表操作：**编辑显示名**、**重置密码**、**停用/启用**、**彻底删除**；**无「改角色」**。
 
@@ -120,7 +120,7 @@
 2. **店长更新**：仅 `display_name`；**不可改 `role` / `restaurant_id` / `login_name`**（改登录名若未来需要可单独立项，首期不做）。
 3. **停用**：`disabled_at = now()` + 撤销会话 + Auth ban（或等价策略）→ **立即踢下线**。
 4. **启用**：`disabled_at = null` + 解除 ban；**同一邮箱/同一 `user_id`** 恢复登录。
-5. **彻底删除**：`auth.admin.deleteUser` + 删表行（需确认 UI 二次确认文案）。
+5. **彻底删除**：踢线 + ban → 删表行 → `retireStaffAuthUser`（硬删 Auth 或保留 ban + 腾邮箱；需确认 UI 二次确认文案）。
 6. **重置密码**：`auth.admin.updateUserById({ password })` + `must_change_password: true`。
 7. **员工登录**：`signInWithPassword`；成功后若 `must_change_password` → 改密页，否则按 `role` 跳转 `/{slug}/kitchen` | `/{slug}/waiter`。
 8. **登录入口**：`/{slug}/staff/login`（扫码）与 `/auth/staff/login`（全局，**不选店**）。
@@ -143,7 +143,7 @@
 | POST | `/api/dashboard/staff` | 创建（`display_name`, `login_name`, `role`, `password`） |
 | PATCH | `/api/dashboard/staff/[id]` | 更新 `display_name`；或 `action: disable` \| `enable`（**不含改 role**） |
 | POST | `/api/dashboard/staff/[id]/reset-password` | 店长重置密码（触发强制改密） |
-| DELETE | `/api/dashboard/staff/[id]` | 彻底删除（Auth 用户 + 表行） |
+| DELETE | `/api/dashboard/staff/[id]` | 彻底删除（表行 + `retireStaffAuthUser`） |
 
 鉴权：`createClient` server + `owner_id` 校验； mutations 一律 **service role** 调 Auth Admin。
 

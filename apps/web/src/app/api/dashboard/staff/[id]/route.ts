@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { isPrintAgentStaffRole, kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
+import {
+  isPrintAgentStaffRole,
+  kickStaffUserSessions,
+  retireStaffAuthUser,
+  setStaffUserBanned,
+} from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import {
@@ -149,6 +154,13 @@ export async function DELETE(_req: Request, { params }: RouteCtx) {
 
   const userId = existing.user_id as string;
 
+  await kickStaffUserSessions(loaded.admin, userId);
+  try {
+    await setStaffUserBanned(loaded.admin, userId, true);
+  } catch {
+    // Row delete + preflight still block login; ban is belt-and-suspenders.
+  }
+
   const { error: delRowError } = await loaded.admin
     .from('restaurant_staff_accounts')
     .delete()
@@ -158,10 +170,8 @@ export async function DELETE(_req: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
   }
 
-  const { error: delUserError } = await loaded.admin.auth.admin.deleteUser(userId);
-  if (delUserError) {
-    return NextResponse.json({ error: 'delete_auth_failed', message: delUserError.message }, { status: 500 });
-  }
+  // Sole Auth retirement — hard-delete or retain banned + free email; never fail the API.
+  await retireStaffAuthUser(loaded.admin, userId);
 
   return NextResponse.json({ ok: true });
 }

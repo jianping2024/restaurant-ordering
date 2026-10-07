@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farvoo 门店报价</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --card: #fffdf9;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --line: #e7e0d6;
+      --gold: #b45309;
+      --head: #f3ebe0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+    .wrap {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+    }
+    h1 {
+      margin: 0 0 0.2rem;
+      font-size: 1.4rem;
+    }
+    .lead {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem;
+      overflow: auto;
+    }
+    .card h2 {
+      margin: 0 0 0.15rem;
+      font-size: 1.05rem;
+    }
+    .card .sub {
+      margin: 0 0 0.55rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.4rem 0.45rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--head);
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+    td.amt, th.amt {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    tr.total td {
+      border-bottom: none;
+      font-weight: 700;
+      padding-top: 0.55rem;
+    }
+    tr.total td.amt { color: var(--gold); }
+    tr.renew td {
+      border-bottom: none;
+      background: #fff7ed;
+      font-size: 0.88rem;
+    }
+    .note {
+      margin-top: 0.85rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .note strong { color: var(--ink); }
+    footer {
+      margin-top: 0.85rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Farvoo 门店报价</h1>
+    <p class="lead">首年落地一次付清 · 第 2 年起只续年费 · 寿司模式年费 +€200</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>本地店</h2>
+        <p class="sub">店内服务器 · 弱网也能用</p>
+        <table>
+          <thead>
+            <tr>
+              <th>项目</th>
+              <th class="amt">普通</th>
+              <th class="amt">寿司</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>收银电脑 ×1</td>
+              <td class="amt">€1,400</td>
+              <td class="amt">€1,400</td>
+            </tr>
+            <tr>
+              <td>前台电脑 ×1</td>
+              <td class="amt">+€1,200</td>
+              <td class="amt">+€1,200</td>
+            </tr>
+            <tr>
+              <td>打印机 ×4（±€240/台）</td>
+              <td class="amt">€960</td>
+              <td class="amt">€960</td>
+            </tr>
+            <tr>
+              <td>店内私有化上线<br><span style="color:var(--muted);font-size:0.78rem">主机+部署+安全备份+调通+90天质保</span></td>
+              <td class="amt">€1,600</td>
+              <td class="amt">€1,600</td>
+            </tr>
+            <tr>
+              <td>系统第一年（含上门）</td>
+              <td class="amt">€1,000</td>
+              <td class="amt">€1,200</td>
+            </tr>
+            <tr class="total">
+              <td>首年合计（不含前台电脑）</td>
+              <td class="amt">€4,960</td>
+              <td class="amt">€5,160</td>
+            </tr>
+            <tr class="total">
+              <td>首年合计（含前台电脑）</td>
+              <td class="amt">€6,160</td>
+              <td class="amt">€6,360</td>
+            </tr>
+            <tr class="renew">
+              <td>第 2 年起年费</td>
+              <td class="amt">€800</td>
+              <td class="amt">€1,000</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>云店</h2>
+        <p class="sub">店内不放服务器 · 网络稳定时用</p>
+        <table>
+          <thead>
+            <tr>
+              <th>项目</th>
+              <th class="amt">普通</th>
+              <th class="amt">寿司</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>收银电脑 ×1</td>
+              <td class="amt">€1,400</td>
+              <td class="amt">€1,400</td>
+            </tr>
+            <tr>
+              <td>前台电脑 ×1</td>
+              <td class="amt">+€1,200</td>
+              <td class="amt">+€1,200</td>
+            </tr>
+            <tr>
+              <td>打印机 ×4（±€240/台）</td>
+              <td class="amt">€960</td>
+              <td class="amt">€960</td>
+            </tr>
+            <tr>
+              <td>系统第一年（含上门）</td>
+              <td class="amt">€800</td>
+              <td class="amt">€1,000</td>
+            </tr>
+            <tr class="total">
+              <td>首年合计（不含前台电脑）</td>
+              <td class="amt">€3,160</td>
+              <td class="amt">€3,360</td>
+            </tr>
+            <tr class="total">
+              <td>首年合计（含前台电脑）</td>
+              <td class="amt">€4,360</td>
+              <td class="amt">€4,560</td>
+            </tr>
+            <tr class="renew">
+              <td>第 2 年起年费</td>
+              <td class="amt">€800</td>
+              <td class="amt">€1,000</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <p class="note">
+      <strong>说明：</strong>
+      收银电脑结账主用；前台电脑楼面用、配置略低。
+      自备电脑/打印机免该件款。
+      自备合格服务器可只买安装调试约 €1,200。
+      额外上门 €150～€250/次 + 路费。
+      菜单代录含约 80 道，超出另计。
+    </p>
+    <footer>Farvoo · 报价表</footer>
+  </div>
+</body>
+</html>

@@ -48,6 +48,12 @@ export const PERMISSIONS = {
     requires: ['dashboard.menu.view'],
   },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
+  /** Dining KPI A/C wings only. Table-card headcount stays on the board itself. */
+  'dashboard.waiter_board.dining_headcount.view': {
+    group: 'dashboard_nav',
+    labelKey: 'diningHeadcount',
+    requires: ['dashboard.waiter_board.view'],
+  },
   'dashboard.guest_notice.view': { group: 'dashboard_nav', labelKey: 'dashboardGuestNotice' },
 
   // Settings (formerly owner-only; grantable to any role per product)

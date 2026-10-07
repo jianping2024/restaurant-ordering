@@ -75,6 +75,8 @@ export type FloorBoardCapabilities = {
   canForceClose: boolean;
   /** 开台 / 用餐人数 on table detail — sole tables.open_session. */
   canOpenTableSession: boolean;
+  /** Dining filter card A/C — sole dashboard.waiter_board.dining_headcount.view. */
+  canViewDiningHeadcount: boolean;
 };
 
 export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
@@ -92,6 +94,7 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
     canMerge: can(capabilities, 'tables.merge'),
     canForceClose: mayForceCloseFromCaps(capabilities),
     canOpenTableSession: can(capabilities, 'tables.open_session'),
+    canViewDiningHeadcount: can(capabilities, 'dashboard.waiter_board.dining_headcount.view'),
   };
 }
 

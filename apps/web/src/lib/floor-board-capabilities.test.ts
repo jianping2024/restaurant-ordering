@@ -15,6 +15,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(frontdesk.canMerge, true);
     assert.equal(frontdesk.canForceClose, true);
     assert.equal(frontdesk.canOpenTableSession, true);
+    assert.equal(frontdesk.canViewDiningHeadcount, true);
 
     const cashier = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
     assert.equal(cashier.canCallCheckout, true);
@@ -22,6 +23,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(cashier.canMerge, true);
     assert.equal(cashier.canForceClose, false);
     assert.equal(cashier.canOpenTableSession, true);
+    assert.equal(cashier.canViewDiningHeadcount, true);
   });
 
   it('derives transfer/merge/force-close for owner and transfer/merge for waiter', () => {
@@ -34,6 +36,12 @@ describe('floorBoardCapabilities', () => {
     assert.equal(waiter.canTransfer, true);
     assert.equal(waiter.canMerge, true);
     assert.equal(waiter.canForceClose, false);
+    assert.equal(waiter.canViewDiningHeadcount, true);
+    assert.equal(owner.canViewDiningHeadcount, true);
+    assert.equal(
+      floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.kitchen])).canViewDiningHeadcount,
+      false,
+    );
   });
 
   it('allows session pre_bill print for frontdesk only', () => {

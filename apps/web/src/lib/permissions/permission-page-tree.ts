@@ -130,6 +130,10 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
   navPage('guestNotice'),
   navPage('waiterBoard', [
     {
+      permission: 'dashboard.waiter_board.dining_headcount.view',
+      label: { source: 'action', labelKey: 'diningHeadcount' },
+    },
+    {
       permission: 'tables.open_session',
       label: { source: 'action', labelKey: 'tablesOpenSession' },
     },

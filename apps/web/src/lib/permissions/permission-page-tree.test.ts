@@ -60,6 +60,17 @@ describe('ROLE_PERMISSION_PAGE_TREE', () => {
       (n) => n.permission === 'dashboard.waiter_board.view',
     );
     assert.ok(waiter?.children?.some((c) => c.permission === 'tables.open_session'));
+    assert.ok(
+      waiter?.children?.some(
+        (c) => c.permission === 'dashboard.waiter_board.dining_headcount.view',
+      ),
+    );
+    assert.equal(
+      flattenPermissionTreeKeys().filter(
+        (k) => k === 'dashboard.waiter_board.dining_headcount.view',
+      ).length,
+      1,
+    );
     const openCount = flattenPermissionTreeKeys().filter((k) => k === 'tables.open_session').length;
     assert.equal(openCount, 1);
   });

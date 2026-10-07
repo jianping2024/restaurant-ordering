@@ -31,6 +31,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
   ],
   waiter: [
     'dashboard.waiter_board.view',
+    'dashboard.waiter_board.dining_headcount.view',
     'dashboard.dish_history.view',
     'tables.open_session',
     'tables.transfer',
@@ -42,6 +43,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
   ],
   cashier: [
     'dashboard.waiter_board.view',
+    'dashboard.waiter_board.dining_headcount.view',
     'dashboard.checkout.view',
     'checkout.confirm_payment',
     'checkout.apply_discount',
@@ -66,6 +68,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'dashboard.menu.view',
     'dashboard.menu.print_stations.manage',
     'dashboard.waiter_board.view',
+    'dashboard.waiter_board.dining_headcount.view',
     'floor.kitchen_board.view',
     'dashboard.guest_notice.view',
     'dashboard.dish_history.view',
@@ -99,6 +102,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'dashboard.menu.view',
     'dashboard.menu.print_stations.manage',
     'dashboard.waiter_board.view',
+    'dashboard.waiter_board.dining_headcount.view',
     'floor.kitchen_board.view',
     'dashboard.dish_history.view',
     'checkout.confirm_payment',

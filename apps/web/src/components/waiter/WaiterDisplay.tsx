@@ -456,6 +456,7 @@ function WaiterBoardInner({
   );
 
   const diningKpiHeadcountWings = useMemo(() => {
+    if (!floorCaps.canViewDiningHeadcount) return null;
     const headcountByTableId = new Map(
       tableSummaries.map((card) => [card.tableId, card.buffetHeadcount] as const),
     );
@@ -465,7 +466,7 @@ function WaiterBoardInner({
       headcountByTableId,
     );
     return buffetHeadcountTokens(sum.adults, sum.children);
-  }, [tables, boardStateContext, tableSummaries]);
+  }, [floorCaps.canViewDiningHeadcount, tables, boardStateContext, tableSummaries]);
 
   const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => {
     const boardState = classifyWaiterTableBoardState(card.tableId, boardStateContext);

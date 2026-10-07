@@ -78,6 +78,7 @@ describe('can / resolve', () => {
     assert.equal(waiter.canTransfer, false);
     assert.equal(waiter.canMerge, false);
     assert.equal(waiter.canOpenTableSession, false);
+    assert.equal(waiter.canViewDiningHeadcount, false);
 
     const desk = floorBoardCapabilitiesFromCaps(
       capabilitiesFromKeys([
@@ -96,6 +97,18 @@ describe('can / resolve', () => {
     assert.equal(desk.canTransfer, true);
     assert.equal(desk.canMerge, true);
     assert.equal(desk.canOpenTableSession, true);
+    assert.equal(desk.canViewDiningHeadcount, false);
+
+    const withHeadcount = floorBoardCapabilitiesFromCaps(
+      capabilitiesFromKeys(['dashboard.waiter_board.dining_headcount.view']),
+    );
+    assert.equal(withHeadcount.canViewDiningHeadcount, true);
+  });
+
+  it('dining headcount requires the floor board', () => {
+    const keys = enforcePermissionRequires(['dashboard.waiter_board.dining_headcount.view']);
+    assert.equal(keys.includes('dashboard.waiter_board.view'), true);
+    assert.equal(keys.includes('dashboard.waiter_board.dining_headcount.view'), true);
   });
 
   it('legacy permission aliases normalize to sole live keys', () => {

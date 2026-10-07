@@ -1,7 +1,7 @@
 import type { UILanguage } from '@/lib/i18n';
 
 /** Guest-selectable split modes on the phone bill (custom removed). */
-export const GUEST_SPLIT_MODE_ORDER = ['whole_table', 'even', 'by_item'] as const;
+export const GUEST_SPLIT_MODE_ORDER = ['whole_table', 'by_item', 'even'] as const;
 export type GuestSplitModeId = (typeof GUEST_SPLIT_MODE_ORDER)[number];
 
 export type GuestSplitModeCopy = {
@@ -35,7 +35,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: '均摊', when: '几个人平分总金额。' },
       by_item: { label: '按菜', when: '只认自己的菜，一部手机一张票。' },
     },
-    optionalHint: '默认整桌。要分单时再选均摊或按菜。',
+    optionalHint: '默认整桌。要分单时再选按菜或均摊。',
     introStep: {
       title: '分单',
       body: '各人点的菜不一样时，用「按菜」——把每道菜分给对应的人。',
@@ -55,7 +55,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Even split', when: 'Split the total equally among N people.' },
       by_item: { label: 'By dish', when: 'Claim only your dishes on this phone.' },
     },
-    optionalHint: 'Whole table is the default. Pick Even or By dish to split.',
+    optionalHint: 'Whole table is the default. Pick By dish or Even to split.',
     introStep: {
       title: 'Split the bill',
       body: 'If people ordered different dishes, use By dish — assign each dish to the right person.',
@@ -78,7 +78,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         when: 'Assuma só os seus pratos neste telemóvel.',
       },
     },
-    optionalHint: 'Mesa é o padrão. Escolha Partes iguais ou Por prato para dividir.',
+    optionalHint: 'Mesa é o padrão. Escolha Por prato ou Partes iguais para dividir.',
     introStep: {
       title: 'Dividir a conta',
       body: 'Se cada um pediu pratos diferentes, use Por prato — atribua cada prato às pessoas.',
@@ -101,7 +101,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         when: 'Reclama solo tus platos en este móvil.',
       },
     },
-    optionalHint: 'Mesa es el valor por defecto. Elige A partes iguales o Por plato para dividir.',
+    optionalHint: 'Mesa es el valor por defecto. Elige Por plato o A partes iguales para dividir.',
     introStep: {
       title: 'Dividir la cuenta',
       body: 'Si cada uno ha pedido platos distintos, usa Por plato: asigna cada plato a quien corresponda.',
@@ -124,7 +124,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         when: 'Ne prenez que vos plats sur ce téléphone.',
       },
     },
-    optionalHint: 'Table est le choix par défaut. Choisissez Parts égales ou Par plat pour partager.',
+    optionalHint: 'Table est le choix par défaut. Choisissez Par plat ou Parts égales pour partager.',
     introStep: {
       title: 'Partager l’addition',
       body: 'Si chacun a commandé des plats différents, utilisez Par plat : attribuez chaque plat à la bonne personne.',
@@ -147,7 +147,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         when: 'Nur die eigenen Gerichte auf diesem Handy übernehmen.',
       },
     },
-    optionalHint: 'Tisch ist die Voreinstellung. Wählen Sie Gleich oder Nach Gericht zum Teilen.',
+    optionalHint: 'Tisch ist die Voreinstellung. Wählen Sie Nach Gericht oder Gleich zum Teilen.',
     introStep: {
       title: 'Rechnung teilen',
       body: 'Wenn alle unterschiedlich bestellt haben, nutzen Sie Nach Gericht: Jedes Gericht der richtigen Person zuordnen.',

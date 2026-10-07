@@ -1,5 +1,5 @@
 /**
- * Guest bill split mode chips: whole_table | even | by_item (no custom).
+ * Guest bill split mode chips: whole_table | by_item | even (no custom).
  * Lock when the shared plan already has a non-draft mode or any collection.
  * Mode order/labels sole source: {@link GUEST_SPLIT_MODE_ORDER}.
  */

@@ -12,6 +12,8 @@ export async function requestCheckoutConfirmPayment(params: {
   paymentMethod: BillSyncPaymentMethod;
   paymentLines?: BillSyncPaymentLine[] | null;
   collectedAmount?: number;
+  /** Stable across retries of one collect attempt (see `collect-attempt-ids`). */
+  clientRequestId: string;
   receiptPrinterId?: string;
 }): Promise<
   | {
@@ -30,6 +32,7 @@ export async function requestCheckoutConfirmPayment(params: {
     paymentMethod,
     paymentLines,
     collectedAmount,
+    clientRequestId,
     receiptPrinterId,
   } = params;
   try {
@@ -42,6 +45,7 @@ export async function requestCheckoutConfirmPayment(params: {
         body: JSON.stringify({
           bill_split_id: billSplitId,
           person_index: personIndex,
+          client_request_id: clientRequestId,
           payment_method: paymentMethod,
           ...(paymentLines ? { payment_lines: paymentLines } : {}),
           ...(collectedAmount != null ? { collected_amount: collectedAmount } : {}),

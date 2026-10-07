@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { parseAppendClientRequestId } from '@/lib/append-idempotency';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import {
   confirmBillSplitPayment,
@@ -27,6 +28,7 @@ export async function POST(
     collected_amount?: unknown;
     payment_method?: unknown;
     payment_lines?: unknown;
+    client_request_id?: unknown;
   };
   try {
     body = await req.json();
@@ -37,6 +39,11 @@ export async function POST(
   const billSplitId = typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
   if (!billSplitId) {
     return NextResponse.json({ error: 'missing_bill_split_id' }, { status: 400 });
+  }
+
+  const clientRequestId = parseAppendClientRequestId(body.client_request_id);
+  if (!clientRequestId) {
+    return NextResponse.json({ error: 'invalid_client_request_id' }, { status: 400 });
   }
 
   const personIndex =
@@ -94,6 +101,7 @@ export async function POST(
     paymentMethod,
     paymentLines,
     collectedAmount,
+    clientRequestId,
     createdByUserId: auth.actor.userId,
     actor: auth.actor,
     holdSessionOpen,

@@ -95,6 +95,7 @@ describe('httpStatusForConfirmPaymentRpcCode', () => {
     assert.equal(httpStatusForConfirmPaymentRpcCode('empty_split'), 400);
     assert.equal(httpStatusForConfirmPaymentRpcCode('invalid_person_index'), 400);
     assert.equal(httpStatusForConfirmPaymentRpcCode('already_paid'), 409);
+    assert.equal(httpStatusForConfirmPaymentRpcCode('client_request_id_conflict'), 409);
     assert.equal(httpStatusForConfirmPaymentRpcCode('session_close_failed'), 500);
   });
 

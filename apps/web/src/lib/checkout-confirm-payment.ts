@@ -78,6 +78,7 @@ const RPC_ERROR_STATUS: Record<string, number> = {
   invalid_payment_lines: 400,
   payment_lines_amount_mismatch: 400,
   already_paid: 409,
+  client_request_id_conflict: 409,
   bill_update_failed: 500,
   session_close_failed: 500,
 };
@@ -156,6 +157,8 @@ export async function confirmBillSplitPayment(params: {
   paymentMethod: BillSyncPaymentMethod;
   paymentLines?: BillSyncPaymentLine[] | null;
   collectedAmount?: number;
+  /** One collect attempt; a retry with the same id replays the stored payment (never collects twice). */
+  clientRequestId: string;
   createdByUserId?: string;
   actor?: AuditActor;
   /** Server-computed. Partial by-item must not close the session. */
@@ -169,6 +172,7 @@ export async function confirmBillSplitPayment(params: {
     paymentMethod,
     paymentLines = null,
     collectedAmount,
+    clientRequestId,
     createdByUserId,
     actor,
     holdSessionOpen = false,
@@ -183,6 +187,7 @@ export async function confirmBillSplitPayment(params: {
     p_payment_method: paymentMethod,
     p_hold_open: holdSessionOpen,
     p_payment_lines: paymentLines ?? null,
+    p_client_request_id: clientRequestId,
   });
 
   if (rpcErr) {
@@ -219,7 +224,8 @@ export async function confirmBillSplitPayment(params: {
   const sessionId =
     typeof payload.session_id === 'string' && payload.session_id ? payload.session_id : null;
 
-  if (actor) {
+  // A replayed retry (newly_paid=false) already wrote its audit on the first attempt.
+  if (actor && payload.newly_paid) {
     scheduleRecordAudit(admin, AUDIT_EVENT.PAYMENT_CONFIRMED, {
       restaurantId,
       actor,

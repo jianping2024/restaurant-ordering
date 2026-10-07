@@ -217,7 +217,7 @@ const EXCLUSIVE_GROUPS: ReadonlySet<FlavorGroup> = new Set<FlavorGroup>(['spice'
 export const FLAVOR_SECTION_UI: Record<Language, { title: string; hint: string }> = {
   zh: {
     title: '风味提示',
-    hint: '可选。标在菜卡上给客人看（菜本身什么味）。不是点菜备注，也不是过敏原。不辣不标。总共最多 3 个；辣度/麻/清淡·重口每组最多选一个。',
+    hint: '可选。标在菜卡上给客人看（菜本身什么味）。不是点菜备注，也不是过敏源。不辣不标。总共最多 3 个；辣度/麻/清淡·重口每组最多选一个。',
   },
   en: {
     title: 'Flavor hints',

@@ -125,7 +125,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `brand-on-ink` | 靛青实心底上的文字 |
 | `font-heading` / `font-body` / `.mesa-money` / `.mesa-status-vertical` | **唯一产品正文字体** = `--font-jost`（`layout.tsx` 的 `next/font` Jost）+ `--font-cjk-sans`（系统无衬线）。`font-heading` 与 `font-body` 同栈；**欧元价码**仍走 `.mesa-money` 类名（同 body + `tabular-nums`），禁止再挂 Cormorant / 独立 money `@font-face`；看板 KPI 数值唯一写法为 `DASHBOARD_METRIC_TYPE`（`money` / `figure`）；竖排状态 `.mesa-status-vertical` 同 body。禁止在 `globals.css` 用字面量 `@font-face` 再写一份 Latin 字体。 |
 
-**可选 chip 选中态（唯一）**：`mesaSelectionChipStrongClass` / `mesaSelectionChipSoftClass` + `mesaSelectionChipShellClass`（`lib/mesa-selection-chip.ts`）。**强** = 换整页/整块内容（一级分类、列表筛选、分单模式）；**软** = 同组勾选项（备注芯片、过敏原、二级分类、周几）。禁止业务页再手写一套 `bg-brand-gold/20` 无金边当选中。对照图：`docs/design/mesa-chip-selected-strong-vs-soft.png`。
+**可选 chip 选中态（唯一）**：`mesaSelectionChipStrongClass` / `mesaSelectionChipSoftClass` + `mesaSelectionChipShellClass`（`lib/mesa-selection-chip.ts`）。**强** = 换整页/整块内容（一级分类、列表筛选、分单模式）；**软** = 同组勾选项（备注芯片、过敏源、二级分类、周几）。禁止业务页再手写一套 `bg-brand-gold/20` 无金边当选中。对照图：`docs/design/mesa-chip-selected-strong-vs-soft.png`。
 
 参照稿（楼面视觉唯一真理）：`docs/design/farvoo-floor-board-mockup.html`。产品只保留骨架（顶栏壳、Provider/Realtime、sticky lane、弹层与路由）；KPI / 搜索 / 桌卡内外视觉与该 HTML 一一对应。
 

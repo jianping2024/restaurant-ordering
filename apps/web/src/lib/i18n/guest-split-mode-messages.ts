@@ -33,7 +33,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
     modes: {
       whole_table: { label: '整桌', when: '一个人付整桌，或先叫店员结账。' },
       even: { label: '均摊', when: '几个人平分总金额。' },
-      by_item: { label: '按菜', when: '只认自己的菜，一部手机一张票。' },
+      by_item: { label: '按菜', when: '只选自己要付的菜。' },
     },
     optionalHint: '默认整桌。要分单时再选按菜或均摊。',
     introStep: {
@@ -53,7 +53,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
     modes: {
       whole_table: { label: 'Whole table', when: 'One person pays for the table.' },
       even: { label: 'Even split', when: 'Split the total equally among N people.' },
-      by_item: { label: 'By dish', when: 'Claim only your dishes on this phone.' },
+      by_item: { label: 'By dish', when: 'Pick only the dishes you’re paying for.' },
     },
     optionalHint: 'Whole table is the default. Pick By dish or Even to split.',
     introStep: {
@@ -75,7 +75,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Partes iguais', when: 'Dividir o total por N pessoas.' },
       by_item: {
         label: 'Por prato',
-        when: 'Assuma só os seus pratos neste telemóvel.',
+        when: 'Escolha só os pratos que vai pagar.',
       },
     },
     optionalHint: 'Mesa é o padrão. Escolha Por prato ou Partes iguais para dividir.',
@@ -98,7 +98,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'A partes iguales', when: 'Dividir el total entre los comensales.' },
       by_item: {
         label: 'Por plato',
-        when: 'Reclama solo tus platos en este móvil.',
+        when: 'Elige solo los platos que vas a pagar.',
       },
     },
     optionalHint: 'Mesa es el valor por defecto. Elige Por plato o A partes iguales para dividir.',
@@ -121,7 +121,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Parts égales', when: 'Partager le total entre les convives.' },
       by_item: {
         label: 'Par plat',
-        when: 'Ne prenez que vos plats sur ce téléphone.',
+        when: 'Choisissez seulement les plats que vous allez payer.',
       },
     },
     optionalHint: 'Table est le choix par défaut. Choisissez Par plat ou Parts égales pour partager.',
@@ -144,7 +144,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Gleich aufteilen', when: 'Die Summe gleichmäßig auf alle Gäste aufteilen.' },
       by_item: {
         label: 'Nach Gericht',
-        when: 'Nur die eigenen Gerichte auf diesem Handy übernehmen.',
+        when: 'Wählen Sie nur die Gerichte, die Sie zahlen.',
       },
     },
     optionalHint: 'Tisch ist die Voreinstellung. Wählen Sie Nach Gericht oder Gleich zum Teilen.',

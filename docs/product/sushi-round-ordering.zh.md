@@ -59,7 +59,7 @@
 |------|------|------|------|
 | `sushi_round_ordering_enabled` | `true` | bool | 仅 `sushi` 生效 |
 | `sushi_menu_vegetarian_filter_enabled` | `false` | bool | 仅寿司点餐页：素食亮灯筛选 |
-| `sushi_menu_allergen_filter_enabled` | `false` | bool | 仅寿司点餐页：过敏原避开筛选 |
+| `sushi_menu_allergen_filter_enabled` | `false` | bool | 仅寿司点餐页：过敏源避开筛选 |
 | `sushi_per_person_per_round_cap` | `8` | 1–20 | 每人每轮免费菜份数上限 |
 | `sushi_round_confirm_timeout_seconds` | `25` | 15–45 | 发起送厨后倒计时秒数；到点自动送厨 |
 | `sushi_round_cooldown_seconds` | `120` | 30–600 | 送厨成功后 **session 级**冷却 |

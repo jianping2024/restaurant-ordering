@@ -412,9 +412,7 @@ function GuestBillPage({
       buffetGuestCounts: t.buffetGuestCounts,
       nameLabel: t.claimNameLabel,
       namePlaceholder: t.claimNamePlaceholder,
-      nameRequired: t.claimNameRequired,
       nameTaken: t.individualNameTaken,
-      intro: t.claimIntro,
       claimAll: t.claimAll,
       othersSection: t.claimOthersSection,
       mineLabel: t.claimMineLabel,
@@ -428,7 +426,7 @@ function GuestBillPage({
     [t],
   );
 
-  /** Name problems are shown in the name field itself; the rest under the dish list. */
+  /** Toast / call-gate copy when claim has an issue (incl. nothing claimed). */
   const claimIssueMessage =
     claim.issue === 'nothing_claimed'
       ? t.individualNothingClaimed
@@ -437,6 +435,13 @@ function GuestBillPage({
         : claim.issue === 'invalid_qty'
           ? t.byItemInvalidQty
           : null;
+  /** Inline under the dish list — over-claim / invalid qty only (no “claim at least one” tip). */
+  const claimIssueBanner =
+    claim.issue === 'over_claim'
+      ? t.claimOver
+      : claim.issue === 'invalid_qty'
+        ? t.byItemInvalidQty
+        : null;
 
   const guestCountConfirmed = isBillGuestCountConfirmed(orders);
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
@@ -793,8 +798,8 @@ function GuestBillPage({
         }
       />
 
-      {guestMode === 'by_item' && claimIssueMessage ? (
-        <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueMessage}</p>
+      {guestMode === 'by_item' && claimIssueBanner ? (
+        <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueBanner}</p>
       ) : null}
 
       {/* Yields while a bill-page text field is focused — sole rule in globals.css. */}

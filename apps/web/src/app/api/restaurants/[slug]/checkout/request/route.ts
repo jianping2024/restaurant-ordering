@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  assertCheckoutRequestAllowed,
-  resolveCheckoutRequestCaller,
-} from '@/lib/checkout-request-auth';
+import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
 import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
@@ -127,11 +124,6 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const auth = await assertCheckoutRequestAllowed(slug);
-  if (!auth.ok) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
-
   let body: {
     table_id?: unknown;
     split_mode?: unknown;
@@ -146,6 +138,14 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
+
+  const auth = await assertCheckoutRequestAllowed(slug, {
+    guestClientId: body.guest_client_id,
+  });
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+  const { caller } = auth;
 
   const tableId = parseTableIdParam(body.table_id);
   if (!tableId) {
@@ -181,8 +181,6 @@ export async function POST(
   if (!loaded.ok) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
-
-  const caller = await resolveCheckoutRequestCaller(slug);
 
   // Guest phone: by-item → one ticket; whole_table / even → shared table plan.
   if (caller.kind === 'customer') {

@@ -34,3 +34,25 @@ describe('messageForCheckoutRequestError', () => {
     assert.equal(messageForCheckoutRequestError('upsert_failed', labels), 'FALLBACK');
   });
 });
+
+describe('messageForCheckoutRequestError individual refusals', () => {
+  const withRefused = { ...labels, individualCallRefused: 'REFUSED' };
+
+  it('maps every ticket-lock / stale-plan code to the explicit copy', () => {
+    for (const code of [
+      'stale_plan',
+      'ticket_locked',
+      'locked_ticket_changed',
+      'not_your_ticket',
+      'ticket_paid',
+      'ticket_collecting',
+    ]) {
+      assert.equal(messageForCheckoutRequestError(code, withRefused), 'REFUSED', code);
+    }
+  });
+
+  it('keeps a server fault on the fallback', () => {
+    assert.equal(messageForCheckoutRequestError('individual_apply_failed', withRefused), 'FALLBACK');
+  });
+});
+

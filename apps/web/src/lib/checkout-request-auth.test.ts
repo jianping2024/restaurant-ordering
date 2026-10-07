@@ -43,3 +43,13 @@ describe('resolveCheckoutRequestCaller', () => {
     assert.equal(typeof resolveCheckoutRequestCaller, 'function');
   });
 });
+
+describe('resolveCheckoutRequestCaller guest phone', () => {
+  it('is a customer whenever guest_client_id is present, without reading any session', async () => {
+    assert.deepEqual(
+      await resolveCheckoutRequestCaller('any-slug', { guestClientId: 'not-even-a-uuid' }),
+      { kind: 'customer' },
+    );
+  });
+});
+

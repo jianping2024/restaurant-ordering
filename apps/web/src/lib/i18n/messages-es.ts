@@ -1453,6 +1453,7 @@ export const MESSAGES_ES = {
     "individualNothingClaimed": "Elige primero al menos un plato",
     "individualClaimConflict": "Otra persona ya eligió algunos platos. Se actualizó la página, ajusta los platos resaltados",
     "individualNameTaken": "Este nombre ya se usa en esta mesa, elige otro o pide ayuda al personal",
+    "individualCallRefused": "Ahora no se puede pedir esta cuenta (bloqueada o recién actualizada). Recarga la página o avisa a un camarero",
     "claimNameLabel": "Tu nombre",
     "claimNamePlaceholder": "Nombre para tu cuenta",
     "claimNameRequired": "Escribe primero tu nombre y luego elige tus platos",

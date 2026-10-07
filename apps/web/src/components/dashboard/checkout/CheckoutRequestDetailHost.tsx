@@ -55,6 +55,7 @@ import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { collectAttemptFingerprint, createCollectAttemptIds } from '@/lib/collect-attempt-ids';
 import { writePendingCheckoutPrintAsk } from '@/lib/checkout-print-ask-store';
 import {
   checkoutLinesFromOrders,
@@ -102,6 +103,7 @@ export function CheckoutRequestDetailHost({
 }: Props) {
   const canPrintFiscalInvoice =
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
+  const [collectAttempts] = useState(() => createCollectAttemptIds());
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [invoiceScopeId, setInvoiceScopeId] = useState<string | undefined>(undefined);
   const [invoiceAmount, setInvoiceAmount] = useState(0);
@@ -514,6 +516,13 @@ export function CheckoutRequestDetailHost({
         if (idx >= 0) rowIndex = idx;
       }
       const billSplitId = persistedBillSplitId.current ?? row.id;
+      const attemptFingerprint = collectAttemptFingerprint({
+        billSplitId,
+        personIndex: rowIndex,
+        amount,
+        paymentMethod: input.paymentMethod,
+        paymentLines: input.payment_lines,
+      });
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
         billSplitId,
@@ -521,7 +530,9 @@ export function CheckoutRequestDetailHost({
         paymentMethod: input.paymentMethod,
         paymentLines: input.payment_lines,
         collectedAmount: amount,
+        clientRequestId: collectAttempts.idFor(attemptFingerprint),
       });
+      if (outcome.ok) collectAttempts.settle(attemptFingerprint);
       if (!outcome.ok || !outcome.collection) {
         showToast(outcome.ok ? '操作失败，请重试' : outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
         return;

@@ -48,6 +48,7 @@ import {
   resolveGuestBillSplitMode,
 } from '@/lib/guest-bill-split-mode';
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
+import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
 import type { SplitMode } from '@/types';
 
 function BillCheckoutGateBanner({ message }: { message: string }) {
@@ -308,6 +309,8 @@ function GuestBillPage({
       individualClaimConflict: t.individualClaimConflict,
       individualNameTaken: t.individualNameTaken,
       individualCallRefused: t.individualCallRefused,
+      splitUnassignedItems: t.splitUnassignedItems,
+      splitIncompleteQty: t.splitIncompleteQty,
       splitAmountMismatch: t.splitAmountMismatch,
     },
   });
@@ -382,9 +385,17 @@ function GuestBillPage({
         guestClientId,
       });
       if (!outcome.ok) {
-        const collecting =
-          outcome.error === 'ticket_collecting' || outcome.error === 'ticket_paid';
-        showToast(collecting ? t.individualResumeCollecting : t.individualResumeFailed, 'error');
+        showToast(
+          messageForCheckoutErrorOverrides(
+            outcome.error,
+            {
+              ticket_collecting: t.individualResumeCollecting,
+              ticket_paid: t.individualResumeCollecting,
+            },
+            t.individualResumeFailed,
+          ),
+          'error',
+        );
       }
       await refreshBill();
     } finally {

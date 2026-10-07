@@ -7,6 +7,7 @@ import {
 } from '@/lib/checkout-discount/record-discount-audit';
 import { validateDiscountReason } from '@/lib/checkout-discount/validate-discount-reason';
 import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
+import { checkoutErrorStatus } from '@/lib/checkout-error-codes';
 
 export type ApplyBillSplitDiscountResult =
   | {
@@ -28,6 +29,12 @@ export type ApplyBillSplitDiscountResult =
         | 'bill_update_failed';
       message?: string;
     };
+
+type DiscountFailureCode = Extract<ApplyBillSplitDiscountResult, { ok: false }>['code'];
+
+function discountFailure(code: DiscountFailureCode): Extract<ApplyBillSplitDiscountResult, { ok: false }> {
+  return { ok: false, status: checkoutErrorStatus(code), code };
+}
 
 function splitHasPaidPerson(result: unknown): boolean {
   if (!Array.isArray(result)) return false;
@@ -72,20 +79,20 @@ export async function applyBillSplitDiscount(params: {
     .maybeSingle();
 
   if (splitErr || !splitRow) {
-    return { ok: false, status: 404, code: 'bill_split_not_found' };
+    return discountFailure('bill_split_not_found');
   }
 
   if ((splitRow.status as string) === 'cancelled') {
-    return { ok: false, status: 409, code: 'bill_split_cancelled' };
+    return discountFailure('bill_split_cancelled');
   }
 
   if (splitHasPaidPerson(splitRow.result)) {
-    return { ok: false, status: 409, code: 'discount_locked_after_payment' };
+    return discountFailure('discount_locked_after_payment');
   }
 
   const sessionId = (splitRow.session_id as string | null) ?? null;
   if (await sessionHasCollectedLedger(params.admin, params.restaurantId, sessionId)) {
-    return { ok: false, status: 409, code: 'discount_locked_after_payment' };
+    return discountFailure('discount_locked_after_payment');
   }
 
   const existingReason =
@@ -103,7 +110,7 @@ export async function applyBillSplitDiscount(params: {
   if (normalizedRate > 0) {
     const reasonValidation = validateDiscountReason(normalizedRate, reason, reasonDetail);
     if (!reasonValidation.ok) {
-      return { ok: false, status: 400, code: reasonValidation.code };
+      return discountFailure(reasonValidation.code);
     }
   }
 

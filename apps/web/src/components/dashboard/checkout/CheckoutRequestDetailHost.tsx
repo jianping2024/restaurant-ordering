@@ -36,7 +36,10 @@ import {
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-ordering-gate';
-import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
+import {
+  messageForCheckoutErrorOverrides,
+  messageForCheckoutRequestError,
+} from '@/lib/checkout-request-error-message';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
@@ -396,14 +399,15 @@ export function CheckoutRequestDetailHost({
           ...(detail ? { discountReasonDetail: detail } : {}),
         });
         if (!outcome.ok) {
-          const message =
-            outcome.error === 'reason_required'
-              ? t.discountReasonRequired
-              : outcome.error === 'reason_detail_required'
-                ? t.discountReasonDetailRequired
-                : outcome.error === 'discount_locked_after_payment'
-                  ? t.discountLockedAfterPayment
-                  : '操作失败，请重试';
+          const message = messageForCheckoutErrorOverrides(
+            outcome.error,
+            {
+              reason_required: t.discountReasonRequired,
+              reason_detail_required: t.discountReasonDetailRequired,
+              discount_locked_after_payment: t.discountLockedAfterPayment,
+            },
+            '操作失败，请重试',
+          );
           showToast(message, 'error');
           return false;
         }
@@ -534,7 +538,12 @@ export function CheckoutRequestDetailHost({
       });
       if (outcome.ok) collectAttempts.settle(attemptFingerprint);
       if (!outcome.ok || !outcome.collection) {
-        showToast(outcome.ok ? '操作失败，请重试' : outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
+        showToast(
+          outcome.ok
+            ? '操作失败，请重试'
+            : messageForCheckoutErrorOverrides(outcome.error, { already_paid: t.paid }, '操作失败，请重试'),
+          'error',
+        );
         return;
       }
       const printAsk = {

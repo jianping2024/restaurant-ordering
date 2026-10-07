@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { resumeTableSessionOrdering } from '@/lib/resume-table-session-ordering';
 
@@ -10,19 +11,19 @@ export async function POST(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   let body: { table_id?: unknown };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
 
   const tableId = typeof body.table_id === 'string' ? body.table_id.trim() : '';
   if (!tableId) {
-    return NextResponse.json({ error: 'missing_table_id' }, { status: 400 });
+    return checkoutErrorResponse('missing_table_id');
   }
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req);

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { messageForCheckoutRequestError } from './checkout-request-error-message';
+import {
+  messageForCheckoutErrorOverrides,
+  messageForCheckoutRequestError,
+} from './checkout-request-error-message';
 
 const labels = {
   guestCountRequired: 'GUEST',
@@ -53,6 +56,39 @@ describe('messageForCheckoutRequestError individual refusals', () => {
 
   it('keeps a server fault on the fallback', () => {
     assert.equal(messageForCheckoutRequestError('individual_apply_failed', withRefused), 'FALLBACK');
+  });
+});
+
+describe('messageForCheckoutRequestError split validation + overrides', () => {
+  const full = {
+    ...labels,
+    splitUnassignedItems: 'UNASSIGNED',
+    splitIncompleteQty: 'INCOMPLETE',
+    splitAmountMismatch: 'MISMATCH',
+  };
+
+  it('maps the split validation codes to their copy', () => {
+    assert.equal(messageForCheckoutRequestError('unassigned_items', full), 'UNASSIGNED');
+    assert.equal(messageForCheckoutRequestError('incomplete_qty', full), 'INCOMPLETE');
+    assert.equal(messageForCheckoutRequestError('amount_mismatch', full), 'MISMATCH');
+  });
+
+  it('falls back when the surface has no copy for the slot', () => {
+    assert.equal(messageForCheckoutRequestError('incomplete_qty', labels), 'FALLBACK');
+  });
+
+  it('lets a surface override one code and keeps the rest', () => {
+    assert.equal(
+      messageForCheckoutRequestError('already_paid', labels, { already_paid: 'PAID' }),
+      'PAID',
+    );
+    assert.equal(messageForCheckoutRequestError('empty_session', labels, { already_paid: 'PAID' }), 'EMPTY');
+  });
+
+  it('override-only surfaces use their own fallback for unknown codes', () => {
+    assert.equal(messageForCheckoutErrorOverrides('whole_table_paid', { whole_table_paid: 'W' }, 'F'), 'W');
+    assert.equal(messageForCheckoutErrorOverrides('nope', { whole_table_paid: 'W' }, 'F'), 'F');
+    assert.equal(messageForCheckoutErrorOverrides(null, { whole_table_paid: 'W' }, 'F'), 'F');
   });
 });
 

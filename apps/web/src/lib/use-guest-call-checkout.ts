@@ -164,6 +164,10 @@ export function useGuestCallCheckout(params: Params) {
               noActiveSession: messages.actionFailed,
               tableNotAvailable: messages.actionFailed,
               splitPlanLocked: messages.splitPlanLocked,
+              splitUnassignedItems: messages.splitUnassignedItems,
+              splitIncompleteQty: messages.splitIncompleteQty,
+              splitAmountMismatch: messages.splitAmountMismatch,
+
               individualClaimConflict: messages.individualClaimConflict,
               individualNameTaken: messages.individualNameTaken,
               individualNothingClaimed: messages.individualNothingClaimed,
@@ -198,6 +202,10 @@ export function useGuestCallCheckout(params: Params) {
               noActiveSession: messages.actionFailed,
               tableNotAvailable: messages.actionFailed,
               splitPlanLocked: messages.splitPlanLocked,
+              splitUnassignedItems: messages.splitUnassignedItems,
+              splitIncompleteQty: messages.splitIncompleteQty,
+              splitAmountMismatch: messages.splitAmountMismatch,
+
               fallback: messages.actionFailed,
             }),
             'error',
@@ -232,6 +240,10 @@ export function useGuestCallCheckout(params: Params) {
             noActiveSession: messages.actionFailed,
             tableNotAvailable: messages.actionFailed,
             splitPlanLocked: messages.splitPlanLocked,
+            splitUnassignedItems: messages.splitUnassignedItems,
+            splitIncompleteQty: messages.splitIncompleteQty,
+            splitAmountMismatch: messages.splitAmountMismatch,
+
             fallback: messages.actionFailed,
           }),
           'error',

@@ -1,5 +1,6 @@
 'use client';
 
+import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
 import { useCallback, useRef, useState } from 'react';
 import { requestStaffUnlockTickets } from '@/lib/request-individual-checkout';
 
@@ -33,9 +34,14 @@ export function useIndividualTicketUnlock(params: {
           ticketKeys: [ticketKey],
         });
         if (!outcome.ok) {
-          const collecting =
-            outcome.error === 'ticket_collecting' || outcome.error === 'ticket_paid';
-          showToast(collecting ? messages.collecting : messages.failed, 'error');
+          showToast(
+            messageForCheckoutErrorOverrides(
+              outcome.error,
+              { ticket_collecting: messages.collecting, ticket_paid: messages.collecting },
+              messages.failed,
+            ),
+            'error',
+          );
           return;
         }
         onMutated(tableId);

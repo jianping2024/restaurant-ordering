@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkoutErrorResponse } from '@/lib/checkout-error-response';
 import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
 import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -121,7 +122,7 @@ export async function POST(
 ) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return checkoutErrorResponse('missing_slug');
   }
 
   let body: {
@@ -136,7 +137,7 @@ export async function POST(
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return checkoutErrorResponse('invalid_json');
   }
 
   const auth = await assertCheckoutRequestAllowed(slug, {
@@ -149,32 +150,32 @@ export async function POST(
 
   const tableId = parseTableIdParam(body.table_id);
   if (!tableId) {
-    return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+    return checkoutErrorResponse('invalid_table_id');
   }
 
   // Absent → whole table; an unknown value (e.g. removed `custom`) is rejected, never coerced.
   const splitMode =
     body.split_mode == null ? 'whole_table' : parseSplitMode(body.split_mode);
   if (!splitMode) {
-    return NextResponse.json({ error: 'invalid_split_mode' }, { status: 400 });
+    return checkoutErrorResponse('invalid_split_mode');
   }
   const persons = parsePersons(body.persons);
   const result = parseResult(body.result);
   if (!persons || !result) {
-    return NextResponse.json({ error: 'invalid_split' }, { status: 400 });
+    return checkoutErrorResponse('invalid_split');
   }
 
   const customerNifRaw = typeof body.customer_nif === 'string' ? body.customer_nif.trim() : '';
   const customerNif = customerNifRaw ? parsePortugueseNif(customerNifRaw) : null;
   if (customerNifRaw && !customerNif) {
-    return NextResponse.json({ error: 'invalid_nif' }, { status: 400 });
+    return checkoutErrorResponse('invalid_nif');
   }
 
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+    return checkoutErrorResponse('server_misconfigured');
   }
 
   const loaded = await loadCustomerRestaurantForApi(admin, slug);
@@ -186,7 +187,7 @@ export async function POST(
   if (caller.kind === 'customer') {
     const guestClientId = parseGuestClientId(body.guest_client_id);
     if (!guestClientId) {
-      return NextResponse.json({ error: 'invalid_guest_client_id' }, { status: 400 });
+      return checkoutErrorResponse('invalid_guest_client_id');
     }
     if (splitMode === 'by_item') {
       const individual = await submitIndividualCall(admin, {
@@ -216,7 +217,7 @@ export async function POST(
       });
     }
     if (splitMode !== 'whole_table' && splitMode !== 'even') {
-      return NextResponse.json({ error: 'invalid_split_mode' }, { status: 400 });
+      return checkoutErrorResponse('invalid_split_mode');
     }
     const submitResult = await submitCheckoutRequestForTable(
       admin,

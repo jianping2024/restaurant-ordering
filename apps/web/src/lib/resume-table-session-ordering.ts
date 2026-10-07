@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { httpStatusForResumeOrderingRpcCode } from '@/lib/checkout-session-payments';
+import { checkoutErrorStatus } from '@/lib/checkout-error-codes';
 
 export type ResumeOrderingResult =
   | { ok: true; session_id: string; table_id: string }
@@ -39,7 +39,7 @@ export async function resumeTableSessionOrdering(params: {
     const code = payload?.code ?? 'resume_failed';
     return {
       ok: false,
-      status: httpStatusForResumeOrderingRpcCode(code),
+      status: checkoutErrorStatus(code),
       code,
       message: payload?.message,
     };

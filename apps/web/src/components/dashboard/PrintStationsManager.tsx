@@ -9,7 +9,13 @@ import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle'
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/print-station-admin';
+import {
+  countPrintStationBindings,
+  formatPrintStationAltNamesLine,
+  formatPrintStationMenuBindings,
+  getPrintStationDisplayName,
+  printStationAltNameParts,
+} from '@/lib/print-station-admin';
 import {
   createPrintStationClient,
   deletePrintStationClient,
@@ -77,8 +83,7 @@ export function PrintStationsManager({
 
   const bindingsLabel = (stationId: string) => {
     const { categories, dishes } = bindingsForStation(stationId);
-    if (categories === 0 && dishes === 0) return t.bindingsEmpty;
-    return t.bindingsSummary.replace('{categories}', String(categories)).replace('{dishes}', String(dishes));
+    return formatPrintStationMenuBindings(categories, dishes, t.bindingsSummary);
   };
 
   const deleteTargetBindings = deleteTarget ? bindingsForStation(deleteTarget.id) : null;
@@ -224,6 +229,10 @@ export function PrintStationsManager({
                 >
                   {stations.map((row, index) => {
                     const dragDisabled = !canReorder || reorderBusy;
+                    const title = getPrintStationDisplayName(row, lang);
+                    const altLine = formatPrintStationAltNamesLine(
+                      printStationAltNameParts(row, title, t.nameMissing),
+                    );
                     return (
                       <Draggable
                         key={row.id}
@@ -248,13 +257,9 @@ export function PrintStationsManager({
                               />
                             ) : null}
                             <div className="min-w-0 flex-1">
-                              <p className="text-brand-text font-medium">
-                                {getPrintStationDisplayName(row, lang)}
-                              </p>
-                              {row.name_pt !== getPrintStationDisplayName(row, lang) ? (
-                                <p className="text-[12px] text-brand-text-muted mt-0.5">
-                                  PT: {row.name_pt}
-                                </p>
+                              <p className="text-brand-text font-medium">{title}</p>
+                              {altLine ? (
+                                <p className="text-[12px] text-brand-text-muted mt-0.5">{altLine}</p>
                               ) : null}
                               <p className="text-[12px] text-brand-text-muted mt-0.5">
                                 {bindingsLabel(row.id)}

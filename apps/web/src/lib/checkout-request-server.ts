@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { markBillSplitStaffCheckout } from '@/lib/bill-split-staff-checkout';
 import {
   checkoutPayloadFromBillSplit,
   loadActiveBillSplitForSession,
@@ -290,23 +291,32 @@ export async function ensureStaffCheckoutEntryForTable(
     sessionId: session.id as string,
   });
 
+  let submitted: CheckoutRequestResult;
   if (existing) {
     const payload = checkoutPayloadFromBillSplit(existing);
     if (!payload) {
       return checkoutFailure('invalid_existing_split');
     }
     const alreadyRequested = existing.status === 'requested';
-    return submitCheckoutRequestForTable(admin, restaurantId, tableId, payload, {
+    submitted = await submitCheckoutRequestForTable(admin, restaurantId, tableId, payload, {
       skipAutomaticPreBill: options?.skipAutomaticPreBill === true || alreadyRequested,
       staffReopenActivePlan: true,
     });
+  } else {
+    submitted = await submitCheckoutRequestForTable(
+      admin,
+      restaurantId,
+      tableId,
+      buildWholeTableCheckoutPayload(0),
+      { skipAutomaticPreBill: options?.skipAutomaticPreBill },
+    );
   }
+  if (!submitted.ok) return submitted;
 
-  return submitCheckoutRequestForTable(
-    admin,
-    restaurantId,
-    tableId,
-    buildWholeTableCheckoutPayload(0),
-    { skipAutomaticPreBill: options?.skipAutomaticPreBill },
-  );
+  // Staff call must land in the queue even when every ticket is already paid.
+  const marked = await markBillSplitStaffCheckout(admin, restaurantId, submitted.bill_split_id);
+  if (!marked.ok) {
+    return { ok: false, error: 'upsert_failed', status: 500, message: marked.message };
+  }
+  return submitted;
 }

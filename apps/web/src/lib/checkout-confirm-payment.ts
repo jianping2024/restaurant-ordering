@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { markBillSplitStaffCheckout } from '@/lib/bill-split-staff-checkout';
 import { checkoutErrorStatus } from '@/lib/checkout-error-codes';
 import type { SplitPerson, SplitResult } from '@/types';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
@@ -191,6 +192,13 @@ export async function confirmBillSplitPayment(params: {
 
   const result = (payload.result || []) as SplitResult[];
   const allPaid = !!payload.all_paid;
+  if (holdSessionOpen && !allPaid) {
+    // By-item dishes still unallocated: keep the split in the queue for the next ticket.
+    const marked = await markBillSplitStaffCheckout(admin, restaurantId, billSplitId);
+    if (!marked.ok) {
+      console.warn('[confirm-payment] mark staff checkout failed', marked.message);
+    }
+  }
   const finalAmount = Number(payload.final_amount) || 0;
   const rowAmount = Number(payload.row_amount) || 0;
   const collectedPaymentId =

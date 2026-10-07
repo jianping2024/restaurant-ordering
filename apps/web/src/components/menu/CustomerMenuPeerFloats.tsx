@@ -35,15 +35,15 @@ type FloatItem = {
   thumb: PeerFloatThumb;
   /** Monotonic ms — sole sort key (older above in flex-col). */
   shownAt: number;
-  /** After hold: CSS opacity fade; removed after SUSHI_PEER_FLOAT_FADE_MS. */
+  /** After hold: CSS opacity fade; removed after PEER_FLOAT_FADE_MS. */
   fading: boolean;
 };
 
 const MAX_VISIBLE = 4;
-/** Sole peer-float visible hold (free round + paid append) before fade starts. */
-export const SUSHI_PEER_FLOAT_HOLD_MS = 10_000;
+/** Sole peer-float visible hold (round lines + order appends) before fade starts. */
+export const PEER_FLOAT_HOLD_MS = 10_000;
 /** Sole peer-float CSS fade-out duration; keep in sync with `duration-300` on bubbles. */
-export const SUSHI_PEER_FLOAT_FADE_MS = 300;
+export const PEER_FLOAT_FADE_MS = 300;
 
 /**
  * Sole peer-float rail: centered menu shell, left-inset by the category rail
@@ -53,15 +53,15 @@ export const SUSHI_PEER_FLOAT_FADE_MS = 300;
  * Same X dock as `customerMenuFixedShellDockClass` but z-40 (floats above chrome).
  * Never viewport `left-*` alone — that drifts from the menu on lg+.
  */
-export const sushiPeerFloatRailClass = [
+export const customerMenuPeerFloatRailClass = [
   'pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 flex flex-col items-start gap-2',
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
 ].join(' ');
 
-/** Sole bubble chrome: opacity fade (Toast-style); duration matches SUSHI_PEER_FLOAT_FADE_MS. */
-export const sushiPeerFloatBubbleClass = (fading: boolean) =>
+/** Sole bubble chrome: opacity fade (Toast-style); duration matches PEER_FLOAT_FADE_MS. */
+export const customerMenuPeerFloatBubbleClass = (fading: boolean) =>
   [
     'flex max-w-[min(72%,15rem)] items-center gap-2 rounded-2xl rounded-tl-sm',
     'bg-[rgb(26_22_18_/_0.88)] px-2.5 py-1.5',
@@ -114,16 +114,29 @@ function schedulePeerFloatDismiss(
     setItems((prev) => prev.map((f) => (f.id === id ? { ...f, fading: true } : f)));
     window.setTimeout(() => {
       setItems((prev) => prev.filter((f) => f.id !== id));
-    }, SUSHI_PEER_FLOAT_FADE_MS);
-  }, SUSHI_PEER_FLOAT_HOLD_MS);
+    }, PEER_FLOAT_FADE_MS);
+  }, PEER_FLOAT_HOLD_MS);
 }
 
 function peerFloatBaselineOwnerKey(sessionId: string | null | undefined, tableId: string) {
   return `${sessionId ?? ''}:${tableId}`;
 }
 
-/** Sole peer-order float rail: other guests' free round upserts + paid appends. */
-export function SushiRoundPeerFloats(params: {
+function shouldEmitOrderLinePeerFloat(params: {
+  price: number;
+  includeZeroPriceOrderLines: boolean;
+}): boolean {
+  if (params.price > 0) return true;
+  return params.includeZeroPriceOrderLines && params.price === 0;
+}
+
+/**
+ * Sole guest-menu peer-order float rail (classic + sushi):
+ * - sushi: other guests' free round upserts + paid appends (price>0 only on orders —
+ *   free dishes already floated from round lines)
+ * - classic: order appends only (incl. price=0 instant dishes); pass empty round lines
+ */
+export function CustomerMenuPeerFloats(params: {
   lines: TableOrderRoundLineRow[];
   guestClientId: string;
   menuItems: MenuItem[];
@@ -132,13 +145,18 @@ export function SushiRoundPeerFloats(params: {
   /** Table + session identity — reset baselines when either changes (换台 / 并台后会话). */
   tableId: string;
   sessionId: string | null;
-  /** Round GET finished at least once (empty snapshot counts). */
+  /** Round GET finished at least once (empty snapshot counts). Classic: pass true with []. */
   roundSnapshotReady: boolean;
   /** Full-scope session orders ready (SSR full seed or successful full fetch — not gate []). */
   paidOrdersReady: boolean;
   recentOrders?: Order[];
   /** Batch ids this device just appended — exclude from paid floats. */
   selfBatchIds?: ReadonlySet<string>;
+  /**
+   * Classic immediate append of price=0 dishes. Sushi keeps false so free dishes
+   * do not float again when they land on orders after round finalize.
+   */
+  includeZeroPriceOrderLines?: boolean;
 }) {
   const {
     lines,
@@ -152,6 +170,7 @@ export function SushiRoundPeerFloats(params: {
     paidOrdersReady,
     recentOrders,
     selfBatchIds,
+    includeZeroPriceOrderLines = false,
   } = params;
   const [items, setItems] = useState<FloatItem[]>([]);
   const seenRoundRef = useRef<Map<string, number>>(new Map());
@@ -230,7 +249,14 @@ export function SushiRoundPeerFloats(params: {
         for (const line of order.items) {
           if (isBuffetBaseItem(line) || isKitchenRemakeItem(line)) continue;
           if (line.item_status === 'voided') continue;
-          if (!(Number(line.price) > 0)) continue;
+          if (
+            !shouldEmitOrderLinePeerFloat({
+              price: Number(line.price),
+              includeZeroPriceOrderLines,
+            })
+          ) {
+            continue;
+          }
           const key = peerFloatPaidItemKey({
             orderId: order.id,
             batchId: line.batch_id,
@@ -283,6 +309,7 @@ export function SushiRoundPeerFloats(params: {
   }, [
     enabled,
     guestClientId,
+    includeZeroPriceOrderLines,
     lang,
     lines,
     menuItems,
@@ -298,15 +325,15 @@ export function SushiRoundPeerFloats(params: {
 
   return (
     <div
-      className={sushiPeerFloatRailClass}
+      className={customerMenuPeerFloatRailClass}
       aria-live="polite"
-      data-sushi-peer-float-hold-ms={SUSHI_PEER_FLOAT_HOLD_MS}
-      data-sushi-peer-float-fade-ms={SUSHI_PEER_FLOAT_FADE_MS}
+      data-peer-float-hold-ms={PEER_FLOAT_HOLD_MS}
+      data-peer-float-fade-ms={PEER_FLOAT_FADE_MS}
     >
       {visible.map((item) => (
         <div
           key={item.id}
-          className={sushiPeerFloatBubbleClass(item.fading)}
+          className={customerMenuPeerFloatBubbleClass(item.fading)}
           data-fading={item.fading ? '1' : '0'}
         >
           <PeerFloatDishThumb thumb={item.thumb} />

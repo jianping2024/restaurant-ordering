@@ -110,7 +110,7 @@ import {
 import type { TableOrderRoundStatus } from '@/lib/table-order-round/types';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
 import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
-import { SushiRoundPeerFloats } from '@/components/menu/sushi/SushiRoundPeerFloats';
+import { CustomerMenuPeerFloats } from '@/components/menu/CustomerMenuPeerFloats';
 import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemDetailSheet';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
 import { buildTableRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
@@ -1325,7 +1325,7 @@ export function SushiMenuPage({
         confirming={false}
       />
 
-      <SushiRoundPeerFloats
+      <CustomerMenuPeerFloats
         lines={round.snapshot.lines}
         guestClientId={round.guestClientId}
         menuItems={menuItems}

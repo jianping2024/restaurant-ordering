@@ -72,7 +72,8 @@
 2. RSC 调用 `loadCustomerSessionContext` 注入首屏 session + 近期订单；客户端 `useCustomerSessionContext` 挂载后静默 reconcile
 3. 条件满足（`open` 会话 + active `buffet_base`）→ 展示菜单、购物车。若店里配置了上架推荐菜，右列类目区下方出现推荐横滑海报轨（点进详情，不是左侧虚拟类目）
 4. 顾客选菜、提交 → 进入「加菜流程」
-5. 提交成功后底栏进入**已点态**；点「查看已点」→ `OrderedDrawer` 浏览已提交明细；「查看账单」→ 现有 `BillPage`
+5. 同桌其它已开菜单的手机：他人新下单后侧边飘窗（唯一 `CustomerMenuPeerFloats`；本机刚提交的批次不飘；约 10 秒渐隐）
+6. 提交成功后底栏进入**已点态**；点「查看已点」→ `OrderedDrawer` 浏览已提交明细；「查看账单」→ 现有 `BillPage`
 
 ### 异常流程
 

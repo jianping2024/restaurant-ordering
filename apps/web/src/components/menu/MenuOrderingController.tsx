@@ -102,6 +102,7 @@ import {
 } from '@/lib/guest-ordering-notice';
 import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
 import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
+import { CustomerMenuPeerFloats } from '@/components/menu/CustomerMenuPeerFloats';
 
 type StaffOverageDialog =
   | {
@@ -211,6 +212,8 @@ export function MenuOrderingController({
     null,
   );
   const [demoToast, setDemoToast] = useState(false);
+  const selfBatchIdsRef = useRef<Set<string>>(new Set());
+  const [selfBatchIds, setSelfBatchIds] = useState<ReadonlySet<string>>(() => new Set());
   const {
     submitCooldownRemaining,
     isSubmitCooldownActive,
@@ -222,6 +225,7 @@ export function MenuOrderingController({
     recentOrders,
     kitchenProgress,
     sessionResolved,
+    ordersSnapshotReady,
     refresh: refreshSessionContext,
     isSessionContextFresh,
   } = useCustomerSessionContext(initialSessionContext, {
@@ -758,6 +762,10 @@ export function MenuOrderingController({
       }
 
       pendingAppendIntentRef.current = null;
+      if (result.batchId) {
+        selfBatchIdsRef.current.add(result.batchId);
+        setSelfBatchIds(new Set(selfBatchIdsRef.current));
+      }
 
       scheduleMenuOrderPostSubmitEffects({
         slug: restaurant.slug,
@@ -1111,6 +1119,21 @@ export function MenuOrderingController({
           hidden={hideGuestNoticeChrome}
         />
       ) : null}
+
+      <CustomerMenuPeerFloats
+        lines={[]}
+        guestClientId={individualHold.guestClientId ?? ''}
+        menuItems={menuItems}
+        lang={lang}
+        enabled={!isDemo && !staffAssisted && Boolean(individualHold.guestClientId)}
+        tableId={tableId}
+        sessionId={activeSession?.id ?? null}
+        roundSnapshotReady
+        paidOrdersReady={ordersSnapshotReady}
+        recentOrders={recentOrders}
+        selfBatchIds={selfBatchIds}
+        includeZeroPriceOrderLines
+      />
 
       <CustomerTableSessionRealtimeLazy
         tableId={tableId}

@@ -47,10 +47,13 @@ function deriveFooterPhase(
   cartQty: number,
   roundOwnQty: number,
   submittedCount: number,
+  /** Session billable € (incl. buffet-only open); sole money gate with billEnabled. */
+  submittedTotal: number,
 ): MenuPageFooterPhase {
   if (cartQty > 0) return 'draft';
   if (roundOwnQty > 0) return 'roundReview';
-  if (submittedCount > 0) return 'ordered';
+  // Dish portions OR session money (buffet open with no dishes yet).
+  if (submittedCount > 0 || submittedTotal > 0) return 'ordered';
   return 'idle';
 }
 
@@ -73,7 +76,7 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
   const submittedCount = countSubmittedDishPortions(input.recentOrders);
   const submittedTotal = sumBillableSessionTotal(input.recentOrders);
   const roundOwnQty = Math.max(0, Math.floor(input.roundOwnQty ?? 0));
-  const phase = deriveFooterPhase(cartQty, roundOwnQty, submittedCount);
+  const phase = deriveFooterPhase(cartQty, roundOwnQty, submittedCount, submittedTotal);
 
   const showBillCta = input.staffAssisted
     ? input.staffAssisted.showBillCta && !!input.activeSession
@@ -96,7 +99,8 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
     submittedTotal,
     roundOwnQty,
     billHref,
-    billEnabled: !!input.activeSession && submittedCount > 0,
+    // Sole bill CTA money gate: session billable total (buffet open counts).
+    billEnabled: !!input.activeSession && submittedTotal > 0,
     showBillCta,
     showOrderedCta,
   };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createGuestClient } from '@/lib/supabase/guest-client';
 import {
   STAFF_BOARD_SIGNAL_DEBOUNCE_MS,
   useDebouncedPostgresRealtimeRefresh,
@@ -17,7 +17,7 @@ export function CustomerTableSessionRealtime(props: {
   enabled: boolean;
   onRefresh: () => void;
 }) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createGuestClient(), []);
   const tableFilter = props.tableId ? `table_id=eq.${props.tableId}` : '';
 
   useDebouncedPostgresRealtimeRefresh(

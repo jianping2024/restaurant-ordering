@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createGuestClient } from '@/lib/supabase/guest-client';
 import { useDebouncedPostgresRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
@@ -64,7 +64,7 @@ export function useTableOrderRound(params: {
   const seenPeerSubmitIdsRef = useRef<Set<string>>(new Set());
   const selfStartedSubmitIdsRef = useRef<Set<string>>(new Set());
   const [peerNotifyOpen, setPeerNotifyOpen] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createGuestClient(), []);
 
   useEffect(() => {
     if (!enabled) return;

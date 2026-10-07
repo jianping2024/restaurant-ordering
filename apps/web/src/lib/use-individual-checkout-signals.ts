@@ -7,7 +7,7 @@
  * rows are batched per debounce window so several calls merge into one notice.
  */
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createGuestClient } from '@/lib/supabase/guest-client';
 import type { IndividualCheckoutSignal } from '@/lib/individual-call-notice';
 import { useDebouncedPostgresRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 
@@ -21,7 +21,7 @@ export function useIndividualCheckoutSignals(params: {
   onSignals: (rows: IndividualCheckoutSignal[]) => void;
 }) {
   const { sessionId, enabled, onSignals } = params;
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createGuestClient(), []);
   const onSignalsRef = useRef(onSignals);
   onSignalsRef.current = onSignals;
   /** Newest created_at already delivered; null until the mount baseline is read. */

@@ -108,14 +108,3 @@ export const dashboardStickyToolbarShellClass = [
   waiterStaffStickyChrome.belowStaffTopBar,
   'z-20 -mx-2 px-2 py-2.5 bg-brand-bg border-b border-brand-border/40',
 ].join(' ');
-
-/**
- * Board checkout sheet (`WaiterBoardCheckoutSheet`) — full-screen portal covers the
- * staff top bar; scrollport is under the sheet header. Stick with `top-0` so the
- * bar flushes under sheet chrome (do not reuse `belowStaffTopBar` here — that leaves
- * a ~3.5rem dead gap inside the nested scroll). Same brand-bg fill as dashboard.
- */
-export const checkoutSettlementBarSheetStickyShellClass = [
-  'sticky top-0',
-  checkoutSettlementBarStickyChrome,
-].join(' ');

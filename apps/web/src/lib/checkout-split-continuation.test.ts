@@ -10,6 +10,8 @@ import {
   commitByItemConsumerRowEdit,
   ensureSplitPersonNames,
   isCheckoutSplitLocked,
+  isStaffCheckoutSplitModeFrozen,
+  staffMayChangeCheckoutSplitMode,
   isPausedCheckoutSplit,
   lockedPersonLineKey,
   paidSplitPersonNames,
@@ -62,6 +64,38 @@ describe('isCheckoutSplitLocked', () => {
     assert.equal(isCheckoutSplitLocked(split(), true), true);
     assert.equal(isCheckoutSplitLocked(split({ status: 'confirmed' }), false), false);
     assert.equal(isCheckoutSplitLocked(split(), false), false);
+  });
+});
+
+describe('staff checkout mode freeze', () => {
+  it('freezes even/by_item; unpaid whole_table may change', () => {
+    assert.equal(isStaffCheckoutSplitModeFrozen(split({ split_mode: 'even' })), true);
+    assert.equal(isStaffCheckoutSplitModeFrozen(split({ split_mode: 'by_item' })), true);
+    assert.equal(isStaffCheckoutSplitModeFrozen(split({ split_mode: 'whole_table' })), false);
+    assert.equal(
+      staffMayChangeCheckoutSplitMode({
+        existing: split({ split_mode: 'whole_table' }),
+        nextMode: 'even',
+        hasCollectedLedger: false,
+      }),
+      true,
+    );
+    assert.equal(
+      staffMayChangeCheckoutSplitMode({
+        existing: split({ split_mode: 'even' }),
+        nextMode: 'whole_table',
+        hasCollectedLedger: false,
+      }),
+      false,
+    );
+    assert.equal(
+      staffMayChangeCheckoutSplitMode({
+        existing: split({ split_mode: 'whole_table' }),
+        nextMode: 'even',
+        hasCollectedLedger: true,
+      }),
+      false,
+    );
   });
 });
 
@@ -303,12 +337,13 @@ describe('allocationLockedTicketKeys', () => {
 });
 
 describe('splitDraftPersonCount', () => {
-  it('defaults to 2', () => {
-    assert.equal(splitDraftPersonCount(), 2);
+  it('defaults to 1', () => {
+    assert.equal(splitDraftPersonCount(), 1);
   });
 
-  it('clamps ≥2 with cap 20', () => {
-    assert.equal(splitDraftPersonCount(1), 2);
+  it('clamps ≥1 with cap 20', () => {
+    assert.equal(splitDraftPersonCount(1), 1);
+    assert.equal(splitDraftPersonCount(0), 1);
     assert.equal(splitDraftPersonCount(3), 3);
     assert.equal(splitDraftPersonCount(99), 20);
   });
@@ -346,7 +381,7 @@ describe('resolveContinuationSplitShape', () => {
     );
   });
 
-  it('pads even shape with one real guest to at least 2 people', () => {
+  it('keeps even shape with one real guest (min 1)', () => {
     const shape = resolveContinuationSplitShape(
       split({
         split_mode: 'even',
@@ -355,8 +390,8 @@ describe('resolveContinuationSplitShape', () => {
       }),
       (n) => `Guest ${n}`,
     );
-    assert.equal(shape?.personCount, 2);
-    assert.deepEqual(shape?.personNames, ['Ana', 'Guest 2']);
+    assert.equal(shape?.personCount, 1);
+    assert.deepEqual(shape?.personNames, ['Ana']);
   });
 
   it('returns null when split is missing', () => {
@@ -365,11 +400,8 @@ describe('resolveContinuationSplitShape', () => {
 });
 
 describe('defaultSplitPersonNames', () => {
-  it('seeds even with 2 guests', () => {
-    assert.deepEqual(defaultSplitPersonNames((n) => `Guest ${n}`), [
-      'Guest 1',
-      'Guest 2',
-    ]);
+  it('seeds even with 1 guest by default', () => {
+    assert.deepEqual(defaultSplitPersonNames((n) => `Guest ${n}`), ['Guest 1']);
   });
 });
 
@@ -407,6 +439,47 @@ describe('validateCheckoutContinuation', () => {
     });
     assert.equal(out.ok, false);
     if (!out.ok) assert.equal(out.issue, 'split_mode_locked');
+  });
+
+  it('rejects even/by_item → whole_table while unpaid', () => {
+    const existing = split({
+      split_mode: 'even',
+      status: 'requested',
+      result: [{ name: 'Ana', amount: 40 }],
+      persons: [{ name: 'Ana' }],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'whole_table',
+        persons: [{ name: '__whole_table__' }],
+        result: [{ name: '__whole_table__', amount: 40 }],
+      },
+      lineSpecs: [],
+      hasCollectedLedger: false,
+    });
+    assert.equal(out.ok, false);
+    if (!out.ok) assert.equal(out.issue, 'split_mode_locked');
+  });
+
+  it('allows unpaid whole_table → even', () => {
+    const existing = split({
+      split_mode: 'whole_table',
+      status: 'requested',
+      result: [{ name: '__whole_table__', amount: 40 }],
+      persons: [{ name: '__whole_table__' }],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'even',
+        persons: [{ name: 'Ana' }],
+        result: [{ name: 'Ana', amount: 40 }],
+      },
+      lineSpecs: [],
+      hasCollectedLedger: false,
+    });
+    assert.equal(out.ok, true);
   });
 
   it('rejects reassigned locked share', () => {

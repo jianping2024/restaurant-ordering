@@ -211,7 +211,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
-      action: { kind: 'open_checkout_sheet' },
+      action: { kind: 'navigate', href: '/dashboard/checkout?table_id=t1' },
       session: {
         sessionId: 's1',
         openedAt: '2026-07-05T18:00:00.000Z',

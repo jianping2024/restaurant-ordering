@@ -9,7 +9,6 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const ACTION_AMOUNT_CALL_SITES = [
   'components/dashboard/checkout/CheckoutRequestListCard.tsx',
-  'components/dashboard/checkout/CheckoutRequestDetail.tsx',
   'components/dashboard/checkout/CollectPaymentModal.tsx',
   'components/dashboard/checkout/StaffByItemSplitWorkbench.tsx',
 ] as const;

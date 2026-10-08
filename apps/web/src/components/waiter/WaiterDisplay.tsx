@@ -5,7 +5,6 @@ import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
-import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
 import { WaiterBoardPartyLaneMenu } from '@/components/waiter/WaiterBoardPartyLaneMenu';
 import { WaiterBoardPartySections, type WaiterBoardPartySectionHandle } from '@/components/waiter/WaiterBoardPartySections';
@@ -16,7 +15,6 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
-import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import {
@@ -59,6 +57,7 @@ import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables'
 import type { WaiterBoardOpenTableDefaults } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { waiterTableHref } from '@/lib/staff-routes';
+import { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
   floorLaneKey,
@@ -312,7 +311,6 @@ function WaiterBoardInner({
     tableId: string;
     displayName: string;
   } | null>(null);
-  const [checkoutTarget, setCheckoutTarget] = useState<{ tableId: string } | null>(null);
 
   /** Open-table sheet left the board surface — drop ephemeral find-table query (pref save effect syncs). */
   const handleOpenTableSuccess = useCallback(
@@ -474,12 +472,14 @@ function WaiterBoardInner({
       isDemo,
       embeddedInDashboard,
     });
+    const checkoutHref = dashboardCheckoutTableHref(card.tableId);
     const action = resolveWaiterBoardCardAction({
       boardState,
       canOpenCheckoutPendingTables: floorCaps.canOpenCheckoutPendingTables,
       supportsBuffetOpenTable,
       canOpenTableSession: floorCaps.canOpenTableSession,
       detailHref,
+      checkoutHref,
     });
 
     return (
@@ -496,7 +496,6 @@ function WaiterBoardInner({
         onOpenTable={() =>
           setOpenTableTarget({ tableId: card.tableId, displayName: card.displayName })
         }
-        onOpenCheckout={() => setCheckoutTarget({ tableId: card.tableId })}
         onDisabledClick={() => showToast(t.buffetNotConfigured, 'info')}
       />
     );
@@ -887,21 +886,6 @@ function WaiterBoardInner({
         openTableDefaults={openTableDefaults}
         lang={lang}
       />
-
-      {embeddedInDashboard && capabilities ? (
-        <WaiterBoardCheckoutSheet
-          open={checkoutTarget != null}
-          onClose={() => setCheckoutTarget(null)}
-          restaurantId={restaurant.id}
-          restaurantSlug={restaurant.slug}
-          tableId={checkoutTarget?.tableId ?? ''}
-          capabilities={capabilities}
-          billSyncToFiscal={isRestaurantFeatureEnabled(
-            restaurant.feature_flags,
-            'bill_sync_to_fiscal',
-          )}
-        />
-      ) : null}
     </div>
   );
 }

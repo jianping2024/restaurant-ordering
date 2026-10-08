@@ -5,10 +5,10 @@ import {
   type StaffTicketUnlock,
 } from '@/components/dashboard/checkout/staff-ticket-unlock';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
 import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
@@ -16,26 +16,17 @@ import {
   checkoutPersonKey,
   isCheckoutDetailLocked,
 } from '@/lib/checkout-request-state';
-import { normalizeSplitRows } from '@/lib/checkout-split-math';
 import {
   collectPaymentInitialCustomerName,
   shouldAutoIssueFiscalAfterCollect,
 } from '@/lib/checkout-print-ask';
 import { splitPartyKey } from '@/lib/split-party-id';
-import { isWholeTablePayerName } from '@/lib/split-person-label';
 import {
   hasConfirmedPerson,
   isByItemPerTicketCheckoutPlan,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
-  type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
-import {
-  buildSplitSettlementRows,
-  isMultiPersonSplitBill,
-  isSplitSettlementPending,
-  pendingSplitSettlementRows,
-} from '@/lib/checkout-split-settlement';
 import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-ordering-gate';
 import { logCheckoutResumeFailure } from '@/lib/checkout-resume-failure-log';
 import {
@@ -45,16 +36,10 @@ import {
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
-import {
-  staffSplitReceiptCooldownKey,
-  useStaffCheckoutBillPrint,
-} from '@/lib/use-staff-checkout-bill-print';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
 import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/components/dashboard/checkout/CollectPaymentModal';
-import { PrintFiscalInvoiceModal } from '@/components/dashboard/checkout/PrintFiscalInvoiceModal';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
-import { billSyncByItemScopeId } from '@/lib/bill-sync-scope-id';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -62,29 +47,15 @@ import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-disco
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { collectAttemptFingerprint, createCollectAttemptIds } from '@/lib/collect-attempt-ids';
 import { writePendingCheckoutPrintAsk } from '@/lib/checkout-print-ask-store';
-import {
-  checkoutLinesFromOrders,
-  type CheckoutDisplayLine,
-} from '@/lib/checkout-session-lines';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { menuItemImageUrlLookupFromRows } from '@/lib/menu-image';
-import { CheckoutRequestDetail } from '@/components/dashboard/checkout/CheckoutRequestDetail';
-import {
-  buildCheckoutSettlementSummary,
-  checkoutSplitModeLabel,
-  hasCheckoutCollections,
-} from '@/lib/checkout-settlement';
+import { buildCheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import type { Capabilities } from '@/lib/permissions/can';
-import {
-  canReturnToCheckoutPathChooser,
-  CheckoutPathChooser,
-  initialStaffCheckoutPathChoice,
-  resolveCheckoutDetailPhase,
-  type StaffCheckoutPathChoice,
-} from '@/components/dashboard/checkout/checkout-detail-phase';
 import { StaffCheckoutSplitEditor } from '@/components/dashboard/checkout/StaffCheckoutSplitEditor';
+import { waiterTableHref } from '@/lib/staff-routes';
+import { isWholeTableSplit } from '@/lib/checkout-split-intent';
 type Props = {
   request: BillSplit;
   restaurantId: string;
@@ -110,11 +81,6 @@ export function CheckoutRequestDetailHost({
   const canPrintFiscalInvoice =
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
   const [collectAttempts] = useState(() => createCollectAttemptIds());
-  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
-  const [invoiceScopeId, setInvoiceScopeId] = useState<string | undefined>(undefined);
-  const [invoiceAmount, setInvoiceAmount] = useState(0);
-  const [invoiceInitialPayment, setInvoiceInitialPayment] =
-    useState<BillSyncPaymentMethod | null>(null);
   const [collectPending, setCollectPending] = useState<{
     rowIndex: number;
     amount: number;
@@ -124,9 +90,10 @@ export function CheckoutRequestDetailHost({
     /** Ticket pre-discount obligation for collect modal discount line. */
     preDiscountAmount?: number;
   } | null>(null);
-  const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>(() =>
-    initialStaffCheckoutPathChoice(request.split_mode),
-  );
+  const router = useRouter();
+  const exitToTableDetail = useCallback(() => {
+    router.push(waiterTableHref(restaurantSlug, request.table_id));
+  }, [restaurantSlug, request.table_id, router]);
   const {
     reload,
     getCollectedForSession,
@@ -281,23 +248,11 @@ export function CheckoutRequestDetailHost({
     [lang],
   );
   const supabase = useMemo(() => createClient(), []);
-  const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
   const [imageUrlByMenuId, setImageUrlByMenuId] = useState<Record<string, string>>({});
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
-  const {
-    printSplitReceipt,
-    isPrintReceiptBusy,
-    cooldownSecondsLeft,
-    isOnCooldown,
-  } = useStaffCheckoutBillPrint(restaurantSlug);
-  const {
-    printFiscalInvoiceAvailable,
-    printFiscalInvoiceBusy,
-    printFiscalInvoice,
-    requestPrintFiscalInvoice,
-  } = useStaffPrintFiscalInvoice({
+  const { printFiscalInvoiceAvailable } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
     enabled: canPrintFiscalInvoice,
@@ -310,7 +265,6 @@ export function CheckoutRequestDetailHost({
 
   useEffect(() => {
     if (!restaurantId || !request.session_id) {
-      setSelectedLines([]);
       setSessionOrders([]);
       setItemCodeByMenuId({});
       setImageUrlByMenuId({});
@@ -327,7 +281,6 @@ export function CheckoutRequestDetailHost({
 
       if (cancelled) return;
       if (error) {
-        setSelectedLines([]);
         setSessionOrders([]);
         setItemCodeByMenuId({});
         setImageUrlByMenuId({});
@@ -351,7 +304,6 @@ export function CheckoutRequestDetailHost({
       setSessionOrders(orders);
       setItemCodeByMenuId(codes);
       setImageUrlByMenuId(images);
-      setSelectedLines(checkoutLinesFromOrders(orders, lang, codes));
     };
 
     void loadLines();
@@ -365,7 +317,6 @@ export function CheckoutRequestDetailHost({
     request.session_id,
     request.id,
     request.total_amount,
-    lang,
   ]);
 
   const collectedPayments = getCollectedForSession(request.session_id);
@@ -458,28 +409,8 @@ export function CheckoutRequestDetailHost({
     [billDiscount, persistDiscount],
   );
 
-  const splitModeLabels = useMemo(
-    () => checkoutSplitModeUiLabels(lang, t.splitModeWhole),
-    [lang, t.splitModeWhole],
-  );
-
   const discountRate = getDiscountRate(request);
-  const settlementRows = useMemo(
-    () =>
-      buildSplitSettlementRows(
-        normalizeSplitRows(request),
-        collectedPayments,
-        discountRate,
-        request.total_amount,
-      ),
-    [request, collectedPayments, discountRate],
-  );
   const summary = buildCheckoutSettlementSummary(request, discountRate, collectedPayments);
-  const splitModeLabel = checkoutSplitModeLabel(request.split_mode, splitModeLabels);
-  const pendingSettlementRows = useMemo(
-    () => pendingSplitSettlementRows(settlementRows),
-    [settlementRows],
-  );
 
   const confirmCollectedPerson = async (
     row: BillSplit,
@@ -611,7 +542,6 @@ export function CheckoutRequestDetailHost({
     }
   };
 
-  const partialPaid = hasCheckoutCollections(request, collectedPayments);
   const resumeBlockReason = resumeCheckoutBlockReason(request, collectedPayments);
   const resumeConfirmMessage = useMemo(() => {
     const variant = resumeOrderingConfirmVariant(request, collectedPayments);
@@ -630,211 +560,60 @@ export function CheckoutRequestDetailHost({
     [t],
   );
 
-  const openInvoiceModal = useCallback(
-    (
-      scopeId?: string,
-      initialPayment: BillSyncPaymentMethod | null = null,
-      amount = 0,
-    ) => {
-      setInvoiceScopeId(scopeId);
-      setInvoiceInitialPayment(initialPayment);
-      setInvoiceAmount(amount);
-      setInvoiceModalOpen(true);
-    },
-    [],
-  );
-
-  const openSplitInvoice = useCallback(
-    (payment: SessionCollectedPayment) => {
-      const name = payment.person_name?.trim();
-      if (!name) return;
-      const rosterRow =
-        payment.person_index != null && payment.person_index >= 0
-          ? request.result?.[payment.person_index]
-          : undefined;
-      const scopeId = billSyncByItemScopeId(
-        request.id,
-        name,
-        rosterRow?.party_id,
-      );
-      void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
-        if (result === 'need_issue') {
-          openInvoiceModal(scopeId, payment.payment_method, payment.amount);
-        }
-      });
-    },
-    [openInvoiceModal, request.id, request.result, requestPrintFiscalInvoice],
-  );
-
-  const showSplitReceiptActions = isMultiPersonSplitBill(request);
-  const detailPhase = resolveCheckoutDetailPhase({
-    splitMode: request.split_mode,
-    collected: summary.collected,
-    pathChoice,
-  });
-  const returnToPathChooser = () => setPathChoice('undecided');
-  const showReturnToPathChooser = canReturnToCheckoutPathChooser({
-    splitMode: request.split_mode,
-    collected: summary.collected,
-    pathChoice,
-  });
-
   const detailLocked =
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
-    discountApplying ||
-    printFiscalInvoiceBusy;
+    discountApplying;
 
   return (
     <>
-      {detailPhase === 'path_chooser' ? (
-        <div className="mb-3 space-y-3">
-          {showBackButton ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-sm font-semibold text-brand-text-muted hover:text-brand-text lg:hidden"
-            >
-              ← {t.backToList}
-            </button>
-          ) : null}
-          <CheckoutPathChooser
-            wholeTableLabel={t.pathChooserWholeTable}
-            splitLabel={t.pathChooserSplit}
-            resumeLabel={
-              resumeBlockReason === 'individual_session' ? undefined : t.resumeOrdering
-            }
-            onWholeTable={() => setPathChoice('whole_table')}
-            onSplit={() => setPathChoice('split')}
-            onResume={
-              resumeBlockReason === 'individual_session'
-                ? undefined
-                : () => setResumeConfirmOpen(true)
-            }
-          />
-        </div>
-      ) : null}
-      {detailPhase === 'split_edit' ? (
-        <StaffCheckoutSplitEditor
-          restaurantId={restaurantId}
-          restaurantSlug={restaurantSlug}
-          request={request}
-          sessionOrders={sessionOrders}
-          itemCodeByMenuId={itemCodeByMenuId}
-          imageUrlByMenuId={imageUrlByMenuId}
-          collectedPayments={collectedPayments}
-          summary={summary}
-          discountRate={discountRate}
-          discountApplying={discountApplying}
-          discountLocked={hasConfirmedPerson(request)}
-          detailLocked={detailLocked}
-          resumeOperating={isResumeMutating}
-          resumeBlockReason={resumeBlockReason}
-          showPathBack={showReturnToPathChooser}
-          showBackButton={showBackButton}
-          stickyShellClass={stickyShellClass}
-          onBack={onBack}
-          onCancel={returnToPathChooser}
-          onDiscountRateCommit={(next) => commitDiscountRate(request, next)}
-          onDiscountRateFocus={() =>
-            billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
-          }
-          onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-          ticketUnlock={ticketUnlock}
-          onCollectPerson={(index, amount, personName, partyId, preDiscountAmount) => {
-            setCollectPending({
-              rowIndex: index,
-              amount,
-              wholeTable: false,
-              personName,
-              partyId,
-              preDiscountAmount,
-            });
-          }}
-          onSplitPersisted={(row) => {
-            persistedBillSplitId.current = row.id;
-            upsertRequestFromSubmit(row);
-          }}
-          onRegisterPersist={(persist) => {
-            persistBeforePay.current = persist;
-          }}
-          onRegisterCollectTicket={(persist) => {
-            persistCollectTicket.current = persist;
-          }}
-        />
-      ) : null}
-      {detailPhase === 'settle' ? (
-      <CheckoutRequestDetail
+      <StaffCheckoutSplitEditor
+        restaurantId={restaurantId}
+        restaurantSlug={restaurantSlug}
         request={request}
-        summary={summary}
-        splitModeLabel={splitModeLabel}
-        partialPaid={partialPaid}
-        collectedPayments={collectedPayments}
-        settlementRows={settlementRows}
-        pendingSettlementRows={pendingSettlementRows}
-        selectedLines={selectedLines}
         sessionOrders={sessionOrders}
         itemCodeByMenuId={itemCodeByMenuId}
-        processingKeys={processingKeys}
-        detailLocked={detailLocked}
-        resumeOperating={isResumeMutating}
+        imageUrlByMenuId={imageUrlByMenuId}
+        collectedPayments={collectedPayments}
+        summary={summary}
         discountRate={discountRate}
         discountApplying={discountApplying}
         discountLocked={hasConfirmedPerson(request)}
+        detailLocked={detailLocked}
+        resumeOperating={isResumeMutating}
         resumeBlockReason={resumeBlockReason}
-        printInvoiceAvailable={printFiscalInvoiceAvailable}
-        showSplitReceiptActions={showSplitReceiptActions}
-        onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
-        onPrintSplitInvoice={openSplitInvoice}
-        isPrintReceiptBusy={(payment) =>
-          payment.person_index != null && isPrintReceiptBusy(request.id, payment.person_index)
-        }
-        printReceiptCooldownSeconds={(payment) =>
-          payment.person_index != null
-            ? cooldownSecondsLeft(
-                staffSplitReceiptCooldownKey(request.id, payment.person_index),
-              )
-            : 0
-        }
-        isPrintReceiptOnCooldown={(payment) =>
-          payment.person_index != null &&
-          isOnCooldown(staffSplitReceiptCooldownKey(request.id, payment.person_index))
-        }
         showBackButton={showBackButton}
         stickyShellClass={stickyShellClass}
-        lang={lang}
-        t={t}
         onBack={onBack}
-        onReturnToPathChooser={
-          detailPhase === 'settle' && showReturnToPathChooser
-            ? returnToPathChooser
-            : undefined
-        }
+        onCancel={exitToTableDetail}
         onDiscountRateCommit={(next) => commitDiscountRate(request, next)}
         onDiscountRateFocus={() =>
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
         }
-        onConfirmPersonPaid={(index) => {
-          const settlementRow = settlementRows.find((entry) => entry.index === index);
-          if (!settlementRow || !isSplitSettlementPending(settlementRow)) {
-            showToast(t.paid, 'error');
-            return;
-          }
-          const rawName = request.result?.[index]?.name;
-          setCollectPending({
-            rowIndex: index,
-            amount: settlementRow.outstandingAmount,
-            wholeTable: true,
-            personName:
-              rawName && !isWholeTablePayerName(rawName) ? rawName.trim() : undefined,
-            preDiscountAmount: Number(request.result?.[index]?.amount ?? 0),
-          });
-        }}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         ticketUnlock={ticketUnlock}
-        paymentLabels={paymentMethodLabels}
+        onCollectPerson={(index, amount, personName, partyId, preDiscountAmount, wholeTable) => {
+          setCollectPending({
+            rowIndex: index,
+            amount,
+            wholeTable: wholeTable ?? isWholeTableSplit(request),
+            personName,
+            partyId,
+            preDiscountAmount,
+          });
+        }}
+        onSplitPersisted={(row) => {
+          persistedBillSplitId.current = row.id;
+          upsertRequestFromSubmit(row);
+        }}
+        onRegisterPersist={(persist) => {
+          persistBeforePay.current = persist;
+        }}
+        onRegisterCollectTicket={(persist) => {
+          persistCollectTicket.current = persist;
+        }}
       />
-      ) : null}      <ReasonConfirmDialog
+      <ReasonConfirmDialog
         open={billDiscount.pendingSetup != null}
         onClose={billDiscount.cancelSetup}
         title={t.discountReasonTitle}
@@ -921,45 +700,6 @@ export function CheckoutRequestDetailHost({
           const pending = collectPending;
           setCollectPending(null);
           void confirmCollectedPerson(request, pending, input);
-        }}
-      />
-      <PrintFiscalInvoiceModal
-        open={invoiceModalOpen}
-        busy={printFiscalInvoiceBusy}
-        amount={invoiceAmount}
-        initialPaymentMethod={invoiceInitialPayment}
-        labels={{
-          title: t.printInvoiceModalTitle,
-          nif: t.printInvoiceNif,
-          nifOptional: t.printInvoiceOptional,
-          nifInvalid: billT.nifInvalid,
-          name: t.printInvoiceName,
-          nameOptional: t.printInvoiceOptional,
-          paymentMethod: t.printInvoicePaymentMethod,
-          documentTypeHint: t.printInvoiceDocumentTypeHint,
-          confirm: t.printInvoice,
-          cancel: t.printInvoiceCancel,
-          cashReceived: t.cashReceived,
-          changeDue: t.changeDue,
-          cashShort: t.cashShort,
-          multibancoAmount: t.multibancoAmount,
-          cashRemainder: t.cashRemainder,
-          mixedNeedBothSides: t.mixedNeedBothSides,
-        }}
-        paymentLabels={paymentMethodLabels}
-        onClose={() => {
-          if (printFiscalInvoiceBusy) return;
-          setInvoiceModalOpen(false);
-        }}
-        onConfirm={(input) => {
-          void printFiscalInvoice({
-            paymentMethod: input.paymentMethod,
-            paymentLines: input.payment_lines,
-            amount: invoiceAmount,
-            customerNif: input.customerNif,
-            customerName: input.customerName,
-            issueScopeId: invoiceScopeId,
-          }).finally(() => setInvoiceModalOpen(false));
         }}
       />
     </>

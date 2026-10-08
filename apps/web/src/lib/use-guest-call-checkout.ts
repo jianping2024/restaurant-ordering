@@ -216,9 +216,9 @@ export function useGuestCallCheckout(params: Params) {
         return;
       }
 
-      // even
+      // even (1+ people)
       const even = getEvenPayload();
-      if (!even || even.result.length < 2) {
+      if (!even || even.result.length < 1) {
         showToast(messages.splitAmountMismatch ?? messages.actionFailed, 'error');
         return;
       }

@@ -39,6 +39,8 @@ interface Props {
   splitGuidance: GuestSplitGuidanceCopy;
   splitMode: SplitMode | null;
   splitLocked: boolean;
+  /** Mode chips only — defaults to splitLocked when omitted (guest). */
+  modeChipsLocked?: boolean;
   submitting: boolean;
   personCount: number;
   splitPeople: SplitPersonSlot[];
@@ -86,6 +88,7 @@ export function BillSplitPanel({
   splitGuidance,
   splitMode,
   splitLocked,
+  modeChipsLocked,
   submitting,
   personCount,
   results,
@@ -105,8 +108,9 @@ export function BillSplitPanel({
   staffRowActions,
   byItemContent,
 }: Props) {
+  const chipsLocked = modeChipsLocked ?? splitLocked;
   const selectedWhen =
-    splitMode === 'even' || splitMode === 'by_item'
+      splitMode === 'even' || splitMode === 'by_item'
       ? splitGuidance.modes[splitMode].when
       : null;
 
@@ -119,7 +123,7 @@ export function BillSplitPanel({
             <button
               key={mode}
               type="button"
-              disabled={submitting || splitLocked}
+              disabled={submitting || chipsLocked}
               onClick={() => onSplitModeClick(mode)}
               className={`py-2.5 rounded-xl text-sm border transition-all ${
                 splitMode === mode || (mode === 'whole_table' && splitMode == null)
@@ -131,7 +135,7 @@ export function BillSplitPanel({
             </button>
           ))}
         </div>
-        {splitLocked ? (
+        {chipsLocked ? (
           <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitPlanLocked}</p>
         ) : null}
         {(splitMode === 'whole_table' || splitMode == null) && !splitLocked ? (

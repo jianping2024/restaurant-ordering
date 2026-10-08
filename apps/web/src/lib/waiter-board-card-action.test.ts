@@ -8,6 +8,7 @@ import {
 
 describe('resolveWaiterBoardCardAction', () => {
   const detailHref = '/dashboard/waiter/table-1';
+  const checkoutHref = '/dashboard/checkout?table_id=table-1';
 
   it('idle + active buffets opens sheet', () => {
     const action = resolveWaiterBoardCardAction({
@@ -16,6 +17,7 @@ describe('resolveWaiterBoardCardAction', () => {
       supportsBuffetOpenTable: true,
       canOpenTableSession: true,
       detailHref,
+      checkoutHref,
     });
     assert.equal(action.kind, 'open_table_sheet');
   });
@@ -27,6 +29,7 @@ describe('resolveWaiterBoardCardAction', () => {
       supportsBuffetOpenTable: true,
       canOpenTableSession: false,
       detailHref,
+      checkoutHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });
   });
@@ -38,6 +41,7 @@ describe('resolveWaiterBoardCardAction', () => {
       supportsBuffetOpenTable: false,
       canOpenTableSession: true,
       detailHref,
+      checkoutHref,
     });
     assert.deepEqual(action, { kind: 'disabled', reason: 'no_buffet_config' });
   });
@@ -49,19 +53,21 @@ describe('resolveWaiterBoardCardAction', () => {
       supportsBuffetOpenTable: true,
       canOpenTableSession: true,
       detailHref,
+      checkoutHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });
   });
 
-  it('checkout on desk roles opens checkout sheet', () => {
+  it('checkout on desk roles navigates to checkout queue', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
       canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
       canOpenTableSession: true,
       detailHref,
+      checkoutHref,
     });
-    assert.deepEqual(action, { kind: 'open_checkout_sheet' });
+    assert.deepEqual(action, { kind: 'navigate', href: checkoutHref });
   });
 
   it('checkout on waiter is display-only', () => {
@@ -71,6 +77,7 @@ describe('resolveWaiterBoardCardAction', () => {
       supportsBuffetOpenTable: true,
       canOpenTableSession: true,
       detailHref,
+      checkoutHref,
     });
     assert.deepEqual(action, { kind: 'disabled', reason: 'waiter_checkout' });
     assert.equal(isWaiterBoardCardInteractive(action), false);
@@ -78,8 +85,11 @@ describe('resolveWaiterBoardCardAction', () => {
 });
 
 describe('waiterBoardCardActionLabelKey', () => {
-  it('maps checkout sheet label on dashboard', () => {
-    const key = waiterBoardCardActionLabelKey({ kind: 'open_checkout_sheet' }, 'checkout');
+  it('maps checkout navigate label on dashboard', () => {
+    const key = waiterBoardCardActionLabelKey(
+      { kind: 'navigate', href: '/dashboard/checkout?table_id=t1' },
+      'checkout',
+    );
     assert.equal(key, 'cardActionCheckout');
   });
 

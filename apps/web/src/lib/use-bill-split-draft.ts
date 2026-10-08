@@ -31,8 +31,10 @@ import {
   defaultSplitPersonNames,
   ensureSplitPersonNames,
   isCheckoutSplitLocked,
+  isStaffCheckoutSplitModeFrozen,
   resolveContinuationSplitShape,
   splitDraftPersonCount,
+  staffMayChangeCheckoutSplitMode,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
@@ -368,6 +370,12 @@ export function useBillSplitDraft(params: {
     () => isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive),
     [lockAnchorSplit, collectedLedgerActive],
   );
+  /** Mode chips: money lock or even/by_item already submitted. */
+  const modeChipsLocked = useMemo(
+    () =>
+      splitLocked || isStaffCheckoutSplitModeFrozen(lockAnchorSplit),
+    [splitLocked, lockAnchorSplit],
+  );
   const lockedPersonLineMins = useMemo(
     () =>
       splitLocked
@@ -447,22 +455,32 @@ export function useBillSplitDraft(params: {
 
   const handleSplitModeClick = useCallback(
     (mode: SplitMode) => {
-      if (submitting || splitLocked) return;
-      if (splitMode === mode) {
-        setSplitMode(null);
+      if (submitting || modeChipsLocked) return;
+      if (
+        !staffMayChangeCheckoutSplitMode({
+          existing: lockAnchorSplit,
+          nextMode: mode,
+          hasCollectedLedger: collectedLedgerActive,
+        })
+      ) {
         return;
       }
-      setSplitMode(mode);
+      // Same chip: keep selection (no null toggle that paints 整桌 while DB is even).
+      if (splitMode === mode || (mode === 'whole_table' && splitMode == null)) {
+        return;
+      }
+      setSplitMode(mode === 'whole_table' ? null : mode);
       if (mode === 'even') {
-        // personCount is the even size; layout effect then aligns roster via ensureSplitPersonNames.
         setPersonCount(
-          splitDraftPersonCount(Math.max(personCount, splitPeople.length)),
+          splitDraftPersonCount(Math.max(personCount, splitPeople.length, 1)),
         );
       }
     },
     [
       submitting,
-      splitLocked,
+      modeChipsLocked,
+      lockAnchorSplit,
+      collectedLedgerActive,
       splitMode,
       personCount,
       splitPeople,
@@ -569,6 +587,7 @@ export function useBillSplitDraft(params: {
     personCount,
     splitPeople,
     splitLocked,
+    modeChipsLocked,
     lockedPersonLineMins,
     lockedPersonNames,
     splitDraftInput,

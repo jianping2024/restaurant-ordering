@@ -3,7 +3,6 @@ import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 
 export type WaiterBoardCardAction =
   | { kind: 'open_table_sheet' }
-  | { kind: 'open_checkout_sheet' }
   | { kind: 'navigate'; href: string }
   | { kind: 'disabled'; reason: 'no_buffet_config' | 'waiter_checkout' };
 
@@ -18,6 +17,8 @@ export function resolveWaiterBoardCardAction(input: {
   /** Sole tables.open_session — idle open-table sheet. */
   canOpenTableSession: boolean;
   detailHref: string;
+  /** Pending checkout → sole `/dashboard/checkout` queue (with list). */
+  checkoutHref: string;
 }): WaiterBoardCardAction {
   const {
     boardState,
@@ -25,11 +26,12 @@ export function resolveWaiterBoardCardAction(input: {
     supportsBuffetOpenTable,
     canOpenTableSession,
     detailHref,
+    checkoutHref,
   } = input;
 
   if (boardState === 'checkout') {
     if (isWaiterBoardTableCardClickable(canOpenCheckoutPendingTables, boardState)) {
-      return { kind: 'open_checkout_sheet' };
+      return { kind: 'navigate', href: checkoutHref };
     }
     return { kind: 'disabled', reason: 'waiter_checkout' };
   }
@@ -63,7 +65,7 @@ export function waiterBoardCardActionLabelKey(
     return 'checkoutPendingSubtitle';
   }
   if (action.kind === 'open_table_sheet') return 'cardActionOpenTable';
-  if (action.kind === 'open_checkout_sheet') return 'cardActionCheckout';
+  if (action.kind === 'navigate' && boardState === 'checkout') return 'cardActionCheckout';
   if (boardState === 'idle') return 'cardActionOpenTable';
   if (boardState === 'dining') return 'cardActionViewOrder';
   return 'cardActionViewOrder';

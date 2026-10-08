@@ -5,7 +5,6 @@ import {
   STAFF_TOP_BAR_CONTENT_HEIGHT,
   STAFF_TOP_BAR_TOTAL_HEIGHT,
   STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS,
-  checkoutSettlementBarSheetStickyShellClass,
   checkoutSettlementBarStickyShellClass,
   dashboardStickyToolbarShellClass,
   staffTopBarChrome,
@@ -66,19 +65,6 @@ describe('checkoutSettlementBarStickyShellClass', () => {
     );
     assert.match(checkoutSettlementBarStickyShellClass, /bg-brand-bg/);
     assert.doesNotMatch(checkoutSettlementBarStickyShellClass, /bg-brand-card/);
-  });
-});
-
-describe('checkoutSettlementBarSheetStickyShellClass', () => {
-  it('sticks at scrollport top under board sheet header — bare top-0 + same brand-bg fill', () => {
-    assert.match(checkoutSettlementBarSheetStickyShellClass, /sticky/);
-    assert.match(checkoutSettlementBarSheetStickyShellClass, /\btop-0\b/);
-    assert.doesNotMatch(
-      checkoutSettlementBarSheetStickyShellClass,
-      /top-\[calc\(3\.5rem/,
-    );
-    assert.match(checkoutSettlementBarSheetStickyShellClass, /bg-brand-bg/);
-    assert.doesNotMatch(checkoutSettlementBarSheetStickyShellClass, /bg-brand-card/);
   });
 });
 

@@ -75,12 +75,12 @@ type Props = {
   detailLocked: boolean;
   resumeOperating: boolean;
   resumeBlockReason: string | null;
-  showPathBack: boolean;
+  /** Leave checkout → table detail (sole cancel). */
   onCancel: () => void;
   /** Mobile back to queue — rendered inside sticky SettlementBar chrome. */
   showBackButton?: boolean;
   onBack?: () => void;
-  /** Sticky shell for SettlementBar — default under staff top bar; board sheet overrides. */
+  /** Sticky shell for SettlementBar — default under staff top bar. */
   stickyShellClass?: string;
   /** Sole discount commit from IntegerInput onChange (blur parse). */
   onDiscountRateCommit: (rate: number) => void;
@@ -94,6 +94,7 @@ type Props = {
     personName?: string,
     partyId?: string,
     preDiscountAmount?: number,
+    wholeTable?: boolean,
   ) => void;
   onSplitPersisted: (row: BillSplit) => void;
   /**
@@ -135,7 +136,6 @@ export function StaffCheckoutSplitEditor({
   detailLocked,
   resumeOperating,
   resumeBlockReason,
-  showPathBack,
   onCancel,
   showBackButton = false,
   onBack,
@@ -349,24 +349,23 @@ export function StaffCheckoutSplitEditor({
     persons: BillSplit['persons'];
     result: SplitResult[];
   } | null> => {
-    if (!splitDraft.splitMode) {
-      showToast(billT.splitUnassignedItems, 'error');
-      return null;
-    }
+    const effectiveMode = splitDraft.splitMode ?? 'whole_table';
     const draftInput =
       splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput;
     const allocations =
-      splitDraft.splitMode === 'by_item'
+      effectiveMode === 'by_item'
         ? buildByItemAllocationsFromRows(lineSpecs, splitDraft.byItemAllocations)
         : undefined;
     const poolComplete =
-      splitDraft.splitMode === 'by_item' &&
+      effectiveMode === 'by_item' &&
       allocations != null &&
       byItemPoolFullyAllocated(lineSpecs, allocations);
-    const allowPartialByItem = splitDraft.splitMode === 'by_item' && !poolComplete;
-    const validated = validateSubmitSplitDraft(draftInput, sessionOrders, {
-      allowPartialByItem,
-    });
+    const allowPartialByItem = effectiveMode === 'by_item' && !poolComplete;
+    const validated = validateSubmitSplitDraft(
+      { ...draftInput, splitMode: effectiveMode },
+      sessionOrders,
+      { allowPartialByItem },
+    );
     if (!validated.ok) {
       const msg =
         validated.issue === 'unassigned_items'
@@ -378,11 +377,11 @@ export function StaffCheckoutSplitEditor({
       return null;
     }
     const resultPayload =
-      splitDraft.splitMode === 'by_item'
+      effectiveMode === 'by_item'
         ? applyCollectedObligationFloors(validated.submitResults, collectedPayments)
         : validated.submitResults;
     const persons = buildSubmitPersons({
-      splitMode: splitDraft.splitMode,
+      splitMode: effectiveMode,
       submitResults: resultPayload,
       splitPeople: splitDraft.splitPeople,
       buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
@@ -390,7 +389,7 @@ export function StaffCheckoutSplitEditor({
     const outcome = await requestCheckoutRequest({
       slug: restaurantSlug,
       tableId: request.table_id,
-      splitMode: splitDraft.splitMode,
+      splitMode: effectiveMode,
       persons,
       result: resultPayload,
       allowPartialByItem,
@@ -414,7 +413,7 @@ export function StaffCheckoutSplitEditor({
     onSplitPersisted({
       ...request,
       id: outcome.bill_split_id,
-      split_mode: splitDraft.splitMode,
+      split_mode: effectiveMode,
       persons,
       result: outcome.result,
       status: 'requested',
@@ -492,7 +491,7 @@ export function StaffCheckoutSplitEditor({
   );
 
   useEffect(() => {
-    if (splitDraft.splitMode === 'by_item') {
+    if ((splitDraft.splitMode ?? 'whole_table') === 'by_item') {
       onRegisterPersist(async () => {
         setSubmitting(true);
         try {
@@ -636,9 +635,17 @@ export function StaffCheckoutSplitEditor({
         showToast(checkoutT.cashShort, 'error');
         return;
       }
-      onCollectPerson(index, collectAmount, personName, partyId, preDiscountAmount);
+      const effectiveMode = splitDraft.splitMode ?? 'whole_table';
+      onCollectPerson(
+        index,
+        collectAmount,
+        personName,
+        partyId,
+        preDiscountAmount,
+        effectiveMode === 'whole_table',
+      );
     },
-    [checkoutT.cashShort, onCollectPerson],
+    [checkoutT.cashShort, onCollectPerson, splitDraft.splitMode],
   );
 
   return (
@@ -680,6 +687,7 @@ export function StaffCheckoutSplitEditor({
         splitGuidance={getGuestSplitGuidance(lang)}
         splitMode={splitDraft.splitMode}
         splitLocked={splitDraft.splitLocked}
+        modeChipsLocked={splitDraft.modeChipsLocked}
         submitting={submitting}
         personCount={splitDraft.personCount}
         splitPeople={splitDraft.splitPeople}
@@ -707,8 +715,9 @@ export function StaffCheckoutSplitEditor({
           splitDraft.setEditingSplitNameValue('');
         }}
         staffRowActions={
-          splitDraft.splitMode === 'even'
-            ? {
+          splitDraft.splitMode === 'by_item'
+            ? undefined
+            : {
                 collectLabel: checkoutT.collectPerson,
                 busy: submitting || detailLocked,
                 discountRate,
@@ -728,7 +737,6 @@ export function StaffCheckoutSplitEditor({
                   );
                 },
               }
-            : undefined
         }
         byItemContent={(
           <StaffByItemSplitWorkbench
@@ -793,13 +801,11 @@ export function StaffCheckoutSplitEditor({
         resumeBlockReason={resumeBlockReason}
         onResumeOrderingClick={onResumeOrderingClick}
         leading={
-          showPathBack ? (
-            <CheckoutPathChooserBackButton
-              label={checkoutT.pathChooserBack}
-              onClick={onCancel}
-              disabled={submitting || detailLocked}
-            />
-          ) : null
+          <CheckoutPathChooserBackButton
+            label={checkoutT.pathChooserBack}
+            onClick={onCancel}
+            disabled={submitting || detailLocked}
+          />
         }
       />
       </div>

@@ -34,7 +34,6 @@ type Props = {
   lang: UILanguage;
   pinned?: boolean;
   onOpenTable: () => void;
-  onOpenCheckout: () => void;
   onDisabledClick: () => void;
 };
 
@@ -64,7 +63,6 @@ export function WaiterBoardTableCard({
   lang,
   pinned = false,
   onOpenTable,
-  onOpenCheckout,
   onDisabledClick,
 }: Props) {
   const router = useRouter();
@@ -192,19 +190,6 @@ export function WaiterBoardTableCard({
   if (action.kind === 'open_table_sheet') {
     return (
       <button type="button" className={cardClassName} aria-label={view.ariaLabel} onClick={onOpenTable}>
-        {body}
-      </button>
-    );
-  }
-
-  if (action.kind === 'open_checkout_sheet') {
-    return (
-      <button
-        type="button"
-        className={cardClassName}
-        aria-label={view.ariaLabel}
-        onClick={onOpenCheckout}
-      >
         {body}
       </button>
     );

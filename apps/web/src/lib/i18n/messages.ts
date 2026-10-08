@@ -1705,7 +1705,7 @@ export const MESSAGES = {
       details: '账单明细',
       total: '合计',
       chargeableHint: '超出免费份数，{qty} 份 × €{price} 计费',
-      splitMode: '分单方式',
+      splitMode: '结账方式',
       people: '人数',
       removePerson: '删除人员',
       splitResult: '分单结果',

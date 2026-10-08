@@ -16,7 +16,7 @@ import {
 import { displaySplitPersonName } from '@/lib/split-person-identity';
 import { mintSplitPartyId, splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import { stampMissingPaidLockedAmounts } from '@/lib/stamp-paid-locked-amounts';
-import type { BillSplit, SplitPerson } from '@/types';
+import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import {
   isShapeLockSplitMode,
@@ -66,11 +66,11 @@ export type ContinuationSplitShape = {
 };
 
 /**
- * Sole even roster size gate: min/default 2; cap 20.
+ * Sole even roster size gate: min/default 1; cap 20.
  * Pass `requested` to clamp an existing length; omit to get the default.
  */
 export function splitDraftPersonCount(requested?: number): number {
-  const min = 2;
+  const min = 1;
   const raw =
     requested == null || !Number.isFinite(requested) ? min : requested;
   return Math.min(20, Math.max(min, Math.round(raw)));
@@ -151,6 +151,34 @@ export function isCheckoutSplitLocked(
   if (hasPaidSplitRow(split)) return true;
   if (hasCollectedLedger) return true;
   return false;
+}
+
+/**
+ * Staff mode chips: even/by_item already on the wire cannot change mode
+ * (including back to whole_table). Whole_table unpaid stays switchable.
+ * Money lock is separate — {@link isCheckoutSplitLocked}.
+ */
+export function isStaffCheckoutSplitModeFrozen(
+  split: BillSplit | null | undefined,
+): boolean {
+  if (!split) return false;
+  const mode = parseSplitMode(split.split_mode);
+  return mode === 'even' || mode === 'by_item';
+}
+
+/** Sole staff gate: may this persisted plan accept a different splitMode? */
+export function staffMayChangeCheckoutSplitMode(params: {
+  existing: BillSplit | null | undefined;
+  nextMode: SplitMode;
+  hasCollectedLedger: boolean;
+}): boolean {
+  const { existing, nextMode, hasCollectedLedger } = params;
+  if (isCheckoutSplitLocked(existing, hasCollectedLedger)) return false;
+  if (isStaffCheckoutSplitModeFrozen(existing)) return false;
+  const current = existing ? parseSplitMode(existing.split_mode) : null;
+  if (current === nextMode) return true;
+  // Unpaid whole_table (or no plan) may pick any mode including whole_table.
+  return true;
 }
 
 /**
@@ -610,12 +638,25 @@ export function validateCheckoutContinuation(params: {
   collectedPayments?: SessionCollectedPayment[];
 }): { ok: true } | { ok: false; issue: CheckoutContinuationIssue } {
   const { existing, payload, lineSpecs, hasCollectedLedger, collectedPayments = [] } = params;
+  const existingMode = parseSplitMode(existing.split_mode);
+  const incomingMode = payload.splitMode;
+
+  if (
+    existingMode &&
+    incomingMode !== existingMode &&
+    !staffMayChangeCheckoutSplitMode({
+      existing,
+      nextMode: incomingMode,
+      hasCollectedLedger,
+    })
+  ) {
+    return { ok: false, issue: 'split_mode_locked' };
+  }
+
   if (!isCheckoutSplitLocked(existing, hasCollectedLedger)) {
     return { ok: true };
   }
 
-  const existingMode = parseSplitMode(existing.split_mode);
-  const incomingMode = payload.splitMode;
   if (existingMode && incomingMode !== existingMode) {
     return { ok: false, issue: 'split_mode_locked' };
   }

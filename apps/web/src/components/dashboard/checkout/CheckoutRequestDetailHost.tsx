@@ -25,6 +25,7 @@ import { splitPartyKey } from '@/lib/split-party-id';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 import {
   hasConfirmedPerson,
+  isByItemPerTicketCheckoutPlan,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
   type SessionCollectedPayment,
@@ -258,10 +259,10 @@ export function CheckoutRequestDetailHost({
       collecting: t.resumeOrderingTicketCollecting,
     },
   });
-  const isIndividualPlan = request.individual_tickets !== undefined;
+  const isByItemPerTicket = isByItemPerTicketCheckoutPlan(request);
   const ticketUnlock = useMemo<StaffTicketUnlock | undefined>(
     () =>
-      isIndividualPlan
+      isByItemPerTicket
         ? {
             unlockableKeys: unlockableIndividualTicketKeys(
               request,
@@ -273,7 +274,7 @@ export function CheckoutRequestDetailHost({
             busyLabel: t.resumeOrderingOperating,
           }
         : undefined,
-    [getCollectedForSession, isIndividualPlan, request, t, unlockTicket, unlockingKeys],
+    [getCollectedForSession, isByItemPerTicket, request, t, unlockTicket, unlockingKeys],
   );
   const discountReasonOptionsList = useMemo(
     () => abnormalReasonOptions(lang, 'discount'),
@@ -700,10 +701,16 @@ export function CheckoutRequestDetailHost({
           <CheckoutPathChooser
             wholeTableLabel={t.pathChooserWholeTable}
             splitLabel={t.pathChooserSplit}
-            resumeLabel={isIndividualPlan ? undefined : t.resumeOrdering}
+            resumeLabel={
+              resumeBlockReason === 'individual_session' ? undefined : t.resumeOrdering
+            }
             onWholeTable={() => setPathChoice('whole_table')}
             onSplit={() => setPathChoice('split')}
-            onResume={isIndividualPlan ? undefined : () => setResumeConfirmOpen(true)}
+            onResume={
+              resumeBlockReason === 'individual_session'
+                ? undefined
+                : () => setResumeConfirmOpen(true)
+            }
           />
         </div>
       ) : null}

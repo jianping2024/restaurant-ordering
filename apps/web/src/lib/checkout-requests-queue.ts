@@ -39,8 +39,11 @@ export async function fetchCheckoutRequestsQueue(
     });
     byPlan.set(call.bill_split_id as string, list);
   }
+  // Sole hydrate rule: attach call rows only for by_item (never whole_table/even).
   return rows.map((row) =>
-    byPlan.has(row.id) ? { ...row, individual_tickets: byPlan.get(row.id) } : row,
+    row.split_mode === 'by_item' && byPlan.has(row.id)
+      ? { ...row, individual_tickets: byPlan.get(row.id) }
+      : row,
   );
 }
 

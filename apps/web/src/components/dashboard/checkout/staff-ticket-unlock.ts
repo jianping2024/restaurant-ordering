@@ -1,5 +1,8 @@
 import { allocationLockedTicketKeys } from '@/lib/checkout-split-continuation';
-import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import {
+  isByItemPerTicketCheckoutPlan,
+  type SessionCollectedPayment,
+} from '@/lib/checkout-session-payments';
 import type { BillSplit } from '@/types';
 
 /**
@@ -16,10 +19,12 @@ export type StaffTicketUnlock = {
 
 /** Called tickets with no payment yet — the only ones staff (or the guest) may send back to draft. */
 export function unlockableIndividualTicketKeys(
-  split: Pick<BillSplit, 'individual_tickets' | 'result' | 'persons'>,
+  split: Pick<BillSplit, 'split_mode' | 'individual_tickets' | 'result' | 'persons'>,
   collectedPayments: SessionCollectedPayment[],
 ): ReadonlySet<string> {
-  if (!split.individual_tickets) return new Set();
+  if (!isByItemPerTicketCheckoutPlan(split) || !split.individual_tickets) {
+    return new Set();
+  }
   const collected = allocationLockedTicketKeys(
     split as BillSplit,
     collectedPayments,

@@ -4,9 +4,11 @@ import type { BillSplit } from '@/types';
 import {
   collectibleSplitRowsWithIndex,
   hasConfirmedPerson,
+  isByItemPerTicketCheckoutPlan,
   isSplitRowCollectible,
   parseSessionCollectedPayments,
   reconcileSplitResultPaid,
+  resumeCheckoutBlockReason,
   suggestedCollectionAmount,
   sumCollectedByPersonIndex,
   totalCollectedAmount,
@@ -195,5 +197,52 @@ describe('totalCollectedAmount', () => {
 describe('billSplit placeholder', () => {
   it('keeps test helper referenced', () => {
     assert.equal(billSplit().display_name, 'A-01');
+  });
+});
+
+describe('isByItemPerTicketCheckoutPlan', () => {
+  it('is true only for by_item (ignores stray call hydrate on other modes)', () => {
+    assert.equal(isByItemPerTicketCheckoutPlan(billSplit({ split_mode: 'whole_table' })), false);
+    assert.equal(
+      isByItemPerTicketCheckoutPlan(
+        billSplit({
+          split_mode: 'whole_table',
+          individual_tickets: [{ ticket_key: 'n:__whole_table__', name: '__whole_table__', state: 'called' }],
+        }),
+      ),
+      false,
+    );
+    assert.equal(isByItemPerTicketCheckoutPlan(billSplit({ split_mode: 'even' })), false);
+    assert.equal(isByItemPerTicketCheckoutPlan(billSplit({ split_mode: 'by_item' })), true);
+  });
+});
+
+describe('resumeCheckoutBlockReason', () => {
+  it('does not treat whole_table call rows as individual_session', () => {
+    assert.equal(
+      resumeCheckoutBlockReason(
+        billSplit({
+          split_mode: 'whole_table',
+          result: [{ name: '__whole_table__', amount: 10 }],
+          individual_tickets: [
+            { ticket_key: 'n:__whole_table__', name: '__whole_table__', state: 'called' },
+          ],
+        }),
+        [],
+      ),
+      null,
+    );
+  });
+
+  it('blocks session resume for by_item without staff takeover; keeps it when staff took over', () => {
+    const byItem = billSplit({ split_mode: 'by_item' });
+    assert.equal(resumeCheckoutBlockReason(byItem, []), 'individual_session');
+    assert.equal(
+      resumeCheckoutBlockReason(
+        { ...byItem, staff_checkout_requested_at: '2026-10-08T12:00:00.000Z' },
+        [],
+      ),
+      null,
+    );
   });
 });

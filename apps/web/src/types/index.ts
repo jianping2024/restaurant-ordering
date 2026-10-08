@@ -394,8 +394,13 @@ export interface BillSplit {
   /** Plan revision (bumped on every write) — optimistic concurrency for individual checkout. */
   revision?: number;
   /**
-   * Staff queue only, individual-checkout sessions: call state per ticket (no phone id).
-   * Undefined for ordinary whole-table / legacy plans.
+   * Staff took over checkout (floor 呼叫结账 / by-item hold-open collect).
+   * Cleared only by resume_table_session_ordering.
+   */
+  staff_checkout_requested_at?: string | null;
+  /**
+   * Staff queue hydrate: by_item ticket call rows only (no phone id).
+   * Undefined unless `split_mode === 'by_item'` and calls exist — never attach for whole_table/even.
    */
   individual_tickets?: Array<{
     ticket_key: string;

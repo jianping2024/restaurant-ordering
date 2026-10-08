@@ -213,6 +213,16 @@ export type ResumeOrderingConfirmVariant =
   | 'preserve_with_collections'
   | 'cancel_no_collections';
 
+/**
+ * Sole staff gate: by_item plans are per-ticket (unlock vs session resume).
+ * Whole-table / even never count as per-ticket — session resume-ordering owns restore.
+ * Call-row hydrate is separate (`individual_tickets`); unlock keys need those rows.
+ */
+export function isByItemPerTicketCheckoutPlan(
+  split: Pick<BillSplit, 'split_mode'>,
+): boolean {
+  return split.split_mode === 'by_item';}
+
 export function resumeOrderingConfirmVariant(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],
@@ -228,8 +238,11 @@ export function resumeCheckoutBlockReason(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],
 ): ResumeCheckoutBlockReason | null {
-  // Individual-checkout plans resume per ticket (「解锁」), never as a whole table.
-  if (split.individual_tickets) return 'individual_session';
+  // By-item without staff takeover: unlock only. Staff takeover keeps session resume
+  // (sole clearer of staff_checkout_requested_at).
+  if (isByItemPerTicketCheckoutPlan(split) && !split.staff_checkout_requested_at) {
+    return 'individual_session';
+  }
   if (!isWholeTableSplit(split)) return null;
   if (hasConfirmedPerson(split)) return 'whole_table_paid';
   if (collectedPayments.length > 0) return 'whole_table_paid';

@@ -29,6 +29,21 @@ describe('unlockableIndividualTicketKeys', () => {
     assert.equal(unlockableIndividualTicketKeys(split({}), []).size, 0);
   });
 
+  it('is empty for whole_table even when call rows were hydrated', () => {
+    assert.equal(
+      unlockableIndividualTicketKeys(
+        split({
+          split_mode: 'whole_table',
+          individual_tickets: [
+            { ticket_key: 'n:__whole_table__', name: '__whole_table__', state: 'called' },
+          ],
+        }),
+        [],
+      ).size,
+      0,
+    );
+  });
+
   it('keeps called, unpaid tickets and drops unlocked / paid / collected ones', () => {
     const keys = unlockableIndividualTicketKeys(
       split({

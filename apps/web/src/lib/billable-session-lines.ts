@@ -407,8 +407,8 @@ export function collectBillableCatalogLatestAtByKey(orders: Order[]): Map<string
 }
 
 /**
- * Sole waiter-detail ordered-items sort: money rows first, then €0; within each
- * band, latest catalog time descending.
+ * Sole waiter-detail ordered-items sort: buffet headcount first, then charged
+ * money rows, then €0; within each band, latest catalog time descending.
  */
 export function sortBillableSessionItemsForWaiterDetail(
   rows: readonly BillableSessionItem[],
@@ -416,6 +416,9 @@ export function sortBillableSessionItemsForWaiterDetail(
 ): BillableSessionItem[] {
   const latestByKey = collectBillableCatalogLatestAtByKey(orders);
   return [...rows].sort((a, b) => {
+    const headA = isBuffetBaseItem(a.item) ? 0 : 1;
+    const headB = isBuffetBaseItem(b.item) ? 0 : 1;
+    if (headA !== headB) return headA - headB;
     const bandA = isBillableSessionRowOnPaper(a) ? 0 : 1;
     const bandB = isBillableSessionRowOnPaper(b) ? 0 : 1;
     if (bandA !== bandB) return bandA - bandB;

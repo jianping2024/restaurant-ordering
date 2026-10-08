@@ -535,4 +535,74 @@ describe('paper billable rows + waiter detail sort', () => {
       ['new-paid', 'old-paid', 'free'],
     );
   });
+
+  it('sorts waiter detail: headcount first, then charged by time, then free by time', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        created_at: '2026-01-01T00:00:00.000Z',
+        items: [
+          {
+            id: 'buffet:1',
+            kind: 'buffet_base' as const,
+            name: 'Buffet livre',
+            name_pt: 'Buffet livre',
+            qty: 1,
+            price: 55.9,
+            emoji: '',
+            adult_count: 2,
+            child_count: 2,
+            buffet_id: 'b1',
+            added_at: '2026-01-01T00:00:01.000Z',
+          },
+          {
+            id: 'old-paid',
+            name: 'Soup',
+            name_pt: 'Soup',
+            qty: 1,
+            price: 3,
+            emoji: '',
+            added_at: '2026-01-01T00:00:10.000Z',
+          },
+          {
+            id: 'free-old',
+            name: 'Free old',
+            name_pt: 'Free old',
+            qty: 1,
+            price: 0,
+            emoji: '',
+            added_at: '2026-01-01T00:00:20.000Z',
+          },
+          {
+            id: 'new-paid',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '',
+            added_at: '2026-01-01T00:00:50.000Z',
+          },
+          {
+            id: 'free-new',
+            name: 'Free new',
+            name_pt: 'Free new',
+            qty: 1,
+            price: 0,
+            emoji: '',
+            added_at: '2026-01-01T00:00:99.000Z',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const sorted = sortBillableSessionItemsForWaiterDetail(
+      buildBillableSessionItems(orders),
+      orders,
+    );
+    assert.deepEqual(
+      sorted.map((r) => r.item.id),
+      ['buffet:1', 'new-paid', 'old-paid', 'free-new', 'free-old'],
+    );
+  });
 });

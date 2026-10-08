@@ -78,6 +78,7 @@ import type { Capabilities } from '@/lib/permissions/can';
 import {
   canReturnToCheckoutPathChooser,
   CheckoutPathChooser,
+  initialStaffCheckoutPathChoice,
   resolveCheckoutDetailPhase,
   type StaffCheckoutPathChoice,
 } from '@/components/dashboard/checkout/checkout-detail-phase';
@@ -121,7 +122,9 @@ export function CheckoutRequestDetailHost({
     /** Ticket pre-discount obligation for collect modal discount line. */
     preDiscountAmount?: number;
   } | null>(null);
-  const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
+  const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>(() =>
+    initialStaffCheckoutPathChoice(request.split_mode),
+  );
   const {
     reload,
     getCollectedForSession,

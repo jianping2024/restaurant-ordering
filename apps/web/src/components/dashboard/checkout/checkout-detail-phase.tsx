@@ -7,6 +7,16 @@ export type CheckoutDetailPhase = 'path_chooser' | 'split_edit' | 'settle';
 /** Sole staff path choice while whole_table + zero collected (before settle). */
 export type StaffCheckoutPathChoice = 'undecided' | 'whole_table' | 'split';
 
+/**
+ * Sole initial pathChoice when opening checkout detail.
+ * whole_table → settle immediately; cancel still returns to path_chooser via undecided.
+ */
+export function initialStaffCheckoutPathChoice(
+  splitMode: SplitMode | string,
+): StaffCheckoutPathChoice {
+  return splitMode === 'whole_table' ? 'whole_table' : 'undecided';
+}
+
 /** Sole phase resolver for checkout detail staff path / split edit / settle. */
 export function resolveCheckoutDetailPhase(input: {
   splitMode: SplitMode | string;

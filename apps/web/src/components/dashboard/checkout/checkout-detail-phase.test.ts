@@ -2,10 +2,17 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   canReturnToCheckoutPathChooser,
+  initialStaffCheckoutPathChoice,
   resolveCheckoutDetailPhase,
 } from './checkout-detail-phase';
 
 describe('checkout-detail-phase', () => {
+  it('initial pathChoice opens whole_table on settle; other modes stay undecided', () => {
+    assert.equal(initialStaffCheckoutPathChoice('whole_table'), 'whole_table');
+    assert.equal(initialStaffCheckoutPathChoice('even'), 'undecided');
+    assert.equal(initialStaffCheckoutPathChoice('by_item'), 'undecided');
+  });
+
   it('resolves path_chooser / split_edit / settle for whole_table zero collect', () => {
     assert.equal(
       resolveCheckoutDetailPhase({

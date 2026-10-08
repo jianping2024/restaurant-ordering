@@ -36,6 +36,7 @@ import {
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-ordering-gate';
+import { logCheckoutResumeFailure } from '@/lib/checkout-resume-failure-log';
 import {
   messageForCheckoutErrorOverrides,
   messageForCheckoutRequestError,
@@ -205,6 +206,13 @@ export function CheckoutRequestDetailHost({
       },
     });
     if (!prepared.ok) {
+      logCheckoutResumeFailure({
+        stage: 'prepare',
+        error: prepared.code,
+        slug: restaurantSlug,
+        table_id: request.table_id,
+        session_id: request.session_id ?? undefined,
+      });
       if (prepared.code === 'default_guest_names') {
         showToast(t.resumeOrderingNeedRealNames, 'error');
       }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { CHECKOUT_REDIRECT_TIMEOUT_MS } from '@/lib/checkout-request-submit';
 import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
+import { logCheckoutResumeFailure } from '@/lib/checkout-resume-failure-log';
 import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
 import { waiterTableHref } from '@/lib/staff-routes';
 
@@ -73,6 +74,11 @@ export function useCheckoutResumeOrdering(params: Params) {
   const resumeOrdering = useCallback(async () => {
     if (inFlightRef.current || phaseRef.current !== 'idle') return;
     if (!restaurantSlug) {
+      logCheckoutResumeFailure({
+        stage: 'client',
+        error: 'missing_slug',
+        table_id: tableId,
+      });
       showToast(messages.failed, 'error');
       return;
     }
@@ -84,6 +90,7 @@ export function useCheckoutResumeOrdering(params: Params) {
     try {
       if (beforeResume) {
         const flushed = await beforeResume();
+        // Prepare gate logs its own failure reason; do not double-log here.
         if (!flushed) return;
       }
       const outcome = await requestCheckoutResumeOrdering({
@@ -91,6 +98,12 @@ export function useCheckoutResumeOrdering(params: Params) {
         tableId,
       });
       if (!outcome.ok) {
+        logCheckoutResumeFailure({
+          stage: 'client',
+          error: outcome.error,
+          slug: restaurantSlug,
+          table_id: tableId,
+        });
         const message = messageForCheckoutErrorOverrides(
           outcome.error,
           { whole_table_paid: messages.blockedWholeTable },
@@ -106,6 +119,12 @@ export function useCheckoutResumeOrdering(params: Params) {
       setPhaseSafe('exiting');
       router.replace(exitHref);
     } catch {
+      logCheckoutResumeFailure({
+        stage: 'client',
+        error: 'client_exception',
+        slug: restaurantSlug,
+        table_id: tableId,
+      });
       showToast(messages.failed, 'error');
     } finally {
       if (!keepBusyAfterMutate) {
@@ -138,12 +157,26 @@ export function useCheckoutResumeOrdering(params: Params) {
     if (phase !== 'exiting') return;
     const timer = window.setTimeout(() => {
       if (phaseRef.current !== 'exiting') return;
+      logCheckoutResumeFailure({
+        stage: 'client',
+        error: 'redirect_timeout',
+        slug: restaurantSlug,
+        table_id: tableId,
+      });
       showToast(messages.redirectTimeout ?? messages.failed, 'error');
       setPhaseSafe('idle');
       inFlightRef.current = false;
     }, CHECKOUT_REDIRECT_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
-  }, [messages.failed, messages.redirectTimeout, phase, setPhaseSafe, showToast]);
+  }, [
+    messages.failed,
+    messages.redirectTimeout,
+    phase,
+    restaurantSlug,
+    setPhaseSafe,
+    showToast,
+    tableId,
+  ]);
 
   return {
     phase,

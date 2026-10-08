@@ -1,6 +1,6 @@
 /**
  * Sole structured console log line: `[channel] {"event":"…",…}`.
- * Used by order_append and waiter_buffet (and any future API event stream).
+ * Used by order_append, waiter_buffet, checkout_resume (and any future API event stream).
  */
 export function logJsonConsoleEvent(
   channel: string,

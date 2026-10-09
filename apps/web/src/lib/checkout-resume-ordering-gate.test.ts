@@ -237,4 +237,28 @@ describe('prepareStaffCheckoutResumeOrdering', () => {
       assert.equal(prepared.persons[0]?.name, 'Ana');
     }
   });
+
+  it('cancel_no_collections skips flush even when editor flush is registered', async () => {
+    const request = {
+      id: 'bs1',
+      split_mode: 'whole_table',
+      session_id: 's1',
+      table_id: 't1',
+      persons: [{ name: '__whole_table__' }],
+      result: [{ name: '__whole_table__', amount: 87.75 }],
+    } as BillSplit;
+
+    let flushed = false;
+    const prepared = await prepareStaffCheckoutResumeOrdering({
+      request,
+      collectedPayments: [],
+      flushDraft: async () => {
+        flushed = true;
+        return { persons: [], result: [] };
+      },
+      persistPrunedByItem: null,
+    });
+    assert.equal(flushed, false);
+    assert.equal(prepared.ok, true);
+  });
 });

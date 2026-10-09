@@ -45,7 +45,8 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     byItemPersonPartyIds,
   } = input;
 
-  if (!splitMode) {
+  // Sole whole-table mint: draft null and persisted `'whole_table'` share one result shape.
+  if (!splitMode || splitMode === 'whole_table') {
     return wholeTableSplitResult(total);
   }
 

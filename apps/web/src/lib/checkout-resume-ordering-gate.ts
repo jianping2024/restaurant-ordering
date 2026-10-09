@@ -67,8 +67,10 @@ type PersistPruned = (params: {
 }) => Promise<{ persons: SplitPerson[]; result: SplitResult[] } | null>;
 
 /**
- * Sole staff resume prepare: flush/prune empty unpaid by-item tickets first,
- * then block default serial names on remaining unpaid tickets worth preserving.
+ * Sole staff resume prepare:
+ * - cancel_no_collections → no flush (resume cancels the plan)
+ * - preserve → flush/prune empty unpaid by-item tickets, then block default
+ *   serial names on remaining unpaid tickets
  */
 export async function prepareStaffCheckoutResumeOrdering(params: {
   request: BillSplit;
@@ -110,7 +112,9 @@ export async function prepareStaffCheckoutResumeOrdering(params: {
     }
   }
 
-  if (params.flushDraft) {
+  // Cancel path (whole_table / even, zero collections): do not rewrite the plan —
+  // resume RPC cancels it. Flush only when the split will be preserved.
+  if (willPreserveSplit && params.flushDraft) {
     const flushed = await params.flushDraft();
     if (!flushed) return { ok: false, code: 'flush_failed' };
     persons = flushed.persons;

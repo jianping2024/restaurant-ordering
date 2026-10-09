@@ -12,6 +12,7 @@ import {
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
 import { AUDIT_EVENT, scheduleStaffRecordAudit } from '@/lib/audit';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
+import { scheduleOpenTableReceiptPrint } from '@/lib/open-table-receipt-enqueue';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -180,6 +181,13 @@ export async function POST(
           adultCount: result.adultCount ?? 0,
           childCount: result.childCount ?? 0,
         },
+      });
+      scheduleOpenTableReceiptPrint({
+        admin,
+        restaurantId: ctx.restaurant_id,
+        sessionId: result.sessionId,
+        tableId,
+        tableDisplayName: result.tableName || '—',
       });
     } else if (
       result.guestCountChanged === true &&

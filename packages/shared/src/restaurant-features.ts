@@ -3,7 +3,8 @@ export type RestaurantFeatureKey =
   | 'bill_receipt_print'
   | 'bill_sync_to_fiscal'
   | 'kitchen_serve_to_table'
-  | 'menu_flavor_hints_enabled';
+  | 'menu_flavor_hints_enabled'
+  | 'open_table_receipt_print';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
 export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen';
@@ -26,12 +27,14 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrint'
     | 'billSyncToFiscal'
     | 'kitchenServeToTable'
-    | 'menuFlavorHints';
+    | 'menuFlavorHints'
+    | 'openTableReceiptPrint';
   descKey:
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
-    | 'menuFlavorHintsDesc';
+    | 'menuFlavorHintsDesc'
+    | 'openTableReceiptPrintDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -62,6 +65,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'billReceiptPrint',
     descKey: 'billReceiptPrintDesc',
+  },
+  {
+    key: 'open_table_receipt_print',
+    moduleId: 'billing',
+    defaultEnabled: false,
+    labelKey: 'openTableReceiptPrint',
+    descKey: 'openTableReceiptPrintDesc',
   },
   {
     key: 'bill_sync_to_fiscal',

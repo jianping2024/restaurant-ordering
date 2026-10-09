@@ -65,6 +65,7 @@ describe('mergeRestaurantFeatureFlagsJsonb', () => {
     assert.equal(merged.geo_order_restriction, true);
     assert.equal(merged.kitchen_serve_to_table, true);
     assert.equal(merged.bill_receipt_print, false);
+    assert.equal(merged.open_table_receipt_print, false);
     assert.equal(merged.bill_sync_to_fiscal, false);
     assert.equal(merged.menu_flavor_hints_enabled, false);
   });
@@ -74,6 +75,7 @@ describe('normalizeRestaurantFeatureFlags', () => {
   it('applies defaults for missing keys', () => {
     const flags = normalizeRestaurantFeatureFlags({});
     assert.equal(flags.bill_receipt_print, false);
+    assert.equal(flags.open_table_receipt_print, false);
     assert.equal(flags.kitchen_serve_to_table, false);
     assert.equal(flags.bill_sync_to_fiscal, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);

@@ -10,7 +10,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { guestTablePlanHoldsCheckout } from '@/lib/guest-bill-split-mode';
 import {
-  guestBillSurfaceShowsSubmitted,
   resolveGuestBillSurfacePhase,
   type GuestBillSurfacePhase,
 } from '@/lib/guest-bill-surface-phase';
@@ -192,11 +191,10 @@ export function useCustomerBillReadModel(
       const nextPhase = resolveGuestBillSurfacePhase(
         phaseInputsFromSnapshot(synced, localCalledLatchRef.current, surfacePhaseRef.current),
       );
+      // Closed-table sync returns empty orders; keep the last meal on the settled screen
+      // whether the phone was already submitted or still on the call-checkout editor.
       const freezeSettledDisplay =
-        guestBillSurfaceShowsSubmitted(nextPhase) &&
-        !synced.sessionId &&
-        synced.orders.length === 0 &&
-        guestBillSurfaceShowsSubmitted(surfacePhaseRef.current);
+        nextPhase === 'settled' && !synced.sessionId && synced.orders.length === 0;
 
       if (freezeSettledDisplay) {
         setSessionId(null);

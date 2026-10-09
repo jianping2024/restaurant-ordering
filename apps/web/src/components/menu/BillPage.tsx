@@ -362,12 +362,17 @@ function GuestBillPage({
     />
   );
 
-  /** The called screen lists this phone's ticket (by-item) or the whole-table/even plan. */
+  /**
+   * Called / settled screen money: plan rows when present.
+   * Empty rows (e.g. closed-table sync cleared the split while orders were frozen) →
+   * null so the screen falls back to the frozen bill `total` — never `0 ?? total`.
+   */
   const calledMine = useMemo(() => {
     if (!billSubmitted) return null;
     const results = (liveSplit?.result ?? []) as SplitResult[];
     if (guestMode !== 'by_item') {
       const rows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total);
+      if (rows.length === 0) return null;
       return {
         rows,
         total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
@@ -382,6 +387,7 @@ function GuestBillPage({
         return !!row && mineKeys.has(splitResultTicketKey(row));
       },
     );
+    if (rows.length === 0) return null;
     return {
       rows,
       total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,

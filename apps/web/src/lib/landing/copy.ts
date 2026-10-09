@@ -70,8 +70,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     ],
     pain: {
       kicker: '为什么选择 FARVOO',
-      title: '堂食点餐系统，\n最容易踩的五个坑',
-      subtitle: '设备成本、营业连续性、责任追溯，再加上难用和不稳——我们把餐厅真正踩过的坑，一次说清、一次解决。',
+      title: '堂食点餐系统，\n最容易踩的六个坑',
+      subtitle: '设备成本、营业连续性、责任追溯与数据安全，再加上难用和不稳——我们把餐厅真正踩过的坑，一次说清、一次解决。',
       items: [
         {
           title: '传统软件杂乱难上手',
@@ -97,6 +97,11 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           title: '权限与追溯不清',
           problem: '谁开台、谁改单、谁结账说不清，纠纷难查。',
           solution: '按角色授权，订单历史完整留痕，每一步操作都能查到是谁做的。',
+        },
+        {
+          title: '营业信息怕泄露',
+          problem: '数据在别人云上，外泄难防。',
+          solution: '服务器在店内本地运行，营业数据留本地，不交给第三方云端托管。',
         },
       ],
     },
@@ -254,8 +259,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     ],
     pain: {
       kicker: 'Why FARVOO',
-      title: 'Five traps of dine-in ordering systems',
-      subtitle: 'Hardware cost, uptime and accountability — plus clunky or fragile software. We name the traps restaurants actually hit, and fix them.',
+      title: 'Six traps of dine-in ordering systems',
+      subtitle: 'Hardware cost, uptime, accountability and data safety — plus clunky or fragile software. We name the traps restaurants actually hit, and fix them.',
       items: [
         {
           title: 'Traditional software is cluttered',
@@ -281,6 +286,11 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           title: 'Unclear roles and audit trail',
           problem: 'Hard to tell who opened, edited or closed a table — disputes are hard to settle.',
           solution: 'Role-based permissions and a complete order history — every action shows who did it.',
+        },
+        {
+          title: 'Business data at risk in the cloud',
+          problem: 'Sales data on a third-party cloud — leakage risk you can’t see.',
+          solution: 'The server runs on-premises in the store — business data stays local, not hosted by a third-party cloud.',
         },
       ],
     },
@@ -438,8 +448,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     ],
     pain: {
       kicker: 'Porquê FARVOO',
-      title: 'Cinco armadilhas dos sistemas de pedidos no salão',
-      subtitle: 'Custo de equipamento, continuidade do serviço e responsabilidade — e ainda software confuso ou instável. Dizemos as armadilhas em que os restaurantes realmente caem, e resolvemo-las.',
+      title: 'Seis armadilhas dos sistemas de pedidos no salão',
+      subtitle: 'Custo de equipamento, continuidade do serviço, responsabilidade e segurança dos dados — e ainda software confuso ou instável. Dizemos as armadilhas em que os restaurantes realmente caem, e resolvemo-las.',
       items: [
         {
           title: 'Software tradicional confuso',
@@ -465,6 +475,11 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           title: 'Papéis e rasto pouco claros',
           problem: 'Difícil saber quem abriu, alterou ou fechou a mesa — as disputas são difíceis de resolver.',
           solution: 'Permissões por papel e histórico completo — cada ação mostra quem a fez.',
+        },
+        {
+          title: 'Dados do negócio em risco na cloud',
+          problem: 'Dados de vendas na cloud de terceiros — risco de fuga que não se vê.',
+          solution: 'O servidor corre localmente na loja — os dados do negócio ficam na loja, sem hospedagem em cloud de terceiros.',
         },
       ],
     },

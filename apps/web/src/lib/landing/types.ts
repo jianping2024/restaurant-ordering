@@ -90,6 +90,7 @@ export type LandingCopy = {
       LandingPainPoint,
       LandingPainPoint,
       LandingPainPoint,
+      LandingPainPoint,
     ];
   };
   flow: {

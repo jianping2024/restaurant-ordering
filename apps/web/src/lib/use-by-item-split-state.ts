@@ -42,8 +42,13 @@ import type { BillSplit, SplitMode } from '@/types';
  * model ({@link useGuestClaim}). Submit wire is still buildSplitPersonsFromAllocations.
  * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on draft write / seed.
  *
- * Unpaid persons hydrate: sole path is {@link mergeMissingByItemDraftTickets} against
- * unlocked persons seed (with staff omit keys so trash / empty-qty commit stay gone).
+ * Unpaid persons hydrate (sole path):
+ * 1. Wipe unpaid draft when session {@link draftOwnerKey} or server {@link authorityKey}
+ *    (`billSplitDraftAuthorityKey`) changes — guest re-call / multi-phone merge /
+ *    staff unpaid persist that changes the plan (render-time wipe, not layout-effect).
+ * 2. Then {@link mergeMissingByItemDraftTickets} against unlocked persons seed
+ *    (empty draft after wipe ⇒ full server unpaid reseed; same fingerprint ⇒ keep staff
+ *    local edits, only append missing tickets; omit keys keep trash / empty-qty commit gone).
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
@@ -55,6 +60,12 @@ export function useByItemSplitState(params: {
    * When it changes, wipe draft — never keep prior session's shares in the new session key.
    */
   draftOwnerKey?: string | null;
+  /**
+   * Sole server-authority fingerprint for unpaid draft
+   * ({@link billSplitDraftAuthorityKey}). Change ⇒ wipe draft so guest/staff plan on
+   * the server replaces stale local unpaid edits.
+   */
+  authorityKey?: string | null;
 }) {
   const {
     splitMode,
@@ -62,16 +73,26 @@ export function useByItemSplitState(params: {
     existingSplit,
     collectedPayments = [],
     draftOwnerKey = null,
+    authorityKey = null,
   } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
   /** omitKey → persons-seed share sig at omit time (sole staff delete memory). */
   const [omitSigByKey, setOmitSigByKey] = useState<Map<string, string>>(() => new Map());
 
-  useLayoutEffect(() => {
+  /**
+   * Sole unpaid-draft wipe: session owner or server authority fingerprint.
+   * Adjust state during render (React restart) so mergeMissing never paints one
+   * frame of stale local unpaid over a newer server plan.
+   */
+  const unpaidDraftWipeKey = `${draftOwnerKey ?? ''}\u001f${authorityKey ?? ''}`;
+  const [appliedUnpaidDraftWipeKey, setAppliedUnpaidDraftWipeKey] =
+    useState(unpaidDraftWipeKey);
+  if (appliedUnpaidDraftWipeKey !== unpaidDraftWipeKey) {
+    setAppliedUnpaidDraftWipeKey(unpaidDraftWipeKey);
     setDraftAllocations({});
     setOmitSigByKey(new Map());
-  }, [draftOwnerKey]);
+  }
 
   const paidLocks = useMemo(
     () =>

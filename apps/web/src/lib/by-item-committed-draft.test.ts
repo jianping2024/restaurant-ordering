@@ -139,7 +139,7 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     assert.equal(pruned['line-a']?.[0]?.partyId, 'party-open');
   });
 
-  it('mergeMissing appends unpaid tickets/lines without overwriting draft', () => {
+  it('mergeMissing same-authority: appends missing tickets without overwriting draft', () => {
     const draft = {
       'line-a': [row('John', { partyId: 'p-paid', qty: '1' })],
     };
@@ -156,6 +156,24 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     assert.ok(merged['line-a']?.some((r) => r.partyId === 'p-jim'));
     assert.equal(merged['line-b']?.length, 1);
     assert.equal(merged['line-b']?.[0]?.partyId, 'p-jim');
+  });
+
+  it('mergeMissing after authority wipe (empty draft): full server unpaid reseed', () => {
+    const serverUnpaid = {
+      'line-a': [
+        row('John', { partyId: 'p-john', qty: '1' }),
+        row('Jim', { partyId: 'p-jim', qty: '2' }),
+      ],
+      'line-b': [row('Jim', { partyId: 'p-jim', qty: '1' })],
+    };
+    // useByItemSplitState clears draft on authorityKey change; merge from {} is the reseed.
+    const reseeded = mergeMissingByItemDraftTickets({}, serverUnpaid);
+    assert.equal(reseeded['line-a']?.length, 2);
+    assert.equal(reseeded['line-a']?.[0]?.partyId, 'p-john');
+    assert.equal(reseeded['line-a']?.[0]?.qtyWhole, '1');
+    assert.equal(reseeded['line-a']?.[1]?.partyId, 'p-jim');
+    assert.equal(reseeded['line-a']?.[1]?.qtyWhole, '2');
+    assert.equal(reseeded['line-b']?.[0]?.partyId, 'p-jim');
   });
 
   it('mergeMissing skips omitted line×ticket until seed fingerprint changes', () => {

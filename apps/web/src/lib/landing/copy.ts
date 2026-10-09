@@ -80,7 +80,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         },
         {
           title: 'AI 速成软件频出 bug',
-          problem: '表面好看，高峰就出错，三天两头出问题。',
+          problem:
+            'AI 能降低开发门槛，却无法替代专业判断。当需求变更、性能瓶颈、安全漏洞和线上故障出现时，差距就会显现。',
           solution:
             '20 余年经验的资深计算机软件工程师领衔研发，专业架构，稳定可靠。核心流程经过真实餐厅营业验证，以成熟技术保障每一次运营，不拿餐厅当试验场。',
         },
@@ -270,7 +271,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         },
         {
           title: 'AI-rushed software keeps breaking',
-          problem: 'Looks good, fails at peak hours, new problems every few days.',
+          problem:
+            'AI can lower the bar to ship software, but it cannot replace professional judgment. When requirements change, performance bottlenecks, security holes, or production incidents hit, the gap shows.',
           solution:
             'Led by a senior software engineer with 20+ years of experience — solid architecture, stable and reliable. Critical flows are proven in live restaurant service; mature technology backs every service day — not your restaurant as a test bed.',
         },
@@ -460,7 +462,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         },
         {
           title: 'Software feito à pressa com IA falha',
-          problem: 'Bonito por fora, falha na hora de ponta, problemas de poucos em poucos dias.',
+          problem:
+            'A IA pode baixar a barreira para desenvolver, mas não substitui o julgamento profissional. Quando mudam os requisitos, surgem estrangulamentos de desempenho, falhas de segurança ou incidentes em produção, a diferença aparece.',
           solution:
             'Liderado por um engenheiro de software sénior com mais de 20 anos de experiência — arquitetura sólida, estável e fiável. Fluxos críticos validados em serviço real; tecnologia madura em cada dia de operação — o seu restaurante não é um campo de testes.',
         },

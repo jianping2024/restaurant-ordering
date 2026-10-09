@@ -157,8 +157,9 @@ test('ordered-items panel splits money chrome from list title (one representatio
   const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
   const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
   assert.match(panel, /waiterDetailLayout\.orderedItemsMoneyChrome/);
-  assert.match(panel, /sessionAmount\?\.mealsLine/);
-  assert.match(panel, /sessionAmount\?\.totalLine/);
+  assert.match(panel, /showAmounts/);
+  assert.match(panel, /amountChrome\?\.mealsLine/);
+  assert.match(panel, /amountChrome\?\.totalLine/);
   assert.match(panel, /waiterDetailLayout\.orderedItemsMoneyLine/);
   assert.match(panel, /waiterDetailLayout\.orderedItemsPreBillAction/);
   assert.match(panel, /line\.catalogKey/);

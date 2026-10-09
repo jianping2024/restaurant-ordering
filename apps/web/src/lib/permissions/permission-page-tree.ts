@@ -134,6 +134,10 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
       label: { source: 'action', labelKey: 'diningHeadcount' },
     },
     {
+      permission: 'dashboard.waiter_board.table_detail_amounts.view',
+      label: { source: 'action', labelKey: 'tableDetailAmounts' },
+    },
+    {
       permission: 'tables.open_session',
       label: { source: 'action', labelKey: 'tablesOpenSession' },
     },

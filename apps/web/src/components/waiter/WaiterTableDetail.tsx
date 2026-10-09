@@ -752,14 +752,10 @@ function WaiterTableDetailInner({
     selectedCard.sessionTotal,
     selectedCard.mealsTotal,
   );
+  /** Pre-bill is independent of amount chrome (may show when amounts are hidden). */
   const orderedItemsPreBillPrint = useMemo(() => {
     const sessionId = sessionMeta?.sessionId ?? null;
-    if (
-      isDemo ||
-      !floorCaps.canPrintSessionPreBill ||
-      !sessionId ||
-      !orderedItemsSessionAmount
-    ) {
+    if (isDemo || !floorCaps.canPrintSessionPreBill || !sessionId) {
       return null;
     }
     return {
@@ -780,7 +776,6 @@ function WaiterTableDetailInner({
     floorCaps.canPrintSessionPreBill,
     isDemo,
     isPrintPreBillBusy,
-    orderedItemsSessionAmount,
     printSessionPreBill,
     selectedCard.tableId,
     sessionMeta?.sessionId,
@@ -1132,6 +1127,7 @@ function WaiterTableDetailInner({
             {paintPhase === 'ready' ? (
               <WaiterTableOrderedItemsPanel
                 title={t.orderedItems}
+                showAmounts={floorCaps.canViewTableDetailAmounts}
                 sessionAmount={orderedItemsSessionAmount}
                 preBillPrint={orderedItemsPreBillPrint}
                 lines={selectedCard.orderLines}

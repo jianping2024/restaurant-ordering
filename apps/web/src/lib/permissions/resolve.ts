@@ -77,6 +77,11 @@ export type FloorBoardCapabilities = {
   canOpenTableSession: boolean;
   /** Dining filter card A/C — sole dashboard.waiter_board.dining_headcount.view. */
   canViewDiningHeadcount: boolean;
+  /**
+   * Table-detail ordered-items € (饮食/合计 + line unit + chargeable hints) —
+   * sole dashboard.waiter_board.table_detail_amounts.view.
+   */
+  canViewTableDetailAmounts: boolean;
 };
 
 export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
@@ -95,6 +100,10 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
     canForceClose: mayForceCloseFromCaps(capabilities),
     canOpenTableSession: can(capabilities, 'tables.open_session'),
     canViewDiningHeadcount: can(capabilities, 'dashboard.waiter_board.dining_headcount.view'),
+    canViewTableDetailAmounts: can(
+      capabilities,
+      'dashboard.waiter_board.table_detail_amounts.view',
+    ),
   };
 }
 

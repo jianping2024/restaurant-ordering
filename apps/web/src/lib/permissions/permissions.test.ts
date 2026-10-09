@@ -98,17 +98,29 @@ describe('can / resolve', () => {
     assert.equal(desk.canMerge, true);
     assert.equal(desk.canOpenTableSession, true);
     assert.equal(desk.canViewDiningHeadcount, false);
+    assert.equal(desk.canViewTableDetailAmounts, false);
 
     const withHeadcount = floorBoardCapabilitiesFromCaps(
       capabilitiesFromKeys(['dashboard.waiter_board.dining_headcount.view']),
     );
     assert.equal(withHeadcount.canViewDiningHeadcount, true);
+
+    const withAmounts = floorBoardCapabilitiesFromCaps(
+      capabilitiesFromKeys(['dashboard.waiter_board.table_detail_amounts.view']),
+    );
+    assert.equal(withAmounts.canViewTableDetailAmounts, true);
   });
 
   it('dining headcount requires the floor board', () => {
     const keys = enforcePermissionRequires(['dashboard.waiter_board.dining_headcount.view']);
     assert.equal(keys.includes('dashboard.waiter_board.view'), true);
     assert.equal(keys.includes('dashboard.waiter_board.dining_headcount.view'), true);
+  });
+
+  it('table detail amounts requires the floor board', () => {
+    const keys = enforcePermissionRequires(['dashboard.waiter_board.table_detail_amounts.view']);
+    assert.equal(keys.includes('dashboard.waiter_board.view'), true);
+    assert.equal(keys.includes('dashboard.waiter_board.table_detail_amounts.view'), true);
   });
 
   it('legacy permission aliases normalize to sole live keys', () => {

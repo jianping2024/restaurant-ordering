@@ -65,9 +65,20 @@ describe('ROLE_PERMISSION_PAGE_TREE', () => {
         (c) => c.permission === 'dashboard.waiter_board.dining_headcount.view',
       ),
     );
+    assert.ok(
+      waiter?.children?.some(
+        (c) => c.permission === 'dashboard.waiter_board.table_detail_amounts.view',
+      ),
+    );
     assert.equal(
       flattenPermissionTreeKeys().filter(
         (k) => k === 'dashboard.waiter_board.dining_headcount.view',
+      ).length,
+      1,
+    );
+    assert.equal(
+      flattenPermissionTreeKeys().filter(
+        (k) => k === 'dashboard.waiter_board.table_detail_amounts.view',
       ).length,
       1,
     );

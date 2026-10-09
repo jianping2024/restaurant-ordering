@@ -16,6 +16,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(frontdesk.canForceClose, true);
     assert.equal(frontdesk.canOpenTableSession, true);
     assert.equal(frontdesk.canViewDiningHeadcount, true);
+    assert.equal(frontdesk.canViewTableDetailAmounts, true);
 
     const cashier = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
     assert.equal(cashier.canCallCheckout, true);
@@ -24,6 +25,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(cashier.canForceClose, false);
     assert.equal(cashier.canOpenTableSession, true);
     assert.equal(cashier.canViewDiningHeadcount, true);
+    assert.equal(cashier.canViewTableDetailAmounts, true);
   });
 
   it('derives transfer/merge/force-close for owner and transfer/merge for waiter', () => {
@@ -37,9 +39,16 @@ describe('floorBoardCapabilities', () => {
     assert.equal(waiter.canMerge, true);
     assert.equal(waiter.canForceClose, false);
     assert.equal(waiter.canViewDiningHeadcount, true);
+    assert.equal(waiter.canViewTableDetailAmounts, true);
     assert.equal(owner.canViewDiningHeadcount, true);
+    assert.equal(owner.canViewTableDetailAmounts, true);
     assert.equal(
       floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.kitchen])).canViewDiningHeadcount,
+      false,
+    );
+    assert.equal(
+      floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.kitchen]))
+        .canViewTableDetailAmounts,
       false,
     );
   });

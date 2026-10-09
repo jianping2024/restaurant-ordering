@@ -54,6 +54,15 @@ export const PERMISSIONS = {
     labelKey: 'diningHeadcount',
     requires: ['dashboard.waiter_board.view'],
   },
+  /**
+   * Table-detail ordered-items money chrome only (饮食/合计 sticky + line unit € +
+   * chargeable € hints). Not board-card amount, buffet open prices, or checkout.
+   */
+  'dashboard.waiter_board.table_detail_amounts.view': {
+    group: 'dashboard_nav',
+    labelKey: 'tableDetailAmounts',
+    requires: ['dashboard.waiter_board.view'],
+  },
   'dashboard.guest_notice.view': { group: 'dashboard_nav', labelKey: 'dashboardGuestNotice' },
 
   // Settings (formerly owner-only; grantable to any role per product)

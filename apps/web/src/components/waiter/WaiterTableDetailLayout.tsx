@@ -499,7 +499,12 @@ export function WaiterTableOccupiedToolbar({
 
 type OrderedItemsProps = {
   title: string;
-  /** Session amount lines for sticky chrome; null hides the amount block. */
+  /**
+   * Sole UI gate for sticky 饮食/合计, line unit €, and chargeable € hints
+   * (host: floorCaps.canViewTableDetailAmounts).
+   */
+  showAmounts: boolean;
+  /** Session amount lines for sticky chrome; null hides the amount block when showAmounts. */
   sessionAmount: WaiterOrderedItemsSessionAmount | null;
   /** Frontdesk manual pre_bill — presentational only; null hides the control. */
   preBillPrint: {
@@ -523,6 +528,7 @@ type OrderedItemsProps = {
 
 export function WaiterTableOrderedItemsPanel({
   title,
+  showAmounts,
   sessionAmount,
   preBillPrint,
   lines,
@@ -539,16 +545,17 @@ export function WaiterTableOrderedItemsPanel({
   if (lines.length === 0) return null;
 
   const lineActionsLocked = isCheckoutPending || sessionBusy;
+  const amountChrome = showAmounts ? sessionAmount : null;
 
   return (
     <WaiterDetailCard>
-      {sessionAmount || preBillPrint ? (
+      {amountChrome || preBillPrint ? (
         <div className={waiterDetailLayout.orderedItemsMoneyChrome}>
-          {sessionAmount?.mealsLine ? (
-            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{sessionAmount.mealsLine}</p>
+          {amountChrome?.mealsLine ? (
+            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{amountChrome.mealsLine}</p>
           ) : null}
-          {sessionAmount?.totalLine ? (
-            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{sessionAmount.totalLine}</p>
+          {amountChrome?.totalLine ? (
+            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{amountChrome.totalLine}</p>
           ) : null}
           {preBillPrint ? (
             <Button
@@ -576,7 +583,7 @@ export function WaiterTableOrderedItemsPanel({
             chargeableUnitPrice: line.chargeableUnitPrice ?? undefined,
           });
           const chargeableHint =
-            formatChargeableHint && share
+            showAmounts && formatChargeableHint && share
               ? formatChargeableHint(share.qty, share.unitPrice)
               : null;
           const serveKey =
@@ -594,7 +601,7 @@ export function WaiterTableOrderedItemsPanel({
                     <span className={waiterDetailLayout.orderedItemCode}>{line.itemCode}</span>
                   ) : null}
                   <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
-                  {line.unitPrice != null && Number.isFinite(line.unitPrice) ? (
+                  {showAmounts && line.unitPrice != null && Number.isFinite(line.unitPrice) ? (
                     <span className={waiterDetailLayout.orderedItemUnitPrice}>
                       €{line.unitPrice.toFixed(2)}
                     </span>

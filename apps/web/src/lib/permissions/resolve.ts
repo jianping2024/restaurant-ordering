@@ -73,7 +73,7 @@ export type FloorBoardCapabilities = {
   canMerge: boolean;
   /** Unpaid / force close (关台). */
   canForceClose: boolean;
-  /** 开台 / 用餐人数 on table detail — sole tables.open_session. */
+  /** 开台与改人数 on table detail — sole tables.open_session. */
   canOpenTableSession: boolean;
   /** Dining filter card A/C — sole dashboard.waiter_board.dining_headcount.view. */
   canViewDiningHeadcount: boolean;

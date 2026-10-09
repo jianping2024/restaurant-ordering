@@ -107,7 +107,7 @@ export const PERMISSIONS = {
 
   // Tables / sessions (楼面 · 桌台详情 actions)
   'tables.manage': { group: 'tables', labelKey: 'tablesManage', dangerous: true },
-  /** Sole gate for 开台 / 用餐人数 on table detail (POST …/waiter/buffet). */
+  /** Sole gate for 开台与改人数 on table detail (POST …/waiter/buffet). */
   'tables.open_session': { group: 'tables', labelKey: 'tablesOpenSession' },
   'tables.checkout_close': { group: 'tables', labelKey: 'tablesCallCheckout', dangerous: true },
   'tables.force_close': { group: 'tables', labelKey: 'tablesForceClose', dangerous: true },

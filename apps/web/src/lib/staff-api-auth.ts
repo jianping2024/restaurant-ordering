@@ -228,7 +228,7 @@ export async function waiterBoardAuthFromRequest(
   return requireStaffPermission(slug, 'dashboard.waiter_board.view');
 }
 
-/** Table detail 开台 / 用餐人数 — sole tables.open_session. */
+/** Table detail 开台与改人数 — sole tables.open_session. */
 export async function tableSessionOpenAuthFromRequest(
   _req: Request,
   slug: string,

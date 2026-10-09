@@ -38,24 +38,41 @@ import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
+import { CheckoutHeadcountAdjustModal } from '@/components/dashboard/checkout/CheckoutHeadcountAdjustModal';
 import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/components/dashboard/checkout/CollectPaymentModal';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
+import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
+import { shouldPromptCheckoutZeroHeadcount } from '@/lib/checkout-zero-headcount-prompt';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
 import { collectAttemptFingerprint, createCollectAttemptIds } from '@/lib/collect-attempt-ids';
 import { writePendingCheckoutPrintAsk } from '@/lib/checkout-print-ask-store';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { menuItemImageUrlLookupFromRows } from '@/lib/menu-image';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { buildCheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import type { Capabilities } from '@/lib/permissions/can';
 import { StaffCheckoutSplitEditor } from '@/components/dashboard/checkout/StaffCheckoutSplitEditor';
+import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
+import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
+import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
+import {
+  buffetWaiterOpenIntentFromSession,
+  postWaiterBuffetOpenAndCommit,
+} from '@/lib/waiter-buffet-open-submit';
+import { activeBuffetsFromModel } from '@/lib/waiter-board-open-table';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { waiterTableHref } from '@/lib/staff-routes';
-import { isWholeTableSplit } from '@/lib/checkout-split-intent';
+import {
+  buildWholeTableCheckoutPayload,
+  isWholeTableSplit,
+} from '@/lib/checkout-split-intent';
+import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 type Props = {
   request: BillSplit;
   restaurantId: string;
@@ -249,9 +266,16 @@ export function CheckoutRequestDetailHost({
   );
   const supabase = useMemo(() => createClient(), []);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
+  const [ordersReady, setOrdersReady] = useState(false);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
   const [imageUrlByMenuId, setImageUrlByMenuId] = useState<Record<string, string>>({});
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
+  const [tableBuffetModel, setTableBuffetModel] = useState<WaiterTablePageModel | null>(null);
+  const [buffetModelReady, setBuffetModelReady] = useState(false);
+  const [acknowledgedZeroHeadcount, setAcknowledgedZeroHeadcount] = useState(false);
+  const [zeroHeadcountPromptOpen, setZeroHeadcountPromptOpen] = useState(false);
+  const [headcountAdjustOpen, setHeadcountAdjustOpen] = useState(false);
+  const [headcountAdjustBusy, setHeadcountAdjustBusy] = useState(false);
   const { printFiscalInvoiceAvailable } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
@@ -263,61 +287,201 @@ export function CheckoutRequestDetailHost({
     },
   });
 
-  useEffect(() => {
+  const loadSessionOrders = useCallback(async () => {
     if (!restaurantId || !request.session_id) {
       setSessionOrders([]);
       setItemCodeByMenuId({});
       setImageUrlByMenuId({});
+      setOrdersReady(true);
+      return;
+    }
+    const { data: orderRows, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', request.session_id);
+
+    if (error) {
+      setSessionOrders([]);
+      setItemCodeByMenuId({});
+      setImageUrlByMenuId({});
+      setOrdersReady(true);
       return;
     }
 
-    let cancelled = false;
-    const loadLines = async () => {
-      const { data: orderRows, error } = await supabase
-        .from('orders')
-        .select('*')
+    const orders = (orderRows || []) as Order[];
+    const menuItemIds = distinctMenuItemIdsFromOrders(orders);
+    let codes: Record<string, string> = {};
+    let images: Record<string, string> = {};
+    if (menuItemIds.length > 0) {
+      const { data: menuRows } = await supabase
+        .from('menu_items')
+        .select('id, item_code, image_url')
         .eq('restaurant_id', restaurantId)
-        .eq('session_id', request.session_id);
+        .in('id', menuItemIds);
+      codes = menuItemCodeLookupFromRows(menuRows ?? []);
+      images = menuItemImageUrlLookupFromRows(menuRows ?? []);
+    }
 
+    setSessionOrders(orders);
+    setItemCodeByMenuId(codes);
+    setImageUrlByMenuId(images);
+    setOrdersReady(true);
+  }, [restaurantId, request.session_id, supabase]);
+
+  useEffect(() => {
+    setOrdersReady(false);
+    let cancelled = false;
+    void loadSessionOrders().then(() => {
       if (cancelled) return;
-      if (error) {
-        setSessionOrders([]);
-        setItemCodeByMenuId({});
-        setImageUrlByMenuId({});
-        return;
-      }
-
-      const orders = (orderRows || []) as Order[];
-      const menuItemIds = distinctMenuItemIdsFromOrders(orders);
-      let codes: Record<string, string> = {};
-      let images: Record<string, string> = {};
-      if (menuItemIds.length > 0) {
-        const { data: menuRows } = await supabase
-          .from('menu_items')
-          .select('id, item_code, image_url')
-          .eq('restaurant_id', restaurantId)
-          .in('id', menuItemIds);
-        codes = menuItemCodeLookupFromRows(menuRows ?? []);
-        images = menuItemImageUrlLookupFromRows(menuRows ?? []);
-      }
-
-      setSessionOrders(orders);
-      setItemCodeByMenuId(codes);
-      setImageUrlByMenuId(images);
-    };
-
-    void loadLines();
+    });
     return () => {
       cancelled = true;
     };
     // Reload when checkout bill may have changed (resume → reorder → new request).
+  }, [loadSessionOrders, request.id, request.total_amount]);
+
+  useEffect(() => {
+    setBuffetModelReady(false);
+    setTableBuffetModel(null);
+    let cancelled = false;
+    void fetchWaiterTablePageModelClient(restaurantSlug, request.table_id)
+      .then((model) => {
+        if (cancelled) return;
+        setTableBuffetModel(model);
+        setBuffetModelReady(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTableBuffetModel(null);
+        setBuffetModelReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [restaurantSlug, request.table_id]);
+
+  const activeBuffets = useMemo(
+    () => (tableBuffetModel ? activeBuffetsFromModel(tableBuffetModel) : []),
+    [tableBuffetModel],
+  );
+  const restaurantHasActiveBuffets = activeBuffets.length > 0;
+  const guestCountConfirmed = isBillGuestCountConfirmed(sessionOrders);
+
+  useEffect(() => {
+    if (!ordersReady || !buffetModelReady) return;
+    if (zeroHeadcountPromptOpen || headcountAdjustOpen) return;
+    if (
+      !shouldPromptCheckoutZeroHeadcount({
+        restaurantHasActiveBuffets,
+        guestCountConfirmed,
+        acknowledgedZeroHeadcount,
+      })
+    ) {
+      return;
+    }
+    setZeroHeadcountPromptOpen(true);
   }, [
-    supabase,
-    restaurantId,
-    request.session_id,
-    request.id,
-    request.total_amount,
+    acknowledgedZeroHeadcount,
+    buffetModelReady,
+    guestCountConfirmed,
+    headcountAdjustOpen,
+    ordersReady,
+    restaurantHasActiveBuffets,
+    zeroHeadcountPromptOpen,
   ]);
+
+  const refreshBillAfterHeadcount = useCallback(
+    async (nextOrders: Order[]) => {
+      const mode = request.split_mode;
+      const payload =
+        mode === 'whole_table'
+          ? buildWholeTableCheckoutPayload(0)
+          : {
+              splitMode: mode,
+              persons: request.persons ?? [],
+              result: request.result ?? [],
+            };
+      const outcome = await requestCheckoutRequest({
+        slug: restaurantSlug,
+        tableId: request.table_id,
+        splitMode: payload.splitMode,
+        persons: payload.persons,
+        result: payload.result,
+        allowPartialByItem: mode === 'by_item',
+      });
+      if (!outcome.ok) {
+        showToast(
+          messageForCheckoutRequestError(outcome.error, {
+            guestCountRequired: t.callCheckoutGuestCountRequired,
+            partyMergeRequired: t.callCheckoutPartyMergeRequired,
+            emptySession: t.callCheckoutEmptySession,
+            noActiveSession: t.callCheckoutNoActiveSession,
+            tableNotAvailable: t.callCheckoutTableNotAvailable,
+            invalidNif: billT.nifInvalid,
+            splitPlanLocked: billT.splitPlanLocked,
+            fallback: t.callCheckoutFailed,
+          }),
+          'error',
+        );
+        return false;
+      }
+      const nextTotal = sumBillableSessionTotal(nextOrders);
+      upsertRequestFromSubmit({
+        ...request,
+        id: outcome.bill_split_id,
+        split_mode: payload.splitMode,
+        persons: payload.persons,
+        result: outcome.result,
+        total_amount: nextTotal,
+        status: 'requested',
+      });
+      void reload();
+      setSessionOrders(nextOrders);
+      return true;
+    },
+    [billT, reload, request, restaurantSlug, t, upsertRequestFromSubmit],
+  );
+
+  const confirmHeadcountAdjust = useCallback(
+    async (snapshot: BuffetGuestSnapshot) => {
+      if (headcountAdjustBusy) return;
+      setHeadcountAdjustBusy(true);
+      try {
+        const result = await postWaiterBuffetOpenAndCommit({
+          restaurantSlug,
+          tableId: request.table_id,
+          guestSnapshot: snapshot,
+          activeBuffetIds: activeBuffets.map((b) => b.id),
+          intent: buffetWaiterOpenIntentFromSession(true),
+        });
+        if (!result.ok) {
+          toastWaiterBuffetOpenFailure(WAITER_TEXT[lang], result);
+          return;
+        }
+        const nextOrders = (result.model.detail.orders ?? []) as Order[];
+        const ok = await refreshBillAfterHeadcount(nextOrders);
+        if (!ok) return;
+        setAcknowledgedZeroHeadcount(true);
+        setHeadcountAdjustOpen(false);
+        setZeroHeadcountPromptOpen(false);
+        syncBoardAfterMutation(request.table_id);
+        // Refresh buffet prices / packages for this detail visit.
+        setTableBuffetModel(result.model);
+      } finally {
+        setHeadcountAdjustBusy(false);
+      }
+    },
+    [
+      activeBuffets,
+      headcountAdjustBusy,
+      lang,
+      refreshBillAfterHeadcount,
+      request.table_id,
+      restaurantSlug,
+      syncBoardAfterMutation,
+    ],
+  );
 
   const collectedPayments = getCollectedForSession(request.session_id);
 
@@ -647,6 +811,53 @@ export function CheckoutRequestDetailHost({
         confirming={isResumeMutating}
         onConfirm={() => {
           void resumeOrdering().finally(() => setResumeConfirmOpen(false));
+        }}
+      />
+      <ConfirmModal
+        open={zeroHeadcountPromptOpen}
+        onClose={() => {
+          // Closing without confirm opens headcount adjust (product: 否 → 调整人数).
+          setZeroHeadcountPromptOpen(false);
+          setHeadcountAdjustOpen(true);
+        }}
+        title={t.zeroHeadcountConfirmTitle}
+        message={t.zeroHeadcountConfirmMessage}
+        confirmLabel={t.zeroHeadcountConfirm}
+        cancelLabel={t.zeroHeadcountAdjust}
+        onConfirm={() => {
+          setAcknowledgedZeroHeadcount(true);
+          setZeroHeadcountPromptOpen(false);
+        }}
+      />
+      <CheckoutHeadcountAdjustModal
+        open={headcountAdjustOpen}
+        lang={lang}
+        activeBuffets={activeBuffets}
+        buffetPricesByBuffetId={tableBuffetModel?.buffetPricesByBuffetId ?? {}}
+        sessionOrders={sessionOrders}
+        busy={headcountAdjustBusy}
+        labels={{
+          title: t.zeroHeadcountAdjustTitle,
+          confirm: t.zeroHeadcountAdjustConfirm,
+          cancel: t.zeroHeadcountAdjustCancel,
+          needHeadcount: t.zeroHeadcountNeedCount,
+        }}
+        onClose={() => {
+          if (headcountAdjustBusy) return;
+          setHeadcountAdjustOpen(false);
+          // Still zero and not acknowledged → re-show soft confirm.
+          if (
+            shouldPromptCheckoutZeroHeadcount({
+              restaurantHasActiveBuffets,
+              guestCountConfirmed: isBillGuestCountConfirmed(sessionOrders),
+              acknowledgedZeroHeadcount,
+            })
+          ) {
+            setZeroHeadcountPromptOpen(true);
+          }
+        }}
+        onConfirm={(snapshot) => {
+          void confirmHeadcountAdjust(snapshot);
         }}
       />
       <CollectPaymentModal

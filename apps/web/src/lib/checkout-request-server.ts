@@ -18,7 +18,6 @@ import {
 } from '@/lib/checkout-split-intent';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
-import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 import type { BillSplit, SplitResult } from '@/types';
@@ -139,9 +138,6 @@ export async function submitCheckoutRequestForTable(
       : normalizedPayload;
   if (orderLines.length === 0) {
     return checkoutFailure('empty_session');
-  }
-  if (!isBillGuestCountConfirmed(orders)) {
-    return checkoutFailure('guest_count_required');
   }
 
   let partyMemberCount: number;

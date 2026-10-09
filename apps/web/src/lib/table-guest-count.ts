@@ -25,7 +25,7 @@ export function guestCountFromTableOrders(orders: OrderLike[]): number {
   return best;
 }
 
-/** Bill checkout requires a confirmed buffet headcount (adults + children > 0). */
+/** True when latest active buffet headcount is adults + children > 0. */
 export function isBillGuestCountConfirmed(orders: OrderLike[]): boolean {
   return guestCountFromTableOrders(orders) > 0;
 }

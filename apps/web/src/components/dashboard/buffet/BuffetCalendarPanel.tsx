@@ -11,6 +11,7 @@ import {
   type CalendarOverrideRow,
 } from '@/lib/buffet-pricing-admin';
 import { DatePicker } from '@mesa/ui';
+import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
@@ -106,14 +107,14 @@ export function BuffetCalendarPanel({
               <option value="special">{t.special}</option>
             </select>
           </label>
-          <button
+          <Button
             type="button"
+            size="sm"
             disabled={submitting || !calDate}
             onClick={() => void addSingle()}
-            className="text-sm px-3 py-1.5 rounded-lg bg-brand-gold text-brand-on-gold font-medium disabled:opacity-50"
           >
             {t.addCalendar}
-          </button>
+          </Button>
         </div>
 
         <div className="border-t border-brand-border/50 pt-4">

@@ -25,6 +25,7 @@ import {
   type SplitSettlementCopy,
 } from '@/components/menu/SplitSettlementStatusExtras';
 import { customerInlineEditInputClass } from '@/components/menu/customer-form-input-styles';
+import { Button } from '@/components/ui/Button';
 
 type SplitModeCopy = SplitSettlementCopy & {
   splitMode: string;
@@ -271,14 +272,15 @@ export function BillSplitPanel({
                 </div>
                 {amountBlock}
                 {showStaffCollect && staffRowActions ? (
-                  <button
+                  <Button
                     type="button"
+                    size="action"
                     disabled={staffRowActions.busy}
                     onClick={() => staffRowActions.onCollect(i)}
-                    className="shrink-0 text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                    className="shrink-0"
                   >
                     {staffRowActions.collectLabel}
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             );

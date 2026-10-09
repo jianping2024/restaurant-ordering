@@ -93,13 +93,13 @@
 | 元素 | 规范 |
 |------|------|
 | 呼叫结账 | `BillPage` 底栏 gold 主按钮 |
-| 确认收款 | `mesa-badge-success`，文案含 **€金额** |
+| 确认收款 | `Button gold` + `action`（52px）；金额旁置 |
 | 待收金额 | 列表卡片 **最大数字 = 待收**（非消费总额） |
 
 ### 对比度
 
 - 主按钮不得用 `ghost` 或纯文字
-- 与背景对比：gold 主钮在 `brand-card` 上；收款绿钮在 gold 浅底区块上
+- 与背景对比：`Button gold`（靛青墨面）在 `brand-card` 上
 
 ---
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import type { UILanguage } from '@/lib/i18n';
+import { ButtonLink } from '@/components/ui/Button';
 
 const DEMO_HUB_TEXT = {
   zh: {
@@ -110,18 +111,12 @@ export function DemoHubPageClient() {
             {text.desc}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/demo/menu"
-              className="rounded-xl bg-brand-gold px-4 py-2 text-[15px] font-semibold text-brand-on-gold hover:bg-brand-gold-light transition-colors"
-            >
+            <ButtonLink href="/demo/menu" size="md">
               {text.start}
-            </Link>
-            <Link
-              href="/"
-              className="rounded-xl border border-brand-border px-4 py-2 text-[15px] text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-            >
+            </ButtonLink>
+            <ButtonLink href="/" variant="outline" size="md">
               {text.back}
-            </Link>
+            </ButtonLink>
           </div>
         </div>
 

@@ -74,7 +74,7 @@ export function ConfirmModal({
               type="button"
               variant="gold"
               size="action"
-              className="min-h-11 w-full"
+              className="w-full"
               loading={confirming}
               onClick={handleConfirm}
             >

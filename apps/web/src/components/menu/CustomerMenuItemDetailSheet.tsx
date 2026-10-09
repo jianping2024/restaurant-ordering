@@ -274,8 +274,8 @@ export function CustomerMenuItemDetailSheet({
             <Button
               type="button"
               variant="gold"
-              size="md"
-              className="min-h-11 flex-1"
+              size="action"
+              className="flex-1"
               disabled={!item.available}
               onClick={onPrimary}
             >

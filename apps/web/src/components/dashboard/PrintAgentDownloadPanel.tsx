@@ -4,6 +4,7 @@ import { printAssistantPanelShell } from '@/components/dashboard/print-assistant
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { PrintAgentDownloadUrls, PublishedPrintAgentFallback } from '@/lib/print-agent-download';
+import { buttonClasses } from '@/components/ui/Button';
 
 type Props = {
   urls: PrintAgentDownloadUrls;
@@ -61,11 +62,13 @@ export function PrintAgentDownloadPanel({
         <a
           href={urls.setupAmd64}
           aria-disabled={!releaseReady}
-          className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-            releaseReady
-              ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
-              : 'pointer-events-none bg-brand-border text-brand-text-muted opacity-60'
-          }`}
+          className={buttonClasses({
+            variant: 'gold',
+            size: 'sm',
+            className: releaseReady
+              ? 'no-underline'
+              : 'pointer-events-none no-underline opacity-60',
+          })}
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -74,11 +77,13 @@ export function PrintAgentDownloadPanel({
         <a
           href={urls.zipAmd64}
           aria-disabled={!releaseReady}
-          className={`inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm transition-colors ${
-            releaseReady
-              ? 'border-brand-border text-brand-text hover:border-brand-gold/50'
-              : 'pointer-events-none border-brand-border text-brand-text-muted opacity-60'
-          }`}
+          className={buttonClasses({
+            variant: 'outline',
+            size: 'sm',
+            className: releaseReady
+              ? 'no-underline'
+              : 'pointer-events-none no-underline opacity-60',
+          })}
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -86,7 +91,11 @@ export function PrintAgentDownloadPanel({
         </a>
         <a
           href={urls.releasesPage}
-          className="inline-flex items-center justify-center rounded-lg border border-brand-border text-brand-text-muted px-4 py-2 text-sm hover:border-brand-gold/50 transition-colors"
+          className={buttonClasses({
+            variant: 'ghost',
+            size: 'sm',
+            className: 'no-underline',
+          })}
           rel="noopener noreferrer"
           target="_blank"
         >
@@ -102,7 +111,11 @@ export function PrintAgentDownloadPanel({
           <div className="flex flex-wrap gap-2">
             <a
               href={publishedFallback.setupAmd64}
-              className="inline-flex items-center justify-center rounded-lg bg-brand-gold/90 text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors"
+              className={buttonClasses({
+                variant: 'gold',
+                size: 'sm',
+                className: 'no-underline',
+              })}
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -110,7 +123,11 @@ export function PrintAgentDownloadPanel({
             </a>
             <a
               href={publishedFallback.zipAmd64}
-              className="inline-flex items-center justify-center rounded-lg border border-brand-gold/50 text-brand-text px-4 py-2 text-sm hover:border-brand-gold/70 transition-colors"
+              className={buttonClasses({
+                variant: 'outline',
+                size: 'sm',
+                className: 'no-underline',
+              })}
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -118,7 +135,11 @@ export function PrintAgentDownloadPanel({
             </a>
             <a
               href={publishedFallback.releasesPage}
-              className="inline-flex items-center justify-center rounded-lg border border-brand-border text-brand-text-muted px-4 py-2 text-sm hover:border-brand-gold/50 transition-colors"
+              className={buttonClasses({
+                variant: 'ghost',
+                size: 'sm',
+                className: 'no-underline',
+              })}
               rel="noopener noreferrer"
               target="_blank"
             >

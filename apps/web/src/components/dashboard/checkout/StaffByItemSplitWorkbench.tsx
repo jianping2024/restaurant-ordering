@@ -1071,8 +1071,9 @@ export function StaffByItemSplitWorkbench({
                         </button>
                       ) : null}
                       {showCollectCurrent && onCollectCurrent ? (
-                        <button
+                        <Button
                           type="button"
+                          size="action"
                           disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
                           onClick={() => {
                             userPickedChipRef.current = false;
@@ -1081,10 +1082,9 @@ export function StaffByItemSplitWorkbench({
                               partyId: currentPartyId,
                             });
                           }}
-                          className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
                         >
                           {labels.collect}
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   ) : null}

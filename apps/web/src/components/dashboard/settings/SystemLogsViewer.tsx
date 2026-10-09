@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { SystemLogLine } from '@/lib/system-logs/types';
+import { Button } from '@/components/ui/Button';
 
 function toDatetimeLocalValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -115,13 +116,9 @@ export function SystemLogsViewer() {
             maxLength={200}
           />
         </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-md bg-brand-gold px-4 py-2 text-sm font-medium text-brand-text disabled:opacity-60"
-        >
-          {loading ? t.querying : t.query}
-        </button>
+        <Button type="submit" size="sm" loading={loading} disabled={loading}>
+          {t.query}
+        </Button>
       </form>
 
       {error ? (

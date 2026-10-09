@@ -47,12 +47,12 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 ## 3. 高频操作明显
 
-主 CTA 使用 **`Button variant="gold"`** 或结账专用 **`mesa-badge-success`** 绿底收款按钮。
+主 CTA 唯一使用 **`Button variant="gold"`**（强浮雕 + 按下内凹；触控档 `size="action"` = 52px）。
 
 | 场景 | 主操作样式 |
 |------|------------|
 | 提交订单 | 购物车抽屉底部 gold 全宽按钮 |
-| 确认收款 | 绿底 `收款 €{amount}`，金额与按钮相邻 |
+| 确认收款 | `Button gold` + `action`「收款」，金额旁置 |
 | 确认开台 | 服务员桌台 gold 主按钮 |
 | 次要操作 | `outline` / `soft` / 文字链接 |
 
@@ -137,7 +137,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 |------|------|------|
 | 页面标题 | `font-heading` + `text-2xl`/`3xl` | 桌台详情标题 |
 | 列表/区块正文 | `text-lg font-semibold text-brand-text` | **已点菜名**、**Buffet 套餐名**（同级） |
-| 控件 | `Button size="action"`（`min-h-11` / `text-[15px]`） | 确认开台、继续点餐、转台等；Modal 取消/确认脚钮走唯一 `ModalConfirmActions` |
+| 控件 | `Button size="action"`（`min-h-[52px]` / `text-base`） | 确认开台、继续点餐、转台、结账收款等；Modal 取消/确认脚钮走唯一 `ModalConfirmActions` |
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
 
@@ -159,7 +159,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 - 空闲 `idle`：success（绿）→ `is-free`
 - 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；外框统一 `2px`（idle 虚线；边框 `status-*-border` @ ~50%）；正文一律 `brand-text`；**内底唯一写法**为 `rgb(status-*-bg)` 实心（`.mesa-scroll-frame.is-* .mesa-scroll-frame__inner` 与 `.mesa-stat.is-*` 同选择器组），禁止 `[data-theme]` 硬编码 RGB / 禁止平行第二套楼面色板 / 禁止 KPI 再写 badge 浅底或 Tailwind 第二套 RGB
 - Modal 等面板：`mesa-panel-frame`（外靛内金）
-- 成功/收款：`mesa-badge-success`
+- 成功态徽章：`mesa-badge-success`（不是按钮；收款走 `Button gold`）
 - 危险操作：`Button danger` / `mesa-text-danger`
 
 `Button variant="gold"` 视觉主面为 **靛青**（API 名保留 `gold`）；金额与结账金额区仍用 `brand-gold`。

@@ -16,9 +16,12 @@ const baseClass =
   'relative inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer focus-visible:ring-2';
 
 const variants: Record<ButtonVariant, string> = {
-  /** Primary face — azulejo ink (variant id `gold` kept for call-site stability). */
+  /**
+   * Primary face — azulejo ink (variant id `gold` kept for call-site stability).
+   * Sole strong-relief + press-in feedback for staff/customer primary CTAs.
+   */
   gold:
-    'border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-ink/45',
+    'border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold focus-visible:ring-brand-ink/45 shadow-[0_5px_0_0_rgb(0_0_0/0.35),0_8px_16px_rgb(0_0_0/0.2),inset_0_1px_0_rgb(255_255_255/0.22),inset_0_-1px_0_rgb(0_0_0/0.2)] enabled:active:translate-y-[4px] enabled:active:bg-[rgb(var(--color-brand-ink)/0.92)] enabled:active:shadow-[0_0_0_0_rgb(0_0_0/0),0_2px_4px_rgb(0_0_0/0.16),inset_0_5px_10px_rgb(0_0_0/0.45),inset_0_1px_0_rgb(0_0_0/0.25)] motion-reduce:enabled:active:translate-y-0',
   outline:
     'border border-brand-ink text-brand-ink hover:bg-brand-ink/10 font-semibold focus-visible:ring-brand-ink/30',
   ghost:
@@ -34,8 +37,8 @@ const sizes: Record<ButtonSize, string> = {
   sm: 'gap-2 px-3 py-1.5 text-[13px] rounded-lg',
   md: 'gap-2 px-5 py-2.5 text-[15px] rounded-lg',
   lg: 'gap-2 px-7 py-3.5 text-base rounded-lg',
-  /** Floor / session / modal confirm — ≥44px touch (`min-h-11`), next to list-body text-lg. */
-  action: 'min-h-11 gap-2 px-4 py-2.5 text-[15px] font-semibold rounded-xl',
+  /** Floor / session / modal / checkout 收款 — 52px touch. */
+  action: 'min-h-[52px] gap-2 px-5 py-3 text-base font-semibold rounded-xl',
 };
 
 export function buttonClasses({

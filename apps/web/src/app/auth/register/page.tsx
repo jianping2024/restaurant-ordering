@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
+import { ButtonLink } from '@/components/ui/Button';
 
 export default function RegisterClosedPage() {
   const { lang } = useLanguage();
@@ -17,12 +17,9 @@ export default function RegisterClosedPage() {
         subtitle: t.closedBody,
       }}
     >
-      <Link
-        href="/auth/login"
-        className="inline-flex w-full justify-center rounded-xl bg-brand-gold text-brand-on-gold py-3 font-semibold hover:bg-brand-gold-light transition-colors"
-      >
+      <ButtonLink href="/auth/login" size="action" className="w-full">
         {t.closedToLogin}
-      </Link>
+      </ButtonLink>
     </AuthPageShell>
   );
 }

@@ -9,6 +9,7 @@ import {
   formatPairingCountdown,
   pairingExpiryRemainingMs,
 } from '@/lib/pairing-code-countdown';
+import { Button } from '@/components/ui/Button';
 
 type PairingRow = PrintAgentPairingListItem;
 
@@ -202,22 +203,25 @@ export function PrintAgentPairingPanel({
       {error && <p className="text-[13px] text-red-600">{t.pairingErrorPrefix}{error}</p>}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <Button
           type="button"
+          size="sm"
+          loading={creating}
           disabled={creating}
           onClick={() => void createPairing()}
-          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-on-gold font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {creating ? '…' : t.pairingGenerate}
-        </button>
-        <button
+          {t.pairingGenerate}
+        </Button>
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => void load()}
           disabled={loading}
-          className="text-[12px] px-3 py-1.5 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors disabled:opacity-50"
+          loading={loading}
         >
-          {loading ? '…' : t.pairingRefreshList}
-        </button>
+          {t.pairingRefreshList}
+        </Button>
       </div>
 
       <div>

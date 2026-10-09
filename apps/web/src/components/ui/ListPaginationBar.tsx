@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, buttonIcon } from '@/components/ui/Button';
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 import {
   isListPageSize,
   LIST_PAGE_SIZES,
@@ -99,6 +100,29 @@ function ChevronsRightIcon({ className }: { className?: string }) {
 
 const iconBtnClass = 'min-w-[2.25rem] px-2';
 
+/** Compact page-size select — sole chrome for ListPaginationBar meta row (not form toolbar). */
+const pageSizeSelectClass =
+  `h-8 appearance-none cursor-pointer bg-transparent border border-brand-border/70 rounded-md pl-2 pr-6 leading-none ${FORM_CONTROL_TEXT_CLASS} text-brand-text-muted focus:outline-none focus:border-brand-gold/40 disabled:opacity-50 disabled:cursor-not-allowed`;
+
+function PageSizeSelectChevron() {
+  return (
+    <span
+      className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-brand-text-muted opacity-70"
+      aria-hidden
+    >
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path
+          d="M4 6l4 4 4-4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 /**
  * Sole dashboard list footer: page info + page-size select + first/prev/next/last icons.
  * Presentational only — parent owns fetch vs in-memory slicing.
@@ -128,22 +152,25 @@ export function ListPaginationBar({
         </p>
         <label className="flex items-center gap-2 text-[13px] text-brand-text-muted">
           <span className="whitespace-nowrap">{labels.pageSizeLabel}</span>
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              const next = Number(e.target.value);
-              if (isListPageSize(next)) onPageSizeChange(next);
-            }}
-            disabled={disabled}
-            className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-base text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-50"
-            aria-label={labels.pageSizeLabel}
-          >
-            {LIST_PAGE_SIZES.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+          <span className="relative inline-flex shrink-0">
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                const next = Number(e.target.value);
+                if (isListPageSize(next)) onPageSizeChange(next);
+              }}
+              disabled={disabled}
+              className={pageSizeSelectClass}
+              aria-label={labels.pageSizeLabel}
+            >
+              {LIST_PAGE_SIZES.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <PageSizeSelectChevron />
+          </span>
         </label>
       </div>
       {totalPages > 1 ? (

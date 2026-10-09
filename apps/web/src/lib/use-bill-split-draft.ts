@@ -174,12 +174,22 @@ export function useBillSplitDraft(params: {
     [guestName],
   );
 
+  /** Sole server-plan fingerprint for hydrate + staff unpaid draft wipe. */
+  const splitAuthorityKey = useMemo(
+    () =>
+      billSplitDraftAuthorityKey({
+        existingSplit,
+        collectedPaymentCount: collectedPayments.length,
+      }),
+    [existingSplit, collectedPayments.length],
+  );
+
+  const draftOwnerKey = sessionId
+    ? billSplitLocalDraftOwnerKey(restaurantId, sessionId)
+    : null;
+
   useLayoutEffect(() => {
     const canRestore = shouldRestoreBillSplitLocalDraft({
-      existingSplit,
-      collectedPaymentCount: collectedPayments.length,
-    });
-    const authorityKey = billSplitDraftAuthorityKey({
       existingSplit,
       collectedPaymentCount: collectedPayments.length,
     });
@@ -198,7 +208,7 @@ export function useBillSplitDraft(params: {
     const action = resolveBillSplitDraftHydrateAction({
       sessionId,
       appliedAuthorityKey: appliedAuthorityKeyRef.current,
-      authorityKey,
+      authorityKey: splitAuthorityKey,
       canRestore,
     });
 
@@ -237,20 +247,17 @@ export function useBillSplitDraft(params: {
       }
     }
 
-    appliedAuthorityKeyRef.current = authorityKey;
+    appliedAuthorityKeyRef.current = splitAuthorityKey;
     setStorageReady(true);
   }, [
     restaurantId,
     sessionId,
     existingSplit,
     collectedPayments.length,
+    splitAuthorityKey,
     applyServerSeedToMemory,
     applyLocalDraftToMemory,
   ]);
-
-  const draftOwnerKey = sessionId
-    ? billSplitLocalDraftOwnerKey(restaurantId, sessionId)
-    : null;
 
   const {
     byItemAllocations,
@@ -266,6 +273,7 @@ export function useBillSplitDraft(params: {
     existingSplit: continuationSplit,
     collectedPayments,
     draftOwnerKey,
+    authorityKey: splitAuthorityKey,
   });
 
   useLayoutEffect(() => {

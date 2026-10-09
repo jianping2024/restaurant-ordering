@@ -239,10 +239,10 @@ export function billSplitHasServerItemShares(
 }
 
 /**
- * Sole by-item working-map local-draft apply decision.
- * Non-restorable / no local by_item draft → leave the staff reconcile alone (never clear).
- * Staff persists its unpaid plan to the server (`persistByItemUnpaidPlan`), so server
- * shares are staff's newer truth → leave reconcile.
+ * Sole by-item *localStorage* draft apply decision (guest restore path).
+ * Non-restorable / no local by_item draft → leave staff reconcile alone (never clear
+ * via setByItemAllocations here). Staff unpaid vs server plan is sole
+ * `useByItemSplitState` + `authorityKey` wipe — not this helper.
  */
 export type ByItemLocalDraftApplyAction = 'leave_reconcile' | 'apply_local';
 

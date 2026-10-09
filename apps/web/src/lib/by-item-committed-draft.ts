@@ -4,10 +4,13 @@
  * Contract (one representation):
  * - committed = paidLocked / locked-ticket rows only (Realtime may rebuild)
  * - draft = named unpaid editable rows only (never unnamed seeds)
- * - Unlocked persons never live in committed; missing unlocked tickets/lines
- *   merge into the working map via {@link mergeMissingByItemDraftTickets} against
- *   the persons seed (derived every render in useByItemSplitState — not a
- *   layout-effect setState).
+ * - Unlocked persons never live in committed; hydrate via
+ *   {@link mergeMissingByItemDraftTickets} against the persons seed (every render
+ *   in useByItemSplitState — not a layout-effect setState).
+ * - Server authority fingerprint change (billSplitDraftAuthorityKey) wipes draft
+ *   first in useByItemSplitState, so merge-from-empty reseeds full unpaid server
+ *   plan (guest re-call / multi-phone). Same fingerprint: local edits keep;
+ *   only missing tickets append.
  */
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { splitPartyKey } from '@/lib/split-party-id';
@@ -183,9 +186,13 @@ export function reconcileByItemShareOmitKeys(params: {
 }
 
 /**
- * Sole hydrate merge: append unlocked persons rows that are missing on each line.
- * Does not overwrite tickets already present on that line (staff local edits win).
- * Same-split guest re-submit adds new unpaid tickets / new dish lines without wiping draft.
+ * Sole hydrate merge for unpaid draft vs unlocked persons seed.
+ * - Empty draft (after session/authority wipe) ⇒ append all unlocked seed rows
+ *   (= full server unpaid reseed).
+ * - Non-empty draft (same authority fingerprint) ⇒ append only missing
+ *   line×ticket rows; do not overwrite tickets already on that line (staff
+ *   mid-edit keeps). Guest re-submit that changes the plan bumps authority and
+ *   wipes draft upstream — not handled here by overwriting in place.
  * `omitLineTicketKeys`: staff-deleted (line×ticket) must not resurrect from the same seed.
  */
 export function mergeMissingByItemDraftTickets(

@@ -81,7 +81,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         {
           title: 'AI 速成软件频出 bug',
           problem: '表面好看，高峰就出错，三天两头出问题。',
-          solution: '由 20+ 年经验的工程师负责架构与稳定性，关键流程经真实门店营业验证，不拿餐厅当试验场。',
+          solution:
+            '20 余年经验的资深计算机软件工程师领衔研发，专业架构，稳定可靠。核心流程经过真实餐厅营业验证，以成熟技术保障每一次运营，不拿餐厅当试验场。',
         },
         {
           title: '平板墙成本高',
@@ -270,7 +271,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         {
           title: 'AI-rushed software keeps breaking',
           problem: 'Looks good, fails at peak hours, new problems every few days.',
-          solution: 'Architecture and stability owned by an engineer with 20+ years of experience; critical flows proven in live restaurant service — not your restaurant as a test bed.',
+          solution:
+            'Led by a senior software engineer with 20+ years of experience — solid architecture, stable and reliable. Critical flows are proven in live restaurant service; mature technology backs every service day — not your restaurant as a test bed.',
         },
         {
           title: 'Tablet wall costs a lot',
@@ -459,7 +461,8 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
         {
           title: 'Software feito à pressa com IA falha',
           problem: 'Bonito por fora, falha na hora de ponta, problemas de poucos em poucos dias.',
-          solution: 'Arquitetura e estabilidade a cargo de um engenheiro com mais de 20 anos de experiência; fluxos críticos validados em serviço real — o seu restaurante não é um campo de testes.',
+          solution:
+            'Liderado por um engenheiro de software sénior com mais de 20 anos de experiência — arquitetura sólida, estável e fiável. Fluxos críticos validados em serviço real; tecnologia madura em cada dia de operação — o seu restaurante não é um campo de testes.',
         },
         {
           title: 'Parede de tablets cara',

@@ -8,7 +8,8 @@ import type { DishFeedbackVote } from '@/types';
 import { CheckoutSubmittedHeroIllustration } from '@/components/menu/CheckoutSubmittedHeroIllustration';
 import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultList';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { GuestBillBottomDock } from '@/components/menu/GuestBillBottomDock';
+import { Button } from '@/components/ui/Button';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 
 export type BillCheckoutSubmittedCopy = {
@@ -18,7 +19,6 @@ export type BillCheckoutSubmittedCopy = {
   splitPaid: string;
   splitPartialPaid: string;
   splitAmountBreakdown: string;
-  refreshPage: string;
   feedbackTitle: string;
   feedbackHint: string;
   feedbackSkip: string;
@@ -39,18 +39,8 @@ interface Props {
   splitRows: CustomerSplitRowDisplay[];
   backHref: string;
   backLabel: string;
-  onRefreshPage: () => void;
-  /**
-   * This phone called its own ticket. Ordering is paused until the guest resumes (unlocks) it;
-   * staff can also unlock at the counter.
-   */
-  called?: {
-    hint: string;
-    resumeLabel: string;
-    resumeBusyLabel: string;
-    resumeBusy: boolean;
-    onResume: () => void;
-  } | null;
+  /** This phone called its ticket — ordering paused until staff unlocks. */
+  heldHint?: string | null;
   showFeedback: boolean;
   reviewableItems: GuestReviewableItem[];
   feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>;
@@ -76,8 +66,7 @@ export function BillCheckoutSubmittedScreen({
   splitRows,
   backHref,
   backLabel,
-  onRefreshPage,
-  called,
+  heldHint = null,
   showFeedback,
   reviewableItems,
   feedbackDraft,
@@ -93,14 +82,16 @@ export function BillCheckoutSubmittedScreen({
   onSubmitFeedback,
 }: Props) {
   return (
-    <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-8">
+    <div
+      data-guest-bill-page=""
+      className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]"
+    >
       <CustomerOrderingHeader
         restaurantName={restaurantName}
         displayName={displayName}
         tableLabel={tableLabel}
         staffAssisted={null}
         headingSize="bill"
-        backLink={{ href: backHref, label: backLabel }}
       />
 
       <main className="px-4 py-6 space-y-4">
@@ -109,8 +100,8 @@ export function BillCheckoutSubmittedScreen({
             <CheckoutSubmittedHeroIllustration />
           </div>
           <p className="font-heading text-lg text-brand-gold leading-snug px-1">{copy.checkoutSubmittedHint}</p>
-          {called ? (
-            <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{called.hint}</p>
+          {heldHint ? (
+            <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{heldHint}</p>
           ) : null}
         </section>
 
@@ -129,28 +120,6 @@ export function BillCheckoutSubmittedScreen({
             splitAmountBreakdown: copy.splitAmountBreakdown,
           }}
         />
-
-        {called ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="action"
-            className="w-full"
-            disabled={called.resumeBusy}
-            onClick={called.onResume}
-          >
-            {called.resumeBusy ? called.resumeBusyLabel : called.resumeLabel}
-          </Button>
-        ) : null}
-
-        <section className="grid grid-cols-1 gap-3 pt-1 min-[400px]:grid-cols-2">
-          <Button type="button" variant="gold" size="action" className="w-full" onClick={onRefreshPage}>
-            {copy.refreshPage}
-          </Button>
-          <ButtonLink variant="outline" size="action" className="w-full" href={backHref}>
-            ← {backLabel}
-          </ButtonLink>
-        </section>
 
         {showFeedback ? (
           <section className="bg-brand-card border border-brand-border rounded-xl p-4">
@@ -246,6 +215,8 @@ export function BillCheckoutSubmittedScreen({
           </section>
         ) : null}
       </main>
+
+      <GuestBillBottomDock backHref={backHref} backLabel={backLabel} />
     </div>
   );
 }

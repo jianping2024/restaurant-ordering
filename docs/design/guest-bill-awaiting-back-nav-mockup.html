@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>顾客待结账页 · 返回点单导航 — 设计对比</title>
+<!--
+  对比两套「返回点单」：
+  A — 改进顶栏返回（行业惯例 / 推荐）
+  B — 底部整宽按钮（次要动作被抬成主 CTA）
+  结论写在页顶；打开方式：浏览器打开本文件，或本地静态服务。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #edeae2;
+    --card: #f7f4ee;
+    --ink: #1f3e52;
+    --ink-soft: #6b7280;
+    --gold: #a9814a;
+    --border: #bab2a4;
+    --ok: #1f6b4a;
+    --warn: #9a6f28;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #e4e0d6;
+    color: #2b2620;
+    font-family: "Jost", "Noto Sans SC", system-ui, sans-serif;
+    line-height: 1.45;
+  }
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+  }
+  h1 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+  .lede {
+    margin: 0 0 20px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    max-width: 62ch;
+  }
+  .verdict {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 28px;
+  }
+  .verdict strong { color: var(--ok); }
+  .verdict p { margin: 0.4em 0 0; font-size: 0.92rem; color: #374151; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+    align-items: start;
+  }
+  .col-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .col-label h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: none;
+  }
+  .badge-rec { background: #d8f3e4; color: var(--ok); }
+  .badge-alt { background: #f3e8d4; color: var(--warn); }
+  .phone {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    overflow: hidden;
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .status-bar {
+    height: 28px;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .nav {
+    padding: 8px 12px 10px;
+    border-bottom: 1px solid rgba(186, 178, 164, 0.55);
+    background: var(--paper);
+  }
+  .back-now {
+    display: inline-block;
+    font-size: 13px;
+    color: #9ca3af;
+    padding: 2px 0;
+  }
+  .back-improved {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 8px 12px 8px 8px;
+    margin: -4px 0;
+    border-radius: 10px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 500;
+    background: transparent;
+  }
+  .back-improved:hover { background: rgba(31, 62, 82, 0.06); }
+  .chev {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+  .title-row h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .chip {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  .body {
+    padding: 20px 16px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .hint {
+    text-align: center;
+    color: var(--gold);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.35;
+    padding: 8px 4px 4px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .card .lbl { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .card .amt {
+    margin-top: 4px;
+    font-size: 1.85rem;
+    color: var(--gold);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .split {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .split h4 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .person {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  .fb {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: left;
+  }
+  .fb h4 { margin: 0; font-size: 14px; color: var(--ink); font-weight: 500; }
+  .fb p { margin: 4px 0 0; font-size: 12px; color: var(--ink-soft); }
+  .hit-callout {
+    margin-top: 8px;
+    border: 1.5px dashed var(--ok);
+    border-radius: 12px;
+    padding: 4px;
+    background: rgba(31, 107, 74, 0.04);
+  }
+  .hit-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ok);
+    padding: 0 4px 4px;
+  }
+  .dock {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    background: var(--card);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .btn-outline {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 12px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+  }
+  .notes {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: #4b5563;
+    padding: 0 4px;
+  }
+  .notes li { margin: 0.35em 0; }
+  .path {
+    margin-top: 32px;
+    padding: 14px 16px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    word-break: break-all;
+  }
+  .path code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem;
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>顾客待结账页 ·「返回点单」导航对比</h1>
+    <p class="lede">
+      场景：客人已呼叫结账，手机停在「请带分单信息到前台支付」。
+      本页不再放「恢复点单 / 刷新页面」。只讨论怎么回菜单。
+    </p>
+
+    <div class="verdict">
+      <strong>推荐方案 A：改进顶栏返回（符合 iOS / Material / 主流点餐 App）</strong>
+      <p>
+        顶栏「返回」负责离开当前页；底部大按钮留给「本页主任务」。
+        待结账页的主任务是展示金额、去前台付钱——不是再点一次导航。
+        现状左上角难用，是因为现在是 13px 灰色文字链（可点区远小于 44×44），不是「顶栏返回」这个模式错了。
+      </p>
+      <p style="margin-top:10px">
+        方案 B（底部整宽「返回点单」）手感好，但会把「离开」抬成主按钮，容易让人以为还要再点一下才算完成结账；和菜单底栏、呼叫结账底栏的用法也不一致（那些才是主任务）。
+      </p>
+    </div>
+
+    <div class="grid">
+      <!-- A -->
+      <section>
+        <div class="col-label">
+          <h2>A · 改进顶栏返回</h2>
+          <span class="badge badge-rec">推荐</span>
+        </div>
+        <div class="phone" aria-label="方案 A 手机稿">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <div class="nav">
+            <div class="hit-callout">
+              <div class="hit-label">可点区 ≥ 44px · 字号 15 · 墨色</div>
+              <a class="back-improved" href="#" onclick="return false">
+                <span class="chev" aria-hidden="true">‹</span>
+                返回点单
+              </a>
+            </div>
+            <div class="title-row">
+              <h3>Pirata</h3>
+              <span class="chip">桌 12</span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="hint">请携带手机上的分单信息到前台支付</div>
+            <div class="card">
+              <div class="lbl">总计</div>
+              <div class="amt">€19.95</div>
+            </div>
+            <div class="split">
+              <h4>分单结果</h4>
+              <div class="row">
+                <div class="person"><span class="avatar">👤</span> Kk</div>
+                <span>€19.95</span>
+              </div>
+            </div>
+            <div class="fb">
+              <h4>本次菜品体验如何？</h4>
+              <p>10 秒即可完成，可跳过</p>
+            </div>
+          </div>
+        </div>
+        <ul class="notes">
+          <li>对齐系统导航：离开 = 顶栏 / 系统返回键</li>
+          <li>中间内容不被按钮抢戏</li>
+          <li>改动：加大可点区 + 对比度，不必换位置</li>
+        </ul>
+      </section>
+
+      <!-- B -->
+      <section>
+        <div class="col-label">
+          <h2>B · 底部整宽按钮</h2>
+          <span class="badge badge-alt">备选 · 不推荐作默认</span>
+        </div>
+        <div class="phone" aria-label="方案 B 手机稿">
+          <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+          <div class="nav">
+            <span class="back-now">← 返回点单</span>
+            <div class="title-row">
+              <h3>Pirata</h3>
+              <span class="chip">桌 12</span>
+            </div>
+          </div>
+          <div class="body">
+            <div class="hint">请携带手机上的分单信息到前台支付</div>
+            <div class="card">
+              <div class="lbl">总计</div>
+              <div class="amt">€19.95</div>
+            </div>
+            <div class="split">
+              <h4>分单结果</h4>
+              <div class="row">
+                <div class="person"><span class="avatar">👤</span> Kk</div>
+                <span>€19.95</span>
+              </div>
+            </div>
+            <div class="fb">
+              <h4>本次菜品体验如何？</h4>
+              <p>10 秒即可完成，可跳过</p>
+            </div>
+          </div>
+          <div class="dock">
+            <button type="button" class="btn-outline">← 返回点单</button>
+          </div>
+        </div>
+        <ul class="notes">
+          <li>拇指区好按，适合「本页唯一主操作」</li>
+          <li>此处主任务是付钱展示，不是离开</li>
+          <li>与呼叫结账底栏语义冲突：底栏 = 往前推，不是往回走</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="path">
+      <div><strong>设计图访问路径</strong></div>
+      <p style="margin:8px 0 0">仓库内文件：</p>
+      <code>docs/design/guest-bill-awaiting-back-nav-mockup.html</code>
+      <p style="margin:12px 0 0">本机打开（任选）：</p>
+      <code>open docs/design/guest-bill-awaiting-back-nav-mockup.html</code>
+      <br />
+      <code>file:///Users/chenjianping/Documents/restaurant-ordering/docs/design/guest-bill-awaiting-back-nav-mockup.html</code>
+    </div>
+  </div>
+</body>
+</html>

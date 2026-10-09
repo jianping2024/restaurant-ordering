@@ -10,7 +10,6 @@ import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import type { IndividualTicketInfo } from '@/lib/individual-checkout';
 import { splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
-import { requestGuestUnlockTickets } from '@/lib/request-individual-checkout';
 import { IndividualCheckoutNotice } from '@/components/menu/IndividualCheckoutNotice';
 import { useGuestClientId } from '@/lib/table-order-round/use-guest-client-id';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
@@ -24,8 +23,7 @@ import {
   parseDishFeedbackReasons,
   type DishFeedbackReasonKey,
 } from '@/lib/dish-feedback-reasons';
-import { Button } from '@/components/ui/Button';
-import { customerBottomDockSurfaceClass } from '@/lib/customer-menu-bottom-bar-layout';
+import { GuestBillBottomDock } from '@/components/menu/GuestBillBottomDock';
 import type {
   BillSplit,
   DishFeedbackVote,
@@ -46,7 +44,6 @@ import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { type GuestBillSplitMode, resolveGuestBillSplitMode } from '@/lib/guest-bill-split-mode';
 import { guestBillSurfaceShowsSubmitted } from '@/lib/guest-bill-surface-phase';
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
-import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
 import type { SplitMode } from '@/types';
 
 function BillCheckoutGateBanner({ message }: { message: string }) {
@@ -401,36 +398,6 @@ function GuestBillPage({
     total,
   ]);
 
-  const [resumeBusy, setResumeBusy] = useState(false);
-  /** Guest「恢复点单」: unlock this phone's called ticket, then reload the shared plan. */
-  const handleResume = async () => {
-    if (resumeBusy || !guestClientId) return;
-    setResumeBusy(true);
-    try {
-      const outcome = await requestGuestUnlockTickets({
-        slug: restaurant.slug,
-        tableId,
-        guestClientId,
-      });
-      if (!outcome.ok) {
-        showToast(
-          messageForCheckoutErrorOverrides(
-            outcome.error,
-            {
-              ticket_collecting: t.individualResumeCollecting,
-              ticket_paid: t.individualResumeCollecting,
-            },
-            t.individualResumeFailed,
-          ),
-          'error',
-        );
-      }
-      await refreshBill();
-    } finally {
-      setResumeBusy(false);
-    }
-  };
-
   const claimLabels = useMemo(
     () => ({
       left: t.claimLeft,
@@ -696,7 +663,6 @@ function GuestBillPage({
           splitPaid: t.splitPaid,
           splitPartialPaid: t.splitPartialPaid,
           splitAmountBreakdown: t.splitAmountBreakdown,
-          refreshPage: t.refreshPage,
           feedbackTitle: t.feedbackTitle,
           feedbackHint: t.feedbackHint,
           feedbackSkip: t.feedbackSkip,
@@ -708,20 +674,13 @@ function GuestBillPage({
         }}
         total={calledMine?.total ?? total}
         splitRows={calledMine?.rows ?? []}
-        called={
+        heldHint={
           guestMode === 'by_item' && orderingHeld && surfacePhase === 'awaiting_payment'
-            ? {
-                hint: t.individualCalledHint,
-                resumeLabel: t.individualResume,
-                resumeBusyLabel: t.individualResumeBusy,
-                resumeBusy,
-                onResume: () => void handleResume(),
-              }
+            ? t.individualCalledHint
             : null
         }
         backHref={backHref}
         backLabel={t.backToMenu}
-        onRefreshPage={() => void refreshBill()}
         showFeedback={!feedbackSkipped}
         reviewableItems={reviewableItems}
         feedbackDraft={feedbackDraft}
@@ -740,10 +699,10 @@ function GuestBillPage({
     );
   }
 
-  // Clears the solid call-checkout dock (button row, + gate banner) and the bottom safe area.
+  // Clears the solid dock (call + back, + gate banner) and the bottom safe area.
   const pagePadClass = checkoutGateMessage
-    ? 'pb-[calc(10rem+var(--mesa-customer-menu-bottom-safe))]'
-    : 'pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]';
+    ? 'pb-[calc(12rem+var(--mesa-customer-menu-bottom-safe))]'
+    : 'pb-[calc(9.5rem+var(--mesa-customer-menu-bottom-safe))]';
 
   return (
     <>
@@ -759,7 +718,6 @@ function GuestBillPage({
         tableLabel={t.table}
         staffAssisted={null}
         headingSize="bill"
-        backLink={{ href: backHref, label: t.backToMenu }}
       />
 
       <BillDetailsSection
@@ -829,32 +787,25 @@ function GuestBillPage({
         <p className="px-4 pb-2 text-[13px] text-brand-text-muted">{claimIssueBanner}</p>
       ) : null}
 
-      {/* Yields while a bill-page text field is focused — sole rule in globals.css. */}
-      <div
-        data-guest-call-checkout-dock=""
-        className={`${customerBottomDockSurfaceClass} w-full max-w-mobile`}
-      >
-        <div className="space-y-2 px-4 py-3">
-          {checkoutGateMessage ? (
-            <BillCheckoutGateBanner message={checkoutGateMessage} />
-          ) : null}
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleCallBill}
-            loading={isCallBillBusy}
-            disabled={
-              orderLines.length === 0
-              || !activeSessionId
-              || isCallBillBusy
-              || !partyCheckoutAllowed
-              || (guestMode === 'by_item' && claim.issue !== null)
-            }
-          >
-            🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
-          </Button>
-        </div>
-      </div>
+      <GuestBillBottomDock
+        backHref={backHref}
+        backLabel={t.backToMenu}
+        gateBanner={
+          checkoutGateMessage ? <BillCheckoutGateBanner message={checkoutGateMessage} /> : null
+        }
+        callCheckout={{
+          label: t.callBill,
+          amountLabel: `€${callAmountShown.toFixed(2)}`,
+          busy: isCallBillBusy,
+          disabled:
+            orderLines.length === 0
+            || !activeSessionId
+            || isCallBillBusy
+            || !partyCheckoutAllowed
+            || (guestMode === 'by_item' && claim.issue !== null),
+          onClick: handleCallBill,
+        }}
+      />
     </div>
     </>
   );

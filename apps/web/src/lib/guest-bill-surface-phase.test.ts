@@ -34,13 +34,41 @@ describe('resolveGuestBillSurfacePhase', () => {
     );
   });
 
-  it('stays settled when session closes after awaiting', () => {
+  it('settles when session closes after awaiting', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
         previousPhase: 'awaiting_payment',
         phoneHoldsOrdering: false,
         tablePlanHoldsCheckout: false,
         localCalledLatch: false,
+        sessionId: null,
+        splitStatus: null,
+      }),
+      'settled',
+    );
+  });
+
+  it('settles when session closes while still on the call-checkout editor', () => {
+    assert.equal(
+      resolveGuestBillSurfacePhase({
+        previousPhase: 'editing',
+        phoneHoldsOrdering: false,
+        tablePlanHoldsCheckout: false,
+        localCalledLatch: false,
+        sessionId: null,
+        splitStatus: null,
+      }),
+      'settled',
+    );
+  });
+
+  it('settles when session closes even if local call latch is still set', () => {
+    assert.equal(
+      resolveGuestBillSurfacePhase({
+        previousPhase: 'awaiting_payment',
+        phoneHoldsOrdering: false,
+        tablePlanHoldsCheckout: false,
+        localCalledLatch: true,
         sessionId: null,
         splitStatus: null,
       }),

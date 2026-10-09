@@ -120,7 +120,7 @@
 - 结账队列查 `bill_splits.status = 'requested'`（`lib/checkout-requests-queue.ts`）。
 - 楼面「待结账」= 有 `requested` 分单**或**会话是 `billing`（`lib/waiter-board-session.ts`、`lib/waiter-table-detail-load.ts`）。
 - 实时订阅同时监听 `table_sessions` 和 `bill_splits`（`lib/use-restaurant-realtime-refresh.ts`），员工端 `CheckoutRequestsRealtime` 用 `bill_splits`。**顾客手机不订阅 `bill_splits`**（隐私）；菜单与结账页共用 `CustomerTableSessionRealtime`（本桌 `table_sessions` + `orders`，含员工改人数）门铃 → 权威 GET；进页/回前台仍 reconcile 一次。
-- 服务员桌台详情 `components/waiter/WaiterTableDetail.tsx`：`isCheckoutPending`（`requested` 或 `billing`）为真时，**关闭点单抽屉并自动跳转**到结账页或楼面看板。
+- 服务员桌台详情 `components/waiter/WaiterTableDetail.tsx`：本桌有结账申请（`checkoutRequested` / `bill_splits.requested`）时**自动跳转**结账页或楼面看板；桌锁（关点单抽屉 / 禁转并等）仍只认会话 `billing`（`isCheckoutPending`）。
 - 转台并桌接口 `app/api/restaurants/[slug]/staff/waiter/tables/action/route.ts`：并桌被 `tableInActiveCheckout`（`billing` 或有 `requested` 分单）拦；转台只看 `billing`（`tableSessionBlocksWaiterMutation`）。
 - 并桌数据库函数（`supabase/migrations/20260812154028_sushi_table_order_rounds.sql`）：两桌都有分单时把 `persons`、`result` 首尾拼接、金额相加；只有一边有时改挂。对按菜多票**不安全**，所以用拦截回避。
 

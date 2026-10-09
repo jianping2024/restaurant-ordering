@@ -267,6 +267,22 @@ describe('resolvePersistedSplitModeForDraft', () => {
     assert.equal(rows[0]?.amount, 50);
   });
 
+  it('uses the same whole-table result when splitMode is whole_table', () => {
+    const input = {
+      total: 87.75,
+      orderLines: [menuLine('o1-0', 1, 87.75)],
+      lineSpecs: [menuSpec('o1-0', 1, 87.75)],
+      personCount: 2,
+      splitPeople: [{ name: '客人 1' }],
+      parsedByItemAllocations: {},
+      lang: 'zh' as const,
+    };
+    const fromNull = computeSplitResults({ ...input, splitMode: null });
+    const fromWhole = computeSplitResults({ ...input, splitMode: 'whole_table' });
+    assert.deepEqual(fromWhole, fromNull);
+    assert.deepEqual(fromWhole, [{ name: '__whole_table__', amount: 87.75 }]);
+  });
+
   it('returns null for whole-table persisted split', () => {
     assert.equal(
       resolvePersistedSplitModeForDraft({

@@ -36,46 +36,40 @@ export function DashboardSettingsShell({
     ) : null;
   const showIntro = Boolean(pageSubtitle || pageHelpModal);
   const wide = isSettingsWideLayout(pathname);
-  const narrowForm =
-    pathname === '/dashboard/settings' || pathname === '/dashboard/settings/';
   const versionLine = webAppVersion
     ? hub.appVersion.replaceAll('{version}', webAppVersion)
     : '';
 
-  const pageBody = (
-    <>
-      {showIntro ? (
-        <header className="mb-4">
-          {pageHelpModal ? (
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">{pageHelpModal}</div>
-          ) : null}
-          {pageSubtitle ? (
-            <p
-              className={`max-w-3xl text-[13px] leading-snug text-brand-text-muted/90 ${
-                pageHelpModal ? 'mt-1.5' : ''
-              }`}
-            >
-              {pageSubtitle}
-            </p>
-          ) : null}
-        </header>
-      ) : null}
-
-      {children}
-
-      {versionLine ? (
-        <p className="mt-8 text-[12px] tabular-nums text-brand-text-muted/80" data-testid="web-app-version">
-          {versionLine}
-        </p>
-      ) : null}
-    </>
-  );
-
+  // No overflow-x-hidden here: it creates a scroll containing block and breaks
+  // position:sticky under the staff top bar (settings profile save toolbar).
   return (
-    <div className="w-full min-w-0 max-w-full overflow-x-hidden">
+    <div className="w-full min-w-0 max-w-full">
       <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
         <SettingsTabs capabilities={capabilities} showSystemLogs={showSystemLogs} />
-        {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}
+        {showIntro ? (
+          <header className="mb-4">
+            {pageHelpModal ? (
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">{pageHelpModal}</div>
+            ) : null}
+            {pageSubtitle ? (
+              <p
+                className={`max-w-3xl text-[13px] leading-snug text-brand-text-muted/90 ${
+                  pageHelpModal ? 'mt-1.5' : ''
+                }`}
+              >
+                {pageSubtitle}
+              </p>
+            ) : null}
+          </header>
+        ) : null}
+
+        {children}
+
+        {versionLine ? (
+          <p className="mt-8 text-[12px] tabular-nums text-brand-text-muted/80" data-testid="web-app-version">
+            {versionLine}
+          </p>
+        ) : null}
       </div>
     </div>
   );

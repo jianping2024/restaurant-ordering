@@ -160,15 +160,15 @@ export function RestaurantStorefrontSettingsSection({
     const pickClass = busy
       ? 'pointer-events-none opacity-50'
       : 'cursor-pointer hover:bg-brand-bg';
+    const thumbClass =
+      kind === 'cover'
+        ? `h-20 w-full max-w-sm overflow-hidden rounded-lg border border-brand-border bg-brand-bg sm:h-24 ${pickClass}`
+        : `h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-border bg-brand-bg ${pickClass}`;
     return (
-      <div className="space-y-2">
+      <div className="min-w-0 space-y-2">
         <div className="text-sm font-medium text-brand-text">{label}</div>
-        <div className="flex items-center gap-3">
-          <label
-            htmlFor={inputId}
-            aria-label={copy.upload}
-            className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-border bg-brand-bg ${pickClass}`}
-          >
+        <div className={`flex gap-3 ${kind === 'cover' ? 'flex-col sm:flex-row sm:items-center' : 'items-center'}`}>
+          <label htmlFor={inputId} aria-label={copy.upload} className={thumbClass}>
             {display ? (
               // eslint-disable-next-line @next/next/no-img-element -- settings preview; URL may be relative /storage
               <img src={display} alt="" className="h-full w-full object-cover" />
@@ -218,8 +218,10 @@ export function RestaurantStorefrontSettingsSection({
       <legend className="px-1 text-sm font-medium text-brand-text">{copy.storefrontSectionTitle}</legend>
       <p className="text-[13px] leading-relaxed text-brand-text-muted">{copy.storefrontSectionDesc}</p>
 
-      {renderImageRow('logo', copy.logo, logoUrl)}
-      {renderImageRow('cover', copy.cover, coverUrl)}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {renderImageRow('logo', copy.logo, logoUrl)}
+        {renderImageRow('cover', copy.cover, coverUrl)}
+      </div>
       {imageError ? <p className="mesa-alert-danger px-3 py-2 text-sm">{imageError}</p> : null}
 
       <div className="space-y-3">
@@ -354,27 +356,32 @@ export function RestaurantStorefrontSettingsSection({
 
       <div className="space-y-3">
         <p className="text-[13px] text-brand-text-muted">{copy.introHint}</p>
-        {(
-          [
-            ['pt', copy.introPt],
-            ['en', copy.introEn],
-            ['zh', copy.introZh],
-          ] as const
-        ).map(([key, label]) => (
-          <div key={key}>
-            <label className="mb-1.5 block text-sm font-medium text-brand-text-muted" htmlFor={`storefront-intro-${key}`}>
-              {label}
-            </label>
-            <textarea
-              id={`storefront-intro-${key}`}
-              rows={3}
-              maxLength={STOREFRONT_INTRO_MAX}
-              value={intro[key]}
-              onChange={(e) => onIntroChange({ ...intro, [key]: e.target.value })}
-              className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text"
-            />
-          </div>
-        ))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(
+            [
+              ['pt', copy.introPt],
+              ['en', copy.introEn],
+              ['zh', copy.introZh],
+            ] as const
+          ).map(([key, label]) => (
+            <div key={key} className={key === 'zh' ? 'sm:col-span-2' : undefined}>
+              <label
+                className="mb-1.5 block text-sm font-medium text-brand-text-muted"
+                htmlFor={`storefront-intro-${key}`}
+              >
+                {label}
+              </label>
+              <textarea
+                id={`storefront-intro-${key}`}
+                rows={3}
+                maxLength={STOREFRONT_INTRO_MAX}
+                value={intro[key]}
+                onChange={(e) => onIntroChange({ ...intro, [key]: e.target.value })}
+                className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text"
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </fieldset>
   );

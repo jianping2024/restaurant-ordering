@@ -18,6 +18,7 @@ import {
   RestaurantStorefrontSettingsSection,
   restaurantStorefrontDraftFromProfile,
 } from '@/components/dashboard/RestaurantStorefrontSettingsSection';
+import { dashboardStickyToolbarShellClass } from '@/lib/waiter-staff-sticky-chrome';
 
 export function SettingsForm({
   restaurant,
@@ -165,36 +166,79 @@ export function SettingsForm({
         </div>
       )}
 
-      <div className="w-full">
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
-          <form onSubmit={handleSave} className="space-y-5">
+      <form onSubmit={handleSave} className="w-full space-y-4">
+        <div className={dashboardStickyToolbarShellClass}>
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+            {error ? (
+              <p className="mesa-alert-danger order-first mr-auto w-full px-3 py-1.5 text-sm sm:w-auto">
+                {error}
+              </p>
+            ) : null}
+            {success ? (
+              <p className="order-first mr-auto w-full rounded-lg border border-green-400/20 bg-green-400/10 px-3 py-1.5 text-sm text-green-400 sm:w-auto">
+                ✓ {t.saved}
+              </p>
+            ) : null}
+            <Button type="submit" loading={saving} className="w-full sm:w-auto">
+              {t.save}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-brand-border bg-brand-card p-6">
+          <div className="space-y-5">
             <Input
               label={t.name}
               value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               placeholder="Casa Portuguesa"
             />
 
             <div>
-              <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.slug}</label>
-              <div className="bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-brand-text-muted text-sm">
+              <label className="mb-1.5 block text-sm font-medium text-brand-text-muted">{t.slug}</label>
+              <div className="rounded-lg border border-brand-border bg-brand-bg px-4 py-2.5 text-sm text-brand-text-muted">
                 {restaurant.slug}
               </div>
-              <p className="text-[13px] text-brand-text-muted mt-1">{t.slugTip}</p>
+              <p className="mt-1 text-[13px] text-brand-text-muted">{t.slugTip}</p>
             </div>
 
             <Input
               label={t.address}
               value={form.address}
-              onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               placeholder="Rua da Alegria 123, Lisboa"
             />
-            <Input
-              label={t.phone}
-              value={form.phone}
-              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-              placeholder="+351 21 123 4567"
-            />
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Input
+                label={t.phone}
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                placeholder="+351 21 123 4567"
+              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-brand-text-muted">
+                  {t.countryCode}
+                </label>
+                <select
+                  value={form.countryCode}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      countryCode: e.target.value as RestaurantCountryCode,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-brand-border bg-brand-bg px-4 py-2.5 text-base text-brand-text"
+                >
+                  {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
+                    <option key={opt.code} value={opt.code}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[13px] text-brand-text-muted">{t.countryCodeHint}</p>
+              </div>
+            </div>
 
             <RestaurantStorefrontSettingsSection
               logoUrl={logoUrl}
@@ -243,32 +287,9 @@ export function SettingsForm({
               }}
             />
 
-            <div>
-              <label className="text-sm text-brand-text-muted font-medium block mb-1.5">
-                {t.countryCode}
-              </label>
-              <select
-                value={form.countryCode}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    countryCode: e.target.value as RestaurantCountryCode,
-                  }))
-                }
-                className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text"
-              >
-                {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
-                  <option key={opt.code} value={opt.code}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[13px] text-brand-text-muted mt-1">{t.countryCodeHint}</p>
-            </div>
-
             <fieldset className="space-y-3 rounded-xl border border-brand-border/70 bg-brand-bg/40 p-4">
-              <legend className="text-sm font-medium text-brand-text px-1">{t.geoSectionTitle}</legend>
-              <label className="flex items-start gap-3 cursor-pointer select-none">
+              <legend className="px-1 text-sm font-medium text-brand-text">{t.geoSectionTitle}</legend>
+              <label className="flex cursor-pointer select-none items-start gap-3">
                 <input
                   type="checkbox"
                   checked={form.geoOrderRestrictionEnabled}
@@ -281,7 +302,7 @@ export function SettingsForm({
                   <span className="block text-sm font-medium text-brand-text">
                     {t.geoRestrictionEnabled}
                   </span>
-                  <span className="block text-[13px] text-brand-text-muted mt-0.5 leading-relaxed">
+                  <span className="mt-0.5 block text-[13px] leading-relaxed text-brand-text-muted">
                     {t.geoRestrictionEnabledDesc}
                   </span>
                 </span>
@@ -290,92 +311,79 @@ export function SettingsForm({
                 className={`space-y-3 ${form.geoOrderRestrictionEnabled ? '' : 'opacity-60'}`}
                 aria-disabled={!form.geoOrderRestrictionEnabled}
               >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    label={t.geoLatitude}
+                    value={form.geo_latitude}
+                    onChange={(e) => setForm((f) => ({ ...f, geo_latitude: e.target.value }))}
+                    placeholder="38.7223"
+                  />
+                  <Input
+                    label={t.geoLongitude}
+                    value={form.geo_longitude}
+                    onChange={(e) => setForm((f) => ({ ...f, geo_longitude: e.target.value }))}
+                    placeholder="-9.1393"
+                  />
+                </div>
+                <p className="text-[13px] leading-relaxed text-brand-text-muted">{t.geoHint}</p>
+                <div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!navigator.geolocation) {
+                        setError(t.geoLocateFail);
+                        return;
+                      }
+                      try {
+                        const position = await getCurrentPositionWithFallback();
+                        setForm((prev) => ({
+                          ...prev,
+                          geo_latitude: position.coords.latitude.toFixed(6),
+                          geo_longitude: position.coords.longitude.toFixed(6),
+                        }));
+                        setError('');
+                      } catch {
+                        setError(t.geoLocateFail);
+                      }
+                    }}
+                    className="text-[13px] font-medium text-brand-gold hover:underline"
+                  >
+                    {t.useCurrentLocation}
+                  </button>
+                </div>
                 <Input
-                  label={t.geoLatitude}
-                  value={form.geo_latitude}
-                  onChange={e => setForm(f => ({ ...f, geo_latitude: e.target.value }))}
-                  placeholder="38.7223"
+                  label={t.orderRadiusMeters}
+                  type="number"
+                  min={MIN_ORDER_RADIUS_METERS}
+                  max={MAX_ORDER_RADIUS_METERS}
+                  step={1}
+                  inputMode="numeric"
+                  value={form.order_radius_meters}
+                  onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
+                  placeholder={String(MIN_ORDER_RADIUS_METERS)}
                 />
-                <Input
-                  label={t.geoLongitude}
-                  value={form.geo_longitude}
-                  onChange={e => setForm(f => ({ ...f, geo_longitude: e.target.value }))}
-                  placeholder="-9.1393"
-                />
-              </div>
-              <p className="text-[13px] text-brand-text-muted leading-relaxed">{t.geoHint}</p>
-              <div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!navigator.geolocation) {
-                      setError(t.geoLocateFail);
-                      return;
-                    }
-                    try {
-                      const position = await getCurrentPositionWithFallback();
-                      setForm((prev) => ({
-                        ...prev,
-                        geo_latitude: position.coords.latitude.toFixed(6),
-                        geo_longitude: position.coords.longitude.toFixed(6),
-                      }));
-                      setError('');
-                    } catch {
-                      setError(t.geoLocateFail);
-                    }
-                  }}
-                  className="text-[13px] font-medium text-brand-gold hover:underline"
-                >
-                  {t.useCurrentLocation}
-                </button>
-              </div>
-              <Input
-                label={t.orderRadiusMeters}
-                type="number"
-                min={MIN_ORDER_RADIUS_METERS}
-                max={MAX_ORDER_RADIUS_METERS}
-                step={1}
-                inputMode="numeric"
-                value={form.order_radius_meters}
-                onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
-                placeholder={String(MIN_ORDER_RADIUS_METERS)}
-              />
-              <p className="text-[13px] text-brand-text-muted">
-                {t.orderRadiusHint
-                  .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
-                  .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
-              </p>
+                <p className="text-[13px] text-brand-text-muted">
+                  {t.orderRadiusHint
+                    .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+                    .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
+                </p>
               </div>
             </fieldset>
-
-            {error && (
-              <p className="mesa-alert-danger text-sm px-4 py-2">
-                {error}
-              </p>
-            )}
-            {success && (
-              <p className="text-green-400 text-sm bg-green-400/10 border border-green-400/20 rounded-lg px-4 py-2">
-                ✓ {t.saved}
-              </p>
-            )}
-
-            <Button type="submit" loading={saving} className="w-full sm:w-auto">{t.save}</Button>
-          </form>
+          </div>
         </div>
+      </form>
 
-        <div className="bg-brand-card border border-red-500/20 rounded-2xl p-6 mt-4">
-          <h2 className="mesa-text-danger font-medium mb-2">{t.danger}</h2>
-          <p className="text-brand-text-muted text-sm mb-4">{t.dangerTip}</p>
-          <a
-            href={`/${restaurant.slug}/kitchen`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-brand-gold hover:underline"
-          >
-            → {t.openKitchen}
-          </a>
-        </div>
+      <div className="mt-4 rounded-2xl border border-red-500/20 bg-brand-card p-6">
+        <h2 className="mesa-text-danger mb-2 font-medium">{t.danger}</h2>
+        <p className="mb-4 text-sm text-brand-text-muted">{t.dangerTip}</p>
+        <a
+          href={`/${restaurant.slug}/kitchen`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-brand-gold hover:underline"
+        >
+          → {t.openKitchen}
+        </a>
       </div>
     </div>
   );

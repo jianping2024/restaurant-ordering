@@ -765,6 +765,8 @@ export const MESSAGES_FR = {
     "menuFlavorHintsDesc": "Activé : l'édition du menu peut marquer des goûts et le client voit des pastilles sous le nom et sur la photo. Désactivé : masqué ; les codes enregistrés sont conservés. Désactivé par défaut.",
     "billReceiptPrint": "Imprimer les notes",
     "billReceiptPrintDesc": "Lorsque cette option est activée, une demande de note imprime automatiquement une pré-note ; les paiements partagés et l'encaissement complet impriment automatiquement les reçus partagés et la note finale. Lorsqu'elle est désactivée, ces impressions automatiques sont ignorées (les bons de cuisine ne sont pas concernés) ; l'impression manuelle de la note lors de l'encaissement reste disponible.",
+    "openTableReceiptPrint": "Imprimer à l'ouverture de table",
+    "openTableReceiptPrintDesc": "Activé : à la confirmation d'ouverture, un ticket d'ouverture est imprimé (mise en page type station, une ligne avec le total, imprimante de reçus). Désactivé : pas d'impression ; changer le nombre de convives ne réimprime pas. Désactivé par défaut.",
     "billSyncToFiscal": "Imprimer la facture",
     "billSyncToFiscalDesc": "Activé : à l'encaissement, le NIF et le nom de l'acheteur sont demandés puis, après l'encaissement, la facture est émise automatiquement ou proposée (file auto_issue, sans clôturer la table) ; les encaissements et l'historique permettent de l'imprimer ou de la réimprimer. Désactivé : ces entrées sont masquées et l'API refuse. Division et facturation restent sur l'agent fiscal.",
     "stationSlipShowCategoryGroup": "Groupes de catégories sur les bons de cuisine",

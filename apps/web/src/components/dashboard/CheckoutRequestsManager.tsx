@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
@@ -64,9 +65,13 @@ export function CheckoutRequestsManager({
   const navT = getMessages(lang).nav;
   const showWaiterBoardLink = can(capabilities, 'dashboard.waiter_board.view');
   const waiterBoardNav = DASHBOARD_NAV_ITEMS.waiterBoard;
+  const router = useRouter();
+  const waiterBoardPath = waiterBoardHref(restaurantSlug, { embeddedInDashboard: true });
   const [selection, setSelection] = useState<CheckoutSelection>({ mode: 'follow_focus' });
   const [soundEnabled, setSoundEnabled] = useState(true);
   const prevRequestCountRef = useRef<number | null>(null);
+  /** True after this mount has seen a non-empty queue — cold empty stay; after work → board. */
+  const sawNonEmptyQueueRef = useRef(false);
   const reloadedFocusKeyRef = useRef('');
 
   const focusKey = checkoutQueueFocusKey(initialFocus);
@@ -96,14 +101,28 @@ export function CheckoutRequestsManager({
     return autoFocusedRequestId;
   }, [autoFocusedRequestId, selection]);
 
+  // Sole queue observer: chime on grow; after this page saw work and the queue is
+  // empty with print ask closed, return to the floor board (cold empty does not).
   useEffect(() => {
     const prev = prevRequestCountRef.current;
     prevRequestCountRef.current = requests.length;
+    if (requests.length > 0) {
+      sawNonEmptyQueueRef.current = true;
+    }
     if (prev === null) return;
     if (soundEnabled && requests.length > prev) {
       playCheckoutRequestChime();
     }
-  }, [requests.length, soundEnabled]);
+    if (
+      showWaiterBoardLink &&
+      !printAsk &&
+      sawNonEmptyQueueRef.current &&
+      requests.length === 0
+    ) {
+      sawNonEmptyQueueRef.current = false;
+      router.replace(waiterBoardPath);
+    }
+  }, [printAsk, requests.length, router, showWaiterBoardLink, soundEnabled, waiterBoardPath]);
 
   useEffect(() => {
     if (!selectedRequestId) return;
@@ -171,7 +190,7 @@ export function CheckoutRequestsManager({
           <div className="flex flex-wrap items-center justify-end gap-3">
             {showWaiterBoardLink ? (
               <DashboardQuickNavLink
-                href={waiterBoardHref(restaurantSlug, { embeddedInDashboard: true })}
+                href={waiterBoardPath}
                 icon={waiterBoardNav.icon}
                 label={navT.viewWaiter}
               />

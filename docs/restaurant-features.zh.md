@@ -14,7 +14,7 @@
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单；未勾选时跳过自动预账单（厨房单不受影响）。确认收款后的账单/发票由结账页询问决定，走手动入队，不受此开关限制 |
 | `open_table_receipt_print`（设置页名称「开台打印小票」） | **关闭** | 勾选后：服务员确认开台成功（冷开台 `sessionOpened`）时自动入队一张开台小票（`receipt_variant=open_table`，版式同档口出品联、一行合计金额，收银默认打印机）。未勾选跳过；改人数不重打。唯一入队：`lib/open-table-receipt-enqueue.ts`；出纸在 farvoo-fatura fiscal-agent |
 | `bill_sync_to_fiscal`（设置页名称「打印发票」） | **关闭** | 勾选后：确认收款界面填写税号/客户名。收款后：有效 NIF 或付款方式为 Multibanco/混合时**直接**入队 `auto_issue` 打发票（不弹「是否打印发票」）；其余（现金且无有效 NIF）仍问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则不打）。未勾选时不问发票，改为问「是否打印账单」。与「快速关台」**互斥**（打开本项会关掉快速关台）。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
-| `quick_table_close`（设置页名称「快速关台」） | **关闭** | 勾选后：员工桌台详情用「关台结账」代替「呼叫结账」（确认后 settled 关台并计入营业额，不记付款方式）；顾客手机不能呼叫结账；`checkout/request` 与 `checkout/ensure-entry` 返回 `403 quick_table_close_enabled`。与「打印发票」**互斥**。默认关闭。 |
+| `quick_table_close`（设置页名称「快速关台」） | **关闭** | 勾选后：员工桌台详情用「关台结账」代替「呼叫结账」（确认后 settled 关台并计入营业额，不记付款方式）；顾客手机呼叫结账照常；员工 `checkout/ensure-entry` 返回 `403 quick_table_close_enabled`（楼面改走关台结账）。与「打印发票」**互斥**。默认关闭。 |
 | `menu_flavor_hints_enabled` | **关闭** | 勾选后：菜单编辑可标菜品风味，顾客菜单显示风味 chip。未勾选：编辑无风味区、顾客不显示（已写入的 `flavor_codes` 保留）。产品定稿见 [`product/menu-flavor-hints.zh.md`](./product/menu-flavor-hints.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。

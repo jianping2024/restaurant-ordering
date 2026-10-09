@@ -60,6 +60,7 @@ export async function POST(
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
 
+  // Staff floor swaps「呼叫结账」→「关台结账」; guests use checkout/request (not this route).
   if (isRestaurantFeatureEnabled(loaded.restaurant.feature_flags, 'quick_table_close')) {
     return NextResponse.json({ error: 'quick_table_close_enabled' }, { status: 403 });
   }

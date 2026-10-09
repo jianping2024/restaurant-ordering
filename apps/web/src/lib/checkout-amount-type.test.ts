@@ -3,13 +3,21 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { CHECKOUT_ACTION_AMOUNT_CLASS } from './checkout-amount-type';
+import {
+  CHECKOUT_ACTION_AMOUNT_CLASS,
+  CHECKOUT_COLLECT_BUTTON_CLASS,
+} from './checkout-amount-type';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const ACTION_AMOUNT_CALL_SITES = [
   'components/dashboard/checkout/CheckoutRequestListCard.tsx',
   'components/dashboard/checkout/CollectPaymentModal.tsx',
+  'components/dashboard/checkout/StaffByItemSplitWorkbench.tsx',
+] as const;
+
+const COLLECT_BUTTON_CALL_SITES = [
+  'components/menu/BillSplitPanel.tsx',
   'components/dashboard/checkout/StaffByItemSplitWorkbench.tsx',
 ] as const;
 
@@ -39,5 +47,18 @@ describe('CHECKOUT_ACTION_AMOUNT_CLASS', () => {
     assert.match(messages, /staffByItemEstimateMeta:/);
     assert.doesNotMatch(messages, /staffByItemEstimate:/);
     assert.doesNotMatch(messages, /staffByItemEstimateMeta:.*€\{amount\}/);
+  });
+});
+
+describe('CHECKOUT_COLLECT_BUTTON_CLASS', () => {
+  it('is ~2× content-sized action width (min-w 9.125rem)', () => {
+    assert.equal(CHECKOUT_COLLECT_BUTTON_CLASS, 'min-w-[9.125rem]');
+  });
+
+  it('is the only collect-CTA width token at staff 收款 call sites', () => {
+    for (const rel of COLLECT_BUTTON_CALL_SITES) {
+      const src = readFileSync(join(root, rel), 'utf8');
+      assert.match(src, /CHECKOUT_COLLECT_BUTTON_CLASS/, `${rel} must use sole collect width`);
+    }
   });
 });

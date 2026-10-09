@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>结账「收款」按钮加长一倍（静态对照）</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 255 255 255;
+      --ink: 31 62 82;
+      --ink-light: 45 84 110;
+      --on-ink: 255 250 240;
+      --gold: 139 101 48;
+      --border: 210 204 192;
+      --text: 26 22 18;
+      --muted: 110 104 94;
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background: rgb(var(--bg));
+    }
+    .page { max-width: 420px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+    .lede {
+      margin: 0 0 20px;
+      color: rgb(var(--muted));
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .panel {
+      background: rgb(var(--card));
+      border: 1px solid rgb(var(--border));
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(40, 30, 10, 0.06);
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgb(var(--muted));
+      letter-spacing: 0.02em;
+    }
+    /* Matches BillSplitPanel person row + CheckoutSessionActions spacing */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 1px solid rgb(var(--border));
+      border-radius: 12px;
+      background: rgb(var(--card));
+    }
+    .amount {
+      color: rgb(var(--gold));
+      font-weight: 600;
+      font-size: 1.125rem;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Product Button gold + action (px-5 ≈ 20px each side) */
+    .btn-collect {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 12px;
+      background: rgb(var(--ink));
+      color: rgb(var(--on-ink));
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: default;
+      white-space: nowrap;
+      box-shadow:
+        0 5px 0 0 rgb(0 0 0 / 0.35),
+        0 8px 16px rgb(0 0 0 / 0.2),
+        inset 0 1px 0 rgb(255 255 255 / 0.22),
+        inset 0 -1px 0 rgb(0 0 0 / 0.2);
+    }
+    /* 总宽 ×2：由脚本按现行实测宽度设 min-width */
+    .btn-collect.wide {
+      /* min-width set in script */
+    }
+    .resume {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      min-height: 44px;
+      padding: 10px 16px;
+      border: 1px solid rgb(var(--border));
+      border-radius: 12px;
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: default;
+    }
+    .meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: rgb(var(--muted));
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>结账「收款」加长一倍</h1>
+    <p class="lede">
+      对照稿：现行 <code>size=&quot;action&quot;</code>（<code>px-5</code>）vs
+      <strong>整钮宽度 ×2</strong>（用 <code>min-width</code>，不是只翻内边距）。
+      仅静态预览，未改产品代码。
+    </p>
+
+    <section class="panel">
+      <h2>现行（px-5）</h2>
+      <div class="row">
+        <span class="amount">€57.80</span>
+        <button type="button" class="btn-collect" id="btn-now">收款</button>
+      </div>
+      <button type="button" class="resume">恢复点单</button>
+      <p class="meta" id="meta-now"></p>
+    </section>
+
+    <section class="panel">
+      <h2>加长一倍（总宽 ×2）</h2>
+      <div class="row">
+        <span class="amount">€57.80</span>
+        <button type="button" class="btn-collect wide" id="btn-wide">收款</button>
+      </div>
+      <button type="button" class="resume">恢复点单</button>
+      <p class="meta" id="meta-wide"></p>
+    </section>
+  </div>
+  <script>
+    var now = document.getElementById('btn-now');
+    var wide = document.getElementById('btn-wide');
+    var w = Math.round(now.getBoundingClientRect().width);
+    wide.style.minWidth = (w * 2) + 'px';
+    document.getElementById('meta-now').textContent = '按钮宽 ' + w + 'px';
+    document.getElementById('meta-wide').textContent =
+      '按钮宽 ' + Math.round(wide.getBoundingClientRect().width) + 'px（×2）';
+  </script>
+</body>
+</html>

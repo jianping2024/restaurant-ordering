@@ -38,9 +38,10 @@
 
 1. **结算摘要条** — 消费 · 应收 · 已收 · 待收；折扣 %（有收款后禁用）。sticky：`checkoutSettlementBarStickyShellClass`  
 2. **结账方式** — `BillSplitPanel` 三 tab + 分单结果；整桌/均摊行尾「收款」；按菜为 `StaffByItemSplitWorkbench`  
-3. **方式锁定** — 整桌未收款可改按菜/均摊；按菜/均摊已提交不可改、不可回整桌；开收后锁（`isStaffCheckoutSplitModeFrozen` + `isCheckoutSplitLocked`）  
-4. **人数** — 均摊默认 1、可加；按菜支持 1 人  
-5. **底部** — 「取消」→ 该桌桌台详情（单仍在队列）；「恢复点单」  
+3. **本桌菜品** — 唯一 `CheckoutTableItemsSection` + `checkoutLinesFromOrders`（与订单历史同一套纸面行）；默认折叠，标题含道数  
+4. **方式锁定** — 整桌未收款可改按菜/均摊；按菜/均摊已提交不可改、不可回整桌；开收后锁（`isStaffCheckoutSplitModeFrozen` + `isCheckoutSplitLocked`）  
+5. **人数** — 均摊默认 1、可加；按菜支持 1 人  
+6. **底部** — 「取消」→ 该桌桌台详情（单仍在队列）；「恢复点单」  
 
 客人手机：整桌已呼叫后不能自行改方式；改分单只在本页由员工操作。
 

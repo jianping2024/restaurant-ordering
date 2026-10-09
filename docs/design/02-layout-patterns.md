@@ -115,13 +115,10 @@
 
 **详情区内顺序**（不可打乱）
 
-1. **`SettlementBar`**（消费/折扣/应收/已收/待收）— sticky 底唯一 `brand-bg`；`/dashboard/checkout` 用 `checkoutSettlementBarStickyShellClass`（`belowStaffTopBar`，禁止裸 `top-0`）；楼面 sheet 用 `checkoutSettlementBarSheetStickyShellClass`（`top-0`）；窄屏「返回列表」挂在条内 leading
-2. 桌号大标题 + 等待时长 + 分单模式 badge
-3. **待收款区**（`border-2 border-brand-gold/35`）— 主操作
-4. 已收台账（弱化 `text-[12px]`）
-5. 本桌菜品（折叠）
-6. 折扣区（在摘要条右侧；有收款后锁定）
-7. 底部：打印、恢复点单、关台
+1. **`SettlementBar`**（消费/折扣/应收/已收/待收）— sticky 底唯一 `brand-bg`；`/dashboard/checkout` 用 `checkoutSettlementBarStickyShellClass`（`belowStaffTopBar`，禁止裸 `top-0`）；窄屏「返回列表」挂在条内 leading
+2. **结账方式** — `BillSplitPanel` 三 tab + 分单结果（整桌/均摊收款；按菜 `StaffByItemSplitWorkbench`）
+3. **本桌菜品（折叠）** — 唯一 `CheckoutTableItemsSection`（与订单历史同组件）
+4. 底部：取消回桌台详情、恢复点单（打印在收款确认后询问，不在底栏）
 
 详见 [`../checkout-dashboard-ui.zh.md`](../checkout-dashboard-ui.zh.md)
 

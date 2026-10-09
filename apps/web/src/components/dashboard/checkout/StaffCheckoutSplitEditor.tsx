@@ -10,9 +10,11 @@ import {
   CheckoutSessionActions,
   SettlementBar,
 } from '@/components/dashboard/checkout/CheckoutRequestDetail';
+import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
 import { StaffByItemSplitWorkbench } from '@/components/dashboard/checkout/StaffByItemSplitWorkbench';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
+import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
@@ -157,6 +159,12 @@ export function StaffCheckoutSplitEditor({
   const { splitOrderLines, lineSpecs, total } = useMemo(
     () => deriveBillView(sessionOrders),
     [sessionOrders],
+  );
+
+  /** Sole staff checkout dish list — same paper lines as order history. */
+  const tableLines = useMemo(
+    () => checkoutLinesFromOrders(sessionOrders, lang, itemCodeByMenuId),
+    [sessionOrders, lang, itemCodeByMenuId],
   );
 
   const [submitting, setSubmitting] = useState(false);
@@ -793,6 +801,16 @@ export function StaffCheckoutSplitEditor({
             }}
           />
         )}
+      />
+      <CheckoutTableItemsSection
+        lines={tableLines}
+        total={total}
+        defaultOpen={false}
+        labels={{
+          orderItemsCount: checkoutT.orderItemsCount,
+          orderItemsEmpty: checkoutT.orderItemsEmpty,
+          orderItemsTotal: checkoutT.orderItemsTotal,
+        }}
       />
       <CheckoutSessionActions
         t={checkoutT}

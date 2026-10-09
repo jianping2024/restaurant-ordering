@@ -714,8 +714,6 @@ export const MESSAGES_ES = {
   },
   "settings": {
     "nameEmpty": "El nombre del restaurante es obligatorio",
-    "kitchenPwd": "La contraseña de cocina debe tener 4 dígitos",
-    "waiterPwd": "La contraseña de camarero debe tener 4 dígitos",
     "saveFail": "No se ha podido guardar, inténtalo de nuevo",
     "migrationRequired": "Falta la migración de la base de datos. Desde la raíz del proyecto ejecuta: supabase db push",
     "title": "Ajustes del restaurante",
@@ -741,17 +739,8 @@ export const MESSAGES_ES = {
     "useCurrentLocation": "Usar la ubicación actual",
     "geoInvalid": "Introduce coordenadas válidas (latitud -90~90, longitud -180~180)",
     "geoLocateFail": "No se ha podido obtener la ubicación actual; comprueba el permiso de ubicación",
-    "kitchenLabel": "Contraseña de cocina (4 dígitos)",
-    "kitchenTip": "El personal usa esta contraseña para acceder a la pantalla de cocina.",
-    "waiterLabel": "Contraseña de camarero (4 dígitos)",
-    "waiterTip": "El personal usa esta contraseña para acceder al panel de sala.",
-    "passwordPlaceholder": "Déjalo vacío para mantenerla",
-    "passwordKeepHint": "Déjalo vacío para mantener el PIN actual; introduce 4 dígitos para cambiarlo.",
     "saved": "Ajustes guardados",
-    "save": "Guardar ajustes",
-    "danger": "Zona de riesgo",
-    "dangerTip": "Las acciones siguientes son irreversibles.",
-    "openKitchen": "Abrir pantalla de cocina"
+    "save": "Guardar ajustes"
   },
   "featureSettings": {
     "title": "Gestión de funciones",

@@ -372,19 +372,6 @@ export function SettingsForm({
           </div>
         </div>
       </form>
-
-      <div className="mt-4 rounded-2xl border border-red-500/20 bg-brand-card p-6">
-        <h2 className="mesa-text-danger mb-2 font-medium">{t.danger}</h2>
-        <p className="mb-4 text-sm text-brand-text-muted">{t.dangerTip}</p>
-        <a
-          href={`/${restaurant.slug}/kitchen`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-brand-gold hover:underline"
-        >
-          → {t.openKitchen}
-        </a>
-      </div>
     </div>
   );
 }

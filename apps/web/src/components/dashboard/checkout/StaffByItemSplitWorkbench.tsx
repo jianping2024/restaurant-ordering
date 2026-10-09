@@ -19,7 +19,10 @@ import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
-import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
+import {
+  CHECKOUT_ACTION_AMOUNT_CLASS,
+  CHECKOUT_COLLECT_BUTTON_CLASS,
+} from '@/lib/checkout-amount-type';
 import {
   allocateDiscountedSplitObligations,
   resolveCheckoutDiscountedShareDisplay,
@@ -1082,6 +1085,7 @@ export function StaffByItemSplitWorkbench({
                               partyId: currentPartyId,
                             });
                           }}
+                          className={CHECKOUT_COLLECT_BUTTON_CLASS}
                         >
                           {labels.collect}
                         </Button>

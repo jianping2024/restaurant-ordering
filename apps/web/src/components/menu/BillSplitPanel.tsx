@@ -25,6 +25,7 @@ import {
   type SplitSettlementCopy,
 } from '@/components/menu/SplitSettlementStatusExtras';
 import { customerInlineEditInputClass } from '@/components/menu/customer-form-input-styles';
+import { CHECKOUT_COLLECT_BUTTON_CLASS } from '@/lib/checkout-amount-type';
 import { Button } from '@/components/ui/Button';
 
 type SplitModeCopy = SplitSettlementCopy & {
@@ -277,7 +278,7 @@ export function BillSplitPanel({
                     size="action"
                     disabled={staffRowActions.busy}
                     onClick={() => staffRowActions.onCollect(i)}
-                    className="shrink-0"
+                    className={`shrink-0 ${CHECKOUT_COLLECT_BUTTON_CLASS}`}
                   >
                     {staffRowActions.collectLabel}
                   </Button>

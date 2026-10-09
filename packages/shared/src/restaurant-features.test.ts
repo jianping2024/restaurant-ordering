@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  applyBillingCheckoutModeExclusions,
   mergeRestaurantFeatureFlags,
   mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
@@ -67,7 +68,38 @@ describe('mergeRestaurantFeatureFlagsJsonb', () => {
     assert.equal(merged.bill_receipt_print, false);
     assert.equal(merged.open_table_receipt_print, false);
     assert.equal(merged.bill_sync_to_fiscal, false);
+    assert.equal(merged.quick_table_close, false);
     assert.equal(merged.menu_flavor_hints_enabled, false);
+  });
+
+  it('turns off bill_sync_to_fiscal when enabling quick_table_close', () => {
+    const merged = mergeRestaurantFeatureFlagsJsonb(
+      { bill_sync_to_fiscal: true },
+      { quick_table_close: true },
+    );
+    assert.equal(merged.quick_table_close, true);
+    assert.equal(merged.bill_sync_to_fiscal, false);
+  });
+
+  it('turns off quick_table_close when enabling bill_sync_to_fiscal', () => {
+    const merged = mergeRestaurantFeatureFlagsJsonb(
+      { quick_table_close: true },
+      { bill_sync_to_fiscal: true },
+    );
+    assert.equal(merged.bill_sync_to_fiscal, true);
+    assert.equal(merged.quick_table_close, false);
+  });
+});
+
+describe('applyBillingCheckoutModeExclusions', () => {
+  it('prefers print invoice when both are true without an enabling patch', () => {
+    const flags = normalizeRestaurantFeatureFlags({
+      quick_table_close: true,
+      bill_sync_to_fiscal: true,
+    });
+    const next = applyBillingCheckoutModeExclusions(flags, {});
+    assert.equal(next.bill_sync_to_fiscal, true);
+    assert.equal(next.quick_table_close, false);
   });
 });
 
@@ -78,6 +110,7 @@ describe('normalizeRestaurantFeatureFlags', () => {
     assert.equal(flags.open_table_receipt_print, false);
     assert.equal(flags.kitchen_serve_to_table, false);
     assert.equal(flags.bill_sync_to_fiscal, false);
+    assert.equal(flags.quick_table_close, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);
     assert.equal('kitchen_board' in flags, false);
   });

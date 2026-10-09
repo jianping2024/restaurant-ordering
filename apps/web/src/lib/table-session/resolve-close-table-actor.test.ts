@@ -59,6 +59,34 @@ describe('resolveCloseTableSessionDeskActor', () => {
     }
   });
 
+  it('allows checkout_close gate with tables.checkout_close only', () => {
+    const loaded: PrincipalWithCapabilities = {
+      principal: {
+        kind: 'staff',
+        restaurantId: restaurant.id,
+        userId: 'user-f',
+        staffAccountId: 'staff-f',
+        roleId: 'role-f',
+        roleName: 'frontdesk',
+        presetKey: 'frontdesk',
+        staffRoleLabel: 'frontdesk',
+      },
+      capabilities: capabilitiesFromKeys(['tables.checkout_close']),
+    };
+    const allowed = resolveCloseTableSessionDeskActor(
+      { mode: 'staff', restaurant },
+      loaded,
+      { gate: 'checkout_close' },
+    );
+    assert.equal(allowed.ok, true);
+    const deniedManual = resolveCloseTableSessionDeskActor(
+      { mode: 'staff', restaurant },
+      loaded,
+      { gate: 'manual' },
+    );
+    assert.equal(deniedManual.ok, false);
+  });
+
   it('allows owner with tables.force_close only', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {

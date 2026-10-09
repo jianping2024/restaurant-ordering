@@ -10,7 +10,9 @@ import { printLocaleOption, SUPPORTED_PRINT_LOCALES, type PrintLocale } from '@/
 import {
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,
+  applyBillingCheckoutModeExclusions,
   groupRestaurantFeaturesByModule,
+  type RestaurantFeatureKey,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import {
@@ -243,9 +245,16 @@ export function FeatureFlagsManager({
                   <input
                     type="checkbox"
                     checked={flags[def.key]}
-                    onChange={(e) =>
-                      setFlags((prev) => ({ ...prev, [def.key]: e.target.checked }))
-                    }
+                    onChange={(e) => {
+                      const key = def.key as RestaurantFeatureKey;
+                      const checked = e.target.checked;
+                      setFlags((prev) =>
+                        applyBillingCheckoutModeExclusions(
+                          { ...prev, [key]: checked },
+                          { [key]: checked },
+                        ),
+                      );
+                    }}
                     className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                   />
                   <span className="min-w-0">

@@ -8,6 +8,7 @@ import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
 import {
   submitIndividualCall,
 } from '@/lib/individual-checkout-server';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';
@@ -181,6 +182,10 @@ export async function POST(
   const loaded = await loadCustomerRestaurantForApi(admin, slug);
   if (!loaded.ok) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+  }
+
+  if (isRestaurantFeatureEnabled(loaded.restaurant.feature_flags, 'quick_table_close')) {
+    return NextResponse.json({ error: 'quick_table_close_enabled' }, { status: 403 });
   }
 
   // Guest phone: by-item → one ticket; whole_table / even → shared table plan.

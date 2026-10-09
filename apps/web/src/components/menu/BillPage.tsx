@@ -48,6 +48,7 @@ import { type GuestBillSplitMode, resolveGuestBillSplitMode } from '@/lib/guest-
 import { guestBillSurfaceShowsSubmitted } from '@/lib/guest-bill-surface-phase';
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
 import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import type { SplitMode } from '@/types';
 
 function BillCheckoutGateBanner({ message }: { message: string }) {
@@ -65,7 +66,12 @@ function BillCheckoutGateBanner({ message }: { message: string }) {
 }
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+    feature_flags?: Record<string, boolean> | null;
+  };
   tableId: string;
   displayName: string;
   orders: Order[];
@@ -165,6 +171,10 @@ function GuestBillPage({
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
+  const quickTableClose = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'quick_table_close',
+  );
   const backHref = `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
   const guestClientId = useGuestClientId(restaurant.id, tableId);
 
@@ -834,25 +844,31 @@ function GuestBillPage({
         className={`${customerBottomDockSurfaceClass} w-full max-w-mobile`}
       >
         <div className="space-y-2 px-4 py-3">
-          {checkoutGateMessage ? (
-            <BillCheckoutGateBanner message={checkoutGateMessage} />
-          ) : null}
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleCallBill}
-            loading={isCallBillBusy}
-            disabled={
-              orderLines.length === 0
-              || !activeSessionId
-              || isCallBillBusy
-              || !guestCountConfirmed
-              || !partyCheckoutAllowed
-              || (guestMode === 'by_item' && claim.issue !== null)
-            }
-          >
-            🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
-          </Button>
+          {quickTableClose ? (
+            <BillCheckoutGateBanner message={t.callBillDisabledQuickClose} />
+          ) : (
+            <>
+              {checkoutGateMessage ? (
+                <BillCheckoutGateBanner message={checkoutGateMessage} />
+              ) : null}
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handleCallBill}
+                loading={isCallBillBusy}
+                disabled={
+                  orderLines.length === 0
+                  || !activeSessionId
+                  || isCallBillBusy
+                  || !guestCountConfirmed
+                  || !partyCheckoutAllowed
+                  || (guestMode === 'by_item' && claim.issue !== null)
+                }
+              >
+                🔔 {t.callBill} — €{callAmountShown.toFixed(2)}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

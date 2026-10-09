@@ -10,8 +10,16 @@ export type WaiterTableDetailActionFlags = {
   showTransfer: boolean;
   /** Capability-gated merge button. */
   showMerge: boolean;
-  /** Desk roles (tables.checkout_close) may 呼叫结账 → dashboard checkout. */
+  /**
+   * Desk roles (tables.checkout_close) may 呼叫结账 → dashboard checkout.
+   * Hidden when quick_table_close is on (then showCheckoutClose instead).
+   */
   showCallCheckout: boolean;
+  /**
+   * Desk roles (tables.checkout_close) may 关台结账 (settled close).
+   * Only when feature quick_table_close is on.
+   */
+  showCheckoutClose: boolean;
   /** Unpaid / force 关台 (tables.force_close); stays available during checkout lock. */
   showForceClose: boolean;
 };
@@ -26,9 +34,19 @@ export function resolveWaiterTableDetailActions(input: {
   isCheckoutPending: boolean;
   hasOpenSession: boolean;
   hasActiveBuffets: boolean;
+  /** Feature quick_table_close — mutual with call-checkout button. */
+  quickTableClose?: boolean;
 }): WaiterTableDetailActionFlags {
-  const { caps, isDemo, isCheckoutPending, hasOpenSession, hasActiveBuffets } = input;
+  const {
+    caps,
+    isDemo,
+    isCheckoutPending,
+    hasOpenSession,
+    hasActiveBuffets,
+    quickTableClose = false,
+  } = input;
   const openAndEditable = hasOpenSession && !isCheckoutPending;
+  const mayDeskCheckout = caps.canCallCheckout && openAndEditable;
 
   return {
     showBuffetPanel:
@@ -36,7 +54,8 @@ export function resolveWaiterTableDetailActions(input: {
     showOccupiedToolbar: hasOpenSession,
     showTransfer: caps.canTransfer && openAndEditable,
     showMerge: caps.canMerge && openAndEditable,
-    showCallCheckout: caps.canCallCheckout && openAndEditable,
+    showCallCheckout: mayDeskCheckout && !quickTableClose,
+    showCheckoutClose: mayDeskCheckout && quickTableClose,
     showForceClose: caps.canForceClose && hasOpenSession,
   };
 }

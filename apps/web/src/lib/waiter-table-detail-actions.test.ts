@@ -27,7 +27,21 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
     assert.equal(flags.showCallCheckout, true);
+    assert.equal(flags.showCheckoutClose, false);
     assert.equal(flags.showForceClose, true);
+  });
+
+  it('swaps call-checkout for settled close when quick_table_close is on', () => {
+    const flags = resolveWaiterTableDetailActions({
+      caps: desk,
+      isDemo: false,
+      isCheckoutPending: false,
+      hasOpenSession: true,
+      hasActiveBuffets: false,
+      quickTableClose: true,
+    });
+    assert.equal(flags.showCallCheckout, false);
+    assert.equal(flags.showCheckoutClose, true);
   });
 
   it('hides buffet panel during checkout and in demo', () => {

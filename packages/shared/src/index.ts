@@ -176,6 +176,7 @@ export {
 export {
   RESTAURANT_FEATURE_DEFINITIONS,
   RESTAURANT_FEATURE_MODULES,
+  applyBillingCheckoutModeExclusions,
   getRestaurantFeatureModule,
   groupRestaurantFeaturesByModule,
   isRestaurantFeatureEnabled,

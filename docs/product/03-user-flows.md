@@ -348,7 +348,8 @@
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
 
 前台 / 收银员桌台详情（Dashboard 看板，会话 `open`、未呼叫结账；**服务员同路由但无关台按钮**）
-  → 「呼叫结账」（有 `tables.checkout_close` 即显示，不受「打印发票」开关控制）：`checkout/ensure-entry` 生成/沿用结账单 → 进结账页收款 → 最后一笔收款自动关台；总账单按「打印账单」开关自动打印。「关台结账」已移除
+  → 「呼叫结账」（`quick_table_close` 关且有 `tables.checkout_close`）：`checkout/ensure-entry` 生成/沿用结账单 → 进结账页收款 → 最后一笔收款自动关台；总账单按「打印账单」开关自动打印
+  → 「关台结账」（`quick_table_close` 开且有 `tables.checkout_close`）：确认后 settled 关台；与「打印发票」互斥；顾客不能呼叫结账
   → 「关台」（强制关台）：有 `tables.force_close` 即显示并可关（默认前台/店主；收银勾选后同样生效）；`closed_reason` 按角色记 `*_forced` 仅作审计
 ```
 

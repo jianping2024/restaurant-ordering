@@ -7,7 +7,10 @@ import type { AuditActor } from '@/lib/audit/types';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
-import { resolveCloseTableSessionDeskActor } from '@/lib/table-session/resolve-close-table-actor';
+import {
+  resolveCloseTableSessionDeskActor,
+  type CloseTableSessionActorGate,
+} from '@/lib/table-session/resolve-close-table-actor';
 
 export type CloseTableSessionActorContext =
   | {
@@ -19,8 +22,11 @@ export type CloseTableSessionActorContext =
     }
   | { error: string; status: number };
 
+export type { CloseTableSessionActorGate };
+
 export async function loadCloseTableSessionActor(options?: {
   requireWritable?: boolean;
+  gate?: CloseTableSessionActorGate;
 }): Promise<CloseTableSessionActorContext> {
   const access = await loadDashboardAccess();
   if (access.mode === 'owner') {

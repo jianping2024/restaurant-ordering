@@ -714,8 +714,6 @@ export const MESSAGES_FR = {
   },
   "settings": {
     "nameEmpty": "Le nom du restaurant est obligatoire",
-    "kitchenPwd": "Le mot de passe cuisine doit comporter 4 chiffres",
-    "waiterPwd": "Le mot de passe service doit comporter 4 chiffres",
     "saveFail": "L'enregistrement a échoué, veuillez réessayer",
     "migrationRequired": "Migration de base de données manquante. À la racine du projet, exécutez : supabase db push",
     "title": "Paramètres du restaurant",
@@ -741,17 +739,8 @@ export const MESSAGES_FR = {
     "useCurrentLocation": "Utiliser la position actuelle",
     "geoInvalid": "Veuillez saisir des coordonnées valides (latitude -90~90, longitude -180~180)",
     "geoLocateFail": "Impossible d'obtenir la position actuelle ; vérifiez l'autorisation de localisation",
-    "kitchenLabel": "Mot de passe cuisine (4 chiffres)",
-    "kitchenTip": "Le personnel utilise ce mot de passe pour accéder à l'écran cuisine.",
-    "waiterLabel": "Mot de passe service (4 chiffres)",
-    "waiterTip": "Le personnel utilise ce mot de passe pour accéder au tableau de service.",
-    "passwordPlaceholder": "Laisser vide pour conserver",
-    "passwordKeepHint": "Laissez vide pour conserver le code PIN actuel ; saisissez 4 chiffres pour en définir un nouveau.",
     "saved": "Paramètres enregistrés",
-    "save": "Enregistrer les paramètres",
-    "danger": "Zone sensible",
-    "dangerTip": "Les actions ci-dessous sont irréversibles.",
-    "openKitchen": "Ouvrir l'écran cuisine"
+    "save": "Enregistrer les paramètres"
   },
   "featureSettings": {
     "title": "Gestion des fonctionnalités",

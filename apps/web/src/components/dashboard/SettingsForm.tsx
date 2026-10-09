@@ -226,6 +226,11 @@ export function SettingsForm({
                 hoursOpen: t.storefrontHoursOpen,
                 hoursClose: t.storefrontHoursClose,
                 hoursClosed: t.storefrontHoursClosed,
+                hoursOpenDay: t.storefrontHoursOpenDay,
+                hoursAddWindow: t.storefrontHoursAddWindow,
+                hoursRemoveWindow: t.storefrontHoursRemoveWindow,
+                hoursApplyWeekdays: t.storefrontHoursApplyWeekdays,
+                hoursApplyAll: t.storefrontHoursApplyAll,
                 weekdayLabels: {
                   '1': t.storefrontWeekday1,
                   '2': t.storefrontWeekday2,

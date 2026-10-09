@@ -7,11 +7,43 @@ export const RESTAURANT_BUSINESS_HOURS_TIMEZONE_DEFAULT = 'Europe/Lisbon';
 
 export type RestaurantHoursWindow = { open: string; close: string };
 
+export type RestaurantWeekdayKey = '1' | '2' | '3' | '4' | '5' | '6' | '7';
+
 /** weekday 1=Mon … 7=Sun (ISO). */
 export type RestaurantBusinessHours = {
   timezone: string;
-  week: Partial<Record<'1' | '2' | '3' | '4' | '5' | '6' | '7', RestaurantHoursWindow[]>>;
+  week: Partial<Record<RestaurantWeekdayKey, RestaurantHoursWindow[]>>;
 };
+
+/** Seed when turning a closed day on (settings editor). */
+export const DEFAULT_RESTAURANT_DAY_WINDOW: RestaurantHoursWindow = {
+  open: '12:00',
+  close: '22:00',
+};
+
+/** Seed for an added second segment (e.g. dinner after lunch). */
+export const DEFAULT_RESTAURANT_EXTRA_WINDOW: RestaurantHoursWindow = {
+  open: '19:00',
+  close: '23:00',
+};
+
+export const RESTAURANT_WEEKDAY_KEYS: RestaurantWeekdayKey[] = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+];
+
+export const RESTAURANT_WEEKDAY_KEYS_MON_FRI: RestaurantWeekdayKey[] = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+];
 
 const TIME_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
@@ -131,4 +163,47 @@ export function restaurantTodayWindows(
 ): RestaurantHoursWindow[] {
   const { weekday } = restaurantLocalNowParts(now, hours.timezone);
   return hours.week[String(weekday) as keyof typeof hours.week] ?? [];
+}
+
+/** Windows for one weekday in the settings editor (empty = closed). */
+export function restaurantDayWindows(
+  hours: RestaurantBusinessHours,
+  day: RestaurantWeekdayKey,
+): RestaurantHoursWindow[] {
+  return hours.week[day] ?? [];
+}
+
+/**
+ * Sole writer for one weekday’s windows in the settings draft.
+ * Empty list → day closed. Incomplete HH:mm rows are kept for typing; API normalize drops them on save.
+ */
+export function setRestaurantDayWindows(
+  hours: RestaurantBusinessHours,
+  day: RestaurantWeekdayKey,
+  windows: RestaurantHoursWindow[],
+): RestaurantBusinessHours {
+  const week = { ...hours.week };
+  if (!windows.length) {
+    delete week[day];
+  } else {
+    week[day] = windows.map((w) => ({ open: w.open, close: w.close }));
+  }
+  return { ...hours, week };
+}
+
+/** Copy source day’s windows onto each target day (Mon–Fri / all-week apply). */
+export function applyRestaurantDayWindowsToDays(
+  hours: RestaurantBusinessHours,
+  sourceDay: RestaurantWeekdayKey,
+  targetDays: readonly RestaurantWeekdayKey[],
+): RestaurantBusinessHours {
+  const windows = restaurantDayWindows(hours, sourceDay).map((w) => ({
+    open: w.open,
+    close: w.close,
+  }));
+  let next = hours;
+  for (const day of targetDays) {
+    next = setRestaurantDayWindows(next, day, windows);
+  }
+  return next;
 }

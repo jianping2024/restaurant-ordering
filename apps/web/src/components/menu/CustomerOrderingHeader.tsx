@@ -22,6 +22,11 @@ interface Props {
   sticky?: boolean;
   /** Bill page uses a larger restaurant title. */
   headingSize?: 'menu' | 'bill';
+  /**
+   * Guest menu: false — restaurant name lives in the storefront band only.
+   * Bill / staff-assisted: true (default).
+   */
+  showRestaurantName?: boolean;
 }
 
 /** Sole table-identity chip for guest and staff-assisted customer chrome (menu + bill). */
@@ -47,6 +52,7 @@ export function CustomerOrderingHeader({
   backLink = null,
   sticky = false,
   headingSize = 'menu',
+  showRestaurantName = true,
 }: Props) {
   const isStaffAssisted = staffAssisted !== null;
 
@@ -81,7 +87,9 @@ export function CustomerOrderingHeader({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
-              <h1 className={headingClass}>{restaurantName}</h1>
+              {showRestaurantName ? (
+                <h1 className={headingClass}>{restaurantName}</h1>
+              ) : null}
               {!isStaffAssisted ? tableBadge : null}
             </div>
           </div>

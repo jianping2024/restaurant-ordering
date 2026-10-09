@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  applyRestaurantDayWindowsToDays,
   isRestaurantOpenNow,
   normalizeRestaurantBusinessHours,
+  restaurantDayWindows,
   restaurantOpenUntilLabel,
+  setRestaurantDayWindows,
 } from './restaurant-business-hours';
 
 describe('restaurant-business-hours', () => {
@@ -33,5 +36,17 @@ describe('restaurant-business-hours', () => {
     const afternoon = new Date('2026-10-12T15:00:00.000Z'); // 16:00 Lisbon
     assert.equal(isRestaurantOpenNow(hours, afternoon), false);
     assert.equal(restaurantOpenUntilLabel(hours, afternoon), null);
+  });
+
+  it('setRestaurantDayWindows clears a day when empty', () => {
+    const next = setRestaurantDayWindows(hours, '1', []);
+    assert.equal(restaurantDayWindows(next, '1').length, 0);
+  });
+
+  it('applyRestaurantDayWindowsToDays copies Monday onto weekdays', () => {
+    const monday = restaurantDayWindows(hours, '1');
+    const next = applyRestaurantDayWindowsToDays(hours, '1', ['2', '3']);
+    assert.deepEqual(restaurantDayWindows(next, '2'), monday);
+    assert.deepEqual(restaurantDayWindows(next, '3'), monday);
   });
 });

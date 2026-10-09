@@ -69,13 +69,14 @@ export function CustomerStorefrontMenuPreview({
       className={`${customerMenuDualPaneRootClass} h-dvh ${customerMenuShellRootClass}`}
     >
       <div className="shrink-0 border-b border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-center text-[11px] text-amber-900 dark:text-amber-200">
-        静态预览 · 上划整页菜单，店面装修会被顶走 · 顶栏店名桌号钉住
+        静态预览 · 上划整页菜单，店面装修会被顶走 · 顶栏桌号钉住
       </div>
 
       <CustomerOrderingHeader
         restaurantName={DEMO_RESTAURANT.name}
         displayName={displayName}
         tableLabel={t.table}
+        showRestaurantName={false}
         sticky
       />
 

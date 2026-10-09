@@ -930,6 +930,7 @@ export function MenuOrderingController({
         displayName={displayName}
         tableLabel={t.table}
         staffAssisted={staffAssisted}
+        showRestaurantName={staffAssisted != null}
         sticky
         backLink={
           staffAssisted && !isEmbedded

@@ -46,7 +46,7 @@
 
 | 区域 | 布局 |
 |------|------|
-| 顶栏 | 紧凑身份行：店名 + 唯一桌号 chip（`CustomerTableIdentityBadge`：单行旁置，`text-base`/`font-semibold`/`border-brand-ink/45`，点餐与结账同档）；语言+主题永远地球+月亮（`appearanceChromeButtonClass('icon')` ≥44）；可选返回。类目不在顶栏 |
+| 顶栏 | 紧凑身份行：客人点餐页左侧唯一桌号 chip（`CustomerTableIdentityBadge`，店名只在店面信息带）；结账 / 代点仍可带店名；语言+主题永远地球+月亮（`appearanceChromeButtonClass('icon')` ≥44）；可选返回。类目不在顶栏 |
 | 分类 | 唯一 `CustomerMenuCategoryNav`：左侧竖向一级类目栏（sole 宽 `CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS` / `4.75rem`；客人页 / 员工嵌入 **同一双栏独立滚**：根 `customerMenuDualPaneRootClass`，nav 壳 sole `customerMenuCategoryNavShellClass`（`min-w-0 w-full overflow-hidden`），左 `customerMenuCategoryRailClass` + 右 catalog（`overflow-x-hidden overflow-y-auto overscroll-y-contain`），整页不文档滚；选中左边金条 + 金色字，点类目过滤换列表、无滚动联动、无顶部横条、无「更多」浮层）；右列唯一顺序 **推荐 `catalogLeading` → sticky 二级 soft chip → 菜列表 children**（chip `top-0` 贴右栏顶；不 sticky 店名顶栏）。顾客 / 员工协助 / 寿司共用 |
 | 推荐 | 唯一 `CustomerRecommendedRail`：经 `catalogLeading` 挂在二级 chip **之上**、菜品网格之上；**独立浅金底 + 金色描边条**（勿复用 `MenuItemCard`）；横滑海报卡（锁死 4:3 图槽 + 两行菜名槽 + 价格齐底），点卡进详情（无角上 `+`）；金底上下同一 `py-*`；条 `min-w-0 overflow-hidden`，横滑不 `-mx` 咬出列外；不进 sticky header；空列表不渲染 |
 | 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_HOST_CLASS` + `CUSTOMER_MENU_ITEM_LIST_CLASS`（列数跟壳宽 container：1 → ≥40rem 2 → ≥62rem 3；员工「继续点餐」侧栏约 max-w-4xl 停在 2 列）；缩略图 sole CSS `--mesa-menu-card-thumb`：**窄列 88** / **≥40rem 112**；卡壳 pad/radius 同 container（窄 p-3/rounded-xl，宽 p-4/rounded-2xl）；底行 sole 价格 `MENU_ITEM_CARD_PRICE_CLASS`（可缩）+ 操作 `MENU_ITEM_CARD_ACTION_SLOT_CLASS`（不缩）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |

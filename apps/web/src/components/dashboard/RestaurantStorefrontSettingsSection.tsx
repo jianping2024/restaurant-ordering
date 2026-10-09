@@ -4,10 +4,17 @@ import { useRef, useState } from 'react';
 import type { RestaurantSettingsProfile } from '@/types';
 import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
+  DEFAULT_RESTAURANT_DAY_WINDOW,
+  DEFAULT_RESTAURANT_EXTRA_WINDOW,
+  RESTAURANT_WEEKDAY_KEYS,
+  RESTAURANT_WEEKDAY_KEYS_MON_FRI,
+  applyRestaurantDayWindowsToDays,
   emptyRestaurantBusinessHours,
   normalizeRestaurantBusinessHours,
+  restaurantDayWindows,
+  setRestaurantDayWindows,
   type RestaurantBusinessHours,
-  type RestaurantHoursWindow,
+  type RestaurantWeekdayKey,
 } from '@/lib/restaurant-business-hours';
 import {
   STOREFRONT_IMAGE_ACCEPT,
@@ -20,10 +27,7 @@ import {
   normalizeStorefrontIntro,
   type StorefrontIntroI18n,
 } from '@/lib/restaurant-storefront-intro';
-
-type WeekdayKey = '1' | '2' | '3' | '4' | '5' | '6' | '7';
-
-const WEEKDAY_KEYS: WeekdayKey[] = ['1', '2', '3', '4', '5', '6', '7'];
+import { TimeHmInput } from '@/components/ui/TimeHmInput';
 
 export type RestaurantStorefrontSettingsCopy = {
   storefrontSectionTitle: string;
@@ -44,7 +48,12 @@ export type RestaurantStorefrontSettingsCopy = {
   hoursOpen: string;
   hoursClose: string;
   hoursClosed: string;
-  weekdayLabels: Record<WeekdayKey, string>;
+  hoursOpenDay: string;
+  hoursAddWindow: string;
+  hoursRemoveWindow: string;
+  hoursApplyWeekdays: string;
+  hoursApplyAll: string;
+  weekdayLabels: Record<RestaurantWeekdayKey, string>;
 };
 
 type Props = {
@@ -57,28 +66,6 @@ type Props = {
   logoUrl: string | null;
   coverUrl: string | null;
 };
-
-function dayWindow(
-  hours: RestaurantBusinessHours,
-  day: WeekdayKey,
-): RestaurantHoursWindow | null {
-  const windows = hours.week[day];
-  return windows?.[0] ?? null;
-}
-
-function setDayWindow(
-  hours: RestaurantBusinessHours,
-  day: WeekdayKey,
-  window: RestaurantHoursWindow | null,
-): RestaurantBusinessHours {
-  const week = { ...hours.week };
-  if (!window || !window.open || !window.close) {
-    delete week[day];
-  } else {
-    week[day] = [{ open: window.open, close: window.close }];
-  }
-  return { ...hours, week };
-}
 
 async function postStorefrontImage(
   kind: StorefrontImageKind,
@@ -238,62 +225,127 @@ export function RestaurantStorefrontSettingsSection({
       <div className="space-y-3">
         <div className="text-sm font-medium text-brand-text">{copy.hoursTitle}</div>
         <p className="text-[13px] text-brand-text-muted">{copy.hoursHint}</p>
-        <div className="space-y-2">
-          {WEEKDAY_KEYS.map((day) => {
-            const win = dayWindow(hours, day);
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-lg border border-brand-border px-2.5 py-1 text-[12px] text-brand-text hover:bg-brand-bg"
+            onClick={() =>
+              onHoursChange(
+                applyRestaurantDayWindowsToDays(hours, '1', RESTAURANT_WEEKDAY_KEYS_MON_FRI),
+              )
+            }
+          >
+            {copy.hoursApplyWeekdays}
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-brand-border px-2.5 py-1 text-[12px] text-brand-text hover:bg-brand-bg"
+            onClick={() =>
+              onHoursChange(applyRestaurantDayWindowsToDays(hours, '1', RESTAURANT_WEEKDAY_KEYS))
+            }
+          >
+            {copy.hoursApplyAll}
+          </button>
+        </div>
+        <div className="space-y-3">
+          {RESTAURANT_WEEKDAY_KEYS.map((day) => {
+            const windows = restaurantDayWindows(hours, day);
+            const dayOpen = windows.length > 0;
             return (
               <div
                 key={day}
-                className="grid grid-cols-[4.5rem_1fr_1fr] items-center gap-2 sm:grid-cols-[5.5rem_7rem_7rem_auto]"
+                className="rounded-lg border border-brand-border/70 bg-brand-bg/50 px-3 py-2.5"
               >
-                <span className="text-sm text-brand-text">{copy.weekdayLabels[day]}</span>
-                <label className="sr-only" htmlFor={`storefront-open-${day}`}>
-                  {copy.hoursOpen}
-                </label>
-                <input
-                  id={`storefront-open-${day}`}
-                  type="time"
-                  value={win?.open ?? ''}
-                  onChange={(e) => {
-                    const open = e.target.value;
-                    const close = win?.close ?? '';
-                    onHoursChange(
-                      setDayWindow(
-                        hours,
-                        day,
-                        open && close ? { open, close } : open ? { open, close: open } : null,
-                      ),
-                    );
-                  }}
-                  className="rounded-lg border border-brand-border bg-brand-bg px-2 py-1.5 text-sm text-brand-text"
-                />
-                <label className="sr-only" htmlFor={`storefront-close-${day}`}>
-                  {copy.hoursClose}
-                </label>
-                <input
-                  id={`storefront-close-${day}`}
-                  type="time"
-                  value={win?.close ?? ''}
-                  onChange={(e) => {
-                    const close = e.target.value;
-                    const open = win?.open ?? '';
-                    onHoursChange(
-                      setDayWindow(
-                        hours,
-                        day,
-                        open && close ? { open, close } : close ? { open: close, close } : null,
-                      ),
-                    );
-                  }}
-                  className="rounded-lg border border-brand-border bg-brand-bg px-2 py-1.5 text-sm text-brand-text"
-                />
-                <button
-                  type="button"
-                  className="hidden text-[12px] text-brand-text-muted hover:underline sm:inline"
-                  onClick={() => onHoursChange(setDayWindow(hours, day, null))}
-                >
-                  {copy.hoursClosed}
-                </button>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-brand-text">
+                    {copy.weekdayLabels[day]}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={dayOpen}
+                    aria-label={`${copy.weekdayLabels[day]} ${dayOpen ? copy.hoursOpenDay : copy.hoursClosed}`}
+                    onClick={() =>
+                      onHoursChange(
+                        setRestaurantDayWindows(
+                          hours,
+                          day,
+                          dayOpen ? [] : [{ ...DEFAULT_RESTAURANT_DAY_WINDOW }],
+                        ),
+                      )
+                    }
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      dayOpen ? 'bg-brand-gold' : 'bg-brand-border'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        dayOpen ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {dayOpen ? (
+                  <div className="mt-2 space-y-2">
+                    {windows.map((win, index) => (
+                      <div key={`${day}-${index}`} className="flex flex-wrap items-end gap-2">
+                        <TimeHmInput
+                          compact
+                          label={copy.hoursOpen}
+                          value={win.open}
+                          onChange={(open) => {
+                            const next = windows.map((row, i) =>
+                              i === index ? { ...row, open } : row,
+                            );
+                            onHoursChange(setRestaurantDayWindows(hours, day, next));
+                          }}
+                        />
+                        <span className="pb-2 text-brand-text-muted" aria-hidden>
+                          –
+                        </span>
+                        <TimeHmInput
+                          compact
+                          label={copy.hoursClose}
+                          value={win.close}
+                          onChange={(close) => {
+                            const next = windows.map((row, i) =>
+                              i === index ? { ...row, close } : row,
+                            );
+                            onHoursChange(setRestaurantDayWindows(hours, day, next));
+                          }}
+                        />
+                        {windows.length > 1 ? (
+                          <button
+                            type="button"
+                            className="pb-1.5 text-[12px] text-brand-text-muted hover:underline"
+                            onClick={() => {
+                              const next = windows.filter((_, i) => i !== index);
+                              onHoursChange(setRestaurantDayWindows(hours, day, next));
+                            }}
+                          >
+                            {copy.hoursRemoveWindow}
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="text-[12px] font-medium text-brand-gold hover:underline"
+                      onClick={() =>
+                        onHoursChange(
+                          setRestaurantDayWindows(hours, day, [
+                            ...windows,
+                            { ...DEFAULT_RESTAURANT_EXTRA_WINDOW },
+                          ]),
+                        )
+                      }
+                    >
+                      {copy.hoursAddWindow}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-1.5 text-[12px] text-brand-text-muted">{copy.hoursClosed}</p>
+                )}
               </div>
             );
           })}

@@ -1073,6 +1073,7 @@ export function SushiMenuPage({
         restaurantName={restaurant.name}
         displayName={displayName}
         tableLabel={t.table}
+        showRestaurantName={false}
         sticky
         backLink={null}
       />

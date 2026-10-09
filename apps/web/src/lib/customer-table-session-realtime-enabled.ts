@@ -1,4 +1,4 @@
-/** Sole gate for guest menu table Realtime (开台 discovery + submitted sync). */
+/** Sole gate for guest table Realtime on menu + bill (开台 / orders / headcount sync). */
 export function customerTableSessionRealtimeEnabled(params: {
   isDemo?: boolean;
   staffAssisted: unknown;

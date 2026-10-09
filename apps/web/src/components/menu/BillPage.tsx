@@ -16,6 +16,8 @@ import { IndividualCheckoutNotice } from '@/components/menu/IndividualCheckoutNo
 import { useGuestClientId } from '@/lib/table-order-round/use-guest-client-id';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useCustomerBillReadModel } from '@/lib/use-customer-bill-read-model';
+import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
+import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
 import { useGuestClaim } from '@/lib/use-guest-claim';
 import { useGuestCallCheckout } from '@/lib/use-guest-call-checkout';
 import {
@@ -215,6 +217,24 @@ function GuestBillPage({
     if (!guestClientId) return;
     void refreshBill();
   }, [guestClientId, refreshBill]);
+
+  const onTableSessionRealtimeRefresh = useCallback(() => {
+    void refreshBill();
+  }, [refreshBill]);
+
+  const tableSessionRealtimeEnabled = customerTableSessionRealtimeEnabled({
+    staffAssisted: null,
+    sessionResolved: true,
+    tableId,
+  });
+
+  const tableSessionRealtime = (
+    <CustomerTableSessionRealtimeLazy
+      tableId={tableId}
+      enabled={tableSessionRealtimeEnabled}
+      onRefresh={onTableSessionRealtimeRefresh}
+    />
+  );
 
   /** Live session from bill sync — never keep SSR session id after table reopen. */
   const activeSessionId = liveSessionId ?? sessionId;
@@ -651,12 +671,18 @@ function GuestBillPage({
   // The editor renders only after a read that carried this phone's id, so it never flashes
   // for a phone whose own ticket is already called.
   if (!ticketsReady) {
-    return <div className="min-h-screen bg-brand-bg" aria-busy="true" />;
+    return (
+      <>
+        {tableSessionRealtime}
+        <div className="min-h-screen bg-brand-bg" aria-busy="true" />
+      </>
+    );
   }
 
   if (billSubmitted) {
     return (
       <>
+      {tableSessionRealtime}
       {individualNotice}
       <BillCheckoutSubmittedScreen
         restaurantName={restaurant.name}
@@ -721,6 +747,7 @@ function GuestBillPage({
 
   return (
     <>
+    {tableSessionRealtime}
     {individualNotice}
     <div
       data-guest-bill-page=""

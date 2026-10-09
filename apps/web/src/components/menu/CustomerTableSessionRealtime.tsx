@@ -8,9 +8,9 @@ import {
 } from '@/lib/use-restaurant-realtime-refresh';
 
 /**
- * Sole guest-menu Realtime doorbell for one QR table: 开台 (table_sessions) + submitted
- * orders. Dynamic-import so MenuPage SSR stays free of the transport chunk.
- * Doorbell → debounced GET via caller onRefresh (sole authority: customer/session).
+ * Sole guest Realtime doorbell for one QR table (menu + bill): 开台 (table_sessions) +
+ * orders (incl. staff headcount). Dynamic-import so guest SSR stays free of the transport chunk.
+ * Doorbell → debounced GET via caller onRefresh (menu: session; bill: syncCustomerBill).
  */
 export function CustomerTableSessionRealtime(props: {
   tableId: string | null;

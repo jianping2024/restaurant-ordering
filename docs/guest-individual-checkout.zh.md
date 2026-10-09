@@ -372,7 +372,7 @@
 - **只做最终形态**，不留「补丁 + 以后再清」的并行实现（`.cursor/rules/best-practice-not-patches.mdc`）。
 - 从 `main` 开分支，用自己的 worktree 和端口：`:3000` 只留给本地 `main`，测试用 `3002+` + `MESA_UAT_BASE`，另起 web 要设 `MESA_NEXT_DIST_DIR=.next-uat`（不要写默认 `apps/web/.next`）。**占用中的端口不要 kill。**
 - 实现后、UAT 前先**清冗余**（`.cursor/rules/redundancy-cleanup-before-uat.mdc`）；改行为必须通过本地产品 UAT（`mesa-local-product-test`）。
-- 门禁：提交前 lint + typecheck（`bash scripts/agent-gates/gate.sh check`），push 前生产构建加定向测试（`gate.sh build`，逻辑改动用 `node --import tsx --test …`）。
+- 门禁：提交前 lint + typecheck（`bash scripts/agent-gates/gate.sh check`）；push 不强制 production build（已暂停）；pack/on-prem 仍按需 `gate.sh build`。
 - **不要擅自 commit / push / 开 PR**，用户要求才做。
 - 中文措辞要准确，不要用「大概、多半」下结论，未证实的明确写「未证实」（`.cursor/rules/evidence-based-conclusions.mdc`、`accurate-zh-wording.mdc`）。
 

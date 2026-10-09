@@ -1,6 +1,6 @@
 ---
 description: >-
-  Mirror of shared push gate: production build + targeted tests.
+  Mirror of shared push policy: production build paused on push (pack still builds).
   Canonical: scripts/agent-gates/README.md + AGENTS.md Checks.
 alwaysApply: false
 ---
@@ -12,9 +12,9 @@ This file is a Cursor on-demand mirror — **do not invent a second policy here.
 
 When Will asks to **push** / **ship**:
 
-1. `gate.sh build`（或 scoped `npm run build` / `build:ops`）— required; hooks block push without build marker
-2. Targeted tests for touched logic: `node --import tsx --test …`
-3. Print-agent: Docker `go test` + Windows cross-build
+1. **Do not** require `gate.sh build` / `next build` before push（已暂停，太慢）
+2. Commit must already have passed lint+typecheck（`gate.sh check`）+ 清冗余 + UAT when required
+3. Optional: targeted tests for touched logic (`node --import tsx --test …`) when justified — not a push hook
 4. Then `git push origin main`（或指定分支）
 
-Commit must already have passed lint+typecheck (`gate.sh check`). Do not skip push build because typecheck already ran.
+**Still require build** before on-prem **pack/zip** when web inputs change — see `on-prem-pack.mdc`.

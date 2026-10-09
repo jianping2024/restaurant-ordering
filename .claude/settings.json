@@ -25,7 +25,7 @@
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/agent-gates/gate.sh\" hook-push",
             "timeout": 30,
-            "statusMessage": "Checking push gate (build)"
+            "statusMessage": "Checking push gate (build paused)"
           }
         ]
       }

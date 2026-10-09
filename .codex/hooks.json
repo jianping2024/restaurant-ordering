@@ -15,7 +15,7 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/scripts/agent-gates/gate.sh\" hook-push",
             "timeout": 30,
-            "statusMessage": "Checking push gate (build)"
+            "statusMessage": "Checking push gate (build paused)"
           }
         ]
       }

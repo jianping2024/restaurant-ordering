@@ -4,14 +4,15 @@
 #
 # Order enforced per code state (tree fingerprint):
 #   implement → 清冗余 (scan) → UAT → check (lint+typecheck) → commit
-#   push → build (+ targeted tests; agents run tests; hook enforces build marker)
+#   push → no production-build marker (paused — too slow); commit gate already covers lint+typecheck
+#   pack / on-prem zip → still run gate.sh build when web inputs change (on-prem-pack.mdc)
 #
 # Markers live in .mesa-agent-gates/<branch>/ (gitignored). Any edit changes the
 # fingerprint and invalidates every marker.
 #
 #   gate.sh scan     validate scan.md, record scan marker
 #   gate.sh check    scoped lint + typecheck → commit gate
-#   gate.sh build    scoped production build → push/pack gate
+#   gate.sh build    scoped production build → optional helper (pack/on-prem; not push)
 #   gate.sh uat      validate uat.md, record UAT marker
 #   gate.sh status
 #   gate.sh hook-browser | hook-commit | hook-push   (stdin: PreToolUse JSON)
@@ -162,7 +163,7 @@ cmd_build() {
   fi
   [[ "$(fingerprint)" == "$fp" ]] || die "构建期间代码有变动，构建标记不记录。"
   record build "$fp"
-  echo "构建标记已记录（web=${web} ops=${ops}）— 供 push/pack；不是 commit 门禁"
+  echo "构建标记已记录（web=${web} ops=${ops}）— 供 pack/on-prem；不是 commit/push 门禁"
 }
 
 cmd_uat() {
@@ -186,7 +187,7 @@ cmd_status() {
   for m in scan uat check; do
     if marker_ok "$m" "$fp"; then echo "  $m: ok"; else echo "  $m: missing/stale"; fi
   done
-  if marker_ok build "$fp"; then echo "  build: ok (push/pack helper)"; else echo "  build: missing/stale (ok for commit; required before push)"; fi
+  if marker_ok build "$fp"; then echo "  build: ok (pack/on-prem helper)"; else echo "  build: missing/stale (ok for commit/push; run before pack when web changes)"; fi
   echo "changed product files:"
   changed_product_files | sed 's/^/  /'
 }
@@ -226,17 +227,15 @@ cmd_hook_commit() {
 }
 
 cmd_hook_push() {
-  local input command fp
+  local input command
   input="$(cat)"
   command="$(jq -r '.tool_input.command // ""' <<<"$input")"
   # Remote `git push` only — not `git stash push` / `git stash push -u`.
   grep -qE 'git[[:space:]]+stash' <<<"$command" && exit 0
   grep -qE '(^|[;&|[:space:]])git[[:space:]]([^;&|]*[[:space:]])?push([[:space:]]|$)' <<<"$command" || exit 0
   rebind_root_from_command "$command"
-  [[ -n "$(changed_product_files)" ]] || exit 0
-  fp="$(fingerprint)"
-  # Push needs production build marker. Targeted unit tests stay agent policy (AGENTS.md).
-  marker_ok build "$fp" || block "【门禁】推送被拦：产品改动尚未通过生产构建（gate.sh build）。commit 用 lint+typecheck；push 才 build+test。见 scripts/agent-gates/README.md"
+  # Push build gate paused (Will): no production-build marker required.
+  # Commit already required scan + uat + check (lint+typecheck). Pack still uses gate.sh build.
   exit 0
 }
 

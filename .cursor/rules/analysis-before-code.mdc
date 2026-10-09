@@ -31,7 +31,7 @@ For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code 
 - Branch from `main` (or named baseline); do not disturb other WIP (worktree if needed). **Never stash foreign WIP to clear gates.** Details in the skill + `feature-branch-before-code.mdc`.
 - **One representation check** on the diff: no two live forms for the same step/label/mapping.
 - After implement, **before UAT**: **清冗余** — `.cursor/rules/redundancy-cleanup-before-uat.mdc` (confirmed dead/parallel/forward-only wrappers on this task’s surface; no “先测再清” / “以后再清”).
-- Run checks per `AGENTS.md` / `scripts/agent-gates/README.md` — commit: lint+typecheck (`gate.sh check`); push: build+tests (`gate.sh build`). Manual items: pass/fail; `skip` only per `local-product-testing.mdc` (truly blocked). Commit only if user asks (push/ship = permission; then `release-and-ci.mdc`).
+- Run checks per `AGENTS.md` / `scripts/agent-gates/README.md` — commit: lint+typecheck (`gate.sh check`); push: **no** production build（paused）. Manual items: pass/fail; `skip` only per `local-product-testing.mdc` (truly blocked). Commit only if user asks (push/ship = permission; then `release-and-ci.mdc`). Pack/on-prem still may need `gate.sh build`.
 - After user-asked merge to local `main`: remove this task’s feature worktree + branch and update `main` tip; primary → `main` only if safe — foreign dirty WIP → leave primary alone and report (see `git-local-merge-push.mdc` + `feature-branch-before-code.mdc`).
 
 ## Never without explicit in-thread permission

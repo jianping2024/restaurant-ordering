@@ -11,12 +11,12 @@ alwaysApply: true
 This file is a Cursor always-on mirror — **do not invent a second policy here.**
 
 **编码完成 → scoped lint + typecheck pass → 才允许 `git commit`。**  
-**不要**在 commit 前跑 `next build`（留给 push：`gate.sh build`）。
+**不要**在 commit 前跑 `next build`。push 也不强制 build（已暂停）；pack/on-prem 仍按需 `gate.sh build`。
 
 ## Required
 
 1. Web / shared → `npm run lint -w @mesa/web` **and** `npm run typecheck -w @mesa/web`（或 `gate.sh check`）
 2. Ops / shared → same for `@mesa/ops`
-3. Print-agent → Docker `go vet`（`go test` / cross-build 留到 push）
+3. Print-agent → Docker `go vet`（`go test` / 交叉编译留给 pack/tag，不挡日常 push）
 
 Report commands + pass before commit. Waive only if Will says so in-thread.

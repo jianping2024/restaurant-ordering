@@ -17,7 +17,7 @@ alwaysApply: true
 3. Functional UAT when `uat-before-delivery.mdc` applies  
 4. Scoped lint + typecheck (`gate.sh check` — `scripts/agent-gates/README.md`)  
 5. `git commit` / merge when Will asks  
-6. Production build + tests on **push** (`gate.sh build` + targeted tests)  
+6. Push does **not** require production build（paused）; pack/on-prem still may run `gate.sh build` when web inputs change 
 
 If coding changes again after UAT (bugfix): **re-run this gate before re-testing**.
 

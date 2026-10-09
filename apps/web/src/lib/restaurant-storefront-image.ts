@@ -1,8 +1,21 @@
 import imageCompression from 'browser-image-compression';
-import { extensionForImageMime, MENU_IMAGE_ACCEPT } from '@/lib/menu-image';
+import {
+  extensionForImageMime,
+  MENU_IMAGE_ACCEPT,
+  resolveMenuImageDisplayUrl,
+} from './menu-image';
 
 export const STOREFRONT_IMAGE_ACCEPT = MENU_IMAGE_ACCEPT;
 export const STOREFRONT_IMAGE_MAX_BYTES = 1048576;
+
+/** Sole guest default cover when `restaurants.cover_url` is empty (public static). */
+export const DEFAULT_STOREFRONT_COVER_URL = '/storefront/default-cover.jpg';
+
+/** Sole cover display URL: uploaded public ref, else default asset. */
+export function resolveStorefrontCoverUrl(coverUrl: string | null | undefined): string {
+  const uploaded = resolveMenuImageDisplayUrl(coverUrl);
+  return uploaded || DEFAULT_STOREFRONT_COVER_URL;
+}
 
 const TARGET_MB = 0.95;
 const COVER_MAX_DIMENSION = 1600;

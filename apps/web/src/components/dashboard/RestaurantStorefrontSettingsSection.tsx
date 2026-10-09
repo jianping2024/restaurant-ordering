@@ -12,6 +12,7 @@ import {
 import {
   STOREFRONT_IMAGE_ACCEPT,
   compressStorefrontImageFile,
+  resolveStorefrontCoverUrl,
   type StorefrontImageKind,
 } from '@/lib/restaurant-storefront-image';
 import {
@@ -172,7 +173,8 @@ export function RestaurantStorefrontSettingsSection({
     url: string | null,
     inputRef: { current: HTMLInputElement | null },
   ) => {
-    const display = resolveMenuImageDisplayUrl(url);
+    const display =
+      kind === 'cover' ? resolveStorefrontCoverUrl(url) : resolveMenuImageDisplayUrl(url);
     const busy = uploading === kind;
     return (
       <div className="space-y-2">

@@ -7,6 +7,7 @@ import {
   type RestaurantBusinessHours,
 } from '@/lib/restaurant-business-hours';
 import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import { resolveStorefrontCoverUrl } from '@/lib/restaurant-storefront-image';
 import {
   normalizeStorefrontIntro,
   type StorefrontIntroI18n,
@@ -67,7 +68,7 @@ export function buildCustomerStorefrontBandModel(
   return {
     name: r.name,
     logoUrl: resolveMenuImageDisplayUrl(r.logo_url),
-    coverUrl: resolveMenuImageDisplayUrl(r.cover_url),
+    coverUrl: resolveStorefrontCoverUrl(r.cover_url),
     intro,
     address: (r.address ?? '').trim(),
     phone: (r.phone ?? '').trim(),

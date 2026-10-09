@@ -47,3 +47,10 @@ bash scripts/agent-gates/gate.sh status
 首次在 Codex 启用项目 hook 时，在 `/hooks` 里 **review + trust** 本仓库的 `.codex/hooks.json`（改 hook 后要重新 trust）。
 
 `hook-commit` / `hook-push` 对 Claude 与 Codex 共用：失败时 **exit 2 + stderr**（两边都认）。
+
+### Worktree / 旁路 WIP（硬）
+
+- Hook 会从 shell 命令里的 `cd <path>` / `git -C <path>` **改绑**到实际提交/推送的 worktree，再算指纹与 `.mesa-agent-gates/<branch>/` 标记。
+- Agent **禁止**用 `git stash` 清掉主仓/旁路分支的未提交改动，只为让 hook 放行另一 worktree 的 commit（见 `.cursor/rules/feature-branch-before-code.mdc`）。
+- `git stash push` **不是** remote push；`hook-push` 会忽略含 `git stash` 的命令。
+- 正确做法：本任务专用 worktree 内跑 `gate.sh scan|uat|check` 再 `cd` 该 worktree `git commit`。门禁仍看错树 → **停下来报**，不要 stash。

@@ -31,6 +31,31 @@ if [[ ! -d "$GATE_DIR" && -d "$LEGACY_GATE_DIR" ]]; then
 fi
 PRODUCT_PATHS_RE='^(apps|packages|supabase)/'
 
+# Rebind ROOT/BRANCH/GATE_DIR to the tree a shell command actually targets
+# (`cd <worktree> && git commit` / `git -C <worktree> …`). Hooks must not
+# fingerprint a dirty primary checkout when the commit is in another worktree.
+rebind_root_from_command() {
+  local command="$1" dir="" toplevel=""
+  if [[ "$command" =~ git[[:space:]]+-C[[:space:]]+[\"\']?([^\"\'[:space:]]+) ]]; then
+    dir="${BASH_REMATCH[1]}"
+  elif [[ "$command" =~ (^|[\;\&\|[:space:]])cd[[:space:]]+[\"\']?([^\"\'[:space:]\;\&\|]+) ]]; then
+    dir="${BASH_REMATCH[2]}"
+  else
+    return 0
+  fi
+  dir="${dir/#\~/$HOME}"
+  toplevel="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || return 0
+  [[ -n "$toplevel" ]] || return 0
+  ROOT="$toplevel"
+  cd "$ROOT"
+  BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+  GATE_DIR="$ROOT/.mesa-agent-gates/${BRANCH//\//__}"
+  LEGACY_GATE_DIR="$ROOT/.claude/gates/${BRANCH//\//__}"
+  if [[ ! -d "$GATE_DIR" && -d "$LEGACY_GATE_DIR" ]]; then
+    GATE_DIR="$LEGACY_GATE_DIR"
+  fi
+}
+
 # Hash of the product working tree only (apps/packages/supabase, tracked + untracked,
 # respecting .gitignore), independent of staging — docs/AGENTS edits never invalidate it.
 fingerprint() {
@@ -172,11 +197,14 @@ block() {
 }
 
 cmd_hook_browser() {
-  cat >/dev/null
+  local input command
+  input="$(cat)"
+  command="$(jq -r '.tool_input.command // ""' <<<"$input" 2>/dev/null || true)"
+  [[ -n "$command" ]] && rebind_root_from_command "$command"
   # Only uncommitted product WIP blocks browser. Committed-on-branch (clean tree) may retest.
   [[ -n "$(wip_product_files)" ]] || exit 0
   marker_ok scan "$(fingerprint)" && exit 0
-  block "【门禁】当前有未提交的产品改动，还没清冗余，禁止开始浏览器测试。先写 $GATE_DIR/scan.md（改动文件 / 共用组件调用方 / 发现与处理），再运行 bash scripts/agent-gates/gate.sh scan。见 scripts/agent-gates/README.md。工作区干净时可直接复测。"
+  block "【门禁】当前有未提交的产品改动，还没清冗余，禁止开始浏览器测试。先写 $GATE_DIR/scan.md（改动文件 / 共用组件调用方 / 发现与处理），再运行 bash scripts/agent-gates/gate.sh scan。见 scripts/agent-gates/README.md。工作区干净时可直接复测。禁止 stash 旁路分支 WIP 来清门禁。"
 }
 
 cmd_hook_commit() {
@@ -185,6 +213,7 @@ cmd_hook_commit() {
   command="$(jq -r '.tool_input.command // ""' <<<"$input")"
   # Any `git … commit` segment (incl. `git -C dir commit`, `cd x && git commit`).
   grep -qE '(^|[;&|[:space:]])git[[:space:]][^;&|]*\bcommit([[:space:]]|$)' <<<"$command" || exit 0
+  rebind_root_from_command "$command"
   # Conflict-resolution commit of a merge: content was gated on its branch.
   [[ -f "$(git rev-parse --git-path MERGE_HEAD)" ]] && exit 0
   [[ -n "$(changed_product_files)" ]] || exit 0
@@ -193,15 +222,17 @@ cmd_hook_commit() {
   marker_ok uat "$fp" || missing+=("实测（gate.sh uat）")
   marker_ok check "$fp" || missing+=("lint+typecheck（gate.sh check）")
   ((${#missing[@]} == 0)) && exit 0
-  block "【门禁】提交被拦：当前代码缺少 ${missing[*]}。标记必须和当前代码指纹一致，改过代码要重新走一遍。见 scripts/agent-gates/README.md"
+  block "【门禁】提交被拦：当前代码缺少 ${missing[*]}。标记必须和当前代码指纹一致，改过代码要重新走一遍。见 scripts/agent-gates/README.md。禁止 stash 旁路 WIP 骗过门禁；在目标 worktree 内跑 gate.sh。"
 }
 
 cmd_hook_push() {
   local input command fp
   input="$(cat)"
   command="$(jq -r '.tool_input.command // ""' <<<"$input")"
-  # Any `git … push` segment.
-  grep -qE '(^|[;&|[:space:]])git[[:space:]][^;&|]*\bpush([[:space:]]|$)' <<<"$command" || exit 0
+  # Remote `git push` only — not `git stash push` / `git stash push -u`.
+  grep -qE 'git[[:space:]]+stash' <<<"$command" && exit 0
+  grep -qE '(^|[;&|[:space:]])git[[:space:]]([^;&|]*[[:space:]])?push([[:space:]]|$)' <<<"$command" || exit 0
+  rebind_root_from_command "$command"
   [[ -n "$(changed_product_files)" ]] || exit 0
   fp="$(fingerprint)"
   # Push needs production build marker. Targeted unit tests stay agent policy (AGENTS.md).

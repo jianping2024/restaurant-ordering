@@ -492,6 +492,7 @@ function WaiterBoardInner({
         checkoutRequestedAt={checkoutRequestedAtByTableId[card.tableId] ?? null}
         nowMs={nowMs}
         lang={lang}
+        showAmounts={floorCaps.canViewTableDetailAmounts}
         pinned={pinned}
         onOpenTable={() =>
           setOpenTableTarget({ tableId: card.tableId, displayName: card.displayName })

@@ -55,8 +55,9 @@ export const PERMISSIONS = {
     requires: ['dashboard.waiter_board.view'],
   },
   /**
-   * Table-detail ordered-items money chrome only (饮食/合计 sticky + line unit € +
-   * chargeable € hints). Not board-card amount, buffet open prices, or checkout.
+   * Floor € visibility: table-detail ordered-items chrome (饮食/合计 sticky + line
+   * unit € + chargeable hints) and board-card amountText. Not buffet open prices
+   * or checkout.
    */
   'dashboard.waiter_board.table_detail_amounts.view': {
     group: 'dashboard_nav',

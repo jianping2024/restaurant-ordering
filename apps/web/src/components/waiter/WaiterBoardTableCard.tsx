@@ -32,6 +32,8 @@ type Props = {
   checkoutRequestedAt: string | null;
   nowMs: number;
   lang: UILanguage;
+  /** Sole € gate — host: floorCaps.canViewTableDetailAmounts. */
+  showAmounts: boolean;
   pinned?: boolean;
   onOpenTable: () => void;
   onDisabledClick: () => void;
@@ -61,6 +63,7 @@ export function WaiterBoardTableCard({
   checkoutRequestedAt,
   nowMs,
   lang,
+  showAmounts,
   pinned = false,
   onOpenTable,
   onDisabledClick,
@@ -75,6 +78,7 @@ export function WaiterBoardTableCard({
     checkoutRequestedAt,
     lang,
     nowMs,
+    showAmounts,
     labels: {
       seatCapacity: t.seatCapacity,
       cardIdleReadyHint: t.cardIdleReadyHint,

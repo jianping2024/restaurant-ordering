@@ -500,8 +500,8 @@ export function WaiterTableOccupiedToolbar({
 type OrderedItemsProps = {
   title: string;
   /**
-   * Sole UI gate for sticky 饮食/合计, line unit €, and chargeable € hints
-   * (host: floorCaps.canViewTableDetailAmounts).
+   * Sole UI gate for sticky 饮食/合计, line unit €, and chargeable € hints —
+   * same canViewTableDetailAmounts as board-card amountText.
    */
   showAmounts: boolean;
   /** Session amount lines for sticky chrome; null hides the amount block when showAmounts. */

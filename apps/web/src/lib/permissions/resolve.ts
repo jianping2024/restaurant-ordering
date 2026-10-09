@@ -78,8 +78,9 @@ export type FloorBoardCapabilities = {
   /** Dining filter card A/C — sole dashboard.waiter_board.dining_headcount.view. */
   canViewDiningHeadcount: boolean;
   /**
-   * Table-detail ordered-items € (饮食/合计 + line unit + chargeable hints) —
-   * sole dashboard.waiter_board.table_detail_amounts.view.
+   * Floor € visibility (table-detail 饮食/合计 + line unit + chargeable hints,
+   * and board-card amountText) — sole
+   * dashboard.waiter_board.table_detail_amounts.view.
    */
   canViewTableDetailAmounts: boolean;
 };

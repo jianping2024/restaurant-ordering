@@ -47,6 +47,8 @@ export type WaiterBoardStatusBadge = {
  * Title = tableTitle only; meta = seats/time;
  * status rail = statusLabel + statusBadge (headcount, not seat capacity);
  * below rule = opener slot (name or empty) then amountText XOR idleHint.
+ * amountText gated by showAmounts (same canViewTableDetailAmounts as table detail);
+ * cardAmountSlot geometry stays when amount is hidden.
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
@@ -203,6 +205,11 @@ export function buildWaiterBoardCardViewModel(input: {
   checkoutRequestedAt: string | null;
   lang: UILanguage;
   nowMs: number;
+  /**
+   * Sole € gate for board-card amountText — host: floorCaps.canViewTableDetailAmounts
+   * (same key as table-detail showAmounts). Idle hint is independent.
+   */
+  showAmounts: boolean;
   labels: WaiterBoardCardDisplayLabels;
   statusLabels: {
     checkout: string;
@@ -239,7 +246,10 @@ export function buildWaiterBoardCardViewModel(input: {
       labels: input.labels,
     }),
     idleHint: isIdle ? input.labels.cardIdleReadyHint : null,
-    amountText: isIdle ? '' : formatWaiterBoardCardAmount(input.card.sessionTotal),
+    amountText:
+      isIdle || !input.showAmounts
+        ? ''
+        : formatWaiterBoardCardAmount(input.card.sessionTotal),
     ctaLabel: input.labels[actionLabelKey],
     ctaDisabled: input.action.kind === 'disabled',
   };

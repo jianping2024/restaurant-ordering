@@ -55,6 +55,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -87,6 +88,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -105,6 +107,30 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
   });
 
+  it('dining card hides amountText when showAmounts is false (slot still empty, not idle hint)', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary({ buffetHeadcount: { adults: 3, children: 0 }, sessionTotal: 89.9 }),
+      boardState: 'dining',
+      action: { kind: 'navigate', href: '/waiter/t1' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'open',
+        openedByName: '张三',
+      },
+      checkoutRequestedAt: null,
+      lang: 'zh',
+      nowMs,
+      showAmounts: false,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(view.amountText, '');
+    assert.equal(view.idleHint, null);
+    assert.equal(view.openerName, '张三');
+    assert.equal(view.ariaLabel.includes('€'), false);
+  });
+
   it('dining card status badge stacks adult-first tokens (not hyphen string)', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 2 }, sessionTotal: 58.4 }),
@@ -118,6 +144,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -157,6 +184,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -181,6 +209,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: '2026-07-05T19:00:00.000Z',
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -201,6 +230,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -220,6 +250,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -260,6 +291,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -280,6 +312,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });
@@ -300,6 +333,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: '2026-07-05T19:00:00.000Z',
       lang: 'zh',
       nowMs,
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });

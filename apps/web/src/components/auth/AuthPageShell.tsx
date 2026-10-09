@@ -90,7 +90,8 @@ function TitleBlock({
 function FoodHeroPanel({ hero }: { hero: NonNullable<AuthShellCopy['hero']> }) {
   return (
     <aside
-      className="relative order-first mx-3.5 mt-3.5 h-[24vh] min-h-[185px] max-h-[235px] overflow-hidden rounded-[20px] bg-[#211a13] max-[460px]:h-[24vh] min-[461px]:max-[820px]:h-[30vh] min-[461px]:max-[820px]:max-h-[300px] min-[461px]:max-[820px]:rounded-3xl min-[821px]:order-none min-[821px]:mx-0 min-[821px]:mt-0 min-[821px]:h-auto min-[821px]:min-h-dvh min-[821px]:max-h-none min-[821px]:rounded-none"
+      // Narrow: decorative band *below* the form (document scroll). Desktop: side panel.
+      className="relative mx-3.5 mb-[max(1rem,env(safe-area-inset-bottom))] mt-5 h-[18vh] min-h-[120px] max-h-[180px] overflow-hidden rounded-[20px] bg-[#211a13] min-[461px]:max-[820px]:h-[22vh] min-[461px]:max-[820px]:max-h-[220px] min-[461px]:max-[820px]:rounded-3xl min-[821px]:mx-0 min-[821px]:mb-0 min-[821px]:mt-0 min-[821px]:h-auto min-[821px]:min-h-dvh min-[821px]:max-h-none min-[821px]:rounded-none"
       aria-label={hero.headline}
     >
       <picture className="absolute inset-0 block h-full w-full">
@@ -138,9 +139,11 @@ function SplitLoginShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="grid min-h-dvh grid-cols-1 overflow-hidden bg-brand-card min-[821px]:grid-cols-[minmax(520px,46%)_minmax(0,54%)]">
+    // Narrow: one document scroll (no overflow lock, no nested section scroll).
+    // Desktop: clip to viewport; form column scrolls alone beside the hero.
+    <main className="grid min-h-dvh grid-cols-1 overflow-x-hidden bg-brand-card min-[821px]:grid-cols-[minmax(520px,46%)_minmax(0,54%)] min-[821px]:overflow-hidden">
       <section
-        className="relative flex min-h-0 flex-col justify-start px-[18px] pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-7 sm:px-[22px] min-[821px]:justify-center min-[821px]:overflow-auto min-[821px]:px-[clamp(3.25rem,5.6vw,5.75rem)] min-[821px]:py-[1.875rem]"
+        className="relative flex flex-col justify-start px-[18px] pb-2 pt-7 sm:px-[22px] min-[821px]:min-h-0 min-[821px]:justify-center min-[821px]:overflow-auto min-[821px]:px-[clamp(3.25rem,5.6vw,5.75rem)] min-[821px]:py-[1.875rem] min-[821px]:pb-[1.875rem]"
         aria-labelledby="auth-login-title"
         style={{
           backgroundImage:

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { RestaurantSettingsProfile } from '@/types';
 import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
@@ -118,8 +118,6 @@ export function RestaurantStorefrontSettingsSection({
   logoUrl,
   coverUrl,
 }: Props) {
-  const logoInputRef = useRef<HTMLInputElement | null>(null);
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState<StorefrontImageKind | null>(null);
   const [imageError, setImageError] = useState('');
 
@@ -154,20 +152,23 @@ export function RestaurantStorefrontSettingsSection({
     }
   };
 
-  const renderImageRow = (
-    kind: StorefrontImageKind,
-    label: string,
-    url: string | null,
-    inputRef: { current: HTMLInputElement | null },
-  ) => {
+  const renderImageRow = (kind: StorefrontImageKind, label: string, url: string | null) => {
     const display =
       kind === 'cover' ? resolveStorefrontCoverUrl(url) : resolveMenuImageDisplayUrl(url);
     const busy = uploading === kind;
+    const inputId = `storefront-image-${kind}`;
+    const pickClass = busy
+      ? 'pointer-events-none opacity-50'
+      : 'cursor-pointer hover:bg-brand-bg';
     return (
       <div className="space-y-2">
         <div className="text-sm font-medium text-brand-text">{label}</div>
         <div className="flex items-center gap-3">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-border bg-brand-bg">
+          <label
+            htmlFor={inputId}
+            aria-label={copy.upload}
+            className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-border bg-brand-bg ${pickClass}`}
+          >
             {display ? (
               // eslint-disable-next-line @next/next/no-img-element -- settings preview; URL may be relative /storage
               <img src={display} alt="" className="h-full w-full object-cover" />
@@ -176,16 +177,14 @@ export function RestaurantStorefrontSettingsSection({
                 —
               </div>
             )}
-          </div>
+          </label>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => inputRef.current?.click()}
-              className="rounded-lg border border-brand-border px-3 py-1.5 text-sm text-brand-text hover:bg-brand-bg disabled:opacity-50"
+            <label
+              htmlFor={inputId}
+              className={`rounded-lg border border-brand-border px-3 py-1.5 text-sm text-brand-text ${pickClass}`}
             >
               {busy ? copy.imageUploading : copy.upload}
-            </button>
+            </label>
             {url ? (
               <button
                 type="button"
@@ -198,9 +197,10 @@ export function RestaurantStorefrontSettingsSection({
             ) : null}
           </div>
           <input
-            ref={inputRef}
+            id={inputId}
             type="file"
             accept={STOREFRONT_IMAGE_ACCEPT}
+            disabled={busy}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0] ?? null;
@@ -218,8 +218,8 @@ export function RestaurantStorefrontSettingsSection({
       <legend className="px-1 text-sm font-medium text-brand-text">{copy.storefrontSectionTitle}</legend>
       <p className="text-[13px] leading-relaxed text-brand-text-muted">{copy.storefrontSectionDesc}</p>
 
-      {renderImageRow('logo', copy.logo, logoUrl, logoInputRef)}
-      {renderImageRow('cover', copy.cover, coverUrl, coverInputRef)}
+      {renderImageRow('logo', copy.logo, logoUrl)}
+      {renderImageRow('cover', copy.cover, coverUrl)}
       {imageError ? <p className="mesa-alert-danger px-3 py-2 text-sm">{imageError}</p> : null}
 
       <div className="space-y-3">

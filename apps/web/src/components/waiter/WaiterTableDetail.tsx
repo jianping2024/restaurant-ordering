@@ -159,6 +159,7 @@ function WaiterTableDetailInner({
     applyModel,
     model,
     sessionMeta,
+    checkoutRequested,
     checkoutRequestedAt,
     supabase,
     detailLoaded,
@@ -355,13 +356,14 @@ function WaiterTableDetailInner({
     ],
   );
 
-  const wasCheckoutPendingRef = useRef(isCheckoutPending);
+  /** Queue entry (bill_splits requested) — not table lock (`isCheckoutPending` / billing). */
+  const wasCheckoutRequestedRef = useRef(checkoutRequested);
   useEffect(() => {
-    if (!wasCheckoutPendingRef.current && isCheckoutPending) {
+    if (!wasCheckoutRequestedRef.current && checkoutRequested) {
       showToast(t.checkoutToast.replace('{table}', selectedDisplayName), 'info');
     }
-    wasCheckoutPendingRef.current = isCheckoutPending;
-  }, [isCheckoutPending, selectedDisplayName, t.checkoutToast]);
+    wasCheckoutRequestedRef.current = checkoutRequested;
+  }, [checkoutRequested, selectedDisplayName, t.checkoutToast]);
 
   const notifyCheckoutLocked = useCallback(() => {
     showToast(t.checkoutLockedHint, 'info');
@@ -384,10 +386,10 @@ function WaiterTableDetailInner({
       table: selectedTable,
       orders,
       sessionMeta,
-      checkoutRequested: isCheckoutPending,
+      checkoutRequested,
       checkoutRequestedAt,
     }),
-    [checkoutRequestedAt, isCheckoutPending, orders, selectedTable, sessionMeta],
+    [checkoutRequested, checkoutRequestedAt, orders, selectedTable, sessionMeta],
   );
 
   const demoActiveTableIds = useMemo(() => {
@@ -437,21 +439,20 @@ function WaiterTableDetailInner({
 
   useEffect(() => {
     if (isDemo || !detailLoaded) return;
-    if (!isCheckoutPending) return;
+    if (!checkoutRequested) return;
     if (floorCaps.canAssistBillCheckout) {
       router.replace(dashboardCheckoutTableHref(tableId));
       return;
     }
     router.replace(waiterBoardHref(restaurant.slug, routeOptions));
   }, [
+    checkoutRequested,
     detailLoaded,
     floorCaps.canAssistBillCheckout,
-    isCheckoutPending,
     isDemo,
     restaurant.slug,
     routeOptions,
     router,
-    sessionMeta?.status,
     tableId,
   ]);
 

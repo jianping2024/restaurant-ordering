@@ -1413,6 +1413,7 @@ export const MESSAGES_DE = {
     "wholeTable": "Ganzer Tisch",
     "actionFailed": "Vorgang fehlgeschlagen, bitte erneut versuchen",
     "checkoutSubmittedHint": "Bitte bringen Sie die Aufteilung auf dem Handy zur Kasse zum Bezahlen",
+    "checkoutSettledHint": "Dieser Tisch ist abgerechnet — danke, bis zum nächsten Mal",
     "feedbackTitle": "Wie war jedes Gericht?",
     "feedbackHint": "Dauert etwa 10 Sekunden, optional",
     "feedbackSkip": "Überspringen",

@@ -1415,6 +1415,7 @@ export const MESSAGES_FR = {
     "wholeTable": "Table entière",
     "actionFailed": "Échec de l’action, veuillez réessayer",
     "checkoutSubmittedHint": "Merci de présenter votre part d’addition sur votre téléphone à la caisse pour payer",
+    "checkoutSettledHint": "Cette table est réglée — merci, à bientôt",
     "feedbackTitle": "Qu’avez-vous pensé de chaque plat ?",
     "feedbackHint": "Environ 10 secondes, facultatif",
     "feedbackSkip": "Ignorer",

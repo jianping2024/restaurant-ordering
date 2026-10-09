@@ -1411,6 +1411,7 @@ export const MESSAGES_ES = {
     "wholeTable": "Mesa completa",
     "actionFailed": "La acción ha fallado, inténtalo de nuevo",
     "checkoutSubmittedHint": "Acércate a la caja con la cuenta dividida en el móvil para pagar",
+    "checkoutSettledHint": "Esta mesa ya está pagada — gracias, hasta la próxima",
     "feedbackTitle": "¿Qué te ha parecido cada plato?",
     "feedbackHint": "Tarda unos 10 segundos, es opcional",
     "feedbackSkip": "Omitir",

@@ -44,11 +44,8 @@ import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { buildGuestReviewableItems } from '@/lib/guest-reviewable-items';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
-import {
-  type GuestBillSplitMode,
-  guestTablePlanHoldsCheckout,
-  resolveGuestBillSplitMode,
-} from '@/lib/guest-bill-split-mode';
+import { type GuestBillSplitMode, resolveGuestBillSplitMode } from '@/lib/guest-bill-split-mode';
+import { guestBillSurfaceShowsSubmitted } from '@/lib/guest-bill-surface-phase';
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
 import { messageForCheckoutErrorOverrides } from '@/lib/checkout-request-error-message';
 import type { SplitMode } from '@/types';
@@ -177,7 +174,8 @@ function GuestBillPage({
     existingSplit: liveSplit,
     collectedPayments,
     sessionId: liveSessionId,
-    submitted,
+    orderingHeld,
+    surfacePhase,
     orderLines,
     splitOrderLines,
     lineSpecs,
@@ -187,6 +185,7 @@ function GuestBillPage({
     lastSyncedAt,
     setCallBillBusy,
     commitIndividualCalled,
+    commitTablePlanCalled,
     refreshBill,
     ticketsReady,
     individualTickets,
@@ -236,8 +235,12 @@ function GuestBillPage({
     />
   );
 
-  /** Live session from bill sync — never keep SSR session id after table reopen. */
-  const activeSessionId = liveSessionId ?? sessionId;
+  /**
+   * Live session from bill sync — never keep SSR session id after table reopen.
+   * Settled (closed) keeps null so we do not hang signals on a dead session id.
+   */
+  const activeSessionId =
+    surfacePhase === 'settled' ? liveSessionId : (liveSessionId ?? sessionId);
 
   const [draftMode, setDraftMode] = useState<GuestBillSplitMode>('whole_table');
   const { mode: guestMode, locked: modeLocked } = resolveGuestBillSplitMode({
@@ -264,7 +267,7 @@ function GuestBillPage({
     existingSplit: liveSplit,
     tickets: individualTickets,
     lang,
-    submitted,
+    submitted: orderingHeld,
   });
 
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>>({});
@@ -279,7 +282,6 @@ function GuestBillPage({
       !initialFeedbackSkipped,
   );
   const [callBillBusy, setCallBillBusyState] = useState(false);
-  const [tablePlanLocalSubmitted, setTablePlanLocalSubmitted] = useState(false);
 
   useEffect(() => {
     setCallBillBusy(callBillBusy);
@@ -290,9 +292,7 @@ function GuestBillPage({
     [orders, lang, itemCodeByMenuId],
   );
 
-  const tablePlanSubmitted =
-    tablePlanLocalSubmitted || guestTablePlanHoldsCheckout(liveSplit);
-  const billSubmitted = submitted || tablePlanSubmitted;
+  const billSubmitted = guestBillSurfaceShowsSubmitted(surfacePhase);
 
   const { myTicket } = claim;
   const { isCallBillBusy, submitCall } = useGuestCallCheckout({
@@ -313,8 +313,7 @@ function GuestBillPage({
       await commitIndividualCalled();
     },
     onTablePlanCalled: async () => {
-      setTablePlanLocalSubmitted(true);
-      await refreshBill();
+      await commitTablePlanCalled();
     },
     onBusyChange: setCallBillBusyState,
     showToast,
@@ -353,7 +352,7 @@ function GuestBillPage({
     <IndividualCheckoutNotice
       sessionId={activeSessionId}
       enabled
-      suppressModal={submitted}
+      suppressModal={billSubmitted}
       onSignals={() => void refreshBill()}
       getIgnoreTicketKeys={getIgnoreTicketKeys}
     />
@@ -363,7 +362,7 @@ function GuestBillPage({
   const calledMine = useMemo(() => {
     if (!billSubmitted) return null;
     const results = (liveSplit?.result ?? []) as SplitResult[];
-    if (tablePlanSubmitted || guestMode !== 'by_item') {
+    if (guestMode !== 'by_item') {
       const rows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total);
       return {
         rows,
@@ -385,7 +384,6 @@ function GuestBillPage({
     };
   }, [
     billSubmitted,
-    tablePlanSubmitted,
     guestMode,
     liveSplit?.result,
     individualTickets,
@@ -690,7 +688,8 @@ function GuestBillPage({
         tableLabel={t.table}
         lang={lang}
         copy={{
-          checkoutSubmittedHint: t.checkoutSubmittedHint,
+          checkoutSubmittedHint:
+            surfacePhase === 'settled' ? t.checkoutSettledHint : t.checkoutSubmittedHint,
           totalLabel: t.totalLabel,
           splitResult: t.splitResult,
           splitPaid: t.splitPaid,
@@ -709,7 +708,7 @@ function GuestBillPage({
         total={calledMine?.total ?? total}
         splitRows={calledMine?.rows ?? []}
         called={
-          guestMode === 'by_item' && submitted
+          guestMode === 'by_item' && orderingHeld && surfacePhase === 'awaiting_payment'
             ? {
                 hint: t.individualCalledHint,
                 resumeLabel: t.individualResume,
@@ -721,7 +720,7 @@ function GuestBillPage({
         }
         backHref={backHref}
         backLabel={t.backToMenu}
-        onRefreshPage={() => window.location.reload()}
+        onRefreshPage={() => void refreshBill()}
         showFeedback={!feedbackSkipped}
         reviewableItems={reviewableItems}
         feedbackDraft={feedbackDraft}

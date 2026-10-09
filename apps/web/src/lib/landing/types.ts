@@ -140,7 +140,6 @@ export type LandingCopy = {
     title: string;
     subtitle: string;
     panelTitle: string;
-    advisorsLabel: string;
     whatsappLabel: string;
     wechatLabel: string;
     wechatIdLabel: string;

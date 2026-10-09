@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import {
   LANDING_ON_DARK_MUTED_CLASS,
@@ -10,34 +9,17 @@ import { LandingExternalLink } from '@/components/landing/LandingPrimitives';
 import { LANDING_CONTACT_PEOPLE } from '@/lib/landing/contact';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
-/** Landing sole contact entry: one panel, one advisor at a time (names from `copy.team.founders`). */
+/** Landing sole contact entry: one advisor panel (WhatsApp + WeChat). */
 export function LandingAdvisorContact() {
   const { contact, team } = useLandingCopy();
-  const [active, setActive] = useState(0);
-  const person = LANDING_CONTACT_PEOPLE[active]!;
+  const person = LANDING_CONTACT_PEOPLE[0];
+  const advisorName = team.founders[person.founderIndex]!.name;
 
   return (
     <div className={`${LANDING_PANEL_DARK_CLASS} flex flex-col justify-center gap-5 p-6 sm:p-11`}>
       <div className="grid gap-1 text-center">
         <p className="font-heading text-[22px] font-bold text-white">{contact.panelTitle}</p>
-      </div>
-      <div
-        role="tablist"
-        aria-label={contact.advisorsLabel}
-        className="flex gap-1 rounded-xl border border-white/12 bg-white/[0.08] p-1"
-      >
-        {team.founders.map((founder, index) => (
-          <button
-            key={founder.name}
-            type="button"
-            role="tab"
-            aria-selected={index === active}
-            onClick={() => setActive(index)}
-            className={`h-10 flex-1 rounded-[9px] text-sm font-semibold transition-colors ${index === active ? 'bg-white text-[#16222b]' : `${LANDING_ON_DARK_MUTED_CLASS} hover:text-white`}`}
-          >
-            {founder.name}
-          </button>
-        ))}
+        <p className={`text-[15px] ${LANDING_ON_DARK_MUTED_CLASS}`}>{advisorName}</p>
       </div>
       <div className="grid justify-items-center gap-4">
         <div className="rounded-[18px] bg-white p-3.5 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)]">

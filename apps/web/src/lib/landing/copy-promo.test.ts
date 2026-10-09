@@ -44,8 +44,10 @@ describe('landing copy promo alignment', () => {
         assert.ok(item.problem.length > 0);
         assert.ok(item.solution.length > 0);
       }
-      // Advisor tabs are named by the team copy, one entry per contact person.
-      assert.equal(copy.team.founders.length, LANDING_CONTACT_PEOPLE.length);
+      // Sales contact is sole 李先生; team intro may list more founders.
+      assert.equal(LANDING_CONTACT_PEOPLE.length, 1);
+      assert.equal(LANDING_CONTACT_PEOPLE[0]!.key, 'li');
+      assert.ok(LANDING_CONTACT_PEOPLE[0]!.founderIndex < copy.team.founders.length);
     }
   });
 
@@ -57,22 +59,22 @@ describe('landing copy promo alignment', () => {
   });
 });
 
-describe('landing contact people (sole sales contacts)', () => {
-  it('pairs each advisor WhatsApp with their own WeChat and derives the flat lists', () => {
-    const [li, chen] = LANDING_CONTACT_PEOPLE;
+describe('landing contact people (sole sales contact)', () => {
+  it('keeps only 李先生 and derives flat renew/Pro lists from that one person', () => {
+    const [li] = LANDING_CONTACT_PEOPLE;
+    assert.equal(li.key, 'li');
+    assert.equal(li.founderIndex, 0);
     assert.equal(li.whatsapp.waUrl, 'https://wa.me/351925736572');
     assert.equal(li.wechat.display, '强');
-    assert.equal(chen.whatsapp.waUrl, 'https://wa.me/351911092527');
-    assert.equal(chen.wechat.id, 'p9110925');
     assert.deepEqual(
       LANDING_WHATSAPP_CONTACTS.map((c) => c.waUrl),
-      [chen.whatsapp.waUrl, li.whatsapp.waUrl],
+      [li.whatsapp.waUrl],
     );
     assert.deepEqual(
       LANDING_WECHAT_CONTACTS.map((c) => c.key),
-      [chen.wechat.key, li.wechat.key],
+      [li.wechat.key],
     );
-    assert.equal(LANDING_WHATSAPP_URL, chen.whatsapp.waUrl);
+    assert.equal(LANDING_WHATSAPP_URL, li.whatsapp.waUrl);
   });
 });
 

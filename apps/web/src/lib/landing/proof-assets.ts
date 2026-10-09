@@ -7,5 +7,5 @@ export const LANDING_PROOF_IMAGES = {
   cashier: '/landing/proof/p2.jpg',
 } as const;
 
-/** Order matches `copy.team.founders` and `LANDING_CONTACT_PEOPLE`. */
+/** Order matches `copy.team.founders` (team intro only; sales contact is `LANDING_CONTACT_PEOPLE`). */
 export const LANDING_TEAM_PHOTOS = ['/landing/team/li.jpg', '/landing/team/chen.jpg'] as const;

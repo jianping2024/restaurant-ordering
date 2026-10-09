@@ -61,7 +61,7 @@ Under **问题根因**: only state what evidence supports (code path, DB/API row
 5. **UAT** when required (`uat-before-delivery.mdc` + `mesa-local-product-test`).
 6. Checks per `AGENTS.md` / `scripts/agent-gates/README.md`. Before any commit of product code: `gate.sh check` (lint+typecheck). List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
 7. Commit only if user asks — and only after 清冗余 + UAT (when required) + lint+typecheck. `push` / `ship` → `gate.sh build` + targeted tests (`AGENTS.md` Checks) then `release-and-ci.mdc`.
-8. **Land cleanup (when user asked merge/合进 main):** remove this task’s feature worktree, delete the local feature branch, checkout on `main`, **stop this thread’s web/ops UAT listen ports** — see `.cursor/rules/git-local-merge-push.mdc` “After land” + `.cursor/rules/local-dev-services.mdc`. Do not leave the chat sitting on the feature branch or leave feature-UAT Next running.
+8. **Land cleanup (when user asked merge/合进 main):** remove this task’s feature worktree, delete the local feature branch, update local `main` tip (via worktree merge if primary is dirty with **foreign** WIP — never `checkout`/`restore`/park that WIP to force primary onto `main`), **stop this thread’s web/ops UAT listen ports** — see `.cursor/rules/git-local-merge-push.mdc` “After land” + `.cursor/rules/local-dev-services.mdc` + `.cursor/rules/feature-branch-before-code.mdc`. Primary off-`main` because of foreign dirty WIP is a done-gate **pass** if reported; do not leave feature-UAT Next running.
 
 ### Principles
 
@@ -83,6 +83,6 @@ Before finishing an implementation turn:
 - [ ] **清冗余 before UAT** reported (scanned / cleaned / none-found) — no UAT started with confirmed redundancy left
 - [ ] Reuse search covered domain UI + `messages` labels when UI/copy changed
 - [ ] Branch/base isolation respected; unrelated WIP untouched
-- [ ] After user-asked merge to main: done-gate — `test ! -e` feature worktree path, branch deleted, canonical `main` (not `worktree list` alone)
+- [ ] After user-asked merge to main: done-gate — `test ! -e` feature worktree path, this-task branch deleted, `main` tip has land commit; primary on `main` **or** explicitly left off-`main` due to foreign dirty WIP (not `worktree list` alone; never restore/checkout-carry foreign WIP)
 - [ ] `AGENTS.md` checks run; manual items reported pass/fail (skip only if blocked)
 - [ ] No commit unless user asked (unless push/ship)

@@ -1,5 +1,5 @@
 ---
-description: Hard gate — never start feature coding without a dedicated new branch from main (or named baseline); never stash foreign WIP
+description: Hard gate — never start feature coding without a dedicated new branch from main (or named baseline); never stash/restore/checkout-move foreign WIP
 alwaysApply: true
 ---
 
@@ -23,16 +23,19 @@ Each agent conversation owns **one** task branch (or that task’s worktree). Ot
 ### Forbidden (any reason)
 
 - `git stash` / `stash push` / `stash save` / `stash -u` of **another** branch’s or **another** session’s uncommitted WIP — including to “借树”、过 commit/push/浏览器门禁、清指纹、合进 main、或让 hook 以为工作区干净
+- **`git restore` / `git checkout -- <path>` / `git reset --hard` / `git clean`** on paths that belong to **another** branch’s or **another** session’s uncommitted WIP (same harm as stash — wiping or rewriting their tree)
+- **`git checkout <other-branch|main>`** (or any branch switch) on a dirty primary when the dirty files are **foreign WIP** — git will carry uncommitted changes across branches; that **is** moving their WIP. Leave the dirty primary alone; work in a worktree instead
+- “Park WIP” scripts: copy → restore → re-copy / temp dirs / inventing a second tree for someone else’s uncommitted files to force a clean `main` checkout
 - Editing product code on an unrelated feature branch that already has someone else’s WIP
 - Running `gate.sh scan|uat|check` on branch A’s dirty tree so you can `git commit` for branch B in a worktree (false clearance)
 - Leaving another task’s WIP in the shared stash queue as a side effect of this task
 
 ### Required when the primary checkout is dirty with foreign WIP
 
-1. **Leave it alone.** Do not stash it.
+1. **Leave it alone.** Do not stash, restore, clean, or branch-switch to “clear” it.
 2. `git worktree add <path> -b <this-task-branch> main` (or named baseline).
 3. Do **all** product edits, `gate.sh *`, and `git commit` **inside that worktree** (`cd` there; markers under that worktree’s `.mesa-agent-gates/`).
-4. If a commit/push/browser hook still fingerprints the wrong tree: **stop and report** (hook cwd / command must target the worktree). Do **not** “fix” it by stashing the primary tree.
+4. If a commit/push/browser hook still fingerprints the wrong tree: **stop and report** (hook cwd / command must target the worktree). Do **not** “fix” it by touching the primary tree.
 
 `gate.sh hook-commit` / `hook-push` must evaluate the **commit/push target** worktree when the shell command uses `cd <worktree>` or `git -C <worktree>` — see `scripts/agent-gates/README.md`.
 
@@ -52,4 +55,4 @@ Each agent conversation owns **one** task branch (or that task’s worktree). Ot
 
 ## After land
 
-Follow [`git-local-merge-push.mdc`](./git-local-merge-push.mdc): merge to local `main` only when asked; then delete this task’s feature branch/worktree and return to `main`. Do **not** stash foreign WIP as part of land cleanup.
+Follow [`git-local-merge-push.mdc`](./git-local-merge-push.mdc): merge to local `main` only when asked; then delete **this task’s** feature branch/worktree. If the primary still has **foreign** dirty WIP, **do not** `git checkout main` / restore / park that WIP — report that `main` tip is updated and primary stayed put. Do **not** stash or otherwise move foreign WIP as land cleanup.

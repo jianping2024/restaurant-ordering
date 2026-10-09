@@ -28,14 +28,22 @@ If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not
 
 When the user asked to merge/land this task’s feature branch (or the task’s approved end is “合进 main”): **do not stop on the feature branch/worktree.** Immediately:
 
-1. Ensure local `main` has the merge commit.
+1. Ensure local `main` has the merge commit (merge via this task’s worktree or a **throwaway** `git worktree add … main` — never by switching a **dirty primary** that holds foreign WIP).
 2. `git worktree remove` this task’s feature worktree (if any); `--force` for throwaway untracked junk (`node_modules` symlinks, etc.). **Unregister ≠ gone:** if the directory still exists after remove, `rm -rf` that **same** throwaway path (land permission covers it).
 3. `git branch -d <feature>` (local only; do not delete unrelated worktrees/branches).
-4. Primary checkout on **`main`**: if a helper worktree is holding `main`, `git worktree remove` it first, then shell `git checkout main` in the canonical repo. **Never** call `move_agent_to_root` / `move_agent_to_cloned_root` during land (or any Mesa branch/worktree switch) — even to “go back to main”; those MCP tools still `git fetch origin <prior-branch>` and blow up / leave the chat on a deleted tree. Stay on shell + absolute paths under the canonical repo. Done only when canonical `git branch --show-current` is `main` (not detached).
-5. **Done-gate (all must pass before the user-facing report):** `git worktree list` has no feature path; `test ! -e <feature-worktree-path>`; feature branch absent; canonical `git branch --show-current` is `main` (not detached). `git worktree list` alone is a **false pass** if the folder husk remains. Unrelated dirty WIP / AGENTS conflicts on the primary tree must not interrupt this gate — finish delete/assert first, then resolve WIP **without** `git stash` of foreign work (see `feature-branch-before-code.mdc`).
+4. **Primary → `main` only if the primary working tree is safe to switch:**
+   - Safe: primary is already clean, or its only dirty paths are **this task’s** leftover (none expected after worktree land).
+   - **Unsafe (hard stop):** primary has **foreign** uncommitted WIP (another branch/session). Then **do not** `git checkout main`, do **not** `git restore` / `git checkout --` / park-copy / stash that WIP. Leave primary on whatever branch it was. `main` tip is already updated in step 1.
+   - When safe: if a helper worktree is holding `main`, `git worktree remove` it first, then shell `git checkout main` in the canonical repo. **Never** call `move_agent_to_root` / `move_agent_to_cloned_root` during land (or any Mesa branch/worktree switch) — even to “切回主仓”; those MCP tools still `git fetch origin <prior-branch>` and blow up / leave the chat on a deleted tree. Stay on shell + absolute paths.
+5. **Done-gate (all must pass before the user-facing report):**
+   - `git worktree list` has no **this-task** feature path; `test ! -e <feature-worktree-path>`; **this-task** feature branch absent.
+   - Local `main` tip contains the land commit (`git merge-base --is-ancestor <land-sha> main` or `git log main -1` shows it).
+   - Canonical primary: **`git branch --show-current` is `main` (not detached)** **OR** primary stayed off `main` because of **foreign dirty WIP** (report that explicitly — this is a **pass**, not a failure).
+   - `git worktree list` alone is a **false pass** if the feature folder husk remains.
+   - Foreign dirty WIP / AGENTS conflicts on the primary tree must **not** be “resolved” by stash / restore / checkout-carry — finish delete/assert for **this task** only, then report (see [`feature-branch-before-code.mdc`](./feature-branch-before-code.mdc)).
 
 6. **Stop this thread’s listen ports** (web / ops / UAT Next started for the task) — see [`local-dev-services.mdc`](./local-dev-services.mdc) “After merge / land”. Do not leave feature-UAT servers up after land. Leave local Supabase up; never kill other sessions’ ports.
 
-7. Report only after steps 5–6: on `main` @ `<sha>`, feature branch/worktree gone, this-thread ports stopped (or none started).
+7. Report only after steps 5–6: `main` @ `<sha>` (tip updated); this-task feature branch/worktree gone; this-thread ports stopped (or none started); if primary did not switch to `main`, say so and name the foreign WIP branch left untouched.
 
 Skip branch/worktree delete only if the user explicitly says keep them. Skip port stop only if the user explicitly says keep the server.

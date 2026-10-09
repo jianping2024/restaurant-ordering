@@ -14,7 +14,7 @@ alwaysApply: true
 5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
 6. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex 共用 `gate.sh`）
 7. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
-8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
+8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main; land 遇旁路 dirty WIP 禁止强切 `main` / restore / park（见 `feature-branch-before-code.mdc`）
 9. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
 10. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — `:3000` = local `main` only; feature/worktree UAT → `3002+` + `MESA_UAT_BASE`; never kill occupants
 11. [`local-dev-services.mdc`](./local-dev-services.mdc) — keep stack during UAT; **after merge/land stop this-thread listen ports**; never auto-restart after Will stops it; never wipe local DB or kill other sessions’ agents

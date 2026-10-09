@@ -7,7 +7,6 @@ import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
-import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import type { IndividualTicketInfo } from '@/lib/individual-checkout';
 import { splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
@@ -471,19 +470,10 @@ function GuestBillPage({
         ? t.byItemInvalidQty
         : null;
 
-  const guestCountConfirmed = isBillGuestCountConfirmed(orders);
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
-  const checkoutGateMessage = !guestCountConfirmed
-    ? t.guestCountRequired
-    : !partyCheckoutAllowed
-      ? t.partyMergeRequired
-      : null;
+  const checkoutGateMessage = !partyCheckoutAllowed ? t.partyMergeRequired : null;
 
   const handleCallBill = () => {
-    if (!guestCountConfirmed) {
-      showToast(t.guestCountRequired, 'error');
-      return;
-    }
     if (!partyCheckoutAllowed) {
       showToast(t.partyMergeRequired, 'error');
       return;
@@ -860,7 +850,6 @@ function GuestBillPage({
                   orderLines.length === 0
                   || !activeSessionId
                   || isCallBillBusy
-                  || !guestCountConfirmed
                   || !partyCheckoutAllowed
                   || (guestMode === 'by_item' && claim.issue !== null)
                 }

@@ -12,7 +12,6 @@ import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-mes
 import type { GuestBillSplitMode } from '@/lib/guest-bill-split-mode';
 import type { MyTicket } from '@/lib/guest-claim';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
-import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import type { BillOrdersRefresh } from '@/lib/use-customer-bill-read-model';
 import type { Order, SplitPerson, SplitResult } from '@/types';
@@ -125,10 +124,6 @@ export function useGuestCallCheckout(params: Params) {
     try {
       const fresh = await resolveFreshBill();
       if (!fresh) return;
-      if (!isBillGuestCountConfirmed(fresh.orders)) {
-        showToast(messages.guestCountRequired, 'error');
-        return;
-      }
       if (!isPartyMemberCountAllowedForCheckout(fresh.partyMemberCount)) {
         showToast(messages.partyMergeRequired, 'error');
         return;

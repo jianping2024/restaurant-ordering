@@ -182,7 +182,8 @@ export async function runBuffetWaiterOpenPipeline(
     return pipelineFailure(500, 'session_create_failed', { message: ensured.error ?? undefined });
   }
 
-  if (ensured.session.status === 'billing') {
+  // Billing locks add-dish / cold open; intent=save may adjust headcount from checkout soft-confirm.
+  if (ensured.session.status === 'billing' && intent !== 'save') {
     return pipelineFailure(409, 'session_billing', { code: 'session_billing' });
   }
 

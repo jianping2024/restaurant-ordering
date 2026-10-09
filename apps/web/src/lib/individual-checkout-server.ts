@@ -22,7 +22,6 @@ import {
 } from '@/lib/individual-checkout';
 import { checkoutErrorStatus, checkoutFailure } from '@/lib/checkout-error-codes';
 import { splitResultTicketKey } from '@/lib/split-party-id';
-import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 import type { SplitPerson, SplitResult } from '@/types';
@@ -160,9 +159,6 @@ export async function submitIndividualCall(
     const view = deriveBillView(orders);
     if (view.orderLines.length === 0) {
       return checkoutFailure('empty_session');
-    }
-    if (!isBillGuestCountConfirmed(orders)) {
-      return checkoutFailure('guest_count_required');
     }
     let partyMemberCount: number;
     try {

@@ -110,8 +110,8 @@
 |------|------|
 | **菜单** `MenuPage` | 无后台轮询。恢复点单后，顾客点「+ 加入」或提交购物车时 **先拉** `customer/session`，服务端已 `open` 则立即加菜。 |
 | **账单编辑态** `BillPage` | 无常驻轮询。进入页 / 从后台回到前台时 sole `useCustomerBillReadModel` → `syncCustomerBill` → `customer/bill` **full**（订单 + `existing_split` + `collected_payments` + session 态）；与 SSR 同口径。呼叫结账前 `resolveFreshBill` 做权威校验（15s 内刚同步过可去重）。同桌加菜等变化若未触发上述事件，提交前会发现并 toast，不静默按旧单结账。 |
-| **账单成功页** `BillPage` | 同一进页 reconcile（不因 `submitted` 关掉）。职员恢复点单后，软停留或再进账单会翻成可编辑态并带上台账；**不依赖**硬刷新。成功页仍保留「刷新页面」作兜底整页重载。 |
-| **返回菜单** | 进入菜单时首屏拉一次 session，与上表加菜前刷新一致。 |
+| **账单成功页** `BillPage` | 同一进页 reconcile（不因 `submitted` 关掉）。职员恢复/解锁后，软停留或再进账单会翻成可编辑态并带上台账；**不依赖**硬刷新，成功页不提供「刷新页面」。 |
+| **返回菜单** | 唯一入口为底栏描边「返回点单」（`GuestBillBottomDock`）；进入菜单时首屏拉一次 session，与上表加菜前刷新一致。 |
 
 员工端结账台仍用 Realtime + 兜底轮询，与顾客端策略分离。
 

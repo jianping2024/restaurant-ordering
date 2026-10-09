@@ -86,14 +86,22 @@ describe('customerMenuBottomBar dock stick', () => {
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 
-  it('guest bill call-checkout docks on the same surface (no floating translate bar)', () => {
+  it('guest bill dock is sole GuestBillBottomDock on the shared surface (no floating translate bar)', () => {
     const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
+    const dock = readFileSync(join(webSrc, 'components/menu/GuestBillBottomDock.tsx'), 'utf8');
     const bill = readFileSync(join(webSrc, 'components/menu/BillPage.tsx'), 'utf8');
-    assert.match(
-      bill,
-      /data-guest-call-checkout-dock=""\s*className=\{`\$\{customerBottomDockSurfaceClass\} w-full max-w-mobile`\}/,
+    const submitted = readFileSync(
+      join(webSrc, 'components/menu/BillCheckoutSubmittedScreen.tsx'),
+      'utf8',
     );
+    assert.match(
+      dock,
+      /data-guest-call-checkout-dock=""\s*\n\s*className=\{`\$\{customerBottomDockSurfaceClass\} w-full max-w-mobile`\}/,
+    );
+    assert.match(bill, /<GuestBillBottomDock\b/);
+    assert.match(submitted, /<GuestBillBottomDock\b/);
     assert.doesNotMatch(bill, /fixed bottom-4 left-1\/2 -translate-x-1\/2/);
+    assert.doesNotMatch(submitted, /fixed bottom-4 left-1\/2 -translate-x-1\/2/);
   });
 
   it('centers the interactive row so CTA is optically mid-bar', () => {

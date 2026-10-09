@@ -46,7 +46,8 @@
     ".next-uat-draft-iso/types/**/*.ts",
     ".next-uat-sushi-qty/types/**/*.ts",
     ".next-uat-guest-auth/types/**/*.ts",
-    ".next-uat-settled/types/**/*.ts"
+    ".next-uat-settled/types/**/*.ts",
+    ".next-uat-back-dock/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

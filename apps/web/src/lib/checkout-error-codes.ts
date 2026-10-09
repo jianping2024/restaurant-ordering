@@ -5,7 +5,7 @@
  * Wire strings are unchanged (already-open pages still send/receive the same codes).
  *
  * Covers: checkout/request, ensure-entry, confirm-payment, resume-ordering, unlock(-ticket),
- * individual-unlock, apply-discount, and the SQL RPC codes they pass through.
+ * unlock-ticket, apply-discount, and the SQL RPC codes they pass through.
  */
 
 export const CHECKOUT_ERROR_STATUS = {

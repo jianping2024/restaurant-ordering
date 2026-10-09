@@ -1,17 +1,30 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
-import type { OperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
+import type {
+  OperationalCloseReason,
+  SettledCloseActorReason,
+} from '@/lib/table-session/operational-close-reasons';
 
 export type CloseTableOperationalReason = OperationalCloseReason;
 
 export type CloseTableSessionAudit = {
   /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */
   closed_by_user_id?: string | null;
+  /** Billable payable snapshot for settled checkout close (written on session). */
+  settled_payable_amount?: number | null;
 };
 
 export type CloseTableOperationalResult =
   | { ok: true; session_id: string }
   | { ok: false; code: 'no_session' | 'update_failed'; message?: string };
+
+export type CloseTableSettledResult =
+  | { ok: true; session_id: string }
+  | {
+      ok: false;
+      code: 'no_session' | 'update_failed';
+      message?: string;
+    };
 
 type CloseTableRpcPayload = {
   ok?: boolean;
@@ -19,6 +32,62 @@ type CloseTableRpcPayload = {
   message?: string;
   session_id?: string;
 };
+
+function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableSettledResult {
+  if (!payload?.ok) {
+    const code = payload?.code;
+    if (code === 'no_session') {
+      return { ok: false, code, message: payload?.message };
+    }
+    return {
+      ok: false,
+      code: 'update_failed',
+      message: payload?.message ?? code ?? 'update_failed',
+    };
+  }
+
+  if (!payload.session_id) {
+    return { ok: false, code: 'update_failed', message: 'missing session_id' };
+  }
+
+  return {
+    ok: true,
+    session_id: payload.session_id,
+  };
+}
+
+/**
+ * Settled close for frontdesk/cashier 关台结账: cancel unpaid splits, preserve orders,
+ * close session. Writes settled_payable_amount; does not invent paid split/ledger.
+ * Gated by feature quick_table_close. See docs/table-session-close.zh.md.
+ */
+export async function closeActiveTableSessionSettled(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+  closedReason: SettledCloseActorReason,
+  audit: CloseTableSessionAudit = {},
+): Promise<CloseTableSettledResult> {
+  const { data: rpcData, error: rpcErr } = await admin.rpc('close_table_session_settled', {
+    p_restaurant_id: restaurantId,
+    p_table_id: tableId,
+    p_closed_reason: closedReason,
+    p_closed_by_user_id: audit.closed_by_user_id ?? null,
+    p_settled_payable_amount: audit.settled_payable_amount ?? null,
+  });
+
+  if (rpcErr) {
+    return { ok: false, code: 'update_failed', message: rpcErr.message };
+  }
+
+  const result = mapSettledRpcPayload(rpcData as CloseTableRpcPayload | null);
+  if (!result.ok) {
+    return result;
+  }
+
+  await purgeTablePartyMembership(admin, restaurantId, tableId);
+  return result;
+}
 
 /**
  * Operational force/nightly close: cancel unpaid splits, close session, preserve orders.

@@ -172,8 +172,7 @@
 #### 计费与关台
 
 - **计费投影（读）**：从「订单原始行 + 行上限量快照 + 当前人数」派生免费/收费份；下单时快照写入订单行
-- **历史关台结账落账（入口已移除，仅历史数据）**：写入 `table_sessions.settled_payable_amount`；**不**改 `orders.items`
-
+- **关台结账落账（`quick_table_close`）**：写入 `table_sessions.settled_payable_amount`；**不**改 `orders.items`；与收款台账路径互斥
 ### 相关代码
 
 `components/dashboard/MenuManager.tsx`、`lib/resolve-append-cart-items.ts`、`lib/sushi-buffet-limits.ts`（实现须对齐 `price=0` 门槛）；轮次见 `docs/product/sushi-round-ordering.zh.md` §16
@@ -413,8 +412,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 5. 金额经 `auditMoney` 四舍五入
 
 **关台路径与统计：**
-- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（历史关台结账 settled）→ 计入营业额（`settled_payable_amount` / 账单投影）
-- ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
+- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（关台结账 settled）→ 计入营业额（`settled_payable_amount` / 账单投影）- ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
 - ❌ `waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly` → **不计入**
 - ❌ `UNPAID_TABLE_CLOSED` 异常记录 → **不计入**
 

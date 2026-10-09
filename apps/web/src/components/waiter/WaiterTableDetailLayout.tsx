@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Buffet } from '@/types';
 import {
   WaiterBuffetPackagesEditor,
@@ -14,9 +15,11 @@ import {
 import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
+import { runWaiterTableCheckoutClose } from '@/lib/waiter-table-checkout-close';
 import { requestEnsureStaffCheckoutEntry } from '@/lib/request-ensure-staff-checkout-entry';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { useRouter } from 'next/navigation';
@@ -290,6 +293,118 @@ function ToolbarCloseTableControl({
   );
 }
 
+/** Floor「关台结账」when feature quick_table_close is on. */
+function WaiterTableSettledCloseControl({
+  lang,
+  t,
+  tableId,
+  sessionId,
+  label,
+  printBillOnClose,
+  checkoutLocked,
+  sessionBusy,
+  settledCloseBusy,
+  onCheckoutLocked,
+  onClosed,
+  tryBeginSessionBusy,
+  endSessionBusy,
+}: {
+  lang: UILanguage;
+  t: WaiterCopy;
+  tableId: string;
+  sessionId: string | null;
+  label: string;
+  printBillOnClose: boolean;
+  checkoutLocked: boolean;
+  sessionBusy: boolean;
+  settledCloseBusy: boolean;
+  onCheckoutLocked: () => void;
+  onClosed: () => void;
+  tryBeginSessionBusy: (kind: WaiterDetailSessionBusyKind) => boolean;
+  endSessionBusy: () => void;
+}) {
+  const messages = getMessages(lang);
+  const orderHistory = messages.orderHistory;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const icon = <WaiterBillIcon className={buttonIcon.sm} />;
+  const confirmTitle = printBillOnClose
+    ? t.checkoutCloseConfirmTitle
+    : t.checkoutCloseConfirmTitleCashier;
+
+  const handleClick = () => {
+    if (sessionBusy) return;
+    if (checkoutLocked) {
+      onCheckoutLocked();
+      return;
+    }
+    if (!sessionId) {
+      showToast(t.checkoutCloseNoSession, 'error');
+      return;
+    }
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!sessionId) return;
+    if (!tryBeginSessionBusy('settled_close')) return;
+    let keepBusy = false;
+    try {
+      const outcome = await runWaiterTableCheckoutClose({
+        tableId,
+        printBill: printBillOnClose,
+      });
+      if (!outcome.ok) {
+        if (outcome.code === 'no_session') {
+          showToast(t.checkoutCloseNoSession, 'error');
+          return;
+        }
+        showToast(t.checkoutCloseFailed, 'error');
+        return;
+      }
+      setConfirmOpen(false);
+      showToast(orderHistory.closeTableSuccess, 'success');
+      if (outcome.printFailed) {
+        showToast(t.checkoutClosePrintFailed, 'error');
+      }
+      keepBusy = true;
+      onClosed();
+    } catch {
+      showToast(t.checkoutCloseFailed, 'error');
+    } finally {
+      if (!keepBusy) endSessionBusy();
+    }
+  };
+
+  return (
+    <>
+      <WaiterTableSecondaryButton
+        type="button"
+        onClick={handleClick}
+        disabled={sessionBusy && !settledCloseBusy}
+        loading={settledCloseBusy}
+        aria-label={label}
+        icon={icon}
+      >
+        {label}
+      </WaiterTableSecondaryButton>
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => {
+          if (settledCloseBusy) return;
+          setConfirmOpen(false);
+        }}
+        title={confirmTitle}
+        message=""
+        confirmLabel={orderHistory.closeTableConfirmButton}
+        cancelLabel={orderHistory.closeTableCancel}
+        confirming={settledCloseBusy}
+        onConfirm={handleConfirm}
+      />
+    </>
+  );
+}
+
 /** Floor「呼叫结账」: ensure checkout entry → dashboard checkout. */
 function WaiterTableCallCheckoutControl({
   lang,
@@ -394,6 +509,9 @@ type OccupiedToolbarProps = {
   showTransfer: boolean;
   showMerge: boolean;
   showCallCheckout: boolean;
+  showCheckoutClose: boolean;
+  /** When true, 关台结账 also enqueues checkout_bill (checkout.print_pre_bill). */
+  printBillOnCheckoutClose: boolean;
   showForceClose: boolean;
   isDemo: boolean;
   sessionBusy: boolean;
@@ -419,6 +537,8 @@ export function WaiterTableOccupiedToolbar({
   showTransfer,
   showMerge,
   showCallCheckout,
+  showCheckoutClose,
+  printBillOnCheckoutClose,
   showForceClose,
   isDemo,
   sessionBusy,
@@ -430,6 +550,7 @@ export function WaiterTableOccupiedToolbar({
 }: OccupiedToolbarProps) {
   const transferMergeDisabled = isCheckoutPending || inTableParty || sessionBusy;
   const callCheckoutBusy = sessionBusyKind === 'call_checkout';
+  const settledCloseBusy = sessionBusyKind === 'settled_close';
   const closeBusy =
     sessionBusyKind === 'force_close' || sessionBusyKind === 'demo_close';
   return (
@@ -462,6 +583,23 @@ export function WaiterTableOccupiedToolbar({
             >
               {t.merge}
             </WaiterTableSecondaryButton>
+          ) : null}
+          {showCheckoutClose ? (
+            <WaiterTableSettledCloseControl
+              lang={lang}
+              t={t}
+              tableId={tableId}
+              sessionId={sessionId}
+              label={t.goToBill}
+              printBillOnClose={printBillOnCheckoutClose}
+              checkoutLocked={isCheckoutPending}
+              sessionBusy={sessionBusy}
+              settledCloseBusy={settledCloseBusy}
+              onCheckoutLocked={onCheckoutLocked}
+              onClosed={onTableClosed}
+              tryBeginSessionBusy={tryBeginSessionBusy}
+              endSessionBusy={endSessionBusy}
+            />
           ) : null}
           {showCallCheckout ? (
             <WaiterTableCallCheckoutControl

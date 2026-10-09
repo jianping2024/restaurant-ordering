@@ -8,6 +8,7 @@ import {
 import { ensureStaffCheckoutEntryForTable } from '@/lib/checkout-request-server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
@@ -57,6 +58,10 @@ export async function POST(
   const loaded = await loadCustomerRestaurantForApi(admin, slug);
   if (!loaded.ok) {
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+  }
+
+  if (isRestaurantFeatureEnabled(loaded.restaurant.feature_flags, 'quick_table_close')) {
+    return NextResponse.json({ error: 'quick_table_close_enabled' }, { status: 403 });
   }
 
   const submitResult = await ensureStaffCheckoutEntryForTable(

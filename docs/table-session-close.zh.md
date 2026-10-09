@@ -2,19 +2,20 @@
 
 > 与转台/并台设计文档：`table-transfer-merge-plan.zh.md`  
 > 实现入口：`src/lib/close-active-table-session-with-cleanup.ts`  
-> 相关 RPC：`close_table_session_operational` / `confirm_bill_split_payment`（最后一笔收款关台）；`close_table_session_settled` 已由迁移 `20261005190000` 删除  
+> 相关 RPC：`close_table_session_operational` / `confirm_bill_split_payment`（最后一笔收款关台）；`close_table_session_settled`（功能开关 `quick_table_close` 时的关台结账，见迁移 `20261009140000`）  
 > 强制 `closed_reason`：`apps/web/src/lib/table-session/operational-close-reasons.ts`
 
 ## 1. 产品语义（统一口径）
 
-结束餐次有两条**互斥**业务路径，**不要**混称「关台」：
+结束餐次有三条业务路径，**不要**混称「关台」：
 
 | 产品动作 | 含义 | 营业额 |
 |----------|------|--------|
-| **呼叫结账 → 收款付清** | 前台 / 收银 / 店主点桌台详情「呼叫结账」进结账页收款，**最后一笔收款确认后自动关台**（`checkout-confirm-payment`）：保留订单金额、关闭餐次 | **计入** |
+| **呼叫结账 → 收款付清**（默认；`quick_table_close` 关） | 前台 / 收银 / 店主点桌台详情「呼叫结账」进结账页收款，**最后一笔收款确认后自动关台**（`checkout-confirm-payment`）：保留订单金额、关闭餐次 | **计入** |
+| **关台结账 / settled**（`quick_table_close` 开） | 桌台详情「关台结账」确认后直接关台，写 `settled_payable_amount`；顾客不能呼叫结账；与「打印发票」互斥 | **计入** |
 | **强制关台** | 店主 / 服务员 / 夜间任务在**未走完正常结账**时清场：取消未付分账、保留订单金额、关闭餐次 | **不计**（按关台性质排除，**不**靠清零订单） |
 
-**确认收款 / 分账付清**（`checkout-confirm-payment`）把分账标为 `paid`，全员付清时关台，保留订单并计入营业额；与「强制关台」不同。原桌台详情「关台结账」入口已移除，结账只走呼叫结账。
+**确认收款 / 分账付清**（`checkout-confirm-payment`）把分账标为 `paid`，全员付清时关台，保留订单并计入营业额；与「强制关台」不同。默认店只走呼叫结账；打开「快速关台」后员工改走关台结账。
 
 无论哪条路径，结束餐次都 **不是** 仅把 `table_sessions.status` 改为 `closed`。否则会出现：
 
@@ -24,12 +25,11 @@
 代码中只允许走下文两条 RPC（或确认收款付清关台），禁止业务层「只 `update table_sessions`」。  
 **void 仅用于真实退菜**，不用于任何关台路径。
 
-### 1.1 关台结账（settled）— 入口已移除
+### 1.1 关台结账（settled）— 功能开关 `quick_table_close`
 
-桌台详情「关台结账」、`POST /api/dashboard/checkout-close-table-session` 与 `closeTableSessionFrontdeskCheckout` 已删除；`close_table_session_settled` 已由迁移 `20261005190000_drop_close_table_session_settled.sql` 删除（历史迁移文件不改）。以下仅描述历史数据语义：
+**入口：** 功能设置打开「快速关台」后，桌台详情「关台结账」→ `POST /api/dashboard/checkout-close-table-session` → `closeTableSessionFrontdeskCheckout` → RPC `close_table_session_settled`（权限 `tables.checkout_close`；开关关闭时 API 返回 `403 quick_table_close_disabled`）。
 
-
-**RPC（已删除）：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
+**RPC：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
 
 **效果（同一事务）：**
 
@@ -39,7 +39,7 @@
 4. `table_sessions` → `closed`，`closed_reason` 为 `frontdesk_closed` / `cashier_closed` / `owner_closed`，写入 `closed_by_user_id`。
 
 分析侧：已关闭且非强制路径的 session，优先用 `settled_payable_amount` 计入营业额（无快照的旧行回退订单合计）。  
-订单历史：`closed_reason` 属 settled 集合时 outcome 为 `fully_paid`（已结账关台）；金额认结算快照 / 同投影；`canPrintBill` 仅已结账且有菜；补打走会话级 `checkout_bill`。现网关台结账与分账收款路径不相交。
+订单历史：`closed_reason` 属 settled 集合时 outcome 为 `fully_paid`（已结账关台）；金额认结算快照 / 同投影；`canPrintBill` 仅已结账且有菜；补打走会话级 `checkout_bill`。关台结账与分账收款路径不相交。
 
 ### 1.2 强制关台（operational）
 
@@ -63,7 +63,8 @@
 
 | 场景 | 入口 |
 |------|------|
-| 前台 / 收银 / 店主桌台详情「呼叫结账」（`tables.checkout_close`） | `POST /api/restaurants/[slug]/checkout/ensure-entry` → 结账页收款 → 最后一笔 `confirm_bill_split_payment` 自动关台 |
+| 前台 / 收银 / 店主桌台详情「呼叫结账」（`tables.checkout_close`，`quick_table_close` 关） | `POST /api/restaurants/[slug]/checkout/ensure-entry` → 结账页收款 → 最后一笔 `confirm_bill_split_payment` 自动关台 |
+| 前台 / 收银 / 店主桌台详情「关台结账」（`tables.checkout_close`，`quick_table_close` 开） | `POST /api/dashboard/checkout-close-table-session` → **`close_table_session_settled`** |
 | 有 `tables.force_close` 的员工强制关台（含勾选后的收银） | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（映射为 `*_forced`）→ **`close_table_session_operational`** |
 | 服务员强制关台 | waiter sessions close → `waiter_closed` → **operational** |
 | 里斯本 05:00 夜间批量关台 | `auto_nightly` → **operational** |
@@ -72,7 +73,7 @@
 
 | 模式 | RPC | 订单 | 未付分账 | 营业额 |
 |------|-----|------|----------|--------|
-| **Settled**（历史关台结账，入口与 RPC 均已移除） | `close_table_session_settled` | 保留 | cancel | **计入** |
+| **Settled**（`quick_table_close` 关台结账） | `close_table_session_settled` | 保留 | cancel | **计入** |
 | **Operational**（强制 / 夜间 / 服务员） | `close_table_session_operational` | 保留 | cancel | **不计**（按 reason / 异常） |
 
 关台成功后会清除该桌的同行组成员关系；若该组已无成员则自动解散。

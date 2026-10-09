@@ -826,12 +826,17 @@ function WaiterTableDetailInner({
     }
   };
 
+  const quickTableClose = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'quick_table_close',
+  );
   const detailActions = resolveWaiterTableDetailActions({
     caps: floorCaps,
     isDemo,
     isCheckoutPending,
     hasOpenSession,
     hasActiveBuffets: activeBuffets.length > 0,
+    quickTableClose,
   });
 
   const { submitting: buffetSubmitting, submit: submitBuffetOpen } = useWaiterBuffetOpenMutation({
@@ -1103,6 +1108,8 @@ function WaiterTableDetailInner({
                 showTransfer={detailActions.showTransfer}
                 showMerge={detailActions.showMerge}
                 showCallCheckout={detailActions.showCallCheckout}
+                showCheckoutClose={detailActions.showCheckoutClose}
+                printBillOnCheckoutClose={floorCaps.canPrintSessionPreBill}
                 showForceClose={detailActions.showForceClose}
                 isDemo={isDemo}
                 sessionBusy={detailSessionBusy}

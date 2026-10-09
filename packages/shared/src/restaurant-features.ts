@@ -4,7 +4,8 @@ export type RestaurantFeatureKey =
   | 'bill_sync_to_fiscal'
   | 'kitchen_serve_to_table'
   | 'menu_flavor_hints_enabled'
-  | 'open_table_receipt_print';
+  | 'open_table_receipt_print'
+  | 'quick_table_close';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
 export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen';
@@ -28,13 +29,15 @@ export type RestaurantFeatureDefinition = {
     | 'billSyncToFiscal'
     | 'kitchenServeToTable'
     | 'menuFlavorHints'
-    | 'openTableReceiptPrint';
+    | 'openTableReceiptPrint'
+    | 'quickTableClose';
   descKey:
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
     | 'menuFlavorHintsDesc'
-    | 'openTableReceiptPrintDesc';
+    | 'openTableReceiptPrintDesc'
+    | 'quickTableCloseDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -79,6 +82,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'billSyncToFiscal',
     descKey: 'billSyncToFiscalDesc',
+  },
+  {
+    key: 'quick_table_close',
+    moduleId: 'billing',
+    defaultEnabled: false,
+    labelKey: 'quickTableClose',
+    descKey: 'quickTableCloseDesc',
   },
   {
     key: 'menu_flavor_hints_enabled',
@@ -137,6 +147,32 @@ export function isRestaurantFeatureEnabled(
   return normalizeRestaurantFeatureFlags(flags)[key];
 }
 
+/**
+ * Sole mutual exclusion: 快速关台 ↔ 打印发票.
+ * Enabling one in the patch turns the other off; if both end up true without an
+ * explicit enable in this patch (corrupt store), keep 打印发票 and turn off 快速关台.
+ */
+export function applyBillingCheckoutModeExclusions(
+  flags: ResolvedRestaurantFeatureFlags,
+  patch: RestaurantFeatureFlags,
+): ResolvedRestaurantFeatureFlags {
+  const next = { ...flags };
+  if (patch.quick_table_close === true) {
+    next.quick_table_close = true;
+    next.bill_sync_to_fiscal = false;
+    return next;
+  }
+  if (patch.bill_sync_to_fiscal === true) {
+    next.bill_sync_to_fiscal = true;
+    next.quick_table_close = false;
+    return next;
+  }
+  if (next.quick_table_close && next.bill_sync_to_fiscal) {
+    next.quick_table_close = false;
+  }
+  return next;
+}
+
 export function parseFeatureFlagsPatch(body: unknown): RestaurantFeatureFlags | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const flags = (body as Record<string, unknown>).flags;
@@ -177,6 +213,13 @@ export function mergeRestaurantFeatureFlagsJsonb(
   const normalized = normalizeRestaurantFeatureFlags(current);
   for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
     base[def.key] = patch[def.key] ?? normalized[def.key];
+  }
+  const exclusive = applyBillingCheckoutModeExclusions(
+    normalizeRestaurantFeatureFlags(base),
+    patch,
+  );
+  for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
+    base[def.key] = exclusive[def.key];
   }
   for (const key of RETIRED_FEATURE_KEYS) {
     delete base[key];

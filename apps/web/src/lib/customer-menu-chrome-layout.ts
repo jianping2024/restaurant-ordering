@@ -45,10 +45,23 @@ export const customerMenuDualPaneRootClass =
 export const customerMenuCategoryNavShellClass =
   'flex min-h-0 min-w-0 w-full flex-1 overflow-hidden';
 
+/**
+ * When storefront shares one page scroll with the menu: nav fills at least the
+ * remaining viewport so categories stay usable after the band scrolls away.
+ */
+export const customerMenuCategoryNavShellPageScrollClass =
+  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full';
+
 /** Sole left top-category rail scrollport. */
 export const customerMenuCategoryRailClass = [
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   'z-20 flex shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
+].join(' ');
+
+/** Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away. */
+export const customerMenuCategoryRailPageScrollClass = [
+  CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
+  'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
 /**
@@ -62,11 +75,22 @@ export const customerMenuCatalogPaneClass =
   "min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 pb-4 before:block before:h-4 before:content-['']";
 
 /**
+ * Page-scroll mode: catalog is document flow inside the outer storefront scroll
+ * (no nested overflow-y). Same pad / before spacer as the pane scrollport.
+ */
+export const customerMenuCatalogPanePageScrollClass =
+  "min-w-0 flex-1 overflow-x-hidden px-3 pb-8 before:block before:h-4 before:content-['']";
+
+/**
  * Sole subcategory chip strip sticky chrome (right catalog pane only).
  * Flush to that pane’s top edge (`top-0`, pane has no pt); opaque so the list never shows through.
  * `-mx-3 px-3` cancels catalog host pad so the sticky fill spans the column.
  */
 export const CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS =
+  'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg px-3 py-2';
+
+/** Page-scroll mode: subchips stick to the outer scrollport top (below fixed header). */
+export const CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS =
   'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg px-3 py-2';
 
 /**

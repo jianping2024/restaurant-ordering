@@ -69,6 +69,10 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
+import {
+  CustomerMenuStorefrontScroll,
+  customerMenuCategoryScrollModeForStorefront,
+} from '@/components/menu/CustomerMenuStorefrontScroll';
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { useCustomerMenuSubmitFeedback } from '@/lib/customer-menu-submit-feedback';
@@ -1110,7 +1114,9 @@ export function SushiMenuPage({
         />
       ) : null}
 
+      <CustomerMenuStorefrontScroll restaurant={restaurant} lang={lang} enabled={!isDemo}>
       <CustomerMenuCategoryNav
+        scrollMode={customerMenuCategoryScrollModeForStorefront(!isDemo, restaurant)}
         topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
           getMenuCategoryLabel(cat, lang),
         )}
@@ -1186,6 +1192,7 @@ export function SushiMenuPage({
           </div>
         )}
       </CustomerMenuCategoryNav>
+      </CustomerMenuStorefrontScroll>
 
       <CustomerMenuFooter
         {...footer}

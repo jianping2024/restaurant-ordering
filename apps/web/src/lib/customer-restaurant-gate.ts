@@ -27,7 +27,7 @@ export async function loadCustomerRestaurantGate(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, guest_ordering_notice, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled, suspended_at, suspension_reason',
+      'id, name, slug, logo_url, cover_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, business_hours, storefront_intro, guest_ordering_notice, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled, suspended_at, suspension_reason',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -56,8 +56,13 @@ export async function loadCustomerRestaurantGate(
       name: data.name as string,
       slug: data.slug as string,
       logo_url: data.logo_url as string | null | undefined,
+      cover_url: data.cover_url as string | null | undefined,
+      address: data.address as string | null | undefined,
+      phone: data.phone as string | null | undefined,
       geo_latitude: data.geo_latitude as number | null | undefined,
       geo_longitude: data.geo_longitude as number | null | undefined,
+      business_hours: data.business_hours,
+      storefront_intro: data.storefront_intro,
       order_radius_meters: data.order_radius_meters as number | null | undefined,
       feature_flags: data.feature_flags as Record<string, boolean> | null | undefined,
       order_cooldown_seconds: data.order_cooldown_seconds as number | null | undefined,

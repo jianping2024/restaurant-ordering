@@ -24,12 +24,17 @@ export type CustomerRestaurantRow = {
   name: string;
   slug: string;
   logo_url?: string | null;
+  cover_url?: string | null;
+  address?: string | null;
+  phone?: string | null;
   geo_latitude?: number | null;
   geo_longitude?: number | null;
   order_radius_meters?: number | null;
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: string | null;
+  business_hours?: unknown;
+  storefront_intro?: unknown;
   guest_ordering_notice?: GuestOrderingNotice | null;
   /** Sushi round columns — SSR gate only; classic ignores. */
   sushi_round_ordering_enabled?: boolean | null;

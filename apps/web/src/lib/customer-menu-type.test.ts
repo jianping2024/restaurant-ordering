@@ -18,4 +18,11 @@ describe('CUSTOMER_MENU_TYPE', () => {
     assert.doesNotMatch(CUSTOMER_MENU_TYPE.categoryTopActive, /text-xs/);
     assert.match(CUSTOMER_MENU_TYPE.categoryTop, /text-xs/);
   });
+
+  it('keeps recommended name to one truncated line (no two-line reserve)', () => {
+    assert.match(CUSTOMER_MENU_TYPE.recommendedName, /truncate/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.recommendedName, /line-clamp-2/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.recommendedName, /min-h-/);
+    assert.match(CUSTOMER_MENU_TYPE.recommendedPrice, /mesa-money/);
+  });
 });

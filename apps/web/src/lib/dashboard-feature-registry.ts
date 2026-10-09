@@ -178,7 +178,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     pageLoader:
       'settings hub: dashboard.settings.view; profile body: settings.profile.manage; else firstAccessibleSettingsChildHref',
     writePattern: 'server-api',
-    aliases: ['/api/restaurant/settings'],
+    aliases: ['/api/restaurant/settings', '/api/restaurant/storefront-image'],
   },
   {
     id: 'settings-staff',

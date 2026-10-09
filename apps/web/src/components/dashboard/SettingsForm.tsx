@@ -14,6 +14,10 @@ import {
   normalizeOrderRadiusMeters,
   parseOrderRadiusInput,
 } from '@/lib/order-radius';
+import {
+  RestaurantStorefrontSettingsSection,
+  restaurantStorefrontDraftFromProfile,
+} from '@/components/dashboard/RestaurantStorefrontSettingsSection';
 
 export function SettingsForm({
   restaurant,
@@ -27,6 +31,7 @@ export function SettingsForm({
   const t = getMessages(lang).settings;
   const hasStoredCoordinates =
     restaurant.geo_latitude != null && restaurant.geo_longitude != null;
+  const storefrontSeed = restaurantStorefrontDraftFromProfile(restaurant);
   const [form, setForm] = useState({
     name: restaurant.name,
     address: restaurant.address || '',
@@ -40,6 +45,10 @@ export function SettingsForm({
       hasStoredCoordinates,
     ),
   });
+  const [intro, setIntro] = useState(storefrontSeed.intro);
+  const [hours, setHours] = useState(storefrontSeed.hours);
+  const [logoUrl, setLogoUrl] = useState(storefrontSeed.logoUrl);
+  const [coverUrl, setCoverUrl] = useState(storefrontSeed.coverUrl);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -102,7 +111,7 @@ export function SettingsForm({
 
     setSaving(true);
     try {
-      const payload: Record<string, string | boolean> = {
+      const payload = {
         name: form.name.trim(),
         address: form.address.trim(),
         phone: form.phone.trim(),
@@ -111,6 +120,8 @@ export function SettingsForm({
         geo_longitude: form.geo_longitude.trim(),
         order_radius_meters: String(orderRadiusMeters),
         geo_order_restriction_enabled: form.geoOrderRestrictionEnabled,
+        business_hours: hours,
+        storefront_intro: intro,
       };
       const res = await fetch('/api/restaurant/settings', {
         method: 'PATCH',
@@ -183,6 +194,48 @@ export function SettingsForm({
               value={form.phone}
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               placeholder="+351 21 123 4567"
+            />
+
+            <RestaurantStorefrontSettingsSection
+              logoUrl={logoUrl}
+              coverUrl={coverUrl}
+              intro={intro}
+              hours={hours}
+              onIntroChange={setIntro}
+              onHoursChange={setHours}
+              onImageUrlChange={(kind, url) => {
+                if (kind === 'logo') setLogoUrl(url);
+                else setCoverUrl(url);
+              }}
+              copy={{
+                storefrontSectionTitle: t.storefrontSectionTitle,
+                storefrontSectionDesc: t.storefrontSectionDesc,
+                logo: t.storefrontLogo,
+                cover: t.storefrontCover,
+                upload: t.storefrontUpload,
+                removeImage: t.storefrontRemoveImage,
+                imageUploading: t.storefrontImageUploading,
+                imageFail: t.storefrontImageFail,
+                imageTooLarge: t.storefrontImageTooLarge,
+                introPt: t.storefrontIntroPt,
+                introEn: t.storefrontIntroEn,
+                introZh: t.storefrontIntroZh,
+                introHint: t.storefrontIntroHint,
+                hoursTitle: t.storefrontHoursTitle,
+                hoursHint: t.storefrontHoursHint,
+                hoursOpen: t.storefrontHoursOpen,
+                hoursClose: t.storefrontHoursClose,
+                hoursClosed: t.storefrontHoursClosed,
+                weekdayLabels: {
+                  '1': t.storefrontWeekday1,
+                  '2': t.storefrontWeekday2,
+                  '3': t.storefrontWeekday3,
+                  '4': t.storefrontWeekday4,
+                  '5': t.storefrontWeekday5,
+                  '6': t.storefrontWeekday6,
+                  '7': t.storefrontWeekday7,
+                },
+              }}
             />
 
             <div>
@@ -306,7 +359,6 @@ export function SettingsForm({
           </form>
         </div>
 
-        {/* 危险操作区域 */}
         <div className="bg-brand-card border border-red-500/20 rounded-2xl p-6 mt-4">
           <h2 className="mesa-text-danger font-medium mb-2">{t.danger}</h2>
           <p className="text-brand-text-muted text-sm mb-4">{t.dangerTip}</p>

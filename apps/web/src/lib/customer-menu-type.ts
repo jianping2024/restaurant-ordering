@@ -5,8 +5,11 @@ export const CUSTOMER_MENU_TYPE = {
   categoryTopActive: 'font-semibold',
   categorySub: 'text-sm',
 
-  /** Recommended poster caption — two-line slot so prices share one baseline. */
-  recommendedName: 'mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-tight text-brand-text',
+  /** Recommended poster caption — one line, width locked to poster (truncate). */
+  recommendedName:
+    'mt-1 min-w-0 w-full truncate text-xs font-semibold leading-tight text-brand-text',
+  /** Recommended poster price — tighter than list `moneyAmount`. */
+  recommendedPrice: 'mesa-money mt-0.5 block text-[13px] leading-none text-brand-gold',
   itemDesc: 'text-sm leading-relaxed',
   /** Dish price, cart line total, footer session total — body face via `.mesa-money`. */
   moneyAmount: 'mesa-money text-[15px] text-brand-gold',

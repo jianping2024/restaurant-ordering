@@ -2,10 +2,14 @@
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import {
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
   customerMenuCatalogPaneClass,
+  customerMenuCatalogPanePageScrollClass,
   customerMenuCategoryNavShellClass,
+  customerMenuCategoryNavShellPageScrollClass,
   customerMenuCategoryRailClass,
+  customerMenuCategoryRailPageScrollClass,
 } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
@@ -18,6 +22,9 @@ export type CustomerMenuCategoryOption = {
   id: string;
   label: string;
 };
+
+/** `pane` = nested dual scroll (default). `page` = outer storefront scroll owns vertical scroll. */
+export type CustomerMenuCategoryScrollMode = 'pane' | 'page';
 
 type Props = {
   topCategories: CustomerMenuCategoryOption[];
@@ -32,6 +39,8 @@ type Props = {
    * Catalog order is always: catalogLeading → sticky sub chips → children (dish list).
    */
   catalogLeading?: ReactNode;
+  /** Default `pane`. Use `page` when a full-bleed storefront shares one scroll above. */
+  scrollMode?: CustomerMenuCategoryScrollMode;
   children: ReactNode;
 };
 
@@ -48,9 +57,8 @@ function railItemClass(active: boolean): string {
 /**
  * Sole customer/staff/sushi category chrome: left vertical top-category rail +
  * right column order catalogLeading (recommended) → sticky soft sub chips →
- * children (dish list). Dual independent scrollports (left rail / right catalog);
- * no document scroll chaining. Filter-on-select (no scroll-spy). No top horizontal
- * strip / no「更多」overlay.
+ * children (dish list). Default dual independent scrollports; `scrollMode="page"`
+ * for storefront+menu one-scroll. Filter-on-select (no scroll-spy).
  */
 export function CustomerMenuCategoryNav({
   topCategories,
@@ -61,9 +69,11 @@ export function CustomerMenuCategoryNav({
   onSelectSubpath,
   subcategoryAllLabel,
   catalogLeading = null,
+  scrollMode = 'pane',
   children,
 }: Props) {
   const railRef = useRef<HTMLElement>(null);
+  const pageScroll = scrollMode === 'page';
 
   useLayoutEffect(() => {
     const selected = railRef.current?.querySelector(
@@ -73,10 +83,22 @@ export function CustomerMenuCategoryNav({
   }, [activeTopId]);
 
   return (
-    <div className={customerMenuCategoryNavShellClass}>
-      <nav ref={railRef} className={customerMenuCategoryRailClass} aria-label="categories">
+    <div
+      className={
+        pageScroll
+          ? customerMenuCategoryNavShellPageScrollClass
+          : customerMenuCategoryNavShellClass
+      }
+    >
+      <nav
+        ref={railRef}
+        className={
+          pageScroll ? customerMenuCategoryRailPageScrollClass : customerMenuCategoryRailClass
+        }
+        aria-label="categories"
+      >
         {topCategories.map((cat) => {
-          const active = activeTopId === cat.id;
+          const active = cat.id === activeTopId;
           return (
             <button
               key={cat.id}
@@ -99,11 +121,20 @@ export function CustomerMenuCategoryNav({
         })}
       </nav>
 
-      <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} ${customerMenuCatalogPaneClass}`}>
+      <div
+        data-mesa-menu-catalog-pane
+        className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} ${
+          pageScroll ? customerMenuCatalogPanePageScrollClass : customerMenuCatalogPaneClass
+        }`}
+      >
         {catalogLeading}
         {subCategories.length > 0 ? (
           <div
-            className={CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS}
+            className={
+              pageScroll
+                ? CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS
+                : CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS
+            }
             role="toolbar"
             aria-label="subcategories"
           >

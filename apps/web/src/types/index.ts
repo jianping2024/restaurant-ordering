@@ -67,10 +67,16 @@ export interface Restaurant {
   slug: string;
   owner_id: string;
   logo_url?: string;
+  /** Guest storefront cover image URL. */
+  cover_url?: string | null;
   address?: string;
   phone?: string;
   geo_latitude?: number | null;
   geo_longitude?: number | null;
+  /** Guest-facing weekly hours JSON — see `restaurant-business-hours`. */
+  business_hours?: unknown;
+  /** Guest storefront intro { pt, en, zh }. */
+  storefront_intro?: unknown;
   /** Max distance (m) from restaurant coords for customer orders; default 50. */
   order_radius_meters?: number;
   /** Min seconds between two customer add-to-cart submissions; default 5. */
@@ -109,6 +115,8 @@ export type RestaurantSettingsProfile = Pick<
   | 'id'
   | 'name'
   | 'slug'
+  | 'logo_url'
+  | 'cover_url'
   | 'address'
   | 'phone'
   | 'geo_latitude'
@@ -116,6 +124,8 @@ export type RestaurantSettingsProfile = Pick<
   | 'order_radius_meters'
   | 'country_code'
   | 'feature_flags'
+  | 'business_hours'
+  | 'storefront_intro'
 >;
 
 export interface MenuItem {

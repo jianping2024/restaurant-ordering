@@ -72,6 +72,10 @@ import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { CustomerMenuTableGuestsChrome } from '@/components/menu/CustomerMenuTableGuestsChrome';
 import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
+import {
+  CustomerMenuStorefrontScroll,
+  customerMenuCategoryScrollModeForStorefront,
+} from '@/components/menu/CustomerMenuStorefrontScroll';
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
@@ -124,12 +128,17 @@ export type MenuOrderingRestaurant = {
   name: string;
   slug: string;
   logo_url?: string | null;
+  cover_url?: string | null;
+  address?: string | null;
+  phone?: string | null;
   geo_latitude?: number | null;
   geo_longitude?: number | null;
   order_radius_meters?: number | null;
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: BuffetServiceMode | string | null;
+  business_hours?: unknown;
+  storefront_intro?: unknown;
   guest_ordering_notice?: GuestOrderingNotice | null;
   sushi_round_ordering_enabled?: boolean | null;
   sushi_per_person_per_round_cap?: number | null;
@@ -949,7 +958,16 @@ export function MenuOrderingController({
         />
       ) : null}
 
+      <CustomerMenuStorefrontScroll
+        restaurant={restaurant}
+        lang={lang}
+        enabled={!isEmbedded && !staffAssisted}
+      >
       <CustomerMenuCategoryNav
+        scrollMode={customerMenuCategoryScrollModeForStorefront(
+          !isEmbedded && !staffAssisted,
+          restaurant,
+        )}
         topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
           getMenuCategoryLabel(cat, lang),
         )}
@@ -1017,6 +1035,7 @@ export function MenuOrderingController({
           </div>
         )}
       </CustomerMenuCategoryNav>
+      </CustomerMenuStorefrontScroll>
 
       <CustomerMenuFooter
         {...footer}

@@ -10,6 +10,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { parseOrderRadiusInput } from '@/lib/order-radius';
 import { requirePermission } from '@/lib/permissions/require';
 import type { PermissionKey } from '@/lib/permissions/registry';
+import { normalizeRestaurantBusinessHours } from '@/lib/restaurant-business-hours';
+import { normalizeStorefrontIntro } from '@/lib/restaurant-storefront-intro';
 
 export const runtime = 'nodejs';
 
@@ -67,6 +69,15 @@ export async function PATCH(req: Request) {
     countryCode = normalized;
   }
 
+  const businessHours =
+    body.business_hours !== undefined
+      ? normalizeRestaurantBusinessHours(body.business_hours)
+      : undefined;
+  const storefrontIntro =
+    body.storefront_intro !== undefined
+      ? normalizeStorefrontIntro(body.storefront_intro)
+      : undefined;
+
   let admin;
   try {
     admin = createAdminClient();
@@ -103,6 +114,8 @@ export async function PATCH(req: Request) {
     order_radius_meters: orderRadiusMeters,
     feature_flags: mergeGeoOrderRestrictionFlag(existing.feature_flags, geoOrderRestrictionEnabled),
     ...(countryCode !== undefined ? { country_code: countryCode } : {}),
+    ...(businessHours !== undefined ? { business_hours: businessHours } : {}),
+    ...(storefrontIntro !== undefined ? { storefront_intro: storefrontIntro } : {}),
   };
 
   // Mirror previous owner-only semantics: disallow writes when suspended.

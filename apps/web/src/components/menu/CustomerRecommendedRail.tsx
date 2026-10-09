@@ -22,13 +22,13 @@ type Props = {
   onOpenDetail: (menuItemId: string) => void;
 };
 
-/** Sole poster width (8.5rem). Media height is width / MENU_IMAGE_ASPECT_RATIO. */
-const POSTER_WIDTH_PX = 136;
+/** Sole poster width. Media height is width / MENU_IMAGE_ASPECT_RATIO (4:3). */
+const POSTER_WIDTH_PX = 112;
 const POSTER_MEDIA_HEIGHT_PX = POSTER_WIDTH_PX / MENU_IMAGE_ASPECT_RATIO;
 
 /**
  * Sole customer recommended merchandising: gold-wash band of equal-height
- * poster cards (locked 4:3 well + two-line name slot + price on one baseline).
+ * poster cards (locked 4:3 well + one-line truncated name + tight price).
  * Band inset is one py-*. Tap opens detail. Not MenuItemCard, not sticky,
  * not a virtual category, no overlay +, no sold-out row.
  */
@@ -44,11 +44,11 @@ export function CustomerRecommendedRail({
 
   return (
     <section
-      className="mb-5 min-w-0 overflow-hidden rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2.5"
+      className="mb-3 min-w-0 overflow-hidden rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2"
       aria-label={title}
     >
-      <h2 className="px-0.5 text-sm font-semibold text-brand-gold">{title}</h2>
-      <div className="mesa-chip-scroll mt-2 flex min-w-0 items-start gap-2.5">
+      <h2 className="px-0.5 text-[13px] font-semibold text-brand-gold">{title}</h2>
+      <div className="mesa-chip-scroll mt-1.5 flex min-w-0 items-start gap-2">
         {items.map((item) => {
           const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
           const label = formatMenuCatalogItemLabel(item, lang);
@@ -63,11 +63,12 @@ export function CustomerRecommendedRail({
               type="button"
               onClick={() => onOpenDetail(item.id)}
               aria-label={openDetailAria}
-              className="flex shrink-0 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
+              title={label}
+              className="flex min-w-0 shrink-0 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
               style={{ width: POSTER_WIDTH_PX }}
             >
               <span
-                className={`relative block shrink-0 overflow-hidden rounded-xl ${MENU_IMAGE_WELL_BG_CLASS} text-3xl`}
+                className={`relative block shrink-0 overflow-hidden rounded-lg ${MENU_IMAGE_WELL_BG_CLASS} text-2xl`}
                 style={{ width: POSTER_WIDTH_PX, height: POSTER_MEDIA_HEIGHT_PX }}
               >
                 {imageSrc ? (
@@ -84,7 +85,7 @@ export function CustomerRecommendedRail({
                 )}
               </span>
               <span className={CUSTOMER_MENU_TYPE.recommendedName}>{label}</span>
-              <span className={`mt-0.5 block ${CUSTOMER_MENU_TYPE.moneyAmount}`}>{priceText}</span>
+              <span className={CUSTOMER_MENU_TYPE.recommendedPrice}>{priceText}</span>
             </button>
           );
         })}

@@ -40,7 +40,7 @@ async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Rest
   const { data, error } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, created_at',
+      'id, name, slug, owner_id, logo_url, cover_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, business_hours, storefront_intro, suspended_at, suspension_reason, created_at',
     )
     .eq('id', restaurantId)
     .maybeSingle();
@@ -72,6 +72,8 @@ export function toSettingsProfile(restaurant: Restaurant): RestaurantSettingsPro
     id: restaurant.id,
     name: restaurant.name,
     slug: restaurant.slug,
+    logo_url: restaurant.logo_url,
+    cover_url: restaurant.cover_url,
     address: restaurant.address,
     phone: restaurant.phone,
     geo_latitude: restaurant.geo_latitude,
@@ -79,6 +81,8 @@ export function toSettingsProfile(restaurant: Restaurant): RestaurantSettingsPro
     order_radius_meters: restaurant.order_radius_meters,
     country_code: restaurant.country_code,
     feature_flags: restaurant.feature_flags,
+    business_hours: restaurant.business_hours,
+    storefront_intro: restaurant.storefront_intro,
   };
 }
 

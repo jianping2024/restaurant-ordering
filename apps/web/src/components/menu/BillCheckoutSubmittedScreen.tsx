@@ -139,7 +139,9 @@ export function BillCheckoutSubmittedScreen({
                         <p className="min-w-0 flex-1 line-clamp-2 break-words text-sm text-brand-text">
                           {item.name}
                         </p>
-                        <span className="shrink-0 text-[13px] tabular-nums text-brand-text-muted">×{item.qty}</span>
+                        <span className="shrink-0 text-[13px] tabular-nums text-brand-text-muted">
+                          ×{item.qtyLabel}
+                        </span>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <button

@@ -1,6 +1,7 @@
 /**
  * Sole guest post-checkout dish-feedback list.
  * by_item → this phone's ticket shares only; whole_table / even → full session catalog.
+ * Screen qty sole {@link formatRational} via `qtyLabel` (never float String dump).
  */
 import type { BillSplitOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { UILanguage } from '@/lib/i18n';
@@ -8,8 +9,9 @@ import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import {
   addRationals,
+  formatRational,
   normalizeRational,
-  rationalToNumber,
+  rationalFromNumber,
   type Rational,
 } from '@/lib/rational-qty';
 import { splitPartyKey } from '@/lib/split-party-id';
@@ -21,7 +23,8 @@ export type GuestReviewableItem = {
   name: string;
   emoji: string;
   image_url: string | null;
-  qty: number;
+  /** Sole on-screen share qty (`1/3`, `1/2`, `2`) — UI prefixes `×`. */
+  qtyLabel: string;
 };
 
 export type GuestReviewableSplitMode = 'whole_table' | 'even' | 'by_item';
@@ -31,10 +34,30 @@ type CatalogLine = Pick<
   'id' | 'key' | 'order_id' | 'qty' | 'emoji' | 'kind' | 'item_status' | 'name' | 'name_pt' | 'name_en' | 'name_zh'
 >;
 
+type ReviewableDraft = {
+  menu_item_id: string;
+  order_id: string;
+  name: string;
+  emoji: string;
+  image_url: string | null;
+  qty: Rational;
+};
+
 function isReviewableCatalogLine(line: CatalogLine): boolean {
   if (line.item_status === 'voided') return false;
   if (isBuffetBaseItem(line)) return false;
   return typeof line.id === 'string' && line.id.length > 0;
+}
+
+function toReviewableItem(draft: ReviewableDraft): GuestReviewableItem {
+  return {
+    menu_item_id: draft.menu_item_id,
+    order_id: draft.order_id,
+    name: draft.name,
+    emoji: draft.emoji,
+    image_url: draft.image_url,
+    qtyLabel: formatRational(draft.qty),
+  };
 }
 
 /**
@@ -89,12 +112,13 @@ function buildSessionReviewableItems(params: {
   imageUrlByMenuId: Record<string, string>;
   fallbackOrderId: string;
 }): GuestReviewableItem[] {
-  const dedup = new Map<string, GuestReviewableItem>();
+  const dedup = new Map<string, ReviewableDraft>();
   for (const item of params.orderLines) {
     if (!isReviewableCatalogLine(item)) continue;
+    const lineQty = rationalFromNumber(item.qty);
     const existing = dedup.get(item.id);
     if (existing) {
-      existing.qty += item.qty;
+      existing.qty = addRationals(existing.qty, lineQty);
       continue;
     }
     dedup.set(item.id, {
@@ -103,10 +127,10 @@ function buildSessionReviewableItems(params: {
       name: resolveMenuItemLocalizedName(item, params.lang),
       emoji: item.emoji,
       image_url: params.imageUrlByMenuId[item.id] ?? null,
-      qty: item.qty,
+      qty: lineQty,
     });
   }
-  return Array.from(dedup.values());
+  return Array.from(dedup.values()).map(toReviewableItem);
 }
 
 function buildByItemReviewableItems(params: {
@@ -118,7 +142,7 @@ function buildByItemReviewableItems(params: {
   fallbackOrderId: string;
 }): GuestReviewableItem[] {
   const catalog = catalogByLineKeyFromLines(params.splitOrderLines, params.fallbackOrderId);
-  const qtyByMenu = new Map<string, { item: GuestReviewableItem; qty: Rational }>();
+  const qtyByMenu = new Map<string, ReviewableDraft>();
 
   for (const person of params.persons) {
     const ticketKey = splitPartyKey(person.party_id, person.name);
@@ -137,23 +161,17 @@ function buildByItemReviewableItems(params: {
         continue;
       }
       qtyByMenu.set(menuItemId, {
+        menu_item_id: menuItemId,
+        order_id: orderId,
+        name: resolveMenuItemLocalizedName(line, params.lang),
+        emoji: line.emoji,
+        image_url: params.imageUrlByMenuId[menuItemId] ?? null,
         qty: shareQty,
-        item: {
-          menu_item_id: menuItemId,
-          order_id: orderId,
-          name: resolveMenuItemLocalizedName(line, params.lang),
-          emoji: line.emoji,
-          image_url: params.imageUrlByMenuId[menuItemId] ?? null,
-          qty: 0,
-        },
       });
     }
   }
 
-  return Array.from(qtyByMenu.values()).map(({ item, qty }) => ({
-    ...item,
-    qty: rationalToNumber(qty),
-  }));
+  return Array.from(qtyByMenu.values()).map(toReviewableItem);
 }
 
 /** Sole builder for guest bill-success「本次菜品体验」rows. */

@@ -20,6 +20,8 @@ export type ModalConfirmActionsProps = {
 const rowClass = 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end';
 const plainPadClass = 'pt-1';
 const dividedClass = 'border-t border-brand-border/60 pt-4';
+/** Short labels (是/否) need ~2× hug width; longer labels still grow past this floor. */
+const actionButtonMinWidthClass = 'min-w-[7rem]';
 
 /**
  * Sole cancel + confirm footer for Modal dialogs (staff touch: both `size="action"`).
@@ -42,13 +44,21 @@ export function ModalConfirmActions({
         .filter(Boolean)
         .join(' ')}
     >
-      <Button type="button" variant="outline" size="action" onClick={onCancel} disabled={busy}>
+      <Button
+        type="button"
+        variant="outline"
+        size="action"
+        className={actionButtonMinWidthClass}
+        onClick={onCancel}
+        disabled={busy}
+      >
         {cancelLabel}
       </Button>
       <Button
         type="button"
         variant={confirmVariant}
         size="action"
+        className={actionButtonMinWidthClass}
         loading={busy}
         disabled={busy || confirmDisabled}
         onClick={onConfirm}

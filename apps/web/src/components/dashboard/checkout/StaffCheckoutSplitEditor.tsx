@@ -11,7 +11,10 @@ import {
   SettlementBar,
 } from '@/components/dashboard/checkout/CheckoutRequestDetail';
 import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
-import { StaffByItemSplitWorkbench } from '@/components/dashboard/checkout/StaffByItemSplitWorkbench';
+import {
+  StaffByItemPersonShareSummary,
+  StaffByItemSplitWorkbench,
+} from '@/components/dashboard/checkout/StaffByItemSplitWorkbench';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
@@ -763,6 +766,26 @@ export function StaffCheckoutSplitEditor({
                   );
                 },
               }
+        }
+        rowDetail={
+          splitDraft.splitMode === 'by_item'
+            ? {
+                expandLabel: checkoutT.personShareItemsExpand,
+                collapseLabel: checkoutT.personShareItemsCollapse,
+                render: (row) => (
+                  <StaffByItemPersonShareSummary
+                    personName={row.name}
+                    partyId={row.party_id}
+                    lang={lang}
+                    lineSpecs={lineSpecs}
+                    orderLines={splitOrderLines}
+                    byItemAllocations={splitDraft.byItemAllocations}
+                    itemCodeByMenuId={itemCodeByMenuId}
+                    labels={staffByItemLabels}
+                  />
+                ),
+              }
+            : undefined
         }
         byItemContent={(
           <StaffByItemSplitWorkbench

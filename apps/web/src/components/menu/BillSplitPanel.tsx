@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { SplitPersonSlot } from '@/lib/use-bill-split-draft';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
@@ -72,6 +72,15 @@ interface Props {
   };
   /** Staff by-item workbench (Fatura-like) — the sole by-item editor in this panel. */
   byItemContent?: ReactNode;
+  /**
+   * Phone-only per-row detail (e.g. the person's allocated dishes) under「分单结果」.
+   * Omitted → no toggle and the row renders exactly as before (guest, even, desktop).
+   */
+  rowDetail?: {
+    expandLabel: string;
+    collapseLabel: string;
+    render: (row: SplitResult, index: number) => ReactNode;
+  };
 }
 
 /**
@@ -109,7 +118,9 @@ export function BillSplitPanel({
   onCancelInlineRename,
   staffRowActions,
   byItemContent,
+  rowDetail,
 }: Props) {
+  const [expandedRowKeys, setExpandedRowKeys] = useState<ReadonlySet<string>>(new Set());
   const chipsLocked = modeChipsLocked ?? splitLocked;
   const selectedWhen =
       splitMode === 'even' || splitMode === 'by_item'
@@ -218,11 +229,29 @@ export function BillSplitPanel({
                 ) : null}
               </span>
             );
+            const rowKey = r.party_id ?? r.name;
+            const rowExpanded = rowDetail != null && expandedRowKeys.has(rowKey);
             return (
-              <div
-                key={i}
-                className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-3"
-              >
+              <div key={i} className="border-b border-brand-border last:border-0">
+              <div className="flex items-center justify-between px-4 py-3 gap-3">
+                {rowDetail ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedRowKeys((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(rowKey)) next.delete(rowKey);
+                        else next.add(rowKey);
+                        return next;
+                      })
+                    }
+                    className="md:hidden -ml-1 flex h-6 w-6 shrink-0 items-center justify-center text-brand-text-muted transition-colors hover:text-brand-text"
+                    aria-expanded={rowExpanded}
+                    aria-label={rowExpanded ? rowDetail.collapseLabel : rowDetail.expandLabel}
+                  >
+                    <span aria-hidden>{rowExpanded ? '▾' : '▸'}</span>
+                  </button>
+                ) : null}
                 <div className="min-w-0 flex-1">
                   {splitMode && (splitMode === 'even' || splitMode === 'by_item') ? (
                     editingSplitNameIndex === i ? (
@@ -283,6 +312,12 @@ export function BillSplitPanel({
                     {staffRowActions.collectLabel}
                   </Button>
                 ) : null}
+              </div>
+              {rowDetail && rowExpanded ? (
+                <div className="md:hidden border-t border-brand-border/60 bg-brand-bg/40 px-4 py-1">
+                  {rowDetail.render(r, i)}
+                </div>
+              ) : null}
               </div>
             );
           })}

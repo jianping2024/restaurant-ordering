@@ -66,6 +66,49 @@ export function liveSessionUncollectedAmount(params: {
 }
 
 /**
+ * Sole guest/staff-assisted bill-card rows under 合计 when the ledger has collections.
+ * Null when nothing collected (UI keeps a single 合计 row).
+ * Pending = {@link liveSessionUncollectedAmount}; payable only when requested split has discount.
+ */
+export function resolveGuestBillCollectionFooter(params: {
+  orders: Order[];
+  billSplit: BillSplit | null | undefined;
+  collectedPayments: SessionCollectedPayment[];
+}): {
+  collected: number;
+  pending: number;
+  payable: number | null;
+  discountRate: number;
+  discountSaved: number;
+} | null {
+  const collected = totalCollectedAmount(params.collectedPayments);
+  if (collected <= 0) return null;
+  const pending = liveSessionUncollectedAmount(params);
+  const split = params.billSplit;
+  if (split?.status === 'requested' && (split.discount_rate ?? 0) > 0) {
+    const summary = buildCheckoutSettlementSummary(
+      split,
+      split.discount_rate ?? 0,
+      params.collectedPayments,
+    );
+    return {
+      collected,
+      pending,
+      payable: summary.payable,
+      discountRate: summary.discountRate,
+      discountSaved: summary.discountSaved,
+    };
+  }
+  return {
+    collected,
+    pending,
+    payable: null,
+    discountRate: 0,
+    discountSaved: 0,
+  };
+}
+
+/**
  * Sole checkout-queue collection progress label: bill「已收 / 应收」from the same
  * summary as SettlementBar. Never person-count N/N (that lied when the by-item pool
  * was still open). Null until something is collected.

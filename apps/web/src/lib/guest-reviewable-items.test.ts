@@ -56,6 +56,9 @@ describe('buildGuestReviewableItems', () => {
         items.map((row) => row.menu_item_id).sort(),
         [DISH_A, DISH_B, DISH_C].sort(),
       );
+      const byId = new Map(items.map((row) => [row.menu_item_id, row]));
+      assert.equal(byId.get(DISH_A)?.qtyLabel, '2');
+      assert.equal(byId.get(DISH_B)?.qtyLabel, '1');
     }
   });
 
@@ -88,9 +91,32 @@ describe('buildGuestReviewableItems', () => {
     });
     assert.equal(items.length, 2);
     const byId = new Map(items.map((row) => [row.menu_item_id, row]));
-    assert.equal(byId.get(DISH_A)?.qty, 1);
-    assert.equal(byId.get(DISH_B)?.qty, 0.5);
+    assert.equal(byId.get(DISH_A)?.qtyLabel, '1');
+    assert.equal(byId.get(DISH_B)?.qtyLabel, '1/2');
     assert.equal(byId.has(DISH_C), false);
+  });
+
+  it('by_item formats 1/3 without float dump', () => {
+    const persons: SplitPerson[] = [
+      {
+        name: 'Me',
+        party_id: PARTY_ME,
+        item_shares: [
+          { key: `${DISH_A}::10`, qty_num: 1, qty_den: 3, party_id: PARTY_ME },
+        ],
+      },
+    ];
+    const items = buildGuestReviewableItems({
+      splitMode: 'by_item',
+      orderLines,
+      splitOrderLines: orderLines,
+      persons,
+      mineTicketKeys: [`p:${PARTY_ME}`],
+      lang: 'zh',
+      fallbackOrderId: ORDER,
+    });
+    assert.equal(items.length, 1);
+    assert.equal(items[0]?.qtyLabel, '1/3');
   });
 
   it('by_item with no mine tickets yields empty', () => {

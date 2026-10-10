@@ -743,23 +743,25 @@ export function StaffByItemSplitWorkbench({
                   key={line.key}
                   className="rounded-lg border border-brand-border px-2.5 py-2"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <MenuItemListThumb
-                      item={{
-                        image_url: catalog ? imageUrlByMenuId[catalog.id] ?? null : null,
-                        emoji: catalog?.emoji ?? '',
-                      }}
-                    />
-                    <StaffByItemPoolLineIdentity
-                      label={line.label}
-                      unitPriceLabel={line.unitPriceLabel}
-                      remainingText={`${labels.remainingPrefix} ${line.remainingLabel}${
-                        line.fractionUnit != null
-                          ? ` · ${labels.unitLocked(line.fractionUnit)}`
-                          : ''
-                      }`}
-                    />
-                    <div className="flex shrink-0 gap-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
+                    <div className="flex min-w-[12rem] flex-1 items-center gap-2">
+                      <MenuItemListThumb
+                        item={{
+                          image_url: catalog ? imageUrlByMenuId[catalog.id] ?? null : null,
+                          emoji: catalog?.emoji ?? '',
+                        }}
+                      />
+                      <StaffByItemPoolLineIdentity
+                        label={line.label}
+                        unitPriceLabel={line.unitPriceLabel}
+                        remainingText={`${labels.remainingPrefix} ${line.remainingLabel}${
+                          line.fractionUnit != null
+                            ? ` · ${labels.unitLocked(line.fractionUnit)}`
+                            : ''
+                        }`}
+                      />
+                    </div>
+                    <div className="ml-auto flex shrink-0 gap-2.5">
                       {line.mode === 'menu' ? (
                         <>
                           <StaffByItemPoolActionButton

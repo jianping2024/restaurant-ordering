@@ -198,6 +198,11 @@ export function StaffCheckoutSplitEditor({
       assignAll: checkoutT.staffByItemAssignAll,
       addAdult: billT.byItemGuestTypeAdult,
       addChild: billT.byItemGuestTypeChild,
+      poolAddAdult: checkoutT.staffByItemPoolAddAdult,
+      poolAddChild: checkoutT.staffByItemPoolAddChild,
+      poolAddWhole: checkoutT.staffByItemPoolAddWhole,
+      poolAddFraction: (denominator: number) =>
+        checkoutT.staffByItemPoolAddFraction.replace('{den}', String(denominator)),
       remove: checkoutT.returnShareToPool,
       collect: checkoutT.collectPerson,
       paidShareBadge: checkoutT.staffByItemPaidShare,

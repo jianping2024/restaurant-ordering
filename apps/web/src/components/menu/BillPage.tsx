@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
+import { resolveGuestBillCollectionFooter } from '@/lib/checkout-settlement';
+import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
@@ -35,7 +37,10 @@ import type {
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
-import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
+import {
+  BillDetailsSection,
+  type BillDetailsCollectionFooter,
+} from '@/components/menu/BillDetailsSection';
 import { GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
@@ -45,6 +50,29 @@ import { type GuestBillSplitMode, resolveGuestBillSplitMode } from '@/lib/guest-
 import { guestBillSurfaceShowsSubmitted } from '@/lib/guest-bill-surface-phase';
 import { useGuestEvenSplit } from '@/lib/use-guest-even-split';
 import type { SplitMode } from '@/types';
+
+/** Sole UI binder for bill-card collection rows (money already from resolveGuestBillCollectionFooter). */
+function billDetailsCollectionFooterProps(
+  money: NonNullable<ReturnType<typeof resolveGuestBillCollectionFooter>>,
+  checkoutT: ReturnType<typeof getMessages>['checkout'],
+): BillDetailsCollectionFooter {
+  return {
+    collected: money.collected,
+    pending: money.pending,
+    payable: money.payable,
+    payableLabel: checkoutT.finalAmount,
+    collectedLabel: checkoutT.settlementCollected,
+    pendingLabel: checkoutT.settlementPending,
+    discountLabel:
+      money.discountRate > 0
+        ? formatCheckoutDiscountLabel(
+            checkoutT.settlementDiscount,
+            money.discountRate,
+            money.discountSaved,
+          )
+        : null,
+  };
+}
 
 function BillCheckoutGateBanner({ message }: { message: string }) {
   return (
@@ -109,7 +137,8 @@ function StaffBillDetailsView({
 }: Props & { staffAssisted: StaffAssistedFlow }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
-  const { orders, total } = useCustomerBillReadModel(
+  const checkoutT = getMessages(lang).checkout;
+  const { orders, total, existingSplit: liveSplit, collectedPayments } = useCustomerBillReadModel(
     {
       orders: initialOrders,
       partyMemberCount: initialPartyMemberCount,
@@ -123,6 +152,15 @@ function StaffBillDetailsView({
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
     [orders, lang, itemCodeByMenuId],
+  );
+  const collectionMoney = useMemo(
+    () =>
+      resolveGuestBillCollectionFooter({
+        orders,
+        billSplit: liveSplit,
+        collectedPayments,
+      }),
+    [orders, liveSplit, collectedPayments],
   );
   return (
     <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-24">
@@ -143,6 +181,9 @@ function StaffBillDetailsView({
         lines={detailLines}
         total={total}
         formatChargeableHint={(qty, unitPrice) => formatChargeableShareHint(lang, qty, unitPrice)}
+        collectionFooter={
+          collectionMoney ? billDetailsCollectionFooterProps(collectionMoney, checkoutT) : null
+        }
       />
     </div>
   );
@@ -166,6 +207,7 @@ function GuestBillPage({
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).bill;
+  const checkoutT = getMessages(lang).checkout;
   const backHref = `/${restaurant.slug}/menu?table_id=${encodeURIComponent(tableId)}`;
   const guestClientId = useGuestClientId(restaurant.id, tableId);
 
@@ -291,6 +333,15 @@ function GuestBillPage({
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
     [orders, lang, itemCodeByMenuId],
+  );
+  const collectionMoney = useMemo(
+    () =>
+      resolveGuestBillCollectionFooter({
+        orders,
+        billSplit: liveSplit,
+        collectedPayments,
+      }),
+    [orders, liveSplit, collectedPayments],
   );
 
   const billSubmitted = guestBillSurfaceShowsSubmitted(surfacePhase);
@@ -734,6 +785,9 @@ function GuestBillPage({
         total={total}
         formatChargeableHint={(qty, unitPrice) =>
           formatChargeableShareHint(lang, qty, unitPrice)
+        }
+        collectionFooter={
+          collectionMoney ? billDetailsCollectionFooterProps(collectionMoney, checkoutT) : null
         }
       />
 

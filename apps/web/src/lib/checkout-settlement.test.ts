@@ -8,6 +8,7 @@ import {
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
   liveSessionUncollectedAmount,
+  resolveGuestBillCollectionFooter,
 } from './checkout-settlement';
 
 function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -130,6 +131,67 @@ describe('liveSessionUncollectedAmount', () => {
       ],
     });
     assert.equal(amount, 7);
+  });
+});
+
+describe('resolveGuestBillCollectionFooter', () => {
+  it('is null when nothing collected', () => {
+    assert.equal(
+      resolveGuestBillCollectionFooter({
+        orders: [],
+        billSplit: billSplit(),
+        collectedPayments: [],
+      }),
+      null,
+    );
+  });
+
+  it('exposes collected + pending without payable when no discount', () => {
+    const footer = resolveGuestBillCollectionFooter({
+      orders: [],
+      billSplit: billSplit(),
+      collectedPayments: [
+        {
+          id: '1',
+          person_index: 0,
+          person_name: 'John',
+          amount: 30,
+          created_at: '',
+          payment_method: null,
+          payment_lines: null,
+        },
+      ],
+    });
+    assert.deepEqual(footer, {
+      collected: 30,
+      pending: 30,
+      payable: null,
+      discountRate: 0,
+      discountSaved: 0,
+    });
+  });
+
+  it('includes payable when requested split has discount', () => {
+    const footer = resolveGuestBillCollectionFooter({
+      orders: [],
+      billSplit: billSplit({ discount_rate: 10 }),
+      collectedPayments: [
+        {
+          id: '1',
+          person_index: 0,
+          person_name: 'John',
+          amount: 27,
+          created_at: '',
+          payment_method: null,
+          payment_lines: null,
+        },
+      ],
+    });
+    assert.equal(footer?.collected, 27);
+    assert.equal(footer?.pending, 27);
+    assert.equal(footer?.payable, 54);
+    assert.equal(footer?.discountRate, 10);
+    assert.equal(footer?.discountSaved, 6);
   });
 });
 

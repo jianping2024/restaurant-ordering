@@ -343,7 +343,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | `split_mode` | 规则 |
 |--------------|------|
 | `whole_table` | 单行整桌应付；默认芯片；未收款时可改按菜/均摊 |
-| `even` | 无续结时默认 **1** 人（`splitDraftPersonCount()` 下限/默认 1、上限 20）；N 人均分；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
+| `even` | 无续结时默认 **1** 人（`splitDraftPersonCount()` 下限/默认 1、上限 20）；N 人均分；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分；每人稳定 `party_id`（改名不换 id）；有收款后写回按 id 合并，禁止按名字追加新人 |
 | `by_item` | 与账单明细/小票共用 **有金额的合并行**（闸：`isBillableSessionRowOnPaper` / `billableLineAmount > 0`；catalog 仍来自 `buildBillableSessionItems`；€0 免费行不上屏、不进按菜池、不打纸）；客人一机一人一票；职员串行人轨；部分收款后 **qty 下限锁定**，可增不可减 |
 | ~~`custom`~~ | **已删除**（手填金额）；`parseSplitMode` 拒收 `custom` |
 
@@ -355,7 +355,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 收款台账
 
-- `session_collected_payments.person_index` 为结算主键；`person_name` 仅展示
+- `session_collected_payments.person_index` 为结算主键（该位 = 当前 `result` 里对应 `party_id` 的下标）；`person_name` 仅展示；均摊认人优先 `party_id`
 - 待收[i] = 折后[i] − 台账[i]；RPC 拒绝超收与重复收满
 - 续结时 **保留已有 result 行顺序**（`merge_split_result_with_ledger`），按名更新金额、新名追加末尾
 

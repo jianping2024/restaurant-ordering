@@ -2,30 +2,31 @@
 
 /**
  * Sole guest-phone even-split roster (people ± and names).
+ * Seat identity = party_id via {@link ensureEvenPersonDrafts}.
  * Amounts via {@link computeSplitResults} — same as staff even path.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { computeSplitResults } from '@/lib/bill-split-draft';
 import {
-  defaultSplitPersonNames,
-  ensureSplitPersonNames,
-  resolveContinuationSplitShape,
-  splitDraftPersonCount,
-} from '@/lib/checkout-split-continuation';
+  allocationLockedEvenPartyIds,
+  defaultEvenPersonDrafts,
+  ensureEvenPersonDrafts,
+  evenPersonDraftsFromSplit,
+  type EvenPersonDraft,
+} from '@/lib/even-split-party';
+import { splitDraftPersonCount } from '@/lib/checkout-split-continuation';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { UILanguage } from '@/lib/i18n';
 import type { BillSplit, SplitPerson, SplitResult } from '@/types';
 
-export type GuestEvenPersonSlot = { id: string; name: string };
+export type GuestEvenPersonSlot = EvenPersonDraft & { id: string };
 
-function slotsFromNames(
-  names: readonly string[],
-  prev?: readonly GuestEvenPersonSlot[],
-): GuestEvenPersonSlot[] {
-  return names.map((name, idx) => ({
-    id: prev?.[idx]?.id ?? `p${idx + 1}`,
-    name,
+function slotsFromDrafts(drafts: readonly EvenPersonDraft[]): GuestEvenPersonSlot[] {
+  return drafts.map((row) => ({
+    id: row.partyId,
+    partyId: row.partyId,
+    name: row.name,
   }));
 }
 
@@ -40,34 +41,33 @@ export function useGuestEvenSplit(params: {
   const { existingSplit, total, guestName, collectedPayments, locked } = params;
 
   const [personCount, setPersonCount] = useState(() => {
-    const shape = resolveContinuationSplitShape(existingSplit, guestName);
-    return splitDraftPersonCount(shape?.personCount);
+    const drafts = evenPersonDraftsFromSplit(existingSplit, guestName);
+    return splitDraftPersonCount(drafts?.length);
   });
   const [splitPeople, setSplitPeople] = useState<GuestEvenPersonSlot[]>(() => {
-    const shape = resolveContinuationSplitShape(existingSplit, guestName);
-    const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
-    return slotsFromNames(names);
+    const drafts = evenPersonDraftsFromSplit(existingSplit, guestName);
+    return slotsFromDrafts(drafts ?? defaultEvenPersonDrafts(guestName));
   });
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
 
+  const lockedEvenPartyIds = useMemo(
+    () => allocationLockedEvenPartyIds(existingSplit, collectedPayments),
+    [existingSplit, collectedPayments],
+  );
+
   useEffect(() => {
     if (existingSplit?.split_mode !== 'even') return;
-    const shape = resolveContinuationSplitShape(existingSplit, guestName);
-    if (!shape) return;
-    setPersonCount(splitDraftPersonCount(shape.personCount));
-    setSplitPeople(slotsFromNames(shape.personNames));
+    const drafts = evenPersonDraftsFromSplit(existingSplit, guestName);
+    if (!drafts) return;
+    setPersonCount(splitDraftPersonCount(drafts.length));
+    setSplitPeople(slotsFromDrafts(drafts));
   }, [existingSplit, guestName]);
 
   useEffect(() => {
-    setSplitPeople((prev) => {
-      const names = ensureSplitPersonNames(
-        prev.map((p) => p.name),
-        personCount,
-        guestName,
-      );
-      return slotsFromNames(names, prev);
-    });
+    setSplitPeople((prev) =>
+      slotsFromDrafts(ensureEvenPersonDrafts(prev, personCount, guestName)),
+    );
   }, [personCount, guestName]);
 
   const results: SplitResult[] = useMemo(
@@ -106,14 +106,21 @@ export function useGuestEvenSplit(params: {
       if (locked) return;
       const current = splitPeople[index];
       if (!current) return;
+      if (lockedEvenPartyIds.has(current.partyId)) return;
       setEditingSplitNameIndex(index);
       setEditingSplitNameValue(current.name);
     },
-    [locked, splitPeople],
+    [locked, splitPeople, lockedEvenPartyIds],
   );
 
   const commitInlineRename = useCallback(
     (index: number) => {
+      const current = splitPeople[index];
+      if (current && lockedEvenPartyIds.has(current.partyId)) {
+        setEditingSplitNameIndex(null);
+        setEditingSplitNameValue('');
+        return;
+      }
       const normalized = editingSplitNameValue.trim() || guestName(index + 1);
       setSplitPeople((prev) =>
         prev.map((person, idx) => (idx === index ? { ...person, name: normalized } : person)),
@@ -121,11 +128,14 @@ export function useGuestEvenSplit(params: {
       setEditingSplitNameIndex(null);
       setEditingSplitNameValue('');
     },
-    [editingSplitNameValue, guestName],
+    [editingSplitNameValue, guestName, splitPeople, lockedEvenPartyIds],
   );
 
   const buildPayload = useCallback((): { persons: SplitPerson[]; result: SplitResult[] } => {
-    const persons = results.map((row) => ({ name: row.name }));
+    const persons = results.map((row) => ({
+      name: row.name,
+      ...(row.party_id ? { party_id: row.party_id } : {}),
+    }));
     return { persons, result: results };
   }, [results]);
 
@@ -145,6 +155,7 @@ export function useGuestEvenSplit(params: {
       setEditingSplitNameIndex(null);
       setEditingSplitNameValue('');
     },
+    lockedEvenPartyIds,
     buildPayload,
   };
 }

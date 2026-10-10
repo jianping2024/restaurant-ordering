@@ -49,6 +49,8 @@ interface Props {
   results: SplitResult[];
   splitDisplayRows: CustomerSplitRowDisplay[];
   lockedPersonNames: ReadonlySet<string>;
+  /** Even: rename lock by seat party_id (preferred over name). */
+  lockedPartyIds?: ReadonlySet<string>;
   splitValidationMessage: string | null;
   guestName: (n: number) => string;
   editingSplitNameIndex: number | null;
@@ -105,6 +107,7 @@ export function BillSplitPanel({
   results,
   splitDisplayRows,
   lockedPersonNames,
+  lockedPartyIds,
   splitValidationMessage,
   guestName,
   editingSplitNameIndex,
@@ -192,9 +195,11 @@ export function BillSplitPanel({
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => {
             const settlementRow = splitDisplayRows[i];
-            /** Rename lock — collection history by name. Not collect gate. */
+            /** Rename lock — even by party_id; else collection history by name. */
             const nameLocked =
-              splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
+              splitLocked &&
+              ((r.party_id && lockedPartyIds?.has(r.party_id)) ||
+                lockedPersonNames.has(r.name.trim().toLowerCase()));
             /** Even 收款: sole gate is per-index settlement outstanding (not name lock). */
             const canCollectShare =
               settlementRow != null && isSplitSettlementPending(settlementRow);

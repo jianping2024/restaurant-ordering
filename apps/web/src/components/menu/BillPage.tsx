@@ -811,6 +811,7 @@ function GuestBillPage({
         results={guestMode === 'even' ? evenSplit.results : []}
         splitDisplayRows={guestMode === 'even' ? evenSplit.splitDisplayRows : []}
         lockedPersonNames={new Set()}
+        lockedPartyIds={evenSplit.lockedEvenPartyIds}
         splitValidationMessage={null}
         guestName={guestName}
         editingSplitNameIndex={evenSplit.editingSplitNameIndex}

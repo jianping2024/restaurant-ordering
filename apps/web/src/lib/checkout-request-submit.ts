@@ -21,13 +21,15 @@ export function shouldSkipPreSubmitOrderSync(
 export function buildSubmitPersons(params: {
   splitMode: SplitMode | null;
   submitResults: SplitResult[];
-  splitPeople: ReadonlyArray<{ name: string }>;
+  splitPeople: ReadonlyArray<{ name: string; partyId?: string }>;
   buildPersonsForSubmit: () => SplitPerson[];
 }): SplitPerson[] {
   const { splitMode, submitResults, splitPeople, buildPersonsForSubmit } = params;
   if (splitMode === 'by_item') return buildPersonsForSubmit();
-  return splitPeople.slice(0, submitResults.length).map((person, idx) => ({
-    name: submitResults[idx]?.name ?? person.name,
+  // Even / whole_table: persons mirror result (incl. party_id on even seats).
+  return submitResults.map((row, idx) => ({
+    name: row.name || splitPeople[idx]?.name || '',
+    ...(row.party_id ? { party_id: row.party_id } : {}),
   }));
 }
 

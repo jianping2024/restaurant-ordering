@@ -316,8 +316,9 @@ export async function unlockIndividualTickets(
       p_client_id: params.clientId ?? null,
       p_party_keys: keys,
       p_base_revision: existing.revision ?? 0,
-      p_persons: existing.persons ?? [],
-      p_result: existing.result ?? [],
+      // Unlock deletes the tickets from the stored plan server-side; plan rows are not sent.
+      p_persons: [],
+      p_result: [],
       p_total_amount: existing.total_amount,
     });
     if (error) return applyFailure('individual_apply_failed', error.message);

@@ -3,7 +3,8 @@
 /**
  * Sole guest-phone claim state (one phone = one name = one ticket). See {@link GuestClaim}.
  *
- * Seed order per open session: this phone's unlocked ticket on the server (after「恢复点单」)
+ * Seed order per open session: this phone's legacy `unlocked` ticket on the server (new unlocks
+ * delete the ticket, so only pre-change rows hit this)
  * → this phone's local draft → a fresh claim. A claim whose ticket is already paid is never
  * reused: the next dish opens a new ticket id; the name is prefilled via sole
  * {@link resolveGuestClaimPrefillName} (local last name, else this phone's server `mine` name).
@@ -70,7 +71,7 @@ export function useGuestClaim(params: {
     return keys;
   }, [results]);
 
-  /** This phone's editable ticket on the server (unlocked after a resume), if any. */
+  /** Legacy: this phone's `unlocked` ticket still on the server (new unlocks delete it), if any. */
   const serverTicket = useMemo(() => {
     const mine = tickets.find((ticket) => ticket.mine && ticket.state === 'unlocked');
     if (!mine) return null;

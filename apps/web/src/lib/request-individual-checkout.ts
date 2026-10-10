@@ -2,7 +2,7 @@
 
 export type IndividualUnlockOutcome = { ok: true } | { ok: false; error: string };
 
-/** Staff「解锁」: send called, uncollected tickets back to draft. */
+/** Staff「解锁」: delete called, uncollected tickets (dishes return to the pool). */
 export async function requestStaffUnlockTickets(params: {
   slug: string;
   tableId: string;

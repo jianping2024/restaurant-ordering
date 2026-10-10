@@ -6,7 +6,7 @@ import {
 import type { BillSplit } from '@/types';
 
 /**
- * Staff by-item share-panel control to send one unpaid called ticket back to draft
+ * Staff by-item share-panel control to delete one unpaid called ticket (dishes return to the pool)
  * (sole shape — workbench takes this one prop).
  * Visible copy: sole `checkout.resumeOrdering` / `resumeOrderingOperating`
  * (same words as session resume — do not invent a second label).
@@ -19,7 +19,7 @@ export type StaffTicketUnlock = {
   busyLabel: string;
 };
 
-/** Called tickets with no payment yet — the only ones staff (or the guest) may send back to draft. */
+/** Called tickets with no payment yet — the only ones staff (or the guest) may unlock (delete). */
 export function unlockableIndividualTicketKeys(
   split: Pick<BillSplit, 'split_mode' | 'individual_tickets' | 'result' | 'persons'>,
   collectedPayments: SessionCollectedPayment[],

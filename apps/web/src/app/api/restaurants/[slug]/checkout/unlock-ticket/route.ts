@@ -7,7 +7,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 export const runtime = 'nodejs';
 
 /**
- * Staff「解锁」: send an individual-checkout ticket back to draft (called, not yet collected).
+ * Staff「解锁」: delete an individual-checkout ticket (called, not yet collected); its dishes return to the pool.
  * Replaces whole-table resume-ordering for individual sessions.
  */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {

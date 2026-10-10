@@ -392,7 +392,7 @@ type Props = {
     partyId?: string;
   }) => void;
   onCollectCurrent?: (args: { personName: string; partyId?: string }) => void;
-  /** Individual checkout: send the current called ticket back to draft. */
+  /** Individual checkout: delete the current called ticket (dishes return to the pool). */
   ticketUnlock?: StaffTicketUnlock;
   /** Sole staff delete memory — trash / empty-qty blur commit. */
   onRecordShareOmit?: (lineKey: string, ticketKey: string) => void;

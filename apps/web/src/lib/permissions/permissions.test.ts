@@ -165,6 +165,13 @@ describe('can / resolve', () => {
       '/dashboard',
     );
   });
+
+  it('owner star landing is waiter board (same rule as staff + logo)', () => {
+    assert.equal(
+      staffLandingPathFromCapabilities('demo', resolveCapabilitiesForOwner()),
+      '/dashboard/waiter',
+    );
+  });
 });
 
 describe('settings permission tree / cascade', () => {

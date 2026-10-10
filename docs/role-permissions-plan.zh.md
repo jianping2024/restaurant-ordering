@@ -35,7 +35,7 @@
 
 | 身份 | 代码 `accessMode` / 登录态 | 典型登录入口 | 默认落地 |
 |------|---------------------------|--------------|----------|
-| 店主 | `owner` | **统一** `/auth/login`（邮箱） | `/dashboard/settings` |
+| 店主 | `owner` | **统一** `/auth/login`（邮箱） | `/dashboard/waiter`（与 `staffLandingPathFromCapabilities` 同规则；设置从顶栏进） |
 | 前台员工 | `frontdesk` | **统一** `/auth/login`（登录名；店内扫码别名 `/{slug}/staff/login`） | `/dashboard` |
 | 收银员 | `cashier` | 同上 | `/dashboard/checkout` |
 | 厨房员工 | （无 Dashboard 模式） | 同上 | `/{slug}/kitchen` |
@@ -123,7 +123,7 @@ Principal   = owner | staff(StaffRole)                        // 权限解析用
 
 | accessMode | 角色 | 默认落地页（`staffRolePath`） |
 |------------|------|-------------------------------|
-| `owner` | 店主 | `/dashboard/settings` |
+| `owner` | 店主 | `/dashboard/waiter` |
 | `frontdesk` | `frontdesk` | `/dashboard` |
 | `cashier` | `cashier` | `/dashboard/checkout` |
 | — | `kitchen` / `waiter` | 不进 Dashboard；分别进 `/{slug}/kitchen`、`/{slug}/waiter` |
@@ -739,7 +739,7 @@ return set
 
 | 身份 | 默认落地 | 说明 |
 |------|----------|------|
-| owner | `/dashboard/settings` | 固定入口；与 `OWNER_NAV_DEFAULT` 含运营项**不矛盾**（侧栏可有结账等，登录仍进设置 Hub） |
+| owner | `/dashboard/waiter` | 与员工同一套 `staffLandingPathFromCapabilities`（店主 `*` → 楼面看板）；设置从顶栏进 |
 | frontdesk | `/dashboard` | P1 可保持；P3 可选：首个 `can(caps, nav.permission)` 的 `NAV_ITEMS` |
 | cashier | `/dashboard/checkout` | 同上，可选按 capability 推导 |
 | kitchen / waiter | `/{slug}/kitchen` / `/{slug}/waiter` | 不变 |

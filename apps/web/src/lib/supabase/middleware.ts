@@ -141,15 +141,9 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
-      const targetPath =
-        redirect.kind === 'owner'
-          ? '/dashboard/settings'
-          : redirect.kind === 'onboarding'
-            ? '/dashboard'
-            : redirect.path;
-
+      // Owner / onboarding / staff all carry the landing path from resolvePostLoginRedirect.
       const url = request.nextUrl.clone();
-      url.pathname = targetPath;
+      url.pathname = redirect.path;
       return NextResponse.redirect(url);
     } catch {
       // On error, allow access to login page

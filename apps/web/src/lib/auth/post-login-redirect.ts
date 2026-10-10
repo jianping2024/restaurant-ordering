@@ -6,10 +6,14 @@ import {
   loadOwnerRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
+import {
+  resolveCapabilitiesForOwner,
+  staffLandingPathFromCapabilities,
+} from '@/lib/permissions/resolve';
 import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
 
 export type PostLoginRedirect =
-  | { kind: 'owner'; path: '/dashboard/settings' }
+  | { kind: 'owner'; path: string }
   | { kind: 'onboarding'; path: '/dashboard' }
   | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; roleLabel: string }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' | 'prem_admin_inactive' };
@@ -44,7 +48,14 @@ export async function resolvePostLoginRedirect(
   ]);
 
   if (ownedRestaurant) {
-    return { kind: 'owner', path: '/dashboard/settings' };
+    // Same landing rule as staff + top-bar logo: capabilities → path (owner = * → waiter board).
+    return {
+      kind: 'owner',
+      path: staffLandingPathFromCapabilities(
+        ownedRestaurant.slug,
+        resolveCapabilitiesForOwner(),
+      ),
+    };
   }
 
   // Prem built-in signed in before claim: no restaurant access — reject session.

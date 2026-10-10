@@ -233,7 +233,7 @@ export function BillSplitPanel({
             const rowExpanded = rowDetail != null && expandedRowKeys.has(rowKey);
             return (
               <div key={i} className="border-b border-brand-border last:border-0">
-              <div className="flex items-center justify-between px-4 py-3 gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
                 {rowDetail ? (
                   <button
                     type="button"
@@ -307,7 +307,7 @@ export function BillSplitPanel({
                     size="action"
                     disabled={staffRowActions.busy}
                     onClick={() => staffRowActions.onCollect(i)}
-                    className={`shrink-0 ${CHECKOUT_COLLECT_BUTTON_CLASS}`}
+                    className={`w-full shrink-0 md:w-auto ${CHECKOUT_COLLECT_BUTTON_CLASS}`}
                   >
                     {staffRowActions.collectLabel}
                   </Button>

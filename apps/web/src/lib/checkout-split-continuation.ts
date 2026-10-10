@@ -514,6 +514,7 @@ export function buildByItemConsumerRowsFromPersons(
               ...createByItemConsumerRow(),
               name,
               ...rationalToRowQtyFields(qty),
+              ...(share.unitDen ? { unitDen: share.unitDen } : {}),
               paidLocked: true,
               ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
               ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
@@ -530,6 +531,7 @@ export function buildByItemConsumerRowsFromPersons(
             ...createByItemConsumerRow(),
             name,
             ...rationalToRowQtyFields(lockLeft),
+            ...(share.unitDen ? { unitDen: share.unitDen } : {}),
             paidLocked: true,
             ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
             ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
@@ -551,6 +553,7 @@ export function buildByItemConsumerRowsFromPersons(
             ...createByItemConsumerRow(),
             name,
             ...rationalToRowQtyFields(qty),
+            ...(share.unitDen ? { unitDen: share.unitDen } : {}),
             ...(surplusPartyId ? { partyId: surplusPartyId } : {}),
             ...(share.frozenAmount != null &&
             Number.isFinite(share.frozenAmount) &&

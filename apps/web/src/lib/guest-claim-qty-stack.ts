@@ -6,6 +6,7 @@ import {
   rationalToRowQtyFields,
   type ByItemConsumerRow,
 } from './bill-split-by-item';
+import { FRACTION_UNIT_DENS, fractionUnitQty } from './by-item-fraction-unit';
 import {
   addRationals,
   compareRationals,
@@ -14,38 +15,10 @@ import {
   type Rational,
 } from './rational-qty';
 
-/** Denominators offered before a line’s fraction method is locked. */
-export const GUEST_CLAIM_UNIT_DENS = [1, 2, 3, 4, 5] as const;
-export type GuestClaimUnitDen = (typeof GUEST_CLAIM_UNIT_DENS)[number];
-
-function lcm(a: number, b: number): number {
-  const x = Math.abs(a);
-  const y = Math.abs(b);
-  if (!x || !y) return x || y || 1;
-  const gcd = (m: number, n: number): number => (n === 0 ? m : gcd(n, m % n));
-  return (x / gcd(x, y)) * y;
-}
-
-/**
- * When others already used a fraction method on the line, everyone must follow that den.
- * Whole-only shares (normalized den === 1) do not lock. Mixed dens → LCM.
- */
-export function lockedGuestClaimUnitDen(
-  othersQtys: ReadonlyArray<Rational>,
-): number | null {
-  let locked: number | null = null;
-  for (const qty of othersQtys) {
-    const { den } = normalizeRational(qty);
-    if (den <= 1) continue;
-    locked = locked == null ? den : lcm(locked, den);
-  }
-  return locked;
-}
-
-/** Presets shown for the unit picker (locked line → only 1 and 1/lockedDen). */
+/** Units offered by the picker: whole + 1/2..1/5 (locked line → only 1 and 1/lockedDen). */
 export function guestClaimUnitPresets(lockedDen: number | null): number[] {
   if (lockedDen != null && lockedDen > 1) return [1, lockedDen];
-  return [...GUEST_CLAIM_UNIT_DENS];
+  return [1, ...FRACTION_UNIT_DENS];
 }
 
 export function rationalFromGuestClaimRow(
@@ -67,11 +40,6 @@ export function formatGuestClaimQtyLabel(qty: Rational): string {
   return formatRational(n);
 }
 
-export function guestClaimUnitRational(den: number): Rational {
-  const d = Math.max(1, Math.trunc(den));
-  return d === 1 ? { num: 1, den: 1 } : { num: 1, den: d };
-}
-
 /**
  * Add one unit of `unitDen` when remaining allows. Returns null when + must stay disabled.
  */
@@ -80,7 +48,7 @@ export function stackGuestClaimUnit(params: {
   unitDen: number;
   remaining: Rational;
 }): Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'> | null {
-  const unit = guestClaimUnitRational(params.unitDen);
+  const unit = fractionUnitQty(params.unitDen);
   const next = addRationals(params.current, unit);
   if (compareRationals(next, params.remaining) > 0) return null;
   return rationalToRowQtyFields(next);
@@ -93,7 +61,7 @@ export function unstackGuestClaimUnit(params: {
   current: Rational;
   unitDen: number;
 }): Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'> | null {
-  const unit = guestClaimUnitRational(params.unitDen);
+  const unit = fractionUnitQty(params.unitDen);
   if (compareRationals(params.current, unit) < 0) {
     if (params.current.num <= 0) return null;
     return rationalToRowQtyFields({ num: 0, den: 1 });

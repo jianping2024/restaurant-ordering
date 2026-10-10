@@ -12,6 +12,7 @@ import { parseGuestClientId } from '@/lib/table-order-round/guest-client';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseOptionalUnitDen } from '@/lib/by-item-fraction-unit';
 import { parseOptionalPartyIdFromRow } from '@/lib/split-party-id';
 import type { SplitPerson, SplitPersonItemShare, SplitResult } from '@/types';
 
@@ -26,6 +27,7 @@ function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
     share.guest_type === 'adult' || share.guest_type === 'child'
       ? share.guest_type
       : undefined;
+  const qty_unit_den = parseOptionalUnitDen(share.qty_unit_den);
   const lockedRaw = share.locked_amount;
   const locked_amount =
     typeof lockedRaw === 'number' && Number.isFinite(lockedRaw) && lockedRaw >= 0
@@ -62,6 +64,7 @@ function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
     key,
     qty_num,
     qty_den,
+    ...(qty_unit_den ? { qty_unit_den } : {}),
     ...(party_id ? { party_id } : {}),
     ...(locked_amount != null ? { locked_amount } : {}),
   };
@@ -255,7 +258,11 @@ export async function POST(
 
   if (!submitResult.ok) {
     return NextResponse.json(
-      { error: submitResult.error, message: submitResult.message },
+      {
+        error: submitResult.error,
+        message: submitResult.message,
+        line_keys: submitResult.lineKeys,
+      },
       { status: submitResult.status },
     );
   }

@@ -21,9 +21,9 @@ import {
 } from '@/components/menu/GuestClaimDishCard';
 import {
   formatGuestClaimQtyLabel,
-  lockedGuestClaimUnitDen,
   rationalFromGuestClaimRow,
 } from '@/lib/guest-claim-qty-stack';
+import { fractionUnitOfLine } from '@/lib/by-item-fraction-unit';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 
 export type GuestClaimPanelLabels = GuestClaimDishCardLabels & {
@@ -45,6 +45,8 @@ type Props = {
   /** Sole read-only "who claimed what" — one block per other ticket. */
   othersBlocks: GuestOthersClaimBlock[];
   overClaimedKeys: ReadonlySet<string>;
+  /** Dishes whose fraction unit differs from the cut already fixed by others. */
+  unitMismatchKeys: ReadonlySet<string>;
   /** Show the "name already used" hint under the name field. */
   nameTaken: boolean;
   disabled: boolean;
@@ -71,6 +73,7 @@ export function GuestClaimPanel({
   others,
   othersBlocks,
   overClaimedKeys,
+  unitMismatchKeys,
   nameTaken,
   disabled,
   itemCodeByMenuId = {},
@@ -149,9 +152,7 @@ export function GuestClaimPanel({
         if (!item) return null;
         const availability = lineAvailability(spec, others);
         const row = claimRowFor(claim, spec);
-        const lockedUnitDen = lockedGuestClaimUnitDen(
-          (others[spec.key] ?? []).map((share) => share.qty),
-        );
+        const lockedUnitDen = fractionUnitOfLine(others[spec.key] ?? []);
         const mineEmpty =
           spec.mode === 'menu'
             ? rationalFromGuestClaimRow(row).num <= 0
@@ -171,6 +172,7 @@ export function GuestClaimPanel({
             row={row}
             availability={availability}
             over={overClaimedKeys.has(spec.key)}
+            unitMismatch={unitMismatchKeys.has(spec.key)}
             disabled={disabled}
             lineLocked={lineLocked}
             lockedUnitDen={lockedUnitDen}

@@ -15,6 +15,7 @@ import {
   guestClaimPoolResults,
   lineAvailability,
   lineOverClaimed,
+  lineUnitMismatch,
   loadGuestClaimLastName,
   mintGuestClaim,
   othersAllocation,
@@ -361,6 +362,83 @@ describe('guestClaimIssue', () => {
     assert.equal(claimNameTaken(paid, c), false);
     assert.equal(base(c, {}, unpaid), 'name_taken');
     assert.equal(base(c, {}, paid), null);
+  });
+});
+
+describe('fraction unit on the guest phone', () => {
+  const l1 = menuSpec('L1', 1, 12);
+  const unitSpecs = [l1];
+  const liThird = (): SplitPerson => ({
+    name: 'Li',
+    party_id: LI,
+    item_shares: [{ key: 'L1', qty_num: 1, qty_den: 3, qty_unit_den: 3, party_id: LI }],
+  });
+  const asIssue = (c: GuestClaim, others: ReturnType<typeof othersAllocation>) => {
+    const ticket = buildMyTicket({
+      claim: c,
+      lineSpecs: unitSpecs,
+      orderLines: [orderLine('L1', 1, 12)],
+      others,
+      lang: 'pt',
+    });
+    return guestClaimIssue({
+      claim: c,
+      lineSpecs: unitSpecs,
+      others,
+      results: [],
+      hasClaim: ticket.hasClaim,
+    });
+  };
+
+  it('flags a claim cut differently from what another ticket already fixed, and blocks the call', () => {
+    const others = othersAllocation([liThird()], claim('Me'), unitSpecs);
+    const c = withQty(claim('Me'), l1, { qtyNum: '1', qtyDen: '4', unitDen: 4 });
+    assert.equal(lineUnitMismatch(l1, c, others), true);
+    assert.equal(asIssue(c, others), 'unit_mismatch');
+  });
+
+  it('accepts the same cut', () => {
+    const others = othersAllocation([liThird()], claim('Me'), unitSpecs);
+    const c = withQty(claim('Me'), l1, { qtyNum: '1', qtyDen: '3', unitDen: 3 });
+    assert.equal(lineUnitMismatch(l1, c, others), false);
+    assert.equal(asIssue(c, others), null);
+  });
+
+  it('never flags buffet lines or an empty claim', () => {
+    const others = othersAllocation([liThird()], claim('Me'), unitSpecs);
+    assert.equal(lineUnitMismatch(l1, claim('Me'), others), false);
+    assert.equal(lineUnitMismatch(buffetSpec, claim('Me'), others), false);
+  });
+
+  it('the stored unit rides the wire ticket', () => {
+    const others = othersAllocation([], claim('Me'), unitSpecs);
+    const c = withQty(claim('Me'), l1, { qtyNum: '1', qtyDen: '2', unitDen: 4 });
+    const ticket = buildMyTicket({
+      claim: c,
+      lineSpecs: unitSpecs,
+      orderLines: [orderLine('L1', 1, 12)],
+      others,
+      lang: 'pt',
+    });
+    assert.equal(ticket.persons[0]!.item_shares![0]!.qty_unit_den, 4);
+  });
+
+  it('a stored ticket restores its unit into the claim row', () => {
+    const stored: SplitPerson = {
+      name: 'Me',
+      party_id: ME,
+      item_shares: [{ key: 'L1', qty_num: 1, qty_den: 2, qty_unit_den: 4, party_id: ME }],
+    };
+    assert.equal(claimFromServerTicket(stored, unitSpecs).rows.L1!.unitDen, 4);
+  });
+
+  it('claim-all stamps the cut the others already use on a fractional remainder', () => {
+    const others = othersAllocation([liThird()], claim('Me'), unitSpecs);
+    const all = claimAllRemaining(claim('Me'), unitSpecs, others);
+    assert.equal(all.rows.L1!.qtyNum, '2');
+    assert.equal(all.rows.L1!.qtyDen, '3');
+    assert.equal(all.rows.L1!.unitDen, 3);
+    assert.equal(lineUnitMismatch(l1, all, others), false);
   });
 });
 

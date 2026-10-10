@@ -28,6 +28,12 @@ import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
 import { rationalFromGuestClaimRow } from './guest-claim-qty-stack';
 import {
+  fractionUnitConflict,
+  fractionUnitOfLine,
+  parseOptionalUnitDen,
+  unitDenForQty,
+} from '@/lib/by-item-fraction-unit';
+import {
   normalizeRational,
   rationalFromNumber,
   sumRationals,
@@ -59,7 +65,8 @@ export type GuestClaimIssue =
   | 'name_taken'
   | 'nothing_claimed'
   | 'invalid_qty'
-  | 'over_claim';
+  | 'over_claim'
+  | 'unit_mismatch';
 
 export function claimRowFor(claim: GuestClaim, spec: ByItemLineSpec): ByItemConsumerRow {
   return claim.rows[spec.key] ?? { ...createByItemConsumerRow({ buffet: spec.mode === 'buffet' }), partyId: claim.partyId };
@@ -404,6 +411,18 @@ export function lineOverClaimed(
   return kind === 'over' || kind === 'buffet_over';
 }
 
+/** True when this phone's fraction unit on the dish differs from the cut others already use. */
+export function lineUnitMismatch(
+  spec: ByItemLineSpec,
+  claim: GuestClaim,
+  others: ByItemLineAllocation,
+): boolean {
+  if (spec.mode !== 'menu') return false;
+  const mine = mySharesOf(claim, [spec])[spec.key] ?? [];
+  if (mine.length === 0) return false;
+  return fractionUnitConflict([...(others[spec.key] ?? []), ...mine]);
+}
+
 function rowQtyInvalid(spec: ByItemLineSpec, row: ByItemConsumerRow | undefined): boolean {
   if (!row || spec.mode === 'buffet') return false;
   const parts = validateQtyParts({ whole: row.qtyWhole, num: row.qtyNum, den: row.qtyDen });
@@ -484,6 +503,7 @@ export function guestClaimIssue(params: {
   const { claim, lineSpecs, others, results, hasClaim } = params;
   if (lineSpecs.some((spec) => rowQtyInvalid(spec, claim.rows[spec.key]))) return 'invalid_qty';
   if (lineSpecs.some((spec) => lineOverClaimed(spec, claim, others))) return 'over_claim';
+  if (lineSpecs.some((spec) => lineUnitMismatch(spec, claim, others))) return 'unit_mismatch';
   if (!hasClaim) return 'nothing_claimed';
   if (!claim.name.trim()) return 'name_required';
   if (claimNameTaken(results, claim)) return 'name_taken';
@@ -513,6 +533,10 @@ export function claimAllRemaining(
       ...(left.remaining.num > 0
         ? rationalToRowQtyFields(left.remaining)
         : { qtyWhole: '', qtyNum: '', qtyDen: '' }),
+      unitDen:
+        left.remaining.num > 0
+          ? unitDenForQty(left.remaining, fractionUnitOfLine(others[spec.key] ?? []))
+          : undefined,
     };
   }
   return { ...claim, rows };
@@ -538,7 +562,11 @@ export function claimFromServerTicket(
         ? { ...base, childQty: heads }
         : { ...base, adultQty: heads };
     } else {
-      rows[share.key] = { ...base, ...rationalToRowQtyFields({ num: share.qty_num, den: share.qty_den }) };
+      rows[share.key] = {
+        ...base,
+        ...rationalToRowQtyFields({ num: share.qty_num, den: share.qty_den }),
+        unitDen: parseOptionalUnitDen(share.qty_unit_den),
+      };
     }
   }
   return { name: person.name, partyId: person.party_id ?? '', rows };

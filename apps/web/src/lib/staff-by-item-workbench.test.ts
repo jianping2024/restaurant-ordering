@@ -7,21 +7,17 @@ import {
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
   assignAllRemainingPoolToPerson,
-  byItemMenuQtyDenReadOnly,
-  commitStaffMenuShareQtyEdit,
-  menuFractionDenominatorFromRemaining,
-  setPersonMenuShareQtyFields,
+  returnBuffetSeatToPool,
+  returnMenuShareToPool,
   staffByItemBuffetShareLineMetaParts,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
   staffByItemShareLineMetaParts,
-  type StaffMenuQtyHold,
 } from './staff-by-item-workbench';
 import {
   buildByItemAllocationsFromRows,
   calcByItemSplitResults,
-  isRowQtyOverAllocated,
   locateByItemSplitResult,
 } from './bill-split-by-item';
 import { byItemSplitLineFromOrderLine } from './bill-split-by-item-lines';
@@ -56,18 +52,6 @@ function emptyRows(): ByItemConsumerRow[] {
   }];
 }
 
-describe('menuFractionDenominatorFromRemaining', () => {
-  it('uses remaining den when leftover is a proper fraction', () => {
-    assert.equal(menuFractionDenominatorFromRemaining({ num: 2, den: 3 }), 3);
-    assert.equal(menuFractionDenominatorFromRemaining({ num: 1, den: 2 }), 2);
-  });
-
-  it('defaults to 2 when remaining is a whole number of cups', () => {
-    assert.equal(menuFractionDenominatorFromRemaining({ num: 1, den: 1 }), 2);
-    assert.equal(menuFractionDenominatorFromRemaining({ num: 4, den: 1 }), 2);
-  });
-});
-
 describe('staffByItemPoolLines', () => {
   it('shows full remaining before any allocation', () => {
     const pool = staffByItemPoolLines({
@@ -80,11 +64,11 @@ describe('staffByItemPoolLines', () => {
     assert.equal(pool[0]!.remainingLabel, '2');
     assert.equal(pool[0]!.unitPriceLabel, '€2.50');
     assert.equal(pool[0]!.canAddWhole, true);
-    assert.equal(pool[0]!.fractionDenominator, 2);
-    assert.equal(pool[0]!.canAddFraction, true);
+    assert.equal(pool[0]!.fractionUnit, null);
+    assert.deepEqual(pool[0]!.fractionUnitChoices, [2, 3, 4, 5]);
   });
 
-  it('uses remaining den for 1/N when leftover is a proper fraction', () => {
+  it('fixes 1/N to the cut of the shares already taken', () => {
     const unitSpec: ByItemLineSpec = {
       mode: 'menu',
       key: 'line-unit',
@@ -103,13 +87,14 @@ describe('staffByItemPoolLines', () => {
           qtyWhole: '',
           qtyNum: '1',
           qtyDen: '3',
+          unitDen: 3,
         }],
       },
       lang: 'zh',
     });
     assert.equal(pool[0]!.remainingLabel, '2/3');
-    assert.equal(pool[0]!.fractionDenominator, 3);
-    assert.equal(pool[0]!.canAddFraction, true);
+    assert.equal(pool[0]!.fractionUnit, 3);
+    assert.deepEqual(pool[0]!.fractionUnitChoices, [3]);
   });
 
   it('ignores unnamed seed qtyWhole when computing remaining', () => {
@@ -287,7 +272,7 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
       lineSpecs: [menuSpec],
       lineKey: 'line-a',
       personName: 'João',
-      denominator: 2,
+      unitDen: 2,
     });
     assert.ok(afterJoaoHalf);
     allocations = afterJoaoHalf;
@@ -315,6 +300,7 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
       lineSpecs: [menuSpec],
       lineKey: 'line-a',
       personName: 'Ana',
+      unitDen: 2,
     });
     assert.ok(afterHalf);
     allocations = afterHalf;
@@ -698,149 +684,16 @@ describe('assignAllRemainingPoolToPerson', () => {
   });
 });
 
-describe('setPersonMenuShareQtyFields', () => {
-  it('keeps pool remaining aligned with parseConsumerRows', () => {
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [
-        {
-          id: 'row-ana',
-          name: 'Ana',
-          qtyWhole: '1',
-          qtyNum: '',
-          qtyDen: '',
-        },
-        {
-          id: 'row-seed',
-          name: '',
-          qtyWhole: '1',
-          qtyNum: '',
-          qtyDen: '',
-        },
-      ],
-    };
-    const half = setPersonMenuShareQtyFields({
-      allocations,
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-ana',
-      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '2' },
-    });
-    assert.ok(half);
-    const pool = staffByItemPoolLines({
-      lineSpecs: [menuSpec],
-      orderLines: [orderLine],
-      allocations: half!,
-      lang: 'zh',
-    });
-    // lineQty=2, named share 1/2 → remaining 3/2
-    assert.equal(pool[0]!.remainingLabel, '1 1/2');
-    assert.equal(pool[0]!.remainingPositive, true);
-    const ana = staffByItemPersonShares({
-      personName: 'Ana',
-      lineSpecs: [menuSpec],
-      orderLines: [orderLine],
-      allocations: half!,
-      lang: 'zh',
-    });
-    assert.equal(ana[0]!.qtyLabel, '1/2');
-    const anaRow = half!['line-a']?.find((row) => row.id === 'row-ana');
-    assert.ok(anaRow);
-    assert.equal(
-      isRowQtyOverAllocated(anaRow, half!['line-a'] ?? [], menuSpec.lineQty),
-      false,
-    );
-  });
-
-  it('rejects qty edits on paidLocked rows', () => {
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [
-        {
-          id: 'row-paid',
-          name: 'Ana',
-          qtyWhole: '',
-          qtyNum: '1',
-          qtyDen: '2',
-          paidLocked: true,
-        },
-      ],
-    };
-    const next = setPersonMenuShareQtyFields({
-      allocations,
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-paid',
-      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
-    });
-    assert.equal(next, null);
-  });
-
-  it('freezes qtyDen for unpaid peers when the line has a paid share', () => {
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [
-        {
-          id: 'row-paid',
-          name: 'Ana',
-          qtyWhole: '',
-          qtyNum: '1',
-          qtyDen: '3',
-          paidLocked: true,
-        },
-        {
-          id: 'row-open',
-          name: 'Bob',
-          qtyWhole: '',
-          qtyNum: '1',
-          qtyDen: '2',
-        },
-      ],
-    };
-    assert.equal(byItemMenuQtyDenReadOnly(allocations['line-a']!), true);
-    const next = setPersonMenuShareQtyFields({
-      allocations,
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-open',
-      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
-    });
-    assert.ok(next);
-    const bob = next!['line-a']!.find((row) => row.id === 'row-open');
-    assert.equal(bob?.qtyDen, '2');
-    assert.equal(bob?.qtyNum, '1');
-  });
-
-  it('allows qtyDen edits when no share on the line is paid', () => {
-    assert.equal(byItemMenuQtyDenReadOnly([{ paidLocked: undefined }]), false);
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [
-        {
-          id: 'row-open',
-          name: 'Bob',
-          qtyWhole: '',
-          qtyNum: '1',
-          qtyDen: '2',
-        },
-      ],
-    };
-    const next = setPersonMenuShareQtyFields({
-      allocations,
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-open',
-      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
-    });
-    assert.equal(next!['line-a']![0]!.qtyDen, '5');
-  });
-});
-
-describe('staffByItemPersonShares visibility', () => {
-  it('keeps named menu row while qty num/den incomplete', () => {
+describe('staffByItemPersonShares', () => {
+  it('lists named menu rows with a qty and what each can give back', () => {
     const allocations: Record<string, ByItemConsumerRow[]> = {
       'line-a': [{
         id: 'row-ana',
         name: 'Ana',
         qtyWhole: '1',
         qtyNum: '1',
-        qtyDen: '',
+        qtyDen: '3',
+        unitDen: 3,
       }],
     };
     const shares = staffByItemPersonShares({
@@ -851,111 +704,341 @@ describe('staffByItemPersonShares visibility', () => {
       lang: 'zh',
     });
     assert.equal(shares.length, 1);
-    assert.equal(shares[0]!.rowId, 'row-ana');
-    assert.equal(shares[0]!.qtyLabel, '—');
-    assert.equal(shares[0]!.amount, 0);
-    assert.equal(shares[0]!.qtyNum, '1');
-    assert.equal(shares[0]!.qtyDen, '');
+    assert.equal(shares[0]!.qtyLabel, '1 1/3');
+    assert.equal(shares[0]!.fractionUnit, 3);
+    assert.equal(shares[0]!.canReturnWhole, true);
+    assert.equal(shares[0]!.canReturnFraction, true);
   });
 
-  it('hold keeps pool + meta on last-committed qty while draft digits are cleared', () => {
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [{
-        id: 'row-ana',
-        name: 'Ana',
-        qtyWhole: '',
-        qtyNum: '',
-        qtyDen: '',
-      }],
-    };
-    const hold = new Map<string, StaffMenuQtyHold>([
-      ['row-ana', { qtyWhole: '1', qtyNum: '', qtyDen: '' }],
-    ]);
-    const pool = staffByItemPoolLines({
+  it('cannot return a whole from a share smaller than 1, nor a fraction on a whole-only line', () => {
+    const third = staffByItemPersonShares({
+      personName: 'Ana',
       lineSpecs: [menuSpec],
       orderLines: [orderLine],
-      allocations,
+      allocations: {
+        'line-a': [{ id: 'r', name: 'Ana', qtyWhole: '', qtyNum: '1', qtyDen: '3', unitDen: 3 }],
+      },
       lang: 'zh',
-      menuQtyHoldByRowId: hold,
     });
-    // lineQty=2, held 1 → remaining 1
-    assert.equal(pool[0]!.remainingLabel, '1');
-    assert.equal(pool[0]!.canAddWhole, true);
+    assert.equal(third[0]!.canReturnWhole, false);
+    assert.equal(third[0]!.canReturnFraction, true);
+
+    const whole = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: { 'line-a': [{ id: 'r', name: 'Ana', qtyWhole: '1', qtyNum: '', qtyDen: '' }] },
+      lang: 'zh',
+    });
+    assert.equal(whole[0]!.canReturnWhole, true);
+    assert.equal(whole[0]!.canReturnFraction, false);
+    assert.equal(whole[0]!.fractionUnit, null);
+  });
+
+  it('never lets a paid share give anything back', () => {
     const shares = staffByItemPersonShares({
       personName: 'Ana',
       lineSpecs: [menuSpec],
       orderLines: [orderLine],
-      allocations,
-      lang: 'zh',
-      menuQtyHoldByRowId: hold,
-    });
-    assert.equal(shares[0]!.qtyLabel, '1');
-    assert.equal(shares[0]!.qtyWhole, '');
-    assert.ok(shares[0]!.amount > 0);
-  });
-
-  it('blur commit removes empty qty; keeps valid qty hold', () => {
-    const empty = commitStaffMenuShareQtyEdit({
       allocations: {
         'line-a': [{
-          id: 'row-ana',
+          id: 'r',
           name: 'Ana',
-          qtyWhole: '',
-          qtyNum: '',
-          qtyDen: '',
-        }],
-      },
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-ana',
-    });
-    assert.ok(empty);
-    assert.equal(empty!.removed, true);
-    assert.equal(empty!.hold, null);
-    assert.ok(
-      !(empty!.allocations['line-a'] ?? []).some((row) => row.id === 'row-ana' && row.name.trim()),
-    );
-
-    const kept = commitStaffMenuShareQtyEdit({
-      allocations: {
-        'line-a': [{
-          id: 'row-ana',
-          name: 'Ana',
-          partyId: 'p-ana',
           qtyWhole: '1',
           qtyNum: '',
           qtyDen: '',
+          paidLocked: true,
+          lockedAmount: 2.5,
+        }],
+      },
+      lang: 'zh',
+    });
+    assert.equal(shares[0]!.canReturnWhole, false);
+    assert.equal(shares[0]!.canReturnFraction, false);
+  });
+});
+
+describe('fraction unit on the pool', () => {
+  const third = (id: string, name: string, extra: Partial<ByItemConsumerRow> = {}): ByItemConsumerRow => ({
+    id,
+    name,
+    qtyWhole: '',
+    qtyNum: '1',
+    qtyDen: '3',
+    unitDen: 3,
+    ...extra,
+  });
+
+  it('free line: any unit that fits is offered and nothing is fixed', () => {
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: { 'line-a': emptyRows() },
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.fractionUnit, null);
+    assert.deepEqual(pool[0]!.fractionUnitChoices, [2, 3, 4, 5]);
+  });
+
+  it('a fractional share fixes the cut for the whole line', () => {
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: { 'line-a': [third('a', 'Ana')] },
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.fractionUnit, 3);
+    assert.deepEqual(pool[0]!.fractionUnitChoices, [3]);
+  });
+
+  it('keeps the cut after the shares add up to whole portions (explicit unit survives)', () => {
+    const half = (id: string, name: string): ByItemConsumerRow => ({
+      id,
+      name,
+      qtyWhole: '',
+      qtyNum: '1',
+      qtyDen: '2',
+      unitDen: 2,
+    });
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: { 'line-a': [half('a', 'Ana'), half('b', 'Joao')] },
+      lang: 'zh',
+    });
+    // 1/2 + 1/2 = 1 whole taken, 1 left — the line still reports its cut.
+    assert.equal(pool[0]!.remainingLabel, '1');
+    assert.equal(pool[0]!.fractionUnit, 2);
+  });
+
+  it('a paid fractional share also fixes the cut', () => {
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: {
+        'line-a': [third('a', 'Ana', { paidLocked: true, lockedAmount: 0.83 })],
+      },
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.fractionUnit, 3);
+  });
+
+  it('picking a unit stamps it on the share; the line then refuses another unit', () => {
+    const afterPick = addMenuFractionShareToPerson({
+      allocations: { 'line-a': emptyRows() },
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      personName: 'Ana',
+      unitDen: 4,
+    });
+    assert.ok(afterPick);
+    const row = afterPick['line-a']!.find((r) => r.name === 'Ana')!;
+    assert.equal(row.unitDen, 4);
+    assert.equal(row.qtyDen, '4');
+
+    assert.equal(
+      addMenuFractionShareToPerson({
+        allocations: afterPick,
+        lineSpecs: [menuSpec],
+        lineKey: 'line-a',
+        personName: 'Joao',
+        unitDen: 3,
+      }),
+      null,
+    );
+    const second = addMenuFractionShareToPerson({
+      allocations: afterPick,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      personName: 'Joao',
+      unitDen: 4,
+    });
+    assert.ok(second);
+  });
+
+  it('two 1/4 units on one share keep unit 4 even though 2/4 reads as 1/2', () => {
+    let allocations: Record<string, ByItemConsumerRow[]> = { 'line-a': emptyRows() };
+    for (let i = 0; i < 2; i += 1) {
+      const next = addMenuFractionShareToPerson({
+        allocations,
+        lineSpecs: [menuSpec],
+        lineKey: 'line-a',
+        personName: 'Ana',
+        unitDen: 4,
+      });
+      assert.ok(next);
+      allocations = next;
+    }
+    const row = allocations['line-a']!.find((r) => r.name === 'Ana')!;
+    assert.equal(row.qtyNum, '1');
+    assert.equal(row.qtyDen, '2');
+    assert.equal(row.unitDen, 4);
+  });
+
+  it('a whole portion that overshoots into the remainder carries the line cut', () => {
+    const spec: ByItemLineSpec = { ...menuSpec, lineQty: 1, lineTotal: 2.5 };
+    const afterThird = addMenuFractionShareToPerson({
+      allocations: { 'line-a': emptyRows() },
+      lineSpecs: [spec],
+      lineKey: 'line-a',
+      personName: 'Ana',
+      unitDen: 3,
+    });
+    assert.ok(afterThird);
+    // Joao takes "1份" but only 2/3 is left → his 2/3 share is cut in thirds.
+    const afterWhole = addWholeShareToPerson({
+      allocations: afterThird,
+      lineSpecs: [spec],
+      lineKey: 'line-a',
+      personName: 'Joao',
+    });
+    assert.ok(afterWhole);
+    const joao = afterWhole['line-a']!.find((r) => r.name === 'Joao')!;
+    assert.equal(joao.qtyNum, '2');
+    assert.equal(joao.qtyDen, '3');
+    assert.equal(joao.unitDen, 3);
+  });
+});
+
+describe('returnMenuShareToPool / returnBuffetSeatToPool', () => {
+  it('returns one whole and keeps the rest of the share', () => {
+    const result = returnMenuShareToPool({
+      allocations: {
+        'line-a': [{ id: 'r', name: 'Ana', partyId: 'p', qtyWhole: '2', qtyNum: '', qtyDen: '' }],
+      },
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'r',
+      kind: 'whole',
+    });
+    assert.ok(result);
+    assert.equal(result.removed, false);
+    assert.equal(result.allocations['line-a']![0]!.qtyWhole, '1');
+  });
+
+  it('returns one 1/unit; a whole-number remainder carries no unit', () => {
+    const result = returnMenuShareToPool({
+      allocations: {
+        'line-a': [{
+          id: 'r',
+          name: 'Ana',
+          qtyWhole: '1',
+          qtyNum: '1',
+          qtyDen: '3',
+          unitDen: 3,
         }],
       },
       lineSpecs: [menuSpec],
       lineKey: 'line-a',
-      rowId: 'row-ana',
+      rowId: 'r',
+      kind: 'fraction',
     });
-    assert.ok(kept);
-    assert.equal(kept!.removed, false);
-    assert.deepEqual(kept!.hold, { qtyWhole: '1', qtyNum: '', qtyDen: '' });
+    assert.ok(result);
+    const row = result.allocations['line-a']![0]!;
+    assert.equal(row.qtyWhole, '1');
+    assert.equal(row.qtyNum, '');
+    assert.equal(row.unitDen, undefined);
   });
 
-  it('keeps named menu row for improper fraction while editing', () => {
-    const allocations: Record<string, ByItemConsumerRow[]> = {
-      'line-a': [{
-        id: 'row-ana',
-        name: 'Ana',
-        qtyWhole: '',
-        qtyNum: '1',
-        qtyDen: '1',
-      }],
-    };
-    const shares = staffByItemPersonShares({
-      personName: 'Ana',
+  it('removes the row and reports the ticket when the last unit goes back', () => {
+    const result = returnMenuShareToPool({
+      allocations: {
+        'line-a': [{ id: 'r', name: 'Ana', partyId: 'p-ana', qtyWhole: '1', qtyNum: '', qtyDen: '' }],
+      },
       lineSpecs: [menuSpec],
-      orderLines: [orderLine],
-      allocations,
-      lang: 'zh',
+      lineKey: 'line-a',
+      rowId: 'r',
+      kind: 'whole',
     });
-    assert.equal(shares.length, 1);
-    assert.equal(shares[0]!.amount, 0);
-    assert.equal(shares[0]!.unitPriceLabel, '€2.50');
+    assert.ok(result);
+    assert.equal(result.removed, true);
+    assert.ok(result.ticketKey);
+    assert.ok(!result.allocations['line-a']!.some((row) => row.name === 'Ana'));
+  });
+
+  it('refuses when the share holds less than the unit, or the row is paid', () => {
+    const quarter: ByItemConsumerRow = {
+      id: 'r',
+      name: 'Ana',
+      qtyWhole: '',
+      qtyNum: '1',
+      qtyDen: '3',
+      unitDen: 3,
+    };
+    assert.equal(
+      returnMenuShareToPool({
+        allocations: { 'line-a': [quarter] },
+        lineSpecs: [menuSpec],
+        lineKey: 'line-a',
+        rowId: 'r',
+        kind: 'whole',
+      }),
+      null,
+    );
+    assert.equal(
+      returnMenuShareToPool({
+        allocations: { 'line-a': [{ ...quarter, paidLocked: true, lockedAmount: 0.8 }] },
+        lineSpecs: [menuSpec],
+        lineKey: 'line-a',
+        rowId: 'r',
+        kind: 'fraction',
+      }),
+      null,
+    );
+  });
+
+  it('returns buffet heads one at a time and drops the row at zero', () => {
+    const buffet: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'bf',
+      lineTotal: 30,
+      adults: 1,
+      children: 1,
+      adultUnitPrice: 20,
+      childUnitPrice: 10,
+    };
+    const row: ByItemConsumerRow = {
+      id: 'r',
+      name: 'Ana',
+      partyId: 'p',
+      qtyWhole: '',
+      qtyNum: '',
+      qtyDen: '',
+      adultQty: '1',
+      childQty: '1',
+    };
+    const afterAdult = returnBuffetSeatToPool({
+      allocations: { bf: [row] },
+      lineSpecs: [buffet],
+      lineKey: 'bf',
+      rowId: 'r',
+      guestType: 'adult',
+    });
+    assert.ok(afterAdult);
+    assert.equal(afterAdult.removed, false);
+    assert.equal(afterAdult.allocations.bf![0]!.adultQty, '');
+    assert.equal(afterAdult.allocations.bf![0]!.childQty, '1');
+
+    const afterChild = returnBuffetSeatToPool({
+      allocations: afterAdult.allocations,
+      lineSpecs: [buffet],
+      lineKey: 'bf',
+      rowId: 'r',
+      guestType: 'child',
+    });
+    assert.ok(afterChild);
+    assert.equal(afterChild.removed, true);
+
+    assert.equal(
+      returnBuffetSeatToPool({
+        allocations: afterAdult.allocations,
+        lineSpecs: [buffet],
+        lineKey: 'bf',
+        rowId: 'r',
+        guestType: 'adult',
+      }),
+      null,
+    );
   });
 });
 

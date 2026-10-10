@@ -19,6 +19,8 @@ export type CheckoutRequestErrorLabels = {
   splitPlanLocked: string;
   /** Individual checkout (optional — only the guest bill page passes these). */
   individualClaimConflict?: string;
+  /** Carries `{dish}` — filled from the first rejected line via `context.dish`. */
+  individualUnitMismatch?: string;
   individualNameTaken?: string;
   individualNothingClaimed?: string;
   /** Ticket already locked / paid / owned by another phone, or the plan changed under it. */
@@ -36,13 +38,15 @@ export function messageForCheckoutRequestError(
   labels: CheckoutRequestErrorLabels,
   /** A surface that words one code differently (e.g. resume: ticket_collecting). */
   overrides?: Partial<Record<CheckoutErrorCode, string>>,
+  /** Values for `{placeholders}` in the copy (e.g. the rejected dish name). */
+  context?: { dish?: string },
 ): string {
   const code = (error ?? '').trim();
   if (!isCheckoutErrorCode(code)) return labels.fallback;
   const override = overrides?.[code];
-  if (override) return override;
   const slot = CHECKOUT_ERROR_COPY[code];
-  return (slot && labels[slot]) || labels.fallback;
+  const text = override || (slot && labels[slot]) || labels.fallback;
+  return context?.dish ? text.replace('{dish}', context.dish) : text;
 }
 
 /** Surfaces with their own wording per code (no shared copy slot): typed codes, one fallback. */

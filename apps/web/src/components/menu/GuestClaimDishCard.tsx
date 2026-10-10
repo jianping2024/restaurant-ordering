@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import {
   guestBuffetSeatCeil,
@@ -17,10 +17,15 @@ import {
   unstackGuestClaimUnit,
 } from '@/lib/guest-claim-qty-stack';
 import { mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
+import { unitDenForQty } from '@/lib/by-item-fraction-unit';
 
 export type GuestClaimDishCardLabels = {
   left: string;
   over: string;
+  /** Carries `{unit}`: the cut already fixed on this dish. */
+  unitMismatch: string;
+  /** Same, when the fixed cut is not known on this phone yet. */
+  unitMismatchNoUnit: string;
   buffetAdultQtyLabel: string;
   buffetChildQtyLabel: string;
   buffetGuestCounts: string;
@@ -51,6 +56,8 @@ type Props = {
   row: ByItemConsumerRow;
   availability: LineAvailability;
   over: boolean;
+  /** Server/local rule: this phone's fraction unit differs from the cut others fixed. */
+  unitMismatch?: boolean;
   disabled: boolean;
   /** No remaining and nothing mine — card stays read-only. */
   lineLocked: boolean;
@@ -70,6 +77,7 @@ export function GuestClaimDishCard({
   row,
   availability,
   over,
+  unitMismatch = false,
   disabled,
   lineLocked,
   paidLocked = false,
@@ -106,14 +114,39 @@ export function GuestClaimDishCard({
 
   const myDen = Number.parseInt(row.qtyDen.trim() || '0', 10);
   const effectiveLockedDen =
-    lockedUnitDen ?? (Number.isFinite(myDen) && myDen > 1 ? myDen : null);
+    lockedUnitDen ??
+    row.unitDen ??
+    (Number.isFinite(myDen) && myDen > 1 ? myDen : null);
 
   const presets = useMemo(
     () => guestClaimUnitPresets(effectiveLockedDen),
     [effectiveLockedDen],
   );
   const [unitDen, setUnitDen] = useState<number>(() => effectiveLockedDen ?? 1);
-  const activeUnit = presets.includes(unitDen) ? unitDen : presets[0] ?? 1;
+  // A picked unit the line no longer allows falls back to the line's cut (not to whole).
+  const activeUnit = presets.includes(unitDen)
+    ? unitDen
+    : effectiveLockedDen && presets.includes(effectiveLockedDen)
+      ? effectiveLockedDen
+      : presets[0] ?? 1;
+
+  /** Stack result carries the unit it was picked in (whole portions carry none). */
+  const withUnit = (
+    fields: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>,
+  ): Partial<ByItemConsumerRow> => ({
+    ...fields,
+    unitDen: unitDenForQty(
+      rationalFromGuestClaimRow({ ...row, ...fields }),
+      activeUnit > 1 ? activeUnit : effectiveLockedDen,
+    ),
+  });
+
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!unitMismatch) return;
+    setExpanded(true);
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [unitMismatch]);
 
   const remainingCap =
     availability.mode === 'menu' ? availability.remaining : { num: 0, den: 1 };
@@ -136,7 +169,7 @@ export function GuestClaimDishCard({
     ? 'border-emerald-600/35 bg-emerald-500/5'
     : lineLocked
       ? 'border-brand-border bg-brand-border/25 opacity-90'
-      : over
+      : over || unitMismatch
         ? 'border-red-500/40 ring-1 ring-red-500/20 bg-brand-card'
         : hasMine
           ? 'border-brand-gold/50 bg-brand-gold/5'
@@ -151,8 +184,14 @@ export function GuestClaimDishCard({
       ) : lineLocked ? (
         <span>{labels.othersLockedHint}</span>
       ) : (
-        <span className={over ? 'text-red-500 font-medium' : undefined}>
-          {over ? labels.over : leftText}
+        <span className={over || unitMismatch ? 'text-red-500 font-medium' : undefined}>
+          {unitMismatch
+            ? effectiveLockedDen
+              ? fill(labels.unitMismatch, { unit: effectiveLockedDen })
+              : labels.unitMismatchNoUnit
+            : over
+              ? labels.over
+              : leftText}
         </span>
       )}
     </p>
@@ -160,6 +199,7 @@ export function GuestClaimDishCard({
 
   return (
     <div
+      ref={rootRef}
       data-guest-claim-line={lineKey}
       data-claim-state={
         paidLocked ? 'paid' : lineLocked ? 'locked' : hasMine ? 'mine' : 'open'
@@ -226,7 +266,7 @@ export function GuestClaimDishCard({
                         current: mineQty!,
                         unitDen: activeUnit,
                       });
-                      if (next) onChange(next);
+                      if (next) onChange(withUnit(next));
                     }}
                     className="w-10 h-10 rounded-full bg-brand-border text-brand-text text-lg disabled:opacity-40"
                   >
@@ -250,7 +290,7 @@ export function GuestClaimDishCard({
                         unitDen: activeUnit,
                         remaining: remainingCap,
                       });
-                      if (next) onChange(next);
+                      if (next) onChange(withUnit(next));
                     }}
                     className="w-10 h-10 rounded-full bg-brand-gold text-brand-on-gold text-lg disabled:opacity-40"
                   >

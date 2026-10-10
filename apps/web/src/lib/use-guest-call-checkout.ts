@@ -25,6 +25,7 @@ type Messages = {
   partyMergeRequired: string;
   individualNothingClaimed: string;
   individualClaimConflict: string;
+  individualUnitMismatch: string;
   individualNameTaken: string;
   individualCallRefused: string;
   splitUnassignedItems?: string;
@@ -164,6 +165,7 @@ export function useGuestCallCheckout(params: Params) {
               splitAmountMismatch: messages.splitAmountMismatch,
 
               individualClaimConflict: messages.individualClaimConflict,
+              individualUnitMismatch: messages.individualUnitMismatch,
               individualNameTaken: messages.individualNameTaken,
               individualNothingClaimed: messages.individualNothingClaimed,
               individualCallRefused: messages.individualCallRefused,

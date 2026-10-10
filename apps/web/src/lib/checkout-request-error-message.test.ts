@@ -29,6 +29,19 @@ describe('messageForCheckoutRequestError', () => {
     assert.equal(messageForCheckoutRequestError('split_shape_locked', labels), 'LOCKED');
   });
 
+  it('maps by_item_unit_mismatch to its slot and fills the rejected dish', () => {
+    const withUnit = { ...labels, individualUnitMismatch: 'Cut of {dish} is fixed' };
+    assert.equal(
+      messageForCheckoutRequestError('by_item_unit_mismatch', withUnit, undefined, { dish: 'Mojito' }),
+      'Cut of Mojito is fixed',
+    );
+    assert.equal(
+      messageForCheckoutRequestError('by_item_unit_mismatch', withUnit),
+      'Cut of {dish} is fixed',
+    );
+    assert.equal(messageForCheckoutRequestError('by_item_unit_mismatch', labels), 'FALLBACK');
+  });
+
   it('uses fallback only for blank network or unknown codes', () => {
     assert.equal(messageForCheckoutRequestError(null, labels), 'FALLBACK');
     assert.equal(messageForCheckoutRequestError('', labels), 'FALLBACK');

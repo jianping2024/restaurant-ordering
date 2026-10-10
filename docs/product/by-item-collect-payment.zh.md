@@ -62,6 +62,15 @@
 - 职员人轨票 sole：`resolveStaffByItemRailPeople` + `syncStaffByItemRailPeople`（只注入**已锁** ledger ∪ allocations；等 hydrate 时禁 mint「客人 N」；权威名单无重叠时整表替换丢掉空壳；串行收款空白票靠 overlap+append 保留）。禁止把 `result` 里未付碎票直接铺进芯片，禁止 hydrate 后仍 append-only 留幽灵芯片。
 - 禁止客人编辑再走 `useByItemSplitState` / extract「无名丢弃」。
 
+## 一道菜一种切法（分数份额）
+
+- 每个**分数份额**记下它是按几分之一选的（`qty_unit_den`，2~5）。`2/4` 会约成 `1/2`，只看数量分不出是按 2 切还是按 4 切，所以单位必须单独存。整份不记单位。
+- 一道菜的"切法" = 它所有份额（含已收款）里已有的单位；没有任何分数份额时这道菜是自由的。**谁先写进服务端方案，谁定切法**，后写的必须跟着；草稿（职员池子里分的、客人手机上还没呼叫的）不占位。
+- 校验只查**这次写入碰到的菜**：客人呼叫 = 本票份额涉及的菜；职员写入 = 与已存方案相比分数份额有变化的菜。旧方案里本来就混着分的菜，只要这次没碰，不拦（职员照常收款）。冲突返回 `by_item_unit_mismatch`（409）+ `line_keys`。
+- 旧数据 / 旧页面没有单位：按分母推断，不回填（SQL 要求他人票原样不变）。
+- 职员池子：这道菜自由时点 `1/2份` 先出分法小条（1/2~1/5）；已有切法时按钮直接是 `1/N份`，并写"按 1/N 分"。当前人份额行和池子镜像：`‹ 1份` / `‹ 1/N份` / `‹ 1A` / `‹ 1C` 退回一个单位，没有数量输入框；垃圾桶 44px 退回整行。
+- 客人手机：别人（或自己）已定切法时单位只剩"整份 + 该切法"；被拒后只标红那张菜卡并说明，已有认领保留。
+
 ## 摘要待收（整桌）
 
 - **待收** = 折后应收合计 − 台账已收合计。  
@@ -86,5 +95,6 @@
 | 锁票 committed + 未付 draft UI（职员） | `billSplitDraftAuthorityKey` + `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `mergeMissingByItemDraftTickets` + `useByItemSplitState`（Realtime 只重建锁票；权威指纹变 → 清空未付 draft 再 merge-missing 全量重灌；指纹未变 → 只补缺） |
 | 客人手机按菜进行中编辑 | `useGuestClaim` + `guest-claim.ts`（一机一人一票） |
 | 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
+| 一道菜一种切法 | `by-item-fraction-unit`（`fractionUnitOfLine` / `fractionUnitConflict` / `fractionUnitConflictLineKeys` / `changedFractionLineKeys`）；客人呼叫 `validateIndividualCall`，职员写入 `submitCheckoutRequestForTable` |
 
 已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）；单票 `mergeCurrentByItemTicketForCollect`（跨票挪菜后会留下旧未付份额）；手填金额模式。均摊仍用 `persistBeforePay`。按菜：会话脚**不**放「恢复点单」；未付整案在员工解锁票 / 收款盖章前走同一落库。

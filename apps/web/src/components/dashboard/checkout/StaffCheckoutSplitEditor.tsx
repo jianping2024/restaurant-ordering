@@ -197,24 +197,18 @@ export function StaffCheckoutSplitEditor({
       needName: checkoutT.staffByItemNeedName,
       poolEmpty: checkoutT.staffByItemPoolEmpty,
       assignAll: checkoutT.staffByItemAssignAll,
-      addAdult: billT.byItemGuestTypeAdult,
-      addChild: billT.byItemGuestTypeChild,
       poolAddAdult: checkoutT.staffByItemPoolAddAdult,
       poolAddChild: checkoutT.staffByItemPoolAddChild,
       poolAddWhole: checkoutT.staffByItemPoolAddWhole,
       poolAddFraction: (denominator: number) =>
         checkoutT.staffByItemPoolAddFraction.replace('{den}', String(denominator)),
+      poolPickUnit: checkoutT.staffByItemPoolPickUnit,
+      poolCancelPick: checkoutT.staffByItemPoolCancelPick,
+      unitLocked: (denominator: number) =>
+        checkoutT.staffByItemUnitLocked.replace('{den}', String(denominator)),
       remove: checkoutT.returnShareToPool,
       collect: checkoutT.collectPerson,
       paidShareBadge: checkoutT.staffByItemPaidShare,
-      qtyParts: {
-        wholeLabel: billT.qtyWholePlaceholder,
-        numLabel: billT.qtyNumPlaceholder,
-        denLabel: billT.qtyDenPlaceholder,
-        missingDen: billT.qtyMissingDen,
-        zeroDen: billT.qtyZeroDen,
-        improperFraction: billT.qtyImproperFraction,
-      },
     }),
     [billT, checkoutT],
   );
@@ -468,17 +462,26 @@ export function StaffCheckoutSplitEditor({
         allowPartialByItem: true,
       });
       if (!outcome.ok) {
+        const rejectedLine = splitOrderLines.find((line) => line.key === outcome.lineKeys?.[0]);
         showToast(
-          messageForCheckoutRequestError(outcome.error, {
-            guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
-            partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
-            emptySession: checkoutT.callCheckoutEmptySession,
-            noActiveSession: checkoutT.callCheckoutNoActiveSession,
-            tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
-            invalidNif: billT.nifInvalid,
-            splitPlanLocked: billT.splitPlanLocked,
-            fallback: checkoutT.callCheckoutFailed,
-          }),
+          messageForCheckoutRequestError(
+            outcome.error,
+            {
+              guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
+              partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
+              emptySession: checkoutT.callCheckoutEmptySession,
+              noActiveSession: checkoutT.callCheckoutNoActiveSession,
+              tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
+              invalidNif: billT.nifInvalid,
+              splitPlanLocked: billT.splitPlanLocked,
+              individualUnitMismatch: checkoutT.byItemUnitMismatch,
+              fallback: checkoutT.callCheckoutFailed,
+            },
+            undefined,
+            rejectedLine
+              ? { dish: resolveMenuItemLocalizedName(rejectedLine, lang) }
+              : undefined,
+          ),
           'error',
         );
         return null;
@@ -498,9 +501,11 @@ export function StaffCheckoutSplitEditor({
       billT.splitPlanLocked,
       checkoutT,
       collectedPayments,
+      lang,
       onSplitPersisted,
       request,
       restaurantSlug,
+      splitOrderLines,
     ],
   );
 

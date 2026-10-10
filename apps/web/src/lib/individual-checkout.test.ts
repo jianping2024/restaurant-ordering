@@ -131,6 +131,94 @@ describe('validateIndividualCall', () => {
     assert.deepEqual(issue, { ok: false, code: 'claim_conflict', lineKeys: ['L1'] });
   });
 
+  describe('fraction unit (first-come cut)', () => {
+    const frac = (
+      name: string,
+      partyId: string,
+      key: string,
+      num: number,
+      den: number,
+      unit?: number,
+    ): SplitPerson => ({
+      name,
+      party_id: partyId,
+      item_shares: [
+        { key, qty_num: num, qty_den: den, party_id: partyId, ...(unit ? { qty_unit_den: unit } : {}) },
+      ],
+    });
+
+    it('rejects a claim cut differently from the stored one and names the dish', () => {
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [frac('Li', PB, 'L1', 1, 3, 3), frac('Wang', PA, 'L1', 1, 4, 4)],
+        result: [row('Li', PB, 6), row('Wang', PA, 5)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: false, code: 'by_item_unit_mismatch', lineKeys: ['L1'] });
+    });
+
+    it('accepts the same cut, even when 2/4 is stored as 1/2', () => {
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [frac('Li', PB, 'L1', 1, 4, 4), frac('Wang', PA, 'L1', 1, 2, 4)],
+        result: [row('Li', PB, 5), row('Wang', PA, 10)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: true });
+    });
+
+    it('rejects 1/2 cut in 2 beside 1/4 cut in 4 (unit stored, not just denominators)', () => {
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [frac('Li', PB, 'L1', 1, 2, 2), frac('Wang', PA, 'L1', 1, 4, 4)],
+        result: [row('Li', PB, 10), row('Wang', PA, 5)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: false, code: 'by_item_unit_mismatch', lineKeys: ['L1'] });
+    });
+
+    it('a paid fractional share fixes the cut for a later call', () => {
+      const paid = { ...frac('Li', PB, 'L1', 1, 2, 2) };
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [paid, frac('Wang', PA, 'L1', 1, 4, 4)],
+        result: [row('Li', PB, 10, true), row('Wang', PA, 5)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: false, code: 'by_item_unit_mismatch', lineKeys: ['L1'] });
+    });
+
+    it('an old mixed plan on a dish this ticket does not claim never blocks the call', () => {
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [
+          frac('Li', PB, 'L1', 1, 2),
+          frac('Zhang', PC, 'L1', 1, 3),
+          person('Wang', PA, [['L3', 1]]),
+        ],
+        result: [row('Li', PB, 10), row('Zhang', PC, 7), row('Wang', PA, 3)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: true });
+    });
+
+    it('an old mixed plan blocks a ticket that claims that dish', () => {
+      const mixedOld = [frac('Li', PB, 'L1', 1, 2), frac('Zhang', PC, 'L1', 1, 3)];
+      const mine: SplitPerson = {
+        name: 'Wang',
+        party_id: PA,
+        item_shares: [{ key: 'L1', qty_num: 1, qty_den: 6, party_id: PA }],
+      };
+      const issue = validateIndividualCall({
+        lineSpecs: specs,
+        persons: [...mixedOld, mine],
+        result: [row('Li', PB, 10), row('Zhang', PC, 7), row('Wang', PA, 3)],
+        myKeys: [`p:${PA}`],
+      });
+      assert.deepEqual(issue, { ok: false, code: 'by_item_unit_mismatch', lineKeys: ['L1'] });
+    });
+  });
+
   it('rejects a name already used by another unpaid ticket, but not by a paid one', () => {
     const base = {
       lineSpecs: specs,

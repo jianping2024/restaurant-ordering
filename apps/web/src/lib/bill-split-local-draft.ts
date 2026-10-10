@@ -190,7 +190,7 @@ export function billSplitDraftAuthorityKey(params: {
       const shares = (person.item_shares ?? [])
         .map(
           (share) =>
-            `${share.key}:${share.qty_num}/${share.qty_den}:${share.guest_type ?? ''}:${share.locked_amount ?? ''}`,
+            `${share.key}:${share.qty_num}/${share.qty_den}:${share.qty_unit_den ?? ''}:${share.guest_type ?? ''}:${share.locked_amount ?? ''}`,
         )
         .join(';');
       return `${person.party_id ?? ''}:${person.name.trim().toLowerCase()}:${shares}`;

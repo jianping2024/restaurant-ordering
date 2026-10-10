@@ -18,6 +18,7 @@ import {
   splitPersonKey,
 } from '@/lib/split-person-identity';
 import { splitPartyKey, mintSplitPartyId, parseOptionalPartyId } from '@/lib/split-party-id';
+import { parseOptionalUnitDen, unitDenForQty } from '@/lib/by-item-fraction-unit';
 import type { OrderItem, SplitPerson, SplitPersonItemShare } from '@/types';
 
 export type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
@@ -27,6 +28,8 @@ export type BuffetGuestType = 'adult' | 'child';
 export type ByItemConsumerShare = {
   name: string;
   qty: Rational;
+  /** Unit (2..5) a fractional share was picked in — see `by-item-fraction-unit`. */
+  unitDen?: number;
   guestType?: BuffetGuestType;
   /** Atomic ticket id when present. */
   partyId?: string;
@@ -52,6 +55,8 @@ export type ByItemConsumerRow = {
   qtyWhole: string;
   qtyNum: string;
   qtyDen: string;
+  /** Unit (2..5) a fractional share was picked in — see `by-item-fraction-unit`. */
+  unitDen?: number;
   /** Buffet lines: integer headcounts per payer; menu lines ignore these. */
   adultQty?: string;
   childQty?: string;
@@ -67,16 +72,6 @@ export type ByItemConsumerRow = {
 };
 
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
-
-export type QtyPartsLabels = {
-  /** Visible field role (column header + aria-label); not an in-input placeholder. */
-  wholeLabel: string;
-  numLabel: string;
-  denLabel: string;
-  missingDen: string;
-  zeroDen: string;
-  improperFraction: string;
-};
 
 export function sanitizeQtyDigits(raw: string): string {
   return raw.replace(/\D/g, '').slice(0, 4);
@@ -129,27 +124,6 @@ export function parseConsumerRowQty(row: ByItemConsumerRow): Rational | null {
   if (!result.ok) return null;
   if (result.qty.num <= 0) return null;
   return result.qty;
-}
-
-export function qtyPartsIssueLabel(issue: QtyPartsIssue, labels: QtyPartsLabels): string {
-  switch (issue) {
-    case 'missing_den':
-      return labels.missingDen;
-    case 'zero_den':
-      return labels.zeroDen;
-    case 'improper_fraction':
-      return labels.improperFraction;
-  }
-}
-
-export function getQtyPartsRowHint(row: ByItemConsumerRow, labels: QtyPartsLabels): string | null {
-  const result = validateQtyParts({
-    whole: row.qtyWhole,
-    num: row.qtyNum,
-    den: row.qtyDen,
-  });
-  if (result.ok || result.issue === 'empty') return null;
-  return qtyPartsIssueLabel(result.issue, labels);
 }
 
 export function createByItemConsumerRow(opts?: { buffet?: boolean; seed?: boolean }): ByItemConsumerRow {
@@ -424,6 +398,7 @@ export function parseConsumerRows(
     parsed.push({
       name,
       qty,
+      ...(row.unitDen ? { unitDen: row.unitDen } : {}),
       ...(row.partyId?.trim() ? { partyId: row.partyId.trim() } : {}),
       ...(row.paidLocked && row.lockedAmount != null && Number.isFinite(row.lockedAmount)
         ? { frozenAmount: row.lockedAmount }
@@ -670,21 +645,6 @@ export function isByItemLineComplete(status: ByItemLineStatus): boolean {
   return status.kind === 'complete';
 }
 
-export function isRowQtyOverAllocated(
-  row: ByItemConsumerRow,
-  rows: ByItemConsumerRow[],
-  lineQty: number,
-): boolean {
-  const rowQty = parseConsumerRowQty(row);
-  if (!rowQty) return false;
-  const others = rows
-    .filter((candidate) => candidate.id !== row.id)
-    .map((candidate) => parseConsumerRowQty(candidate))
-    .filter((qty): qty is Rational => !!qty);
-  const diff = qtyDiff(lineQtyRational(lineQty), sumRationals([...others, rowQty]));
-  return diff.num < 0;
-}
-
 export function byItemLinePriceShare(
   lineTotal: number,
   shares: ByItemConsumerShare[],
@@ -924,6 +884,9 @@ export function buildByItemAllocationsFromPersons(
         rows.push({
           name: person.name,
           qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          ...(parseOptionalUnitDen(share.qty_unit_den)
+            ? { unitDen: parseOptionalUnitDen(share.qty_unit_den) }
+            : {}),
           ...(guestType ? { guestType } : {}),
           ...(person.party_id?.trim()
             ? { partyId: person.party_id.trim() }
@@ -1095,6 +1058,7 @@ export function buildSplitPersonsFromAllocations(
       if (!partyKey) continue;
       const normalized = normalizeRational(share.qty);
       const party_id = parseOptionalPartyId(share.partyId);
+      const qty_unit_den = unitDenForQty(normalized, share.unitDen);
       const entry = byKey.get(partyKey) ?? {
         name: displaySplitPersonName(share.name),
         ...(party_id ? { partyId: party_id } : {}),
@@ -1104,6 +1068,7 @@ export function buildSplitPersonsFromAllocations(
         key,
         qty_num: normalized.num,
         qty_den: normalized.den,
+        ...(qty_unit_den ? { qty_unit_den } : {}),
         ...(share.guestType ? { guest_type: share.guestType } : {}),
         ...(party_id ? { party_id } : {}),
         ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
@@ -1143,6 +1108,9 @@ export function consumersForLineFromPersons(
         explicit.push({
           name: person.name,
           qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
+          ...(parseOptionalUnitDen(share.qty_unit_den)
+            ? { unitDen: parseOptionalUnitDen(share.qty_unit_den) }
+            : {}),
           ...(guestType ? { guestType } : {}),
         });
       }

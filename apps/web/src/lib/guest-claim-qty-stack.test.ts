@@ -5,31 +5,10 @@ import {
   canUnstackGuestClaimUnit,
   formatGuestClaimQtyLabel,
   guestClaimUnitPresets,
-  lockedGuestClaimUnitDen,
   rationalFromGuestClaimRow,
   stackGuestClaimUnit,
   unstackGuestClaimUnit,
 } from './guest-claim-qty-stack';
-
-describe('lockedGuestClaimUnitDen', () => {
-  it('stays open when others only hold wholes', () => {
-    assert.equal(lockedGuestClaimUnitDen([{ num: 2, den: 1 }]), null);
-  });
-
-  it('locks to the fraction den others used', () => {
-    assert.equal(lockedGuestClaimUnitDen([{ num: 1, den: 2 }]), 2);
-  });
-
-  it('uses LCM when others mixed dens', () => {
-    assert.equal(
-      lockedGuestClaimUnitDen([
-        { num: 1, den: 2 },
-        { num: 1, den: 3 },
-      ]),
-      6,
-    );
-  });
-});
 
 describe('guestClaimUnitPresets', () => {
   it('offers 1..5 when unlocked', () => {

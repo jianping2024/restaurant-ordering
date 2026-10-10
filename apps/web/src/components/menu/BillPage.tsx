@@ -327,6 +327,7 @@ function GuestBillPage({
       partyMergeRequired: t.partyMergeRequired,
       individualNothingClaimed: t.individualNothingClaimed,
       individualClaimConflict: t.individualClaimConflict,
+      individualUnitMismatch: t.individualUnitMismatch,
       individualNameTaken: t.individualNameTaken,
       individualCallRefused: t.individualCallRefused,
       splitUnassignedItems: t.splitUnassignedItems,
@@ -402,6 +403,8 @@ function GuestBillPage({
     () => ({
       left: t.claimLeft,
       over: t.claimOver,
+      unitMismatch: t.claimUnitMismatch,
+      unitMismatchNoUnit: t.claimUnitMismatchNoUnit,
       buffetAdultQtyLabel: t.byItemGuestTypeAdult,
       buffetChildQtyLabel: t.byItemGuestTypeChild,
       buffetGuestCounts: t.buffetGuestCounts,
@@ -429,14 +432,18 @@ function GuestBillPage({
         ? t.claimOver
         : claim.issue === 'invalid_qty'
           ? t.byItemInvalidQty
-          : null;
+          : claim.issue === 'unit_mismatch'
+            ? t.individualUnitMismatch
+            : null;
   /** Inline under the dish list — over-claim / invalid qty only (no “claim at least one” tip). */
   const claimIssueBanner =
     claim.issue === 'over_claim'
       ? t.claimOver
       : claim.issue === 'invalid_qty'
         ? t.byItemInvalidQty
-        : null;
+        : claim.issue === 'unit_mismatch'
+          ? t.individualUnitMismatch
+          : null;
 
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
   const checkoutGateMessage = !partyCheckoutAllowed ? t.partyMergeRequired : null;
@@ -772,6 +779,7 @@ function GuestBillPage({
               others={claim.others}
               othersBlocks={claim.othersBlocks}
               overClaimedKeys={claim.overClaimedKeys}
+              unitMismatchKeys={claim.unitMismatchKeys}
               nameTaken={claim.nameTaken}
               disabled={isCallBillBusy}
               itemCodeByMenuId={itemCodeByMenuId}

@@ -9,6 +9,8 @@ type Props = {
   onRemove: () => void;
   /** Extra lock (e.g. cart submit in flight). */
   disabled?: boolean;
+  /** Staff touch target: 44px, red icon (by-item share rows). */
+  large?: boolean;
 };
 
 function TrashIcon({ className }: { className?: string }) {
@@ -25,18 +27,28 @@ function TrashIcon({ className }: { className?: string }) {
   );
 }
 
-const SLOT_CLASS =
-  `w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200 ${buttonPressReliefCompactClass}`;
+const SLOT_BASE_CLASS =
+  `shrink-0 flex items-center justify-center transition-all duration-200 ${buttonPressReliefCompactClass}`;
+const SLOT_CLASS = `${SLOT_BASE_CLASS} w-8 h-8 rounded-lg`;
+const SLOT_LARGE_CLASS = `${SLOT_BASE_CLASS} ml-1 h-11 w-11 rounded-xl`;
 
 /** Sole trash icon remove control (cart lines, by-item / buffet consumer rows). */
-export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled = false }: Props) {
+export function RowRemoveIconButton({
+  removable,
+  ariaLabel,
+  onRemove,
+  disabled = false,
+  large = false,
+}: Props) {
+  const slotClass = large ? SLOT_LARGE_CLASS : SLOT_CLASS;
+  const iconClass = large ? 'w-5 h-5' : 'w-4 h-4';
   if (!removable || disabled) {
     return (
       <div
         aria-hidden
-        className={`${SLOT_CLASS} border border-transparent text-brand-text-muted/30 ${disabled ? 'opacity-40' : ''}`}
+        className={`${slotClass} border border-transparent text-brand-text-muted/30 ${disabled ? 'opacity-40' : ''}`}
       >
-        <TrashIcon className="w-4 h-4" />
+        <TrashIcon className={iconClass} />
       </div>
     );
   }
@@ -46,9 +58,11 @@ export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled =
       type="button"
       onClick={onRemove}
       aria-label={ariaLabel}
-      className={`${SLOT_CLASS} border border-brand-border/70 bg-brand-bg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/25`}
+      className={`${slotClass} border bg-brand-bg hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/25 ${
+        large ? 'border-red-500/35 text-red-500' : 'border-brand-border/70 text-brand-text-muted'
+      }`}
     >
-      <TrashIcon className="w-4 h-4" />
+      <TrashIcon className={iconClass} />
     </button>
   );
 }

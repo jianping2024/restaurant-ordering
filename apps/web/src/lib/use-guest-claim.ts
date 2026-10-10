@@ -23,6 +23,7 @@ import {
   guestClaimPoolResults,
   guestOthersClaimBlocks,
   lineOverClaimed,
+  lineUnitMismatch,
   loadGuestClaimDraft,
   mintGuestClaim,
   othersAllocation,
@@ -216,6 +217,14 @@ export function useGuestClaim(params: {
     [lineSpecs, claim, others],
   );
 
+  const unitMismatchKeys = useMemo(
+    () =>
+      new Set(
+        lineSpecs.filter((spec) => lineUnitMismatch(spec, claim, others)).map((spec) => spec.key),
+      ),
+    [lineSpecs, claim, others],
+  );
+
   const setName = useCallback((name: string) => {
     setClaim((prev) => ({ ...prev, name }));
   }, []);
@@ -247,6 +256,7 @@ export function useGuestClaim(params: {
     issue,
     nameTaken,
     overClaimedKeys,
+    unitMismatchKeys,
     setName,
     updateRow,
     claimRest,

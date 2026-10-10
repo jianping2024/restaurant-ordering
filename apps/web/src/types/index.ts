@@ -349,6 +349,11 @@ export interface SplitPersonItemShare {
   key: string;
   qty_num: number;
   qty_den: number;
+  /**
+   * Unit (2..5) a fractional share was picked in. Optional — old plans omit it and the
+   * denominator stands in. Sole rule: `by-item-fraction-unit`.
+   */
+  qty_unit_den?: number;
   /** Buffet by-item: adult vs child head pricing. */
   guest_type?: 'adult' | 'child';
   /**

@@ -179,7 +179,7 @@
 | 组件 | 场景 |
 |------|------|
 | `CartQtyStepper` | 购物车加减 |
-| `ByItemQtyInput` | 按菜分单份额 |
+| `StaffByItemPoolActionButton` | 按菜分单份额按钮（池子 ›、当前人 ‹ 镜像） |
 | `IntegerInput` | 自助餐成人/儿童、折扣率 |
 
 **规则**

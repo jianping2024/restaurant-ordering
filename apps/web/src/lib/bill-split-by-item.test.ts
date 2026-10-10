@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { ByItemConsumerRow } from './bill-split-by-item';
 import {
+  buildByItemAllocationsFromPersons,
   buildByItemAllocationsFromRows,
+  buildSplitPersonsFromAllocations,
   byItemLinePriceShare,
   calcByItemSplitResults,
   consumersForLineFromPersons,
@@ -20,6 +22,9 @@ import {
 } from './bill-split-by-item';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
 import { validateBillSplit } from './bill-split-validate';
+
+const PARTY_A = '11111111-1111-4111-8111-111111111111';
+const PARTY_B = '22222222-2222-4222-8222-222222222222';
 
 function row(
   id: string,
@@ -190,6 +195,40 @@ describe('getByItemLineStatus', () => {
       spec,
     );
     assert.equal(status.kind, 'complete');
+  });
+});
+
+describe('fraction unit on the wire', () => {
+  const spec: ByItemLineSpec = { mode: 'menu', key: 'L1', lineQty: 2, lineTotal: 10, unitPrice: 5 };
+
+  it('stores the cut on fractional shares only and reads it back', () => {
+    const allocations = buildByItemAllocationsFromRows([spec], {
+      L1: [
+        { id: 'a', name: 'Ana', partyId: PARTY_A, qtyWhole: '', qtyNum: '1', qtyDen: '2', unitDen: 4 },
+        { id: 'b', name: 'Joao', partyId: PARTY_B, qtyWhole: '1', qtyNum: '', qtyDen: '', unitDen: 4 },
+      ],
+    });
+    const persons = buildSplitPersonsFromAllocations(allocations);
+    const ana = persons.find((p) => p.name === 'Ana')!;
+    const joao = persons.find((p) => p.name === 'Joao')!;
+    assert.equal(ana.item_shares![0]!.qty_unit_den, 4);
+    assert.equal(joao.item_shares![0]!.qty_unit_den, undefined);
+
+    const back = buildByItemAllocationsFromPersons(persons, [spec]);
+    assert.equal(back.L1!.find((share) => share.name === 'Ana')!.unitDen, 4);
+    assert.equal(back.L1!.find((share) => share.name === 'Joao')!.unitDen, undefined);
+  });
+
+  it('ignores a stored unit outside 2..5', () => {
+    const back = buildByItemAllocationsFromPersons(
+      [{
+        name: 'Ana',
+        party_id: PARTY_A,
+        item_shares: [{ key: 'L1', qty_num: 1, qty_den: 7, qty_unit_den: 7, party_id: PARTY_A }],
+      }],
+      [spec],
+    );
+    assert.equal(back.L1![0]!.unitDen, undefined);
   });
 });
 

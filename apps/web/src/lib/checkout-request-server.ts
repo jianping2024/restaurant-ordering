@@ -5,6 +5,10 @@ import {
   loadActiveBillSplitForSession,
 } from '@/lib/checkout-active-bill-split';
 import { checkoutErrorStatus, checkoutFailure } from '@/lib/checkout-error-codes';
+import {
+  changedFractionLineKeys,
+  fractionUnitConflictLineKeys,
+} from '@/lib/by-item-fraction-unit';
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
 import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
@@ -34,7 +38,7 @@ export type CheckoutRequestResult =
       table_name: string;
       split_mode: string;
     }
-  | { ok: false; error: string; status: number; message?: string };
+  | { ok: false; error: string; status: number; message?: string; lineKeys?: string[] };
 
 /** Same pattern as confirm-payment automatic receipts: never block checkout on print. */
 function scheduleCallBillPreBillPrint(params: {
@@ -164,6 +168,21 @@ export async function submitCheckoutRequestForTable(
     restaurantId,
     sessionId,
   });
+
+  // Staff writes follow the same first-come fraction unit as guest calls — only on lines
+  // this write touched, so an old mixed plan never blocks collecting untouched dishes.
+  if (payloadForPersist.splitMode === 'by_item') {
+    const unitLines = fractionUnitConflictLineKeys(
+      payloadForPersist.persons,
+      changedFractionLineKeys(
+        (existingSplitRow as BillSplit | null)?.persons ?? [],
+        payloadForPersist.persons,
+      ),
+    );
+    if (unitLines.length > 0) {
+      return { ...checkoutFailure('by_item_unit_mismatch'), lineKeys: unitLines };
+    }
+  }
 
   const { count: collectedCount } = await admin
     .from('session_collected_payments')

@@ -5,19 +5,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildByItemAllocationsFromRows,
   calcByItemSplitResults,
-  isRowQtyOverAllocated,
   locateByItemSplitResult,
-  parseConsumerRowQty,
   type ByItemConsumerRow,
 } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
-import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
-import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
 import { buttonPressReliefCompactClass } from '@/components/ui/button-press-relief';
 import {
@@ -37,19 +33,15 @@ import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
-  applyStaffMenuQtyHoldToAllocations,
   assignAllRemainingPoolToPerson,
-  byItemMenuQtyDenReadOnly,
-  commitStaffMenuShareQtyEdit,
   removePersonShareOnLine,
-  setPersonBuffetShareCounts,
-  setPersonMenuShareQtyFields,
+  returnBuffetSeatToPool,
+  returnMenuShareToPool,
   staffByItemBuffetShareLineMetaParts,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
   staffByItemShareLineMetaParts,
-  type StaffMenuQtyHold,
 } from '@/lib/staff-by-item-workbench';
 import {
   mintStaffByItemRailPerson,
@@ -72,18 +64,19 @@ export type StaffByItemWorkbenchLabels = {
   poolEmpty: string;
   /** Sole pool-header bulk: drain remaining dishes + buffet seats to current person. */
   assignAll: string;
-  /** Right-panel buffet qty field labels (成人 / 儿童) — not pool CTAs. */
-  addAdult: string;
-  addChild: string;
-  /** Sole left-pool CTAs (fixed D chrome + chevron). */
+  /** Sole pool CTAs, mirrored on the share rows (fixed D chrome + chevron). */
   poolAddAdult: string;
   poolAddChild: string;
   poolAddWhole: string;
   poolAddFraction: (denominator: number) => string;
+  /** Strip title under a free menu line: pick the cut (fixed once paid). */
+  poolPickUnit: string;
+  poolCancelPick: string;
+  /** Hint under the remaining qty once the line's cut is fixed. */
+  unitLocked: (denominator: number) => string;
   remove: string;
   collect: string;
   paidShareBadge: string;
-  qtyParts: QtyPartsLabels;
 };
 
 /**
@@ -115,8 +108,8 @@ function StaffByItemNameUnitRow({
   );
 }
 
-/** I2 thin chevron — tap sends share to the right person. */
-function StaffByItemPoolActionChevron() {
+/** I2 thin chevron — `in` sends a share to the person (›), `out` returns it to the pool (‹). */
+function StaffByItemPoolActionChevron({ direction }: { direction: 'in' | 'out' }) {
   return (
     <svg
       className="h-3 w-3 shrink-0 opacity-70"
@@ -125,7 +118,7 @@ function StaffByItemPoolActionChevron() {
       aria-hidden
     >
       <path
-        d="M4.2 2.2 8 6l-3.8 3.8"
+        d={direction === 'in' ? 'M4.2 2.2 8 6l-3.8 3.8' : 'M7.8 2.2 4 6l3.8 3.8'}
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
@@ -136,16 +129,21 @@ function StaffByItemPoolActionChevron() {
 }
 
 /**
- * Sole left-pool action button (1A / 1C / 1/{den}份 / 1份) — fixed D size + chevron.
+ * Sole by-item qty action button (1A / 1C / 1/{den}份 / 1份) — fixed D size + chevron.
+ * Pool rows use `in` (›); the current person's share rows mirror it with `out` (‹).
  */
 function StaffByItemPoolActionButton({
   variant,
+  direction = 'in',
   disabled,
+  expanded,
   onClick,
   children,
 }: {
   variant: 'primary' | 'ghost';
+  direction?: 'in' | 'out';
   disabled?: boolean;
+  expanded?: boolean;
   onClick: () => void;
   children: string;
 }) {
@@ -153,6 +151,7 @@ function StaffByItemPoolActionButton({
     <button
       type="button"
       disabled={disabled}
+      aria-expanded={expanded}
       className={
         variant === 'primary'
           ? STAFF_BY_ITEM_POOL_ACTION_PRIMARY_CLASS
@@ -160,8 +159,9 @@ function StaffByItemPoolActionButton({
       }
       onClick={onClick}
     >
+      {direction === 'out' ? <StaffByItemPoolActionChevron direction="out" /> : null}
       <span>{children}</span>
-      <StaffByItemPoolActionChevron />
+      {direction === 'in' ? <StaffByItemPoolActionChevron direction="in" /> : null}
     </button>
   );
 }
@@ -188,57 +188,66 @@ function StaffByItemPoolLineIdentity({
 
 /**
  * Share-row meta — one path per mode:
- * - menu: `qty × unit = amount` via {@link staffByItemShareLineMetaParts}
- * - buffet: amount only (unit already on {@link StaffByItemNameUnitRow}, same as pool)
+ * - menu: `qty × unit = amount` via {@link staffByItemShareLineMetaParts} (+ the line's cut once fixed)
+ * - buffet: assigned heads + amount (unit already on {@link StaffByItemNameUnitRow}, same as pool)
  */
 function StaffByItemShareLineMeta({
   mode,
   qtyLabel,
   unitPriceLabel,
   amount,
-  amountReady,
+  headcountLabel,
+  unitHint,
 }: {
   mode: 'menu' | 'buffet';
   qtyLabel: string;
   unitPriceLabel: string;
   amount: number;
-  /** Buffet: headcount assigned. Menu: ignored (derived from qtyLabel). */
-  amountReady: boolean;
+  /** Buffet only: `1A · 1C`. */
+  headcountLabel: string;
+  /** Menu only: `按 1/N 分` once the line's cut is fixed. */
+  unitHint?: string;
 }) {
   if (mode === 'buffet') {
-    const { amountText, amountReady: ready } = staffByItemBuffetShareLineMetaParts({
+    const { amountText, amountReady } = staffByItemBuffetShareLineMetaParts({
       amount,
-      amountReady,
+      amountReady: headcountLabel !== '',
     });
     return (
-      <div
-        className={`mt-0.5 inline-block min-w-[4.5ch] text-sm tabular-nums ${
-          ready ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
-        }`}
-      >
-        {amountText}
+      <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 text-sm tabular-nums">
+        <span className="whitespace-nowrap text-brand-text-muted">{headcountLabel}</span>
+        <span
+          className={`inline-block min-w-[4.5ch] ${
+            amountReady ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+          }`}
+        >
+          {amountText}
+        </span>
       </div>
     );
   }
 
-  const { factorText, amountText, amountReady: ready } = staffByItemShareLineMetaParts({
+  const { factorText, amountText, amountReady } = staffByItemShareLineMetaParts({
     qtyLabel,
     unitPriceLabel,
     amount,
   });
   return (
-    <div className="mt-1 flex flex-nowrap items-baseline gap-x-1.5 text-sm">
-      <span className="tabular-nums text-brand-text-muted">{factorText}</span>
+    <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-sm">
+      <span className="whitespace-nowrap tabular-nums text-brand-text-muted">{factorText}</span>
       <span className="text-brand-border" aria-hidden>
         =
       </span>
       <span
         className={`inline-block min-w-[4.5ch] tabular-nums ${
-          ready ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+          amountReady ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
         }`}
       >
         {amountText}
       </span>
+      {unitHint ? (
+        <span className="whitespace-nowrap text-[12px] text-brand-text-muted">· {unitHint}</span>
+      ) : null}
     </div>
   );
 }
@@ -319,49 +328,8 @@ export function StaffByItemSplitWorkbench({
   onRecordShareOmit,
   onClearShareOmit,
 }: Props) {
-  /** Last-committed menu qty per row — pool/meta hold while draft digits are mid-edit. */
-  const [menuQtyHoldByRowId, setMenuQtyHoldByRowId] = useState<
-    Map<string, StaffMenuQtyHold>
-  >(() => new Map());
-  const allocationsRef = useRef(byItemAllocations);
-  allocationsRef.current = byItemAllocations;
-
-  useEffect(() => {
-    setMenuQtyHoldByRowId((prev) => {
-      const liveIds = new Set<string>();
-      let changed = false;
-      const next = new Map(prev);
-      for (const rows of Object.values(byItemAllocations)) {
-        for (const row of rows) {
-          liveIds.add(row.id);
-          if (!row.name.trim() || row.paidLocked) continue;
-          if (!parseConsumerRowQty(row)) continue;
-          const hold: StaffMenuQtyHold = {
-            qtyWhole: row.qtyWhole,
-            qtyNum: row.qtyNum,
-            qtyDen: row.qtyDen,
-          };
-          const prior = next.get(row.id);
-          if (
-            prior &&
-            prior.qtyWhole === hold.qtyWhole &&
-            prior.qtyNum === hold.qtyNum &&
-            prior.qtyDen === hold.qtyDen
-          ) {
-            continue;
-          }
-          next.set(row.id, hold);
-          changed = true;
-        }
-      }
-      for (const id of Array.from(next.keys())) {
-        if (liveIds.has(id)) continue;
-        next.delete(id);
-        changed = true;
-      }
-      return changed ? next : prev;
-    });
-  }, [byItemAllocations]);
+  /** Pool line whose cut picker strip is open (only while the line is free). */
+  const [unitPickLineKey, setUnitPickLineKey] = useState<string | null>(null);
 
   const peopleFromAlloc = useMemo(
     () => staffByItemPeopleFromAllocations(byItemAllocations),
@@ -450,16 +418,8 @@ export function StaffByItemSplitWorkbench({
         allocations: byItemAllocations,
         lang,
         itemCodeByMenuId,
-        menuQtyHoldByRowId,
       }),
-    [
-      byItemAllocations,
-      itemCodeByMenuId,
-      lang,
-      lineSpecs,
-      menuQtyHoldByRowId,
-      orderLines,
-    ],
+    [byItemAllocations, itemCodeByMenuId, lang, lineSpecs, orderLines],
   );
 
   const orderLineByKey = useMemo(
@@ -469,15 +429,9 @@ export function StaffByItemSplitWorkbench({
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
 
-  /** Hold-aware rows for chip/estimate money while inputs bind draft qty. */
-  const moneyAllocations = useMemo(
-    () => applyStaffMenuQtyHoldToAllocations(byItemAllocations, menuQtyHoldByRowId),
-    [byItemAllocations, menuQtyHoldByRowId],
-  );
-
   /** Sole obligation source for chip amounts + current estimate / collect. */
   const splitResults = useMemo(() => {
-    const allocations = buildByItemAllocationsFromRows(lineSpecs, moneyAllocations);
+    const allocations = buildByItemAllocationsFromRows(lineSpecs, byItemAllocations);
     const lines = orderLines.map((item) =>
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
@@ -487,7 +441,7 @@ export function StaffByItemSplitWorkbench({
       personOrder: people.map((p) => p.name),
       personPartyIds: people.map((p) => p.partyId),
     });
-  }, [lang, lineSpecs, moneyAllocations, orderLines, people]);
+  }, [lang, lineSpecs, byItemAllocations, orderLines, people]);
 
   /**
    * Serial collect handoff only when cashier did not pick a chip to inspect.
@@ -538,7 +492,6 @@ export function StaffByItemSplitWorkbench({
         allocations: byItemAllocations,
         lang,
         itemCodeByMenuId,
-        menuQtyHoldByRowId,
       }),
     [
       byItemAllocations,
@@ -547,7 +500,6 @@ export function StaffByItemSplitWorkbench({
       itemCodeByMenuId,
       lang,
       lineSpecs,
-      menuQtyHoldByRowId,
       orderLines,
     ],
   );
@@ -665,12 +617,18 @@ export function StaffByItemSplitWorkbench({
         buffet: params.buffet,
       }),
     );
-    setMenuQtyHoldByRowId((prev) => {
-      if (!prev.has(params.rowId)) return prev;
-      const next = new Map(prev);
-      next.delete(params.rowId);
-      return next;
-    });
+  };
+
+  /** Pool-return (mirror of the pool buttons): a row left empty is removed and omitted. */
+  const applyShareReturn = (
+    lineKey: string,
+    result: { allocations: Record<string, ByItemConsumerRow[]>; removed: boolean; ticketKey: string | null } | null,
+  ) => {
+    if (!result) return;
+    if (result.removed && result.ticketKey && onRecordShareOmit) {
+      onRecordShareOmit(lineKey, result.ticketKey);
+    }
+    applyAlloc(result.allocations);
   };
 
   const rowForShare = (share: (typeof shares)[number]): ByItemConsumerRow | null => {
@@ -752,7 +710,6 @@ export function StaffByItemSplitWorkbench({
                       lineSpecs,
                       personName: person.name,
                       partyId: person.partyId,
-                      menuQtyHoldByRowId,
                     }),
                   );
                 }}
@@ -770,116 +727,163 @@ export function StaffByItemSplitWorkbench({
             ) : (
               visiblePool.map((line) => {
                 const catalog = orderLineByKey[line.key];
+                const pickingUnit = unitPickLineKey === line.key;
+                /** Take one share from the pool for the current person (menu / buffet alike). */
+                const give = (
+                  write: (person: StaffByItemRailPerson) => Record<string, ByItemConsumerRow[]> | null,
+                ) => {
+                  const person = ensureNamed();
+                  if (!person) return;
+                  clearOmitForPersonLine(line.key, person);
+                  applyAlloc(write(person));
+                  setUnitPickLineKey(null);
+                };
                 return (
                 <div
                   key={line.key}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-brand-border px-2.5 py-2"
+                  className="rounded-lg border border-brand-border px-2.5 py-2"
                 >
-                  <MenuItemListThumb
-                    item={{
-                      image_url: catalog ? imageUrlByMenuId[catalog.id] ?? null : null,
-                      emoji: catalog?.emoji ?? '',
-                    }}
-                  />
-                  <StaffByItemPoolLineIdentity
-                    label={line.label}
-                    unitPriceLabel={line.unitPriceLabel}
-                    remainingText={`${labels.remainingPrefix} ${line.remainingLabel}`}
-                  />
-                  <div className="flex shrink-0 gap-2.5">
-                    {line.mode === 'menu' ? (
-                      <>
-                        <StaffByItemPoolActionButton
-                          variant="ghost"
-                          disabled={poolAddDisabled || !line.canAddFraction}
-                          onClick={() => {
-                            const person = ensureNamed();
-                            if (!person) return;
-                            clearOmitForPersonLine(line.key, person);
-                            applyAlloc(
-                              addMenuFractionShareToPerson({
-                                allocations: byItemAllocations,
-                                lineSpecs,
-                                lineKey: line.key,
-                                personName: person.name,
-                                partyId: person.partyId,
-                                denominator: line.fractionDenominator,
-                                menuQtyHoldByRowId,
-                              }),
-                            );
-                          }}
-                        >
-                          {labels.poolAddFraction(line.fractionDenominator)}
-                        </StaffByItemPoolActionButton>
-                        <StaffByItemPoolActionButton
-                          variant="primary"
-                          disabled={poolAddDisabled || !line.canAddWhole}
-                          onClick={() => {
-                            const person = ensureNamed();
-                            if (!person) return;
-                            clearOmitForPersonLine(line.key, person);
-                            applyAlloc(
-                              addWholeShareToPerson({
-                                allocations: byItemAllocations,
-                                lineSpecs,
-                                lineKey: line.key,
-                                personName: person.name,
-                                partyId: person.partyId,
-                                menuQtyHoldByRowId,
-                              }),
-                            );
-                          }}
-                        >
-                          {labels.poolAddWhole}
-                        </StaffByItemPoolActionButton>
-                      </>
-                    ) : (
-                      <>
-                        <StaffByItemPoolActionButton
-                          variant="primary"
-                          disabled={poolAddDisabled || !line.canAddAdult}
-                          onClick={() => {
-                            const person = ensureNamed();
-                            if (!person) return;
-                            clearOmitForPersonLine(line.key, person);
-                            applyAlloc(
-                              addBuffetSeatToPerson({
-                                allocations: byItemAllocations,
-                                lineSpecs,
-                                lineKey: line.key,
-                                personName: person.name,
-                                partyId: person.partyId,
-                                guestType: 'adult',
-                              }),
-                            );
-                          }}
-                        >
-                          {labels.poolAddAdult}
-                        </StaffByItemPoolActionButton>
-                        <StaffByItemPoolActionButton
-                          variant="ghost"
-                          disabled={poolAddDisabled || !line.canAddChild}
-                          onClick={() => {
-                            const person = ensureNamed();
-                            if (!person) return;
-                            clearOmitForPersonLine(line.key, person);
-                            applyAlloc(
-                              addBuffetSeatToPerson({
-                                allocations: byItemAllocations,
-                                lineSpecs,
-                                lineKey: line.key,
-                                personName: person.name,
-                                partyId: person.partyId,
-                                guestType: 'child',
-                              }),
-                            );
-                          }}
-                        >
-                          {labels.poolAddChild}
-                        </StaffByItemPoolActionButton>
-                      </>
-                    )}
+                  <div className="flex items-center justify-between gap-2">
+                    <MenuItemListThumb
+                      item={{
+                        image_url: catalog ? imageUrlByMenuId[catalog.id] ?? null : null,
+                        emoji: catalog?.emoji ?? '',
+                      }}
+                    />
+                    <StaffByItemPoolLineIdentity
+                      label={line.label}
+                      unitPriceLabel={line.unitPriceLabel}
+                      remainingText={`${labels.remainingPrefix} ${line.remainingLabel}${
+                        line.fractionUnit != null
+                          ? ` · ${labels.unitLocked(line.fractionUnit)}`
+                          : ''
+                      }`}
+                    />
+                    <div className="flex shrink-0 gap-2.5">
+                      {line.mode === 'menu' ? (
+                        <>
+                          <StaffByItemPoolActionButton
+                            variant="primary"
+                            disabled={poolAddDisabled || !line.canAddWhole}
+                            onClick={() =>
+                              give((person) =>
+                                addWholeShareToPerson({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: line.key,
+                                  personName: person.name,
+                                  partyId: person.partyId,
+                                }),
+                              )
+                            }
+                          >
+                            {labels.poolAddWhole}
+                          </StaffByItemPoolActionButton>
+                          <StaffByItemPoolActionButton
+                            variant="ghost"
+                            expanded={line.fractionUnit == null ? pickingUnit : undefined}
+                            disabled={poolAddDisabled || line.fractionUnitChoices.length === 0}
+                            onClick={() => {
+                              if (line.fractionUnit == null) {
+                                setUnitPickLineKey(pickingUnit ? null : line.key);
+                                return;
+                              }
+                              give((person) =>
+                                addMenuFractionShareToPerson({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: line.key,
+                                  personName: person.name,
+                                  partyId: person.partyId,
+                                  unitDen: line.fractionUnit!,
+                                }),
+                              );
+                            }}
+                          >
+                            {labels.poolAddFraction(line.fractionUnit ?? 2)}
+                          </StaffByItemPoolActionButton>
+                        </>
+                      ) : (
+                        <>
+                          <StaffByItemPoolActionButton
+                            variant="primary"
+                            disabled={poolAddDisabled || !line.canAddAdult}
+                            onClick={() =>
+                              give((person) =>
+                                addBuffetSeatToPerson({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: line.key,
+                                  personName: person.name,
+                                  partyId: person.partyId,
+                                  guestType: 'adult',
+                                }),
+                              )
+                            }
+                          >
+                            {labels.poolAddAdult}
+                          </StaffByItemPoolActionButton>
+                          <StaffByItemPoolActionButton
+                            variant="ghost"
+                            disabled={poolAddDisabled || !line.canAddChild}
+                            onClick={() =>
+                              give((person) =>
+                                addBuffetSeatToPerson({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: line.key,
+                                  personName: person.name,
+                                  partyId: person.partyId,
+                                  guestType: 'child',
+                                }),
+                              )
+                            }
+                          >
+                            {labels.poolAddChild}
+                          </StaffByItemPoolActionButton>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  {pickingUnit && line.fractionUnit == null ? (
+                    <div
+                      className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-t border-dashed border-brand-border pt-2"
+                      data-staff-by-item-unit-strip={line.key}
+                    >
+                      <span className="text-[12px] text-brand-text-muted">{labels.poolPickUnit}</span>
+                      <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                        {line.fractionUnitChoices.map((unit) => (
+                          <button
+                            key={unit}
+                            type="button"
+                            className={`h-8 min-w-12 rounded-full border border-brand-border bg-brand-card px-3 text-sm font-semibold text-brand-text hover:border-brand-gold/60 ${buttonPressReliefCompactClass}`}
+                            onClick={() =>
+                              give((person) =>
+                                addMenuFractionShareToPerson({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: line.key,
+                                  personName: person.name,
+                                  partyId: person.partyId,
+                                  unitDen: unit,
+                                }),
+                              )
+                            }
+                          >
+                            1/{unit}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          aria-label={labels.poolCancelPick}
+                          className={`h-8 w-8 rounded-full border border-brand-border text-brand-text-muted ${buttonPressReliefCompactClass}`}
+                          onClick={() => setUnitPickLineKey(null)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 );
               })
@@ -923,23 +927,14 @@ export function StaffByItemSplitWorkbench({
                   if (!row) return null;
                   const shareLocked = Boolean(row.paidLocked);
                   const shareDisabled = disabled || shareLocked;
-                  const menuSpec = lineSpecs.find((line) => line.key === share.lineKey);
-                  const over =
-                    share.mode === 'menu'
-                    && menuSpec?.mode === 'menu'
-                    && isRowQtyOverAllocated(
-                      row,
-                      byItemAllocations[share.lineKey] ?? [],
-                      menuSpec.lineQty,
-                    );
                   return (
                     <div
                       key={`${share.lineKey}-${share.rowId}`}
-                      className={`flex items-center justify-between gap-2 rounded-lg border-b border-brand-border/70 px-1.5 py-2 last:border-0 ${
+                      className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-2 rounded-lg border-b border-brand-border/70 px-1.5 py-2 last:border-0 ${
                         shareLocked ? 'bg-brand-bg/80 opacity-80' : ''
                       }`}
                     >
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-[9rem] flex-1">
                         {share.mode === 'buffet' ? (
                           <StaffByItemNameUnitRow
                             label={share.label}
@@ -964,128 +959,100 @@ export function StaffByItemSplitWorkbench({
                           qtyLabel={share.qtyLabel}
                           unitPriceLabel={share.unitPriceLabel}
                           amount={share.amount}
-                          amountReady={
-                            share.mode === 'buffet'
-                              ? Boolean(
-                                  (row.adultQty ?? '').trim() || (row.childQty ?? '').trim(),
-                                )
-                              : share.qtyLabel !== '—'
+                          headcountLabel={share.headcountLabel}
+                          unitHint={
+                            share.mode === 'menu' && share.fractionUnit != null
+                              ? labels.unitLocked(share.fractionUnit)
+                              : undefined
                           }
                         />
                       </div>
-                      <div className="flex shrink-0 flex-nowrap items-center gap-1">
+                      <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-2.5">
                         {share.mode === 'menu' ? (
-                          <ByItemQtyInput
-                            row={row}
-                            labels={labels.qtyParts}
-                            overAllocated={over}
-                            disabled={shareDisabled}
-                            denDisabled={byItemMenuQtyDenReadOnly(
-                              byItemAllocations[share.lineKey] ?? [],
-                            )}
-                            onChange={(patch) => {
-                              applyAlloc(
-                                setPersonMenuShareQtyFields({
-                                  allocations: byItemAllocations,
-                                  lineSpecs,
-                                  lineKey: share.lineKey,
-                                  rowId: share.rowId,
-                                  patch,
-                                }),
-                              );
-                            }}
-                            onCommit={() => {
-                              const committed = commitStaffMenuShareQtyEdit({
-                                allocations: allocationsRef.current,
-                                lineSpecs,
-                                lineKey: share.lineKey,
-                                rowId: share.rowId,
-                              });
-                              if (!committed) return;
-                              if (committed.removed) {
-                                if (committed.ticketKey && onRecordShareOmit) {
-                                  onRecordShareOmit(share.lineKey, committed.ticketKey);
-                                }
-                                applyAlloc(committed.allocations);
-                                setMenuQtyHoldByRowId((prev) => {
-                                  if (!prev.has(share.rowId)) return prev;
-                                  const next = new Map(prev);
-                                  next.delete(share.rowId);
-                                  return next;
-                                });
-                                return;
+                          <>
+                            <StaffByItemPoolActionButton
+                              variant="primary"
+                              direction="out"
+                              disabled={shareDisabled || !share.canReturnWhole}
+                              onClick={() =>
+                                applyShareReturn(
+                                  share.lineKey,
+                                  returnMenuShareToPool({
+                                    allocations: byItemAllocations,
+                                    lineSpecs,
+                                    lineKey: share.lineKey,
+                                    rowId: share.rowId,
+                                    kind: 'whole',
+                                  }),
+                                )
                               }
-                              if (committed.hold) {
-                                setMenuQtyHoldByRowId((prev) => {
-                                  const prior = prev.get(share.rowId);
-                                  if (
-                                    prior &&
-                                    prior.qtyWhole === committed.hold!.qtyWhole &&
-                                    prior.qtyNum === committed.hold!.qtyNum &&
-                                    prior.qtyDen === committed.hold!.qtyDen
-                                  ) {
-                                    return prev;
-                                  }
-                                  const next = new Map(prev);
-                                  next.set(share.rowId, committed.hold!);
-                                  return next;
-                                });
+                            >
+                              {labels.poolAddWhole}
+                            </StaffByItemPoolActionButton>
+                            <StaffByItemPoolActionButton
+                              variant="ghost"
+                              direction="out"
+                              disabled={shareDisabled || !share.canReturnFraction}
+                              onClick={() =>
+                                applyShareReturn(
+                                  share.lineKey,
+                                  returnMenuShareToPool({
+                                    allocations: byItemAllocations,
+                                    lineSpecs,
+                                    lineKey: share.lineKey,
+                                    rowId: share.rowId,
+                                    kind: 'fraction',
+                                  }),
+                                )
                               }
-                            }}
-                          />
+                            >
+                              {labels.poolAddFraction(share.fractionUnit ?? 2)}
+                            </StaffByItemPoolActionButton>
+                          </>
                         ) : (
-                          <div className="flex flex-nowrap items-center gap-1 text-[12px]">
-                            <label className="flex flex-nowrap items-center gap-0.5">
-                              <span className="shrink-0 text-brand-text-muted">
-                                {labels.addAdult}
-                              </span>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                disabled={shareDisabled}
-                                value={row.adultQty ?? ''}
-                                onChange={(e) => {
-                                  applyAlloc(
-                                    setPersonBuffetShareCounts({
-                                      allocations: byItemAllocations,
-                                      lineSpecs,
-                                      lineKey: share.lineKey,
-                                      rowId: share.rowId,
-                                      adultQty: e.target.value.replace(/\D/g, '').slice(0, 3),
-                                      childQty: row.childQty ?? '',
-                                    }),
-                                  );
-                                }}
-                                className="w-8 rounded border border-brand-border px-1 py-0.5 text-center"
-                              />
-                            </label>
-                            <label className="flex flex-nowrap items-center gap-0.5">
-                              <span className="shrink-0 text-brand-text-muted">
-                                {labels.addChild}
-                              </span>
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                disabled={shareDisabled}
-                                value={row.childQty ?? ''}
-                                onChange={(e) => {
-                                  applyAlloc(
-                                    setPersonBuffetShareCounts({
-                                      allocations: byItemAllocations,
-                                      lineSpecs,
-                                      lineKey: share.lineKey,
-                                      rowId: share.rowId,
-                                      adultQty: row.adultQty ?? '',
-                                      childQty: e.target.value.replace(/\D/g, '').slice(0, 3),
-                                    }),
-                                  );
-                                }}
-                                className="w-8 rounded border border-brand-border px-1 py-0.5 text-center"
-                              />
-                            </label>
-                          </div>
+                          <>
+                            <StaffByItemPoolActionButton
+                              variant="primary"
+                              direction="out"
+                              disabled={shareDisabled || !share.canReturnAdult}
+                              onClick={() =>
+                                applyShareReturn(
+                                  share.lineKey,
+                                  returnBuffetSeatToPool({
+                                    allocations: byItemAllocations,
+                                    lineSpecs,
+                                    lineKey: share.lineKey,
+                                    rowId: share.rowId,
+                                    guestType: 'adult',
+                                  }),
+                                )
+                              }
+                            >
+                              {labels.poolAddAdult}
+                            </StaffByItemPoolActionButton>
+                            <StaffByItemPoolActionButton
+                              variant="ghost"
+                              direction="out"
+                              disabled={shareDisabled || !share.canReturnChild}
+                              onClick={() =>
+                                applyShareReturn(
+                                  share.lineKey,
+                                  returnBuffetSeatToPool({
+                                    allocations: byItemAllocations,
+                                    lineSpecs,
+                                    lineKey: share.lineKey,
+                                    rowId: share.rowId,
+                                    guestType: 'child',
+                                  }),
+                                )
+                              }
+                            >
+                              {labels.poolAddChild}
+                            </StaffByItemPoolActionButton>
+                          </>
                         )}
                         <RowRemoveIconButton
+                          large
                           removable={!shareDisabled}
                           ariaLabel={labels.remove}
                           onRemove={() => {

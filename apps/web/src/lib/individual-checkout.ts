@@ -18,6 +18,7 @@ import {
   byItemSplitLineFromOrderLine,
   type BillSplitOrderLine,
 } from '@/lib/bill-split-by-item-lines';
+import { fractionUnitConflictLineKeys } from '@/lib/by-item-fraction-unit';
 import type { IndividualCheckoutSignalItem } from '@/lib/individual-call-notice';
 import { splitPersonKey } from '@/lib/split-person-identity';
 import { splitPartyKey, splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
@@ -38,6 +39,7 @@ export type IndividualTicketInfo = {
 /** Sole error vocabulary for call/unlock (API body `error`). */
 export type IndividualCheckoutErrorCode =
   | 'claim_conflict'
+  | 'by_item_unit_mismatch'
   | 'name_taken'
   | 'empty_ticket'
   | 'invalid_ticket'
@@ -57,8 +59,13 @@ type IndividualCallIssue =
   | { ok: true }
   | {
       ok: false;
-      code: 'claim_conflict' | 'name_taken' | 'empty_ticket' | 'invalid_ticket';
-      /** Line keys whose claimed qty exceeds what is left (claim_conflict). */
+      code:
+        | 'claim_conflict'
+        | 'by_item_unit_mismatch'
+        | 'name_taken'
+        | 'empty_ticket'
+        | 'invalid_ticket';
+      /** Line keys whose claimed qty exceeds what is left (claim_conflict) or whose fraction unit differs (by_item_unit_mismatch). */
       lineKeys?: string[];
       /** Display names that collide with another unpaid ticket (name_taken). */
       names?: string[];
@@ -152,6 +159,7 @@ export function mergeIndividualTickets(params: {
  * - the call is exactly one ticket and it claims at least one positive share
  * - an unpaid name may not be used by two different tickets (paid tickets do not block)
  * - no dish is claimed beyond its qty (first-come: the stored plan already holds earlier claims)
+ * - a dish this ticket claims is cut one way (first-come unit; see `by-item-fraction-unit`)
  */
 export function validateIndividualCall(params: {
   lineSpecs: ReadonlyArray<ByItemLineSpec>;
@@ -199,6 +207,16 @@ export function validateIndividualCall(params: {
     if (status.kind === 'over' || status.kind === 'buffet_over') overLines.push(spec.key);
   }
   if (overLines.length > 0) return { ok: false, code: 'claim_conflict', lineKeys: overLines };
+
+  const myLineKeys = new Set(
+    persons
+      .filter((person) => myKeys.includes(personTicketKey(person)))
+      .flatMap((person) => (person.item_shares ?? []).map((share) => share.key)),
+  );
+  const unitLines = fractionUnitConflictLineKeys(persons, myLineKeys);
+  if (unitLines.length > 0) {
+    return { ok: false, code: 'by_item_unit_mismatch', lineKeys: unitLines };
+  }
 
   return { ok: true };
 }

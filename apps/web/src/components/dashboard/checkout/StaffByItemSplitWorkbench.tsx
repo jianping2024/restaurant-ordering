@@ -30,6 +30,7 @@ import {
 } from '@/lib/checkout-split-math';
 import { splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import {
+  type StaffByItemPersonShare,
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
@@ -248,6 +249,108 @@ function StaffByItemShareLineMeta({
       {unitHint ? (
         <span className="whitespace-nowrap text-[12px] text-brand-text-muted">· {unitHint}</span>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Sole share-row identity (name/unit + `qty × unit = amount` meta + paid badge) —
+ * the editable share panel and the read-only {@link StaffByItemPersonShareSummary} both render this.
+ */
+function StaffByItemShareIdentity({
+  share,
+  locked,
+  labels,
+}: {
+  share: StaffByItemPersonShare;
+  locked: boolean;
+  labels: Pick<StaffByItemWorkbenchLabels, 'paidShareBadge' | 'unitLocked'>;
+}) {
+  return (
+    <>
+      {share.mode === 'buffet' ? (
+        <StaffByItemNameUnitRow
+          label={share.label}
+          unitPriceLabel={share.unitPriceLabel}
+          lockedBadge={locked ? labels.paidShareBadge : undefined}
+        />
+      ) : (
+        <div className="truncate text-sm text-brand-text" title={share.label}>
+          {share.label}
+          {locked ? (
+            <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
+              · {labels.paidShareBadge}
+            </span>
+          ) : null}
+        </div>
+      )}
+      <StaffByItemShareLineMeta
+        mode={share.mode}
+        qtyLabel={share.qtyLabel}
+        unitPriceLabel={share.unitPriceLabel}
+        amount={share.amount}
+        headcountLabel={share.headcountLabel}
+        unitHint={
+          share.mode === 'menu' && share.fractionUnit != null
+            ? labels.unitLocked(share.fractionUnit)
+            : undefined
+        }
+      />
+    </>
+  );
+}
+
+/** Read-only list of one person's allocated dishes (phone「分单结果」row detail). */
+export function StaffByItemPersonShareSummary({
+  personName,
+  partyId,
+  lang,
+  lineSpecs,
+  orderLines,
+  byItemAllocations,
+  itemCodeByMenuId,
+  labels,
+}: {
+  personName: string;
+  partyId?: string;
+  lang: UILanguage;
+  lineSpecs: ByItemLineSpec[];
+  orderLines: BillSplitOrderLine[];
+  byItemAllocations: Record<string, ByItemConsumerRow[]>;
+  itemCodeByMenuId?: Record<string, string>;
+  labels: Pick<StaffByItemWorkbenchLabels, 'shareEmpty' | 'paidShareBadge' | 'unitLocked'>;
+}) {
+  const shares = useMemo(
+    () =>
+      staffByItemPersonShares({
+        personName,
+        partyId,
+        lineSpecs,
+        orderLines,
+        allocations: byItemAllocations,
+        lang,
+        itemCodeByMenuId,
+      }),
+    [byItemAllocations, itemCodeByMenuId, lang, lineSpecs, orderLines, partyId, personName],
+  );
+
+  if (shares.length === 0) {
+    return <p className="px-1 py-2 text-[13px] text-brand-text-muted">{labels.shareEmpty}</p>;
+  }
+  return (
+    <div>
+      {shares.map((share) => {
+        const row = (byItemAllocations[share.lineKey] ?? []).find((r) => r.id === share.rowId);
+        if (!row) return null;
+        return (
+          <div
+            key={`${share.lineKey}-${share.rowId}`}
+            className="border-b border-brand-border/70 px-1.5 py-2 last:border-0"
+          >
+            <StaffByItemShareIdentity share={share} locked={Boolean(row.paidLocked)} labels={labels} />
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -937,36 +1040,10 @@ export function StaffByItemSplitWorkbench({
                       }`}
                     >
                       <div className="min-w-[9rem] flex-1">
-                        {share.mode === 'buffet' ? (
-                          <StaffByItemNameUnitRow
-                            label={share.label}
-                            unitPriceLabel={share.unitPriceLabel}
-                            lockedBadge={shareLocked ? labels.paidShareBadge : undefined}
-                          />
-                        ) : (
-                          <div
-                            className="truncate text-sm text-brand-text"
-                            title={share.label}
-                          >
-                            {share.label}
-                            {shareLocked ? (
-                              <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
-                                · {labels.paidShareBadge}
-                              </span>
-                            ) : null}
-                          </div>
-                        )}
-                        <StaffByItemShareLineMeta
-                          mode={share.mode}
-                          qtyLabel={share.qtyLabel}
-                          unitPriceLabel={share.unitPriceLabel}
-                          amount={share.amount}
-                          headcountLabel={share.headcountLabel}
-                          unitHint={
-                            share.mode === 'menu' && share.fractionUnit != null
-                              ? labels.unitLocked(share.fractionUnit)
-                              : undefined
-                          }
+                        <StaffByItemShareIdentity
+                          share={share}
+                          locked={shareLocked}
+                          labels={labels}
                         />
                       </div>
                       <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-2.5">

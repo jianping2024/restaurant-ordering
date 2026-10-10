@@ -92,24 +92,34 @@ function parseCollectionRecord(
 }
 
 /**
- * Partial by-item pool must not close the table. Fail closed when the split
- * cannot be read. Even and a complete by-item pool return false.
+ * By-item partial collect must not close the table and must stamp staff takeover.
+ * Hold when other result rows (not the one being collected) are still unpaid, or the
+ * pool still has unallocated dishes. Fail closed when the split cannot be read.
+ * Even / non-by_item return false.
+ *
+ * `personIndex` is required so the row about to be marked paid is not treated as
+ * "still unpaid" — `p_hold_open` forces `all_paid=false` in SQL.
  */
 export async function shouldHoldCheckoutSessionOpen(params: {
   admin: SupabaseClient;
   restaurantId: string;
   billSplitId: string;
+  /** Result index of the ticket being collected now. */
+  personIndex: number;
 }): Promise<boolean> {
-  const { admin, restaurantId, billSplitId } = params;
+  const { admin, restaurantId, billSplitId, personIndex } = params;
   try {
     const { data, error } = await admin
       .from('bill_splits')
-      .select('split_mode, persons, session_id')
+      .select('split_mode, persons, result, session_id')
       .eq('id', billSplitId)
       .eq('restaurant_id', restaurantId)
       .maybeSingle();
     if (error || !data) return true;
     if (data.split_mode !== 'by_item' || !data.session_id) return false;
+    const result = Array.isArray(data.result) ? (data.result as SplitResult[]) : [];
+    // Other tickets still unpaid after this collect → keep session + stamp takeover.
+    if (result.some((row, index) => index !== personIndex && !row.paid)) return true;
     const orders = await loadCustomerSessionOrders({
       admin,
       restaurantId,

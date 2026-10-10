@@ -1,11 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Sole writer of `bill_splits.staff_checkout_requested_at` (SQL `mark_bill_split_staff_checkout`):
+ * Sole stamp of `bill_splits.staff_checkout_requested_at` (SQL `mark_bill_split_staff_checkout`):
  * staff took over this split's checkout, so it stays in the queue while money is owed
  * even when no called-unpaid ticket exists (e.g. every by-item ticket paid, dishes left).
- * Callers: staff floor 呼叫结账 entry + by-item collect that holds the session open.
- * Cleared only by `resume_table_session_ordering`.
+ * Callers: staff floor 呼叫结账 entry + by-item collect that holds the session open;
+ * SQL `individual_checkout_apply(unlock)` also calls the same RPC when the session has
+ * collected payment and no called-unpaid ticket remains.
+ * Cleared by `resume_table_session_ordering`, or by unlock when nothing was collected.
  */
 export async function markBillSplitStaffCheckout(
   admin: SupabaseClient,

@@ -92,6 +92,7 @@ export async function POST(
     admin: auth.admin,
     restaurantId: auth.restaurantId,
     billSplitId,
+    personIndex,
   });
 
   const result = await confirmBillSplitPayment({

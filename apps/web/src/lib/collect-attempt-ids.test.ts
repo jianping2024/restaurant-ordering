@@ -5,7 +5,7 @@ import { collectAttemptFingerprint, createCollectAttemptIds } from './collect-at
 describe('createCollectAttemptIds', () => {
   const fp = collectAttemptFingerprint({
     billSplitId: 'b1',
-    personIndex: 0,
+    partyId: '11111111-1111-4111-8111-111111111111',
     amount: 10,
     paymentMethod: 'CASH',
   });
@@ -30,7 +30,7 @@ describe('createCollectAttemptIds', () => {
     const ids = createCollectAttemptIds(() => `id-${++n}`);
     const other = collectAttemptFingerprint({
       billSplitId: 'b1',
-      personIndex: 0,
+      partyId: '11111111-1111-4111-8111-111111111111',
       amount: 5,
       paymentMethod: 'CASH',
     });

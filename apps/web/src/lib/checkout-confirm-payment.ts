@@ -20,6 +20,7 @@ import {
   getByItemLineStatusFromShares,
   isByItemLineComplete,
 } from '@/lib/bill-split-by-item';
+import { parseOptionalPartyId, splitPartyKey } from '@/lib/split-party-id';
 
 export {
   applyDiscountToRows,
@@ -60,7 +61,8 @@ type ConfirmBillSplitPaymentRpc = {
   row_name?: string;
   row_amount?: number;
   collected_payment_id?: string | null;
-  confirmed_person_index?: number;
+  confirmed_party_id?: string | null;
+  confirmed_person_index?: number | null;
   payment_method?: string | null;
   newly_paid?: boolean;
   should_print_split?: boolean;
@@ -74,13 +76,19 @@ function parseCollectionRecord(
   if (typeof payload.collected_payment_id !== 'string' || !payload.collected_payment_id) {
     return null;
   }
+  const partyId = parseOptionalPartyId(payload.confirmed_party_id) ?? null;
   const personIndex = payload.confirmed_person_index;
-  if (typeof personIndex !== 'number' || !Number.isInteger(personIndex) || personIndex < 0) {
+  const indexOk =
+    typeof personIndex === 'number' && Number.isInteger(personIndex) && personIndex >= 0
+      ? personIndex
+      : null;
+  if (!partyId && indexOk == null) {
     return null;
   }
   return {
     id: payload.collected_payment_id,
-    person_index: personIndex,
+    party_id: partyId,
+    person_index: indexOk,
     person_name: payload.row_name ?? '',
     amount: Number(payload.row_amount) || 0,
     created_at: new Date().toISOString(),
@@ -96,18 +104,15 @@ function parseCollectionRecord(
  * Hold when other result rows (not the one being collected) are still unpaid, or the
  * pool still has unallocated dishes. Fail closed when the split cannot be read.
  * Even / non-by_item return false.
- *
- * `personIndex` is required so the row about to be marked paid is not treated as
- * "still unpaid" — `p_hold_open` forces `all_paid=false` in SQL.
  */
 export async function shouldHoldCheckoutSessionOpen(params: {
   admin: SupabaseClient;
   restaurantId: string;
   billSplitId: string;
-  /** Result index of the ticket being collected now. */
-  personIndex: number;
+  /** Seat being collected (party_id preferred). */
+  partyId: string;
 }): Promise<boolean> {
-  const { admin, restaurantId, billSplitId, personIndex } = params;
+  const { admin, restaurantId, billSplitId, partyId } = params;
   try {
     const { data, error } = await admin
       .from('bill_splits')
@@ -118,7 +123,10 @@ export async function shouldHoldCheckoutSessionOpen(params: {
     if (error || !data) return true;
     if (data.split_mode !== 'by_item' || !data.session_id) return false;
     const result = Array.isArray(data.result) ? (data.result as SplitResult[]) : [];
-    // Other tickets still unpaid after this collect → keep session + stamp takeover.
+    const want = splitPartyKey(partyId, '');
+    const personIndex = result.findIndex(
+      (row) => splitPartyKey(row.party_id, row.name) === want || row.party_id === partyId,
+    );
     if (result.some((row, index) => index !== personIndex && !row.paid)) return true;
     const orders = await loadCustomerSessionOrders({
       admin,
@@ -143,7 +151,7 @@ export async function confirmBillSplitPayment(params: {
   admin: SupabaseClient;
   restaurantId: string;
   billSplitId: string;
-  personIndex: number;
+  partyId: string;
   paymentMethod: BillSyncPaymentMethod;
   paymentLines?: BillSyncPaymentLine[] | null;
   collectedAmount?: number;
@@ -158,7 +166,7 @@ export async function confirmBillSplitPayment(params: {
     admin,
     restaurantId,
     billSplitId,
-    personIndex,
+    partyId,
     paymentMethod,
     paymentLines = null,
     collectedAmount,
@@ -171,7 +179,7 @@ export async function confirmBillSplitPayment(params: {
   const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
     p_restaurant_id: restaurantId,
     p_bill_split_id: billSplitId,
-    p_person_index: personIndex,
+    p_party_id: partyId,
     p_collected_amount: collectedAmount ?? null,
     p_created_by_user_id: createdByUserId ?? null,
     p_payment_method: paymentMethod,
@@ -203,7 +211,6 @@ export async function confirmBillSplitPayment(params: {
   const result = (payload.result || []) as SplitResult[];
   const allPaid = !!payload.all_paid;
   if (holdSessionOpen && !allPaid) {
-    // By-item dishes still unallocated: keep the split in the queue for the next ticket.
     const marked = await markBillSplitStaffCheckout(admin, restaurantId, billSplitId);
     if (!marked.ok) {
       console.warn('[confirm-payment] mark staff checkout failed', marked.message);
@@ -221,7 +228,6 @@ export async function confirmBillSplitPayment(params: {
   const sessionId =
     typeof payload.session_id === 'string' && payload.session_id ? payload.session_id : null;
 
-  // A replayed retry (newly_paid=false) already wrote its audit on the first attempt.
   if (actor && payload.newly_paid) {
     scheduleRecordAudit(admin, AUDIT_EVENT.PAYMENT_CONFIRMED, {
       restaurantId,

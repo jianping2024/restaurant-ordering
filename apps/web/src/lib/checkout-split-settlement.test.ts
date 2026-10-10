@@ -32,7 +32,7 @@ describe('buildSplitSettlementRows', () => {
   it('marks settled when ledger covers obligation', () => {
     const rows = buildSplitSettlementRows(
       [{ name: '客人 1', amount: 201.27 }],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
     assert.equal(rows[0]?.outstandingAmount, 0);
@@ -42,7 +42,7 @@ describe('buildSplitSettlementRows', () => {
     // Pre-discount 22.45 @ 10% → 20.21; collecting 20.21 must settle (not leave €2.24 partial).
     const rows = buildSplitSettlementRows(
       [{ name: 'J', amount: 22.45 }],
-      [{ id: '1', person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
       10,
     );
     assert.equal(rows[0]?.obligationAmount, 20.21);
@@ -58,8 +58,8 @@ describe('buildSplitSettlementRows', () => {
         { name: 'J', amount: 1.85 },
       ],
       [
-        { id: '1', person_index: 0, person_name: 'John', amount: 20.21, created_at: '', payment_method: null, payment_lines: null },
-        { id: '2', person_index: 1, person_name: 'Tom', amount: 29.7, created_at: '', payment_method: null, payment_lines: null },
+        { id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 20.21, created_at: '', payment_method: null, payment_lines: null },
+        { id: '2', party_id: null, person_index: 1, person_name: 'Tom', amount: 29.7, created_at: '', payment_method: null, payment_lines: null },
       ],
       10,
       57.3,
@@ -82,10 +82,10 @@ describe('buildSplitSettlementRows', () => {
     const rows = buildSplitSettlementRows(
       pre,
       [
-        { id: '1', person_index: 0, person_name: 'John', amount: 17.96, created_at: '', payment_method: null, payment_lines: null },
-        { id: '2', person_index: 1, person_name: 'Tom', amount: 25.37, created_at: '', payment_method: null, payment_lines: null },
-        { id: '3', person_index: 2, person_name: 'Jim', amount: 7.56, created_at: '', payment_method: null, payment_lines: null },
-        { id: '4', person_index: 3, person_name: 'Jimmy', amount: 1.1, created_at: '', payment_method: null, payment_lines: null },
+        { id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 17.96, created_at: '', payment_method: null, payment_lines: null },
+        { id: '2', party_id: null, person_index: 1, person_name: 'Tom', amount: 25.37, created_at: '', payment_method: null, payment_lines: null },
+        { id: '3', party_id: null, person_index: 2, person_name: 'Jim', amount: 7.56, created_at: '', payment_method: null, payment_lines: null },
+        { id: '4', party_id: null, person_index: 3, person_name: 'Jimmy', amount: 1.1, created_at: '', payment_method: null, payment_lines: null },
       ],
       10,
       61.65,
@@ -101,7 +101,7 @@ describe('buildSplitSettlementRows', () => {
   it('without discountRate, same ledger against pre-discount looks partial', () => {
     const rows = buildSplitSettlementRows(
       [{ name: 'J', amount: 22.45 }],
-      [{ id: '1', person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'partial');
     assert.equal(rows[0]?.outstandingAmount, 2.24);
@@ -110,7 +110,7 @@ describe('buildSplitSettlementRows', () => {
   it('shows partial when obligation was inflated after resume merge bug', () => {
     const rows = buildSplitSettlementRows(
       [{ name: '客人 1', amount: 301.9 }],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'partial');
     assert.equal(rows[0]?.outstandingAmount, 100.63);
@@ -123,7 +123,7 @@ describe('buildSplitSettlementRows', () => {
         { name: '客人 2', amount: 201.27 },
         { name: '客人 3', amount: 201.26 },
       ],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
     assert.equal(sumSplitSettlementOutstanding(rows), 402.53);
@@ -156,7 +156,7 @@ describe('splitSettlementCollectAmount', () => {
   it('returns outstanding for partial rows', () => {
     const row = buildSplitSettlementRows(
       [{ name: 'Ana', amount: 27.45 }],
-      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null, payment_lines: null }],
+      [{ id: '1', party_id: null, person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null, payment_lines: null }],
     )[0]!;
     assert.equal(splitSettlementCollectAmount(row), 7.5);
   });

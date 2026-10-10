@@ -2,6 +2,7 @@ import {
   isWholeTablePayerName,
   WHOLE_TABLE_PAYER_KEY,
 } from '@/lib/split-person-label';
+import { mintSplitPartyId, parseOptionalPartyId } from '@/lib/split-party-id';
 import type { BillSplit, SplitMode, SplitPerson, SplitResult } from '@/types';
 
 export const SPLIT_MODES = ['whole_table', 'by_item', 'even'] as const satisfies readonly SplitMode[];
@@ -27,8 +28,9 @@ export function isShapeLockSplitMode(mode: SplitMode): boolean {
   return mode === 'whole_table' || mode === 'even';
 }
 
-export function wholeTableSplitResult(total: number): SplitResult[] {
-  return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total }];
+export function wholeTableSplitResult(total: number, partyId?: string): SplitResult[] {
+  const party_id = parseOptionalPartyId(partyId) ?? mintSplitPartyId();
+  return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total, party_id }];
 }
 
 /** Authoritative whole-table check: persisted mode first, legacy row shape as fallback. */
@@ -39,12 +41,16 @@ export function isWholeTableSplit(split: Pick<BillSplit, 'split_mode' | 'result'
   return isWholeTablePayerName(rows[0]?.name);
 }
 
-export function buildWholeTableCheckoutPayload(total: number): CheckoutRequestPayload {
+export function buildWholeTableCheckoutPayload(
+  total: number,
+  partyId?: string,
+): CheckoutRequestPayload {
   const name = WHOLE_TABLE_PAYER_KEY;
+  const party_id = parseOptionalPartyId(partyId) ?? mintSplitPartyId();
   return {
     splitMode: 'whole_table',
-    persons: [{ name }],
-    result: wholeTableSplitResult(total),
+    persons: [{ name, party_id }],
+    result: wholeTableSplitResult(total, party_id),
     customerNif: null,
   };
 }
@@ -68,8 +74,11 @@ export function normalizeCheckoutRequestPayload(
       options?.authoritativeWholeTableTotal !== undefined
         ? options.authoritativeWholeTableTotal
         : (payload.result[0]?.amount ?? 0);
+    const existingPartyId =
+      parseOptionalPartyId(payload.result[0]?.party_id) ??
+      parseOptionalPartyId(payload.persons[0]?.party_id);
     return {
-      ...buildWholeTableCheckoutPayload(amount),
+      ...buildWholeTableCheckoutPayload(amount, existingPartyId),
       customerNif: payload.customerNif ?? null,
     };
   }

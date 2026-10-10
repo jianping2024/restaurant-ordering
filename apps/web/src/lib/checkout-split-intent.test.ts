@@ -17,31 +17,33 @@ describe('checkout-split-intent', () => {
     assert.equal(checkoutIntentFromDraftSplitMode(null), 'whole_table');
   });
 
-  it('builds whole-table payload with stable payer key', () => {
-    assert.deepEqual(buildWholeTableCheckoutPayload(42.5), {
-      splitMode: 'whole_table',
-      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
-      result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 42.5 }],
-      customerNif: null,
-    });
+  it('builds whole-table payload with stable payer key and party_id', () => {
+    const payload = buildWholeTableCheckoutPayload(42.5);
+    assert.equal(payload.splitMode, 'whole_table');
+    assert.equal(payload.persons[0]?.name, WHOLE_TABLE_PAYER_KEY);
+    assert.equal(payload.result[0]?.name, WHOLE_TABLE_PAYER_KEY);
+    assert.equal(payload.result[0]?.amount, 42.5);
+    assert.equal(payload.persons[0]?.party_id, payload.result[0]?.party_id);
+    assert.match(payload.result[0]?.party_id ?? '', /^[0-9a-f-]{36}$/i);
+    assert.equal(payload.customerNif, null);
   });
 
   it('stamps whole_table amount from authoritative total, not client placeholder', () => {
+    const existingId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const stamped = normalizeCheckoutRequestPayload(
       {
         splitMode: 'whole_table',
-        persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
-        result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 0 }],
+        persons: [{ name: WHOLE_TABLE_PAYER_KEY, party_id: existingId }],
+        result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 0, party_id: existingId }],
         customerNif: '123456789',
       },
       { authoritativeWholeTableTotal: 56.45 },
     );
-    assert.deepEqual(stamped, {
-      splitMode: 'whole_table',
-      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
-      result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 56.45 }],
-      customerNif: '123456789',
-    });
+    assert.equal(stamped.splitMode, 'whole_table');
+    assert.equal(stamped.result[0]?.amount, 56.45);
+    assert.equal(stamped.result[0]?.party_id, existingId);
+    assert.equal(stamped.persons[0]?.party_id, existingId);
+    assert.equal(stamped.customerNif, '123456789');
   });
 
   it('treats persisted whole_table as no draft split mode', () => {
@@ -67,7 +69,11 @@ describe('checkout-split-intent', () => {
   });
 
   it('builds whole-table result rows for draft compute', () => {
-    assert.deepEqual(wholeTableSplitResult(12.5), [{ name: WHOLE_TABLE_PAYER_KEY, amount: 12.5 }]);
+    const rows = wholeTableSplitResult(12.5);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.name, WHOLE_TABLE_PAYER_KEY);
+    assert.equal(rows[0]?.amount, 12.5);
+    assert.match(rows[0]?.party_id ?? '', /^[0-9a-f-]{36}$/i);
   });
 
   it('detects whole_table by mode and legacy row shape', () => {

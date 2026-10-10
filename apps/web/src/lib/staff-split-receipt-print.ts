@@ -16,16 +16,16 @@ export async function requestStaffSplitReceiptPrint(params: {
   receiptVariant?: 'split_payment' | 'final';
 }): Promise<OrderReceiptPrintResult> {
   const { slug, billSplit, payment, amountPaid, receiptVariant = 'split_payment' } = params;
-  if (payment.person_index == null || payment.person_index < 0) {
-    return { ok: false, error: 'invalid_person_index' };
-  }
   return requestOrderReceiptPrint({
     slug,
     tableId: billSplit.table_id,
     sessionId: billSplit.session_id ?? undefined,
     billSplitId: billSplit.id,
     receiptVariant,
-    personIndex: payment.person_index,
+    personIndex:
+      payment.person_index != null && payment.person_index >= 0
+        ? payment.person_index
+        : undefined,
     payerName: payment.person_name,
     personAmount: payment.amount,
     amountPaid: amountPaid ?? payment.amount,

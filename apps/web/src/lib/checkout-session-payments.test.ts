@@ -12,6 +12,7 @@ import {
   resumeCheckoutBlockReason,
   suggestedCollectionAmount,
   sumCollectedByPersonIndex,
+  sumCollectedForResultSeats,
   totalCollectedAmount,
 } from './checkout-session-payments';
 
@@ -38,6 +39,7 @@ describe('parseSessionCollectedPayments', () => {
     const rows = parseSessionCollectedPayments([
       {
         id: 'pay-1',
+        party_id: null,
         person_index: 1,
         person_name: 'John',
         amount: 26.4,
@@ -53,11 +55,11 @@ describe('parseSessionCollectedPayments', () => {
 describe('sumCollectedByPersonIndex', () => {
   it('aggregates by index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
       payment_lines: null },
-      { id: '2', person_index: 0, person_name: 'A', amount: 5, created_at: '', payment_method: null,
+      { id: '2', party_id: null, person_index: 0, person_name: 'A', amount: 5, created_at: '', payment_method: null,
       payment_lines: null },
-      { id: '3', person_index: 1, person_name: 'B', amount: 20, created_at: '', payment_method: null,
+      { id: '3', party_id: null, person_index: 1, person_name: 'B', amount: 20, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     assert.equal(map.get(0), 15);
@@ -66,7 +68,7 @@ describe('sumCollectedByPersonIndex', () => {
 
   it('ignores rows without index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: null, person_name: 'Legacy', amount: 10, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: null, person_name: 'Legacy', amount: 10, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     assert.equal(map.size, 0);
@@ -76,7 +78,7 @@ describe('sumCollectedByPersonIndex', () => {
 describe('suggestedCollectionAmount', () => {
   it('subtracts prior collections for index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'John', amount: 24.45, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 24.45, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     assert.equal(suggestedCollectionAmount(0, 30, map), 5.55);
@@ -86,7 +88,7 @@ describe('suggestedCollectionAmount', () => {
 describe('isSplitRowCollectible', () => {
   it('uses index not name', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 1, person_name: '张三', amount: 20, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 1, person_name: '张三', amount: 20, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     assert.equal(isSplitRowCollectible(30, map, 0), true);
@@ -96,7 +98,7 @@ describe('isSplitRowCollectible', () => {
 
   it('two same names different indices stay independent', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: '张三', amount: 30, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 0, person_name: '张三', amount: 30, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     assert.equal(isSplitRowCollectible(30, map, 0), false);
@@ -107,7 +109,7 @@ describe('isSplitRowCollectible', () => {
 describe('collectibleSplitRowsWithIndex', () => {
   it('includes only indices with balance', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     const pending = collectibleSplitRowsWithIndex(
@@ -141,7 +143,7 @@ describe('collectibleSplitRowsWithIndex', () => {
 describe('reconcileSplitResultPaid', () => {
   it('marks paid when index ledger covers obligation', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'Ana', amount: 20, created_at: '', payment_method: null,
+      { id: '1', party_id: null, person_index: 0, person_name: 'Ana', amount: 20, created_at: '', payment_method: null,
       payment_lines: null },
     ]);
     const rows = reconcileSplitResultPaid(
@@ -185,9 +187,9 @@ describe('totalCollectedAmount', () => {
   it('sums all ledger rows', () => {
     assert.equal(
       totalCollectedAmount([
-        { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
+        { id: '1', party_id: null, person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
       payment_lines: null },
-        { id: '2', person_index: 1, person_name: 'B', amount: 5.5, created_at: '', payment_method: null,
+        { id: '2', party_id: null, person_index: 1, person_name: 'B', amount: 5.5, created_at: '', payment_method: null,
       payment_lines: null },
       ]),
       15.5,
@@ -260,6 +262,7 @@ describe('resumeCheckoutBlockReason', () => {
       resumeCheckoutBlockReason(even, [
         {
           id: 'p1',
+          party_id: null,
           person_index: 0,
           person_name: 'Alice',
           amount: 10,
@@ -279,5 +282,25 @@ describe('omitsSessionResumeOrdering', () => {
     assert.equal(omitsSessionResumeOrdering('whole_table_paid'), false);
     assert.equal(omitsSessionResumeOrdering('individual_session'), true);
     assert.equal(omitsSessionResumeOrdering('even_session'), true);
+  });
+});
+
+
+describe('sumCollectedForResultSeats', () => {
+  const partyA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const partyB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  it('attributes by party_id over index', () => {
+    const map = sumCollectedForResultSeats(
+      [
+        { id: '1', party_id: partyA, person_index: 9, person_name: 'A', amount: 10, created_at: '', payment_method: null, payment_lines: null },
+        { id: '2', party_id: null, person_index: 1, person_name: 'B', amount: 5, created_at: '', payment_method: null, payment_lines: null },
+      ],
+      [
+        { name: 'A', amount: 10, party_id: partyA },
+        { name: 'B', amount: 5, party_id: partyB },
+      ],
+    );
+    assert.equal(map.get(0), 10);
+    assert.equal(map.get(1), 5);
   });
 });

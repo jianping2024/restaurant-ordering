@@ -117,7 +117,7 @@ describe('confirmBillSplitPayment', () => {
   const baseParams = {
     restaurantId: RESTAURANT_ID,
     billSplitId: BILL_SPLIT_ID,
-    personIndex: 0,
+    partyId: '11111111-1111-4111-8111-111111111111',
     paymentMethod: 'CASH' as const,
     clientRequestId: '11111111-1111-4111-8111-111111111111',
   };
@@ -166,6 +166,7 @@ describe('confirmBillSplitPayment', () => {
         result: [{ name: 'A', amount: 50, paid: true }],
         final_amount: 50,
         collected_payment_id: 'pay-1',
+        confirmed_party_id: '11111111-1111-4111-8111-111111111111',
         confirmed_person_index: 0,
         row_name: 'A',
         row_amount: 50,
@@ -195,7 +196,8 @@ describe('confirmBillSplitPayment', () => {
           result: [{ name: 'A', amount: 50, paid: true }],
           final_amount: 50,
           collected_payment_id: 'pay-1',
-          confirmed_person_index: 0,
+          confirmed_party_id: '11111111-1111-4111-8111-111111111111',
+        confirmed_person_index: 0,
           row_name: 'A',
           row_amount: 50,
         },

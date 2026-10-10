@@ -10,7 +10,7 @@ import {
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   outstandingAmount,
-  sumCollectedByPersonIndex,
+  sumCollectedForResultSeats,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import {
@@ -179,7 +179,10 @@ export function resolveByItemCollectTarget(params: {
     return live?.amount ?? row.amount ?? 0;
   });
   const preDiscountObligation = preAmounts[index] ?? 0;
-  const collectedByIndex = sumCollectedByPersonIndex(params.collectedPayments);
+  const collectedByIndex = sumCollectedForResultSeats(
+    params.collectedPayments,
+    [...params.roster],
+  );
   const obligations = allocateDiscountedSplitObligations(preAmounts, discountRate, {
     billTotalAmount: params.billTotalAmount,
   });

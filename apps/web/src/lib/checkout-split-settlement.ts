@@ -3,7 +3,7 @@ import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import { allocateDiscountedSplitObligations } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
-  sumCollectedByPersonIndex,
+  sumCollectedForResultSeats,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import type { SplitResult } from '@/types';
@@ -40,7 +40,7 @@ export function buildSplitSettlementRows(
   discountRate = 0,
   billTotalAmount?: number,
 ): SplitSettlementRow[] {
-  const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
+  const collectedByIndex = sumCollectedForResultSeats(collectedPayments, resultRows);
   const preAmounts = resultRows.map((row) => row.amount);
   const obligations = allocateDiscountedSplitObligations(preAmounts, discountRate, {
     billTotalAmount,

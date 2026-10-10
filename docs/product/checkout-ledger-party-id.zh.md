@@ -1,6 +1,6 @@
 # 收款台账按人（party_id）定稿方案
 
-> **状态**：方案定稿（未实现）· 2026-10-10  
+> **状态**：已落地 · 2026-10-10  
 > **读者**：产品、开发  
 > **相关**：[`04-business-rules.md`](./04-business-rules.md)「收款台账」；[`by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md)；均摊座位 id 已落地（`even-split-party` / `merge_even_split_result_with_ledger`）
 
@@ -43,7 +43,7 @@
 
 保留现有：
 
-- `person_index int null` — **只作旧行兼容**：无 `party_id` 的历史收款仍靠它认人。新收款以写 `party_id` 为准；新行可不再写下标（也可顺带写，不强制）。**汇总认人不再依赖新行的下标**
+- `person_index int null` — **只作旧行兼容读**：无 `party_id` 的历史收款仍靠它认人。新收款以写 `party_id` 为准；实现可顺带写下标快照（台账展开/小票），**汇总认人不再依赖下标**
 - `person_name text` — 仅展示快照
 
 ### 读「某人已收多少」

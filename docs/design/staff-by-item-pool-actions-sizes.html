@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>按菜分单 · 左侧池操作按钮尺寸稿</title>
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --card: #faf7f2;
+      --border: #d9cfc0;
+      --ink: #3d3429;
+      --muted: #8a7e6e;
+      --gold: #b8956c;
+      --gold-soft: rgba(184, 149, 108, 0.14);
+      --gold-border: rgba(184, 149, 108, 0.45);
+      --navy: #1e2a44;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.4;
+      padding: 28px 20px 64px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 28px;
+      max-width: 720px;
+    }
+    .rules {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 28px;
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 920px;
+    }
+    .rules strong { color: var(--ink); }
+    .rules ul { margin: 8px 0 0; padding-left: 18px; }
+    .rules li { margin: 4px 0; }
+
+    .variant {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      margin-bottom: 18px;
+      max-width: 920px;
+      box-shadow: 0 1px 0 rgba(61, 52, 41, 0.04);
+    }
+    .variant.pick {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+    .variant-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 14px;
+      margin-bottom: 14px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .badge.muted {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .meta code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      background: rgba(61, 52, 41, 0.06);
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: var(--ink);
+    }
+
+    .pool {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      min-height: var(--row-min, 56px);
+    }
+    .thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #f0ebe3;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .identity {
+      flex: 1;
+      min-width: 0;
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* —— Shared action button system —— */
+    .actions {
+      display: flex;
+      flex-shrink: 0;
+      gap: var(--btn-gap, 8px);
+    }
+    .act {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      height: var(--btn-h);
+      width: var(--btn-w); /* 固定宽：四键完全同宽，按最长文案「1/2份 >>」定 */
+      min-width: var(--btn-w);
+      max-width: var(--btn-w);
+      padding: 0;
+      border-radius: var(--btn-radius);
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      font-size: var(--btn-fs);
+      font-weight: 700;
+      line-height: 1;
+      cursor: default;
+      user-select: none;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 rgba(61, 52, 41, 0.04);
+    }
+    .act.primary {
+      border-color: var(--gold-border);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .act .mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 5px;
+      flex-shrink: 0;
+      opacity: 0.72;
+      line-height: 1;
+    }
+    .act .mark svg {
+      display: block;
+      width: 12px;
+      height: 12px;
+    }
+    .act .mark.lg svg {
+      width: 14px;
+      height: 14px;
+    }
+    /* legacy >> (too long — keep only for对照) */
+    .act .chev {
+      margin-left: 4px;
+      font-weight: 700;
+      opacity: 0.75;
+      letter-spacing: -0.08em;
+      font-size: 0.85em;
+    }
+    .act.ghost {
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .icon-grid {
+      display: grid;
+      gap: 14px;
+      max-width: 920px;
+      margin-bottom: 28px;
+    }
+    .icon-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .icon-card.pick {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+    .icon-card h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .icon-card p {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .icon-card .actions { margin-top: 0; }
+
+    /* Size tokens */
+    .s-current {
+      --btn-h: 28px;
+      --btn-w: auto;
+      --btn-fs: 11px;
+      --btn-radius: 8px;
+      --btn-gap: 4px;
+      --row-min: 48px;
+    }
+    .s-a {
+      --btn-h: 36px;
+      --btn-w: 76px;
+      --btn-fs: 13px;
+      --btn-radius: 10px;
+      --btn-gap: 8px;
+      --row-min: 56px;
+    }
+    .s-b {
+      --btn-h: 40px;
+      --btn-w: 84px;
+      --btn-fs: 14px;
+      --btn-radius: 10px;
+      --btn-gap: 8px;
+      --row-min: 60px;
+    }
+    .s-c {
+      --btn-h: 44px;
+      --btn-w: 92px;
+      --btn-fs: 15px;
+      --btn-radius: 12px;
+      --btn-gap: 8px;
+      --row-min: 64px;
+    }
+    .s-d {
+      --btn-h: 48px;
+      --btn-w: 96px;
+      --btn-fs: 15px;
+      --btn-radius: 12px;
+      --btn-gap: 10px;
+      --row-min: 68px;
+    }
+
+    /* Current-only: buffet buttons were smaller / uneven */
+    .s-current .act {
+      width: auto;
+      min-width: 0;
+      max-width: none;
+      padding: 0 8px;
+    }
+    .s-current .act.label {
+      padding: 4px 8px;
+      font-size: 11px;
+      height: auto;
+      font-weight: 600;
+    }
+    .s-current .act.plus {
+      width: 28px;
+      min-width: 28px;
+      max-width: 28px;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      margin-right: 6px;
+      vertical-align: -2px;
+      border: 1px solid var(--border);
+    }
+    .legend .lg-primary::before {
+      background: var(--gold-soft);
+      border-color: var(--gold-border);
+    }
+    .legend .lg-ghost::before { background: #fff; }
+
+    .compare {
+      margin-top: 36px;
+      max-width: 920px;
+    }
+    .compare h2 {
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: rgba(61, 52, 41, 0.04); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    .rec { color: var(--gold); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>按菜分单 · 左侧可点按钮设计稿</h1>
+  <p class="lead">
+    规格已定 <strong>D（固定 96×48）</strong>；文案 <code>1A</code> / <code>1C</code> / <code>1/2份</code> / <code>1份</code>。
+    <code>&gt;&gt;</code> 偏长，下面先挑「点了进右边」的图标；尺寸对照仍在下方。
+  </p>
+
+  <div class="rules">
+    <strong>统一规则</strong>
+    <ul>
+      <li>四键固定同宽同高 <code>96×48</code>，短文案居中。</li>
+      <li>自助餐：<code>1A</code>（主）+ <code>1C</code>（描边）；普通菜：<code>1/2份</code>（描边）+ <code>1份</code>（主）。</li>
+      <li>尾标只表示「分到右侧当前人」，不要抢字、不要拉长按钮。</li>
+    </ul>
+    <div class="legend">
+      <span class="lg-primary">主色：常用操作（1A / 1份）</span>
+      <span class="lg-ghost">描边：次要操作（1C / 1/2份）</span>
+    </div>
+  </div>
+
+  <h2 style="font-size:16px;margin:0 0 12px;max-width:920px">图标方案（均以 D 规格展示）</h2>
+  <div class="icon-grid s-d">
+
+    <div class="icon-card">
+      <h3>I1 · 单箭头 →</h3>
+      <p>最直白「往右」；比 &gt;&gt; 短，字面感偏强。</p>
+      <div class="actions">
+        <span class="act primary">1A<span class="mark">→</span></span>
+        <span class="act ghost">1C<span class="mark">→</span></span>
+        <span class="act ghost">1/2份<span class="mark">→</span></span>
+        <span class="act primary">1份<span class="mark">→</span></span>
+      </div>
+    </div>
+
+    <div class="icon-card pick">
+      <h3>I2 · 细 chevron ›（推荐）</h3>
+      <p>只占一个笔画宽，像列表「进入」；不抢字、不拉长，收银场景也常见。</p>
+      <div class="actions">
+        <span class="act primary">1A<span class="mark" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M4.2 2.2 8 6l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+        <span class="act ghost">1C<span class="mark" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M4.2 2.2 8 6l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+        <span class="act ghost">1/2份<span class="mark" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M4.2 2.2 8 6l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+        <span class="act primary">1份<span class="mark" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M4.2 2.2 8 6l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+      </div>
+    </div>
+
+    <div class="icon-card">
+      <h3>I3 · 实心三角 ▸</h3>
+      <p>方向更硬、辨识强；略偏「媒体播放」语感。</p>
+      <div class="actions">
+        <span class="act primary">1A<span class="mark">▸</span></span>
+        <span class="act ghost">1C<span class="mark">▸</span></span>
+        <span class="act ghost">1/2份<span class="mark">▸</span></span>
+        <span class="act primary">1份<span class="mark">▸</span></span>
+      </div>
+    </div>
+
+    <div class="icon-card">
+      <h3>I4 · 送入右边（箭头 + 竖线）</h3>
+      <p>「从左送进右侧」语义更准；图标稍复杂，远看仍清楚。</p>
+      <div class="actions">
+        <span class="act primary">1A<span class="mark lg" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7h7.2M7.2 3.8 10.5 7 7.2 10.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.8 3.2v7.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>
+        <span class="act ghost">1C<span class="mark lg" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7h7.2M7.2 3.8 10.5 7 7.2 10.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.8 3.2v7.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>
+        <span class="act ghost">1/2份<span class="mark lg" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7h7.2M7.2 3.8 10.5 7 7.2 10.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.8 3.2v7.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>
+        <span class="act primary">1份<span class="mark lg" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M2.5 7h7.2M7.2 3.8 10.5 7 7.2 10.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.8 3.2v7.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></span>
+      </div>
+    </div>
+
+    <div class="icon-card">
+      <h3>I5 · 无尾标，右侧金线</h3>
+      <p>右边一条细金边暗示「往右」；最干净，方向不如箭头一眼懂。</p>
+      <div class="actions">
+        <span class="act primary" style="box-shadow: inset -3px 0 0 var(--gold)">1A</span>
+        <span class="act ghost" style="box-shadow: inset -3px 0 0 var(--gold)">1C</span>
+        <span class="act ghost" style="box-shadow: inset -3px 0 0 var(--gold)">1/2份</span>
+        <span class="act primary" style="box-shadow: inset -3px 0 0 var(--gold)">1份</span>
+      </div>
+    </div>
+
+    <div class="icon-card">
+      <h3>对照 · 旧 &gt;&gt;</h3>
+      <p>你说偏长的那版，仅作对比。</p>
+      <div class="actions">
+        <span class="act primary">1A <span class="chev">>></span></span>
+        <span class="act ghost">1C <span class="chev">>></span></span>
+        <span class="act ghost">1/2份 <span class="chev">>></span></span>
+        <span class="act primary">1份 <span class="chev">>></span></span>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="font-size:16px;margin:0 0 12px;max-width:920px">尺寸对照（尾标暂用旧 &gt;&gt;）</h2>
+
+  <!-- 0 current -->
+  <section class="variant s-current">
+    <div class="variant-head">
+      <span class="badge muted">现状</span>
+      <span class="meta">约 <code>28×28</code> · 「+」与「成人/儿童」规格不一致 · 偏难点</span>
+    </div>
+    <div class="pool">
+      <div class="row">
+        <div class="thumb">🍽</div>
+        <div class="identity">
+          <div class="title">Buffet livre €19.95/A</div>
+          <div class="sub">可分 1A</div>
+        </div>
+        <div class="actions">
+          <span class="act primary label">成人</span>
+          <span class="act ghost label">儿童</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="thumb">💧</div>
+        <div class="identity">
+          <div class="title">001 中水 €1.95</div>
+          <div class="sub">可分 1</div>
+        </div>
+        <div class="actions">
+          <span class="act ghost">1/2</span>
+          <span class="act primary plus">+</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">对照基准：不是候选方案。</p>
+  </section>
+
+  <!-- A -->
+  <section class="variant s-a">
+    <div class="variant-head">
+      <span class="badge">方案 A</span>
+      <span class="meta">固定 <code>76×36</code> · 字 <code>13</code> · 圆角 <code>10</code> · 紧凑</span>
+    </div>
+    <div class="pool">
+      <div class="row">
+        <div class="thumb">🍽</div>
+        <div class="identity">
+          <div class="title">Buffet livre €19.95/A</div>
+          <div class="sub">可分 1A</div>
+        </div>
+        <div class="actions">
+          <span class="act primary">1A <span class="chev">>></span></span>
+          <span class="act ghost">1C <span class="chev">>></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="thumb">💧</div>
+        <div class="identity">
+          <div class="title">001 中水 €1.95</div>
+          <div class="sub">可分 1</div>
+        </div>
+        <div class="actions">
+          <span class="act ghost">1/2份 <span class="chev">>></span></span>
+          <span class="act primary">1份 <span class="chev">>></span></span>
+        </div>
+      </div>
+    </div>
+    <p class="note">适合桌面鼠标为主；手机竖屏仍略紧。</p>
+  </section>
+
+  <!-- B -->
+  <section class="variant s-b">
+    <div class="variant-head">
+      <span class="badge">方案 B</span>
+      <span class="meta">固定 <code>84×40</code> · 字 <code>14</code> · 圆角 <code>10</code></span>
+    </div>
+    <div class="pool">
+      <div class="row">
+        <div class="thumb">🍽</div>
+        <div class="identity">
+          <div class="title">Buffet livre €19.95/A</div>
+          <div class="sub">可分 1A</div>
+        </div>
+        <div class="actions">
+          <span class="act primary">1A <span class="chev">>></span></span>
+          <span class="act ghost">1C <span class="chev">>></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="thumb">💧</div>
+        <div class="identity">
+          <div class="title">001 中水 €1.95</div>
+          <div class="sub">可分 1</div>
+        </div>
+        <div class="actions">
+          <span class="act ghost">1/2份 <span class="chev">>></span></span>
+          <span class="act primary">1份 <span class="chev">>></span></span>
+        </div>
+      </div>
+    </div>
+    <p class="note">推荐默认：比现状明显好点，又不至于把池列表撑得太疏。</p>
+  </section>
+
+  <!-- C -->
+  <section class="variant s-c">
+    <div class="variant-head">
+      <span class="badge">方案 C</span>
+      <span class="meta">固定 <code>92×44</code> · 字 <code>15</code> · 圆角 <code>12</code></span>
+    </div>
+    <div class="pool">
+      <div class="row">
+        <div class="thumb">🍽</div>
+        <div class="identity">
+          <div class="title">Buffet livre €19.95/A</div>
+          <div class="sub">可分 1A</div>
+        </div>
+        <div class="actions">
+          <span class="act primary">1A <span class="chev">>></span></span>
+          <span class="act ghost">1C <span class="chev">>></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="thumb">💧</div>
+        <div class="identity">
+          <div class="title">001 中水 €1.95</div>
+          <div class="sub">可分 1</div>
+        </div>
+        <div class="actions">
+          <span class="act ghost">1/2份 <span class="chev">>></span></span>
+          <span class="act primary">1份 <span class="chev">>></span></span>
+        </div>
+      </div>
+    </div>
+    <p class="note">适合收银/平板竖握；列表会略高一点。</p>
+  </section>
+
+  <!-- D -->
+  <section class="variant s-d pick">
+    <div class="variant-head">
+      <span class="badge">方案 D · 已选</span>
+      <span class="meta">固定 <code>96×48</code> · 字 <code>15</code> · 圆角 <code>12</code> · 四键完全同宽同高</span>
+    </div>
+    <div class="pool">
+      <div class="row">
+        <div class="thumb">🍽</div>
+        <div class="identity">
+          <div class="title">Buffet livre €19.95/A</div>
+          <div class="sub">可分 1A</div>
+        </div>
+        <div class="actions">
+          <span class="act primary">1A <span class="chev">>></span></span>
+          <span class="act ghost">1C <span class="chev">>></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="thumb">💧</div>
+        <div class="identity">
+          <div class="title">001 中水 €1.95</div>
+          <div class="sub">可分 1</div>
+        </div>
+        <div class="actions">
+          <span class="act ghost">1/2份 <span class="chev">>></span></span>
+          <span class="act primary">1份 <span class="chev">>></span></span>
+        </div>
+      </div>
+    </div>
+    <p class="note">高峰期手套/匆忙点按最稳；池列表会更疏，一屏行数更少。</p>
+  </section>
+
+  <div class="compare">
+    <h2>对照表</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>方案</th>
+          <th>固定尺寸（宽×高）</th>
+          <th>字号</th>
+          <th>圆角</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>现状</td>
+          <td>随文案变，不齐</td>
+          <td>混用</td>
+          <td>8</td>
+          <td>对照</td>
+        </tr>
+        <tr>
+          <td>A</td>
+          <td>76×36</td>
+          <td>13</td>
+          <td>10</td>
+          <td>紧凑</td>
+        </tr>
+        <tr>
+          <td>B</td>
+          <td>84×40</td>
+          <td>14</td>
+          <td>10</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>C</td>
+          <td>92×44</td>
+          <td>15</td>
+          <td>12</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="rec">D · 已选</td>
+          <td>96×48</td>
+          <td>15</td>
+          <td>12</td>
+          <td>四键固定同宽同高</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

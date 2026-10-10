@@ -1410,6 +1410,11 @@ export const MESSAGES = {
       staffByItemPoolEmpty: '菜品已分完',
       staffByItemAssignAll: '全部分给当前人',
       staffByItemPaidShare: '已收',
+      /** Left-pool CTAs — fixed chrome; not the right-panel 成人/儿童 field labels. */
+      staffByItemPoolAddAdult: '1A',
+      staffByItemPoolAddChild: '1C',
+      staffByItemPoolAddWhole: '1份',
+      staffByItemPoolAddFraction: '1/{den}份',
       callCheckout: '呼叫结账',
       callCheckoutOperating: '正在打开结账…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -2772,6 +2777,11 @@ export const MESSAGES = {
       staffByItemPoolEmpty: 'All dishes assigned',
       staffByItemAssignAll: 'Assign all to current person',
       staffByItemPaidShare: 'Paid',
+      /** Left-pool CTAs — fixed chrome; not the right-panel adult/child field labels. */
+      staffByItemPoolAddAdult: '1A',
+      staffByItemPoolAddChild: '1C',
+      staffByItemPoolAddWhole: '1 ea',
+      staffByItemPoolAddFraction: '1/{den} ea',
       callCheckout: 'Call checkout',
       callCheckoutOperating: 'Opening checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -4052,6 +4062,11 @@ export const MESSAGES = {
       staffByItemPoolEmpty: 'Todos os pratos atribuidos',
       staffByItemAssignAll: 'Atribuir tudo à pessoa atual',
       staffByItemPaidShare: 'Pago',
+      /** Left-pool CTAs — fixed chrome; not the right-panel adult/child field labels. */
+      staffByItemPoolAddAdult: '1A',
+      staffByItemPoolAddChild: '1C',
+      staffByItemPoolAddWhole: '1 un',
+      staffByItemPoolAddFraction: '1/{den} un',
       callCheckout: 'Chamar conta',
       callCheckoutOperating: 'A abrir checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */

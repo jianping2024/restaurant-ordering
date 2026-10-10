@@ -24,6 +24,10 @@ import {
   CHECKOUT_COLLECT_BUTTON_CLASS,
 } from '@/lib/checkout-amount-type';
 import {
+  STAFF_BY_ITEM_POOL_ACTION_GHOST_CLASS,
+  STAFF_BY_ITEM_POOL_ACTION_PRIMARY_CLASS,
+} from '@/lib/staff-by-item-pool-action';
+import {
   allocateDiscountedSplitObligations,
   resolveCheckoutDiscountedShareDisplay,
 } from '@/lib/checkout-split-math';
@@ -67,8 +71,14 @@ export type StaffByItemWorkbenchLabels = {
   poolEmpty: string;
   /** Sole pool-header bulk: drain remaining dishes + buffet seats to current person. */
   assignAll: string;
+  /** Right-panel buffet qty field labels (成人 / 儿童) — not pool CTAs. */
   addAdult: string;
   addChild: string;
+  /** Sole left-pool CTAs (fixed D chrome + chevron). */
+  poolAddAdult: string;
+  poolAddChild: string;
+  poolAddWhole: string;
+  poolAddFraction: (denominator: number) => string;
   remove: string;
   collect: string;
   paidShareBadge: string;
@@ -101,6 +111,57 @@ function StaffByItemNameUnitRow({
         {unitPriceLabel}
       </span>
     </div>
+  );
+}
+
+/** I2 thin chevron — tap sends share to the right person. */
+function StaffByItemPoolActionChevron() {
+  return (
+    <svg
+      className="h-3 w-3 shrink-0 opacity-70"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M4.2 2.2 8 6l-3.8 3.8"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Sole left-pool action button (1A / 1C / 1/{den}份 / 1份) — fixed D size + chevron.
+ */
+function StaffByItemPoolActionButton({
+  variant,
+  disabled,
+  onClick,
+  children,
+}: {
+  variant: 'primary' | 'ghost';
+  disabled?: boolean;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={
+        variant === 'primary'
+          ? STAFF_BY_ITEM_POOL_ACTION_PRIMARY_CLASS
+          : STAFF_BY_ITEM_POOL_ACTION_GHOST_CLASS
+      }
+      onClick={onClick}
+    >
+      <span>{children}</span>
+      <StaffByItemPoolActionChevron />
+    </button>
   );
 }
 
@@ -222,7 +283,7 @@ type Props = {
   ticketUnlock?: StaffTicketUnlock;
   /** Sole staff delete memory — trash / empty-qty blur commit. */
   onRecordShareOmit?: (lineKey: string, ticketKey: string) => void;
-  /** Clear omit when pool + / 1/N re-adds that ticket×line. */
+  /** Clear omit when pool 1份 / 1/N份 re-adds that ticket×line. */
   onClearShareOmit?: (lineKey: string, ticketKey: string) => void;
 };
 
@@ -724,13 +785,12 @@ export function StaffByItemSplitWorkbench({
                     unitPriceLabel={line.unitPriceLabel}
                     remainingText={`${labels.remainingPrefix} ${line.remainingLabel}`}
                   />
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 gap-2.5">
                     {line.mode === 'menu' ? (
                       <>
-                        <button
-                          type="button"
+                        <StaffByItemPoolActionButton
+                          variant="ghost"
                           disabled={poolAddDisabled || !line.canAddFraction}
-                          className="h-7 min-w-7 rounded-lg border border-brand-border px-1 text-xs font-bold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
@@ -748,12 +808,11 @@ export function StaffByItemSplitWorkbench({
                             );
                           }}
                         >
-                          {`1/${line.fractionDenominator}`}
-                        </button>
-                        <button
-                          type="button"
+                          {labels.poolAddFraction(line.fractionDenominator)}
+                        </StaffByItemPoolActionButton>
+                        <StaffByItemPoolActionButton
+                          variant="primary"
                           disabled={poolAddDisabled || !line.canAddWhole}
-                          className="h-7 w-7 rounded-lg border border-brand-gold/40 bg-brand-gold/10 text-sm font-bold text-brand-gold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
@@ -770,15 +829,14 @@ export function StaffByItemSplitWorkbench({
                             );
                           }}
                         >
-                          +
-                        </button>
+                          {labels.poolAddWhole}
+                        </StaffByItemPoolActionButton>
                       </>
                     ) : (
                       <>
-                        <button
-                          type="button"
+                        <StaffByItemPoolActionButton
+                          variant="primary"
                           disabled={poolAddDisabled || !line.canAddAdult}
-                          className="rounded-lg border border-brand-gold/40 bg-brand-gold/10 px-2 py-1 text-[11px] font-semibold text-brand-gold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
@@ -795,12 +853,11 @@ export function StaffByItemSplitWorkbench({
                             );
                           }}
                         >
-                          {labels.addAdult}
-                        </button>
-                        <button
-                          type="button"
+                          {labels.poolAddAdult}
+                        </StaffByItemPoolActionButton>
+                        <StaffByItemPoolActionButton
+                          variant="ghost"
                           disabled={poolAddDisabled || !line.canAddChild}
-                          className="rounded-lg border border-brand-border px-2 py-1 text-[11px] font-semibold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
@@ -817,8 +874,8 @@ export function StaffByItemSplitWorkbench({
                             );
                           }}
                         >
-                          {labels.addChild}
-                        </button>
+                          {labels.poolAddChild}
+                        </StaffByItemPoolActionButton>
                       </>
                     )}
                   </div>

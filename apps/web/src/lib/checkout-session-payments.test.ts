@@ -234,7 +234,7 @@ describe('resumeCheckoutBlockReason', () => {
     );
   });
 
-  it('blocks session resume for by_item without staff takeover; keeps it when staff took over', () => {
+  it('blocks session resume for every by_item plan (ticket unlock only)', () => {
     const byItem = billSplit({ split_mode: 'by_item' });
     assert.equal(resumeCheckoutBlockReason(byItem, []), 'individual_session');
     assert.equal(
@@ -242,7 +242,7 @@ describe('resumeCheckoutBlockReason', () => {
         { ...byItem, staff_checkout_requested_at: '2026-10-08T12:00:00.000Z' },
         [],
       ),
-      null,
+      'individual_session',
     );
   });
 });

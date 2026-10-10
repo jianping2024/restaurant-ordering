@@ -24,7 +24,6 @@ import { splitPartyKey } from '@/lib/split-party-id';
 import {
   hasConfirmedPerson,
   isByItemPerTicketCheckoutPlan,
-  resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
 } from '@/lib/checkout-session-payments';
 import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-ordering-gate';
@@ -238,9 +237,9 @@ export function CheckoutRequestDetailHost({
     onMutated: onResumeMutated,
     showToast,
     messages: {
-      success: t.resumeOrderingSuccess,
-      failed: t.resumeOrderingFailed,
-      collecting: t.resumeOrderingTicketCollecting,
+      success: t.unlockTicketSuccess,
+      failed: t.unlockTicketFailed,
+      collecting: t.unlockTicketCollecting,
     },
   });
   const isByItemPerTicket = isByItemPerTicketCheckoutPlan(request);
@@ -254,8 +253,8 @@ export function CheckoutRequestDetailHost({
             ),
             unlockingKeys,
             onUnlock: (ticketKey) => void unlockTicket(ticketKey),
-            label: t.resumeOrdering,
-            busyLabel: t.resumeOrderingOperating,
+            label: t.unlockTicket,
+            busyLabel: t.unlockTicketOperating,
           }
         : undefined,
     [getCollectedForSession, isByItemPerTicket, request, t, unlockTicket, unlockingKeys],
@@ -706,7 +705,6 @@ export function CheckoutRequestDetailHost({
     }
   };
 
-  const resumeBlockReason = resumeCheckoutBlockReason(request, collectedPayments);
   const resumeConfirmMessage = useMemo(() => {
     const variant = resumeOrderingConfirmVariant(request, collectedPayments);
     if (variant === 'preserve_by_item') return t.resumeOrderingConfirmPreserveByItem;
@@ -745,7 +743,6 @@ export function CheckoutRequestDetailHost({
         discountLocked={hasConfirmedPerson(request)}
         detailLocked={detailLocked}
         resumeOperating={isResumeMutating}
-        resumeBlockReason={resumeBlockReason}
         showBackButton={showBackButton}
         stickyShellClass={stickyShellClass}
         onBack={onBack}

@@ -238,9 +238,8 @@ export function resumeCheckoutBlockReason(
   split: BillSplit,
   collectedPayments: SessionCollectedPayment[],
 ): ResumeCheckoutBlockReason | null {
-  // By-item without staff takeover: unlock only. Staff takeover keeps session resume
-  // (sole clearer of staff_checkout_requested_at).
-  if (isByItemPerTicketCheckoutPlan(split) && !split.staff_checkout_requested_at) {
+  // By-item: ticket unlock only — never session「恢复点单」in the checkout footer.
+  if (isByItemPerTicketCheckoutPlan(split)) {
     return 'individual_session';
   }
   if (!isWholeTableSplit(split)) return null;

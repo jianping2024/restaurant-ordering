@@ -57,7 +57,10 @@ import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
-import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import {
+  resumeCheckoutBlockReason,
+  type SessionCollectedPayment,
+} from '@/lib/checkout-session-payments';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 
@@ -76,7 +79,6 @@ type Props = {
   discountLocked: boolean;
   detailLocked: boolean;
   resumeOperating: boolean;
-  resumeBlockReason: string | null;
   /** Leave checkout → table detail (sole cancel). */
   onCancel: () => void;
   /** Mobile back to queue — rendered inside sticky SettlementBar chrome. */
@@ -137,7 +139,6 @@ export function StaffCheckoutSplitEditor({
   discountLocked,
   detailLocked,
   resumeOperating,
-  resumeBlockReason,
   onCancel,
   showBackButton = false,
   onBack,
@@ -821,7 +822,14 @@ export function StaffCheckoutSplitEditor({
         t={checkoutT}
         detailLocked={detailLocked || submitting}
         resumeOperating={resumeOperating}
-        resumeBlockReason={resumeBlockReason}
+        resumeBlockReason={resumeCheckoutBlockReason(
+          {
+            ...request,
+            // Draft tab wins: by-item workbench must not keep session「恢复点单」.
+            split_mode: splitDraft.splitMode ?? request.split_mode,
+          },
+          collectedPayments,
+        )}
         onResumeOrderingClick={onResumeOrderingClick}
         leading={
           <CheckoutPathChooserBackButton

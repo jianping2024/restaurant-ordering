@@ -1147,8 +1147,8 @@ export function StaffByItemSplitWorkbench({
                     </div>
                   );
                 })}
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 pt-1">
+                  <div className="flex min-w-min flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                     <p className="text-sm text-brand-text-muted">
                       {labels.estimateMeta(estimate.rows)}
                     </p>
@@ -1162,7 +1162,7 @@ export function StaffByItemSplitWorkbench({
                     ) : null}
                   </div>
                   {showUnlockTicket || showCollectCurrent ? (
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                       {showUnlockTicket && ticketUnlock ? (
                         <Button
                           type="button"

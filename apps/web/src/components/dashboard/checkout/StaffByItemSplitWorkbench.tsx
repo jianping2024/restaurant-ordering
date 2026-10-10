@@ -416,9 +416,9 @@ export function StaffByItemSplitWorkbench({
   const currentKey = staffByItemRailPersonKey(currentPerson);
   const currentSettled = Boolean(currentKey && settledTicketKeys.has(currentKey));
   const currentLocked = Boolean(currentKey && lockedTicketKeys.has(currentKey));
-  /** Footer actions use the same ticket key as unlockableKeys / onUnlock. */
+  /** Share-panel unlock uses the same ticket key as unlockableKeys / onUnlock. */
   const currentUnlockKey = splitPartyKey(currentPartyId, currentName);
-  const showResumeOrdering = Boolean(
+  const showUnlockTicket = Boolean(
     ticketUnlock &&
       !currentSettled &&
       ticketUnlock.unlockableKeys.has(currentUnlockKey),
@@ -1114,9 +1114,9 @@ export function StaffByItemSplitWorkbench({
                       </p>
                     ) : null}
                   </div>
-                  {showResumeOrdering || showCollectCurrent ? (
+                  {showUnlockTicket || showCollectCurrent ? (
                     <div className="flex shrink-0 items-center gap-2">
-                      {showResumeOrdering && ticketUnlock ? (
+                      {showUnlockTicket && ticketUnlock ? (
                         <button
                           type="button"
                           disabled={

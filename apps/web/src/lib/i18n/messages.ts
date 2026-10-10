@@ -1464,7 +1464,6 @@ export const MESSAGES = {
       personShareItemsEmpty: '暂无分配菜品',
       resumeOrdering: '恢复点单',
       resumeOrderingOperating: '处理中…',
-      resumeOrderingTicketCollecting: '这张票已有收款，不能恢复点单',
       resumeOrderingConfirmTitle: '恢复点单',
       resumeOrderingConfirmPreserveByItem:
         '客人可继续点单。按菜分单方案将保留为参考；尚未收款前可修改分配，收款后已付部分不可改。',
@@ -1477,6 +1476,12 @@ export const MESSAGES = {
       resumeOrderingBlockedWholeTable: '整桌已收款，无法恢复点单',
       resumeOrderingNeedRealNames: '请先把默认姓名改成真实姓名，再恢复点单',
       resumeOrderingCancel: '取消',
+      /** Staff by-item: unlock one called unpaid ticket (not session resume). */
+      unlockTicket: '解锁本票',
+      unlockTicketOperating: '处理中…',
+      unlockTicketSuccess: '已解锁本票',
+      unlockTicketFailed: '解锁本票失败，请重试',
+      unlockTicketCollecting: '这张票已有收款，不能解锁',
       discountReasons: {
         customer_complaint: '顾客投诉',
         owner_approved: '老板批准',
@@ -2831,7 +2836,6 @@ export const MESSAGES = {
       personShareItemsEmpty: 'No dishes assigned',
       resumeOrdering: 'Resume ordering',
       resumeOrderingOperating: 'Processing…',
-      resumeOrderingTicketCollecting: 'This ticket already has a payment and cannot resume',
       resumeOrderingConfirmTitle: 'Resume ordering',
       resumeOrderingConfirmPreserveByItem:
         'Guests can order again. The by-item split is kept as a starting point; edits are allowed until payment, then paid portions stay fixed.',
@@ -2844,6 +2848,11 @@ export const MESSAGES = {
       resumeOrderingBlockedWholeTable: 'Whole-table payment recorded — cannot resume',
       resumeOrderingNeedRealNames: 'Rename default guest labels to real names before resuming',
       resumeOrderingCancel: 'Cancel',
+      unlockTicket: 'Unlock ticket',
+      unlockTicketOperating: 'Processing…',
+      unlockTicketSuccess: 'Ticket unlocked',
+      unlockTicketFailed: 'Could not unlock ticket — try again',
+      unlockTicketCollecting: 'This ticket already has a payment and cannot be unlocked',
       discountReasons: {
         customer_complaint: 'Customer complaint',
         owner_approved: 'Owner approved',
@@ -4116,7 +4125,6 @@ export const MESSAGES = {
       personShareItemsEmpty: 'Sem pratos atribuídos',
       resumeOrdering: 'Retomar pedidos',
       resumeOrderingOperating: 'A processar…',
-      resumeOrderingTicketCollecting: 'Este talao ja tem pagamento e nao pode retomar',
       resumeOrderingConfirmTitle: 'Retomar pedidos',
       resumeOrderingConfirmPreserveByItem:
         'Os clientes podem voltar a pedir. A divisao por prato mantem-se como referencia; pode editar ate haver pagamento, depois a parte paga fica fixa.',
@@ -4129,6 +4137,11 @@ export const MESSAGES = {
       resumeOrderingBlockedWholeTable: 'Mesa inteira ja paga — nao e possivel retomar',
       resumeOrderingNeedRealNames: 'Altere os nomes predefinidos para nomes reais antes de retomar',
       resumeOrderingCancel: 'Cancelar',
+      unlockTicket: 'Desbloquear talao',
+      unlockTicketOperating: 'A processar…',
+      unlockTicketSuccess: 'Talao desbloqueado',
+      unlockTicketFailed: 'Nao foi possivel desbloquear o talao — tente novamente',
+      unlockTicketCollecting: 'Este talao ja tem pagamento e nao pode ser desbloqueado',
       discountReasons: {
         customer_complaint: 'Reclamacao do cliente',
         owner_approved: 'Aprovado pelo dono',

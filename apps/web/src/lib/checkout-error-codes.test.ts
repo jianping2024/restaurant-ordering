@@ -33,6 +33,7 @@ describe('checkout error registry status', () => {
     not_your_ticket: 403,
     claim_conflict: 409,
     by_item_unit_mismatch: 409,
+    by_item_cut_change_at_collect: 409,
     name_taken: 409,
     ticket_locked: 409,
     ticket_paid: 409,

@@ -21,6 +21,8 @@ export type CheckoutRequestErrorLabels = {
   individualClaimConflict?: string;
   /** Carries `{dish}` — filled from the first rejected line via `context.dish`. */
   individualUnitMismatch?: string;
+  /** Staff only; carries `{dish}`. */
+  byItemCutChangeAtCollect?: string;
   individualNameTaken?: string;
   individualNothingClaimed?: string;
   /** Ticket already locked / paid / owned by another phone, or the plan changed under it. */

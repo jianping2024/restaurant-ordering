@@ -1419,6 +1419,7 @@ export const MESSAGES = {
       staffByItemPoolCancelPick: '取消选择',
       staffByItemUnitLocked: '按 1/{den} 分',
       byItemUnitMismatch: '「{dish}」已按先定下的分法分，请把这道菜的份额改成同一分法',
+      byItemCutChangeAtCollect: '「{dish}」的基数已由客人先定下，只有点「收款」时才能改；现在请先按原基数分',
       callCheckout: '呼叫结账',
       callCheckoutOperating: '正在打开结账…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -2788,6 +2789,7 @@ export const MESSAGES = {
       staffByItemPoolCancelPick: 'Cancel',
       staffByItemUnitLocked: 'Cut in 1/{den}',
       byItemUnitMismatch: 'The cut of “{dish}” is already fixed — redo this dish’s shares with the same cut',
+      byItemCutChangeAtCollect: 'The cut of “{dish}” was set by a guest and can only be changed when you collect — keep the current cut for now',
       callCheckout: 'Call checkout',
       callCheckoutOperating: 'Opening checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -4077,6 +4079,7 @@ export const MESSAGES = {
       staffByItemPoolCancelPick: 'Cancelar',
       staffByItemUnitLocked: 'Dividido em 1/{den}',
       byItemUnitMismatch: 'A divisão de “{dish}” já está fixa — refaça as partes deste prato com a mesma divisão',
+      byItemCutChangeAtCollect: 'A divisão de “{dish}” foi definida por um cliente e só pode mudar ao cobrar — mantenha a divisão atual por agora',
       callCheckout: 'Chamar conta',
       callCheckoutOperating: 'A abrir checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */

@@ -7,6 +7,7 @@ import {
 import { checkoutErrorStatus, checkoutFailure } from '@/lib/checkout-error-codes';
 import {
   changedFractionLineKeys,
+  fractionCutChangedLineKeys,
   fractionUnitConflictLineKeys,
 } from '@/lib/by-item-fraction-unit';
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
@@ -80,6 +81,11 @@ export async function submitCheckoutRequestForTable(
     skipAutomaticPreBill?: boolean;
     /** Staff per-person by-item collect. Guest callers must not set this. */
     allowPartialByItem?: boolean;
+    /**
+     * Staff by-item collect write only: this write may change a dish's fraction cut that the
+     * stored plan already holds (first called guest's). Every other write keeps it.
+     */
+    allowCutChange?: boolean;
     /** Staff floor reopen of preserved active plan. Guest must not set this. */
     staffReopenActivePlan?: boolean;
   },
@@ -181,6 +187,15 @@ export async function submitCheckoutRequestForTable(
     );
     if (unitLines.length > 0) {
       return { ...checkoutFailure('by_item_unit_mismatch'), lineKeys: unitLines };
+    }
+    if (!options?.allowCutChange) {
+      const cutLines = fractionCutChangedLineKeys(
+        (existingSplitRow as BillSplit | null)?.persons ?? [],
+        payloadForPersist.persons,
+      );
+      if (cutLines.length > 0) {
+        return { ...checkoutFailure('by_item_cut_change_at_collect'), lineKeys: cutLines };
+      }
     }
   }
 

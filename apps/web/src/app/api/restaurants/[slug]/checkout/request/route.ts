@@ -135,6 +135,7 @@ export async function POST(
     result?: unknown;
     customer_nif?: unknown;
     allow_partial_by_item?: unknown;
+    allow_cut_change?: unknown;
     guest_client_id?: unknown;
   };
   try {
@@ -247,13 +248,15 @@ export async function POST(
 
   const allowPartialByItem =
     body.allow_partial_by_item === true && caller.kind === 'authorized_staff';
+  const allowCutChange =
+    body.allow_cut_change === true && caller.kind === 'authorized_staff';
 
   const submitResult = await submitCheckoutRequestForTable(
     admin,
     loaded.restaurant.id,
     tableId,
     { splitMode, persons, result, customerNif },
-    { allowPartialByItem },
+    { allowPartialByItem, allowCutChange },
   );
 
   if (!submitResult.ok) {

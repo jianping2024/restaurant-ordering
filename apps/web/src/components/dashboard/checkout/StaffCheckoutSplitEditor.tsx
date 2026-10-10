@@ -439,11 +439,15 @@ export function StaffCheckoutSplitEditor({
     splitDraft,
   ]);
 
-  /** Sole by-item unpaid plan → ledger (resume flush + collect after stamp). */
+  /**
+   * Sole by-item unpaid plan → ledger (resume flush + collect after stamp).
+   * Only the collect write may re-cut a dish the stored plan already cut (`allowCutChange`).
+   */
   const persistByItemUnpaidPlan = useCallback(
     async (params: {
       draftPersons: ReturnType<typeof buildSplitPersonsFromAllocations>;
       draftResults: SplitResult[];
+      allowCutChange?: boolean;
     }): Promise<{ persons: SplitPerson[]; result: SplitResult[] } | null> => {
       const lockedTicketKeys = allocationLockedTicketKeys(request, collectedPayments);
       const merged = mergeStaffByItemUnpaidDraftIntoLedger({
@@ -460,6 +464,7 @@ export function StaffCheckoutSplitEditor({
         persons: merged.persons,
         result: merged.result,
         allowPartialByItem: true,
+        allowCutChange: params.allowCutChange,
       });
       if (!outcome.ok) {
         const rejectedLine = splitOrderLines.find((line) => line.key === outcome.lineKeys?.[0]);
@@ -475,6 +480,7 @@ export function StaffCheckoutSplitEditor({
               invalidNif: billT.nifInvalid,
               splitPlanLocked: billT.splitPlanLocked,
               individualUnitMismatch: checkoutT.byItemUnitMismatch,
+              byItemCutChangeAtCollect: checkoutT.byItemCutChangeAtCollect,
               fallback: checkoutT.callCheckoutFailed,
             },
             undefined,
@@ -595,6 +601,7 @@ export function StaffCheckoutSplitEditor({
           const persisted = await persistByItemUnpaidPlan({
             draftPersons: allPersons,
             draftResults,
+            allowCutChange: true,
           });
           if (!persisted) return null;
           const personIndex = persisted.result.findIndex(

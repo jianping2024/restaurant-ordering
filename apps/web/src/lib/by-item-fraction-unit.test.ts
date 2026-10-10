@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   changedFractionLineKeys,
+  fractionCutChangedLineKeys,
   fractionUnitConflict,
   fractionUnitConflictLineKeys,
   fractionUnitOfLine,
@@ -178,5 +179,43 @@ describe('changedFractionLineKeys', () => {
   it('is empty for an identical plan', () => {
     const plan = [person('A', PA, [['L1', 1, 2, 2]])];
     assert.equal(changedFractionLineKeys(plan, plan).size, 0);
+  });
+});
+
+describe('fractionCutChangedLineKeys', () => {
+  it('flags a line the stored plan cut one way and the write cuts another way', () => {
+    const stored = [person('A', PA, [['L1', 1, 2, 2]])];
+    const next = [person('A', PA, [['L1', 1, 3, 3]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), ['L1']);
+  });
+
+  it('same cut is not a change (2/4 written as 1/2 with unit 4 against a unit-4 plan)', () => {
+    const stored = [person('A', PA, [['L1', 1, 4, 4]])];
+    const next = [person('A', PA, [['L1', 1, 2, 4], ['L2', 1, 3, 3]]), person('B', PB, [['L1', 1, 4, 4]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), []);
+  });
+
+  it('a share rewritten without its unit still counts as the same cut when it nests', () => {
+    const stored = [person('A', PA, [['L1', 1, 4, 4]])];
+    const next = [person('A', PA, [['L1', 1, 2]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), []);
+  });
+
+  it('a free line (no stored cut) can be cut any way', () => {
+    const stored = [person('A', PA, [['L1', 1, 1]])];
+    const next = [person('A', PA, [['L1', 1, 1]]), person('B', PB, [['L1', 1, 3, 3]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), []);
+  });
+
+  it('removing every fractional share leaves nothing to change', () => {
+    const stored = [person('A', PA, [['L1', 1, 2, 2]])];
+    const next = [person('A', PA, [['L1', 1, 1]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), []);
+  });
+
+  it('a finer cut than the stored one is a change', () => {
+    const stored = [person('A', PA, [['L1', 1, 2, 2]])];
+    const next = [person('A', PA, [['L1', 1, 4, 4]])];
+    assert.deepEqual(fractionCutChangedLineKeys(stored, next), ['L1']);
   });
 });

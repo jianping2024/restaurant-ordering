@@ -56,6 +56,7 @@ export const CHECKOUT_ERROR_STATUS = {
   // 409 — state conflict
   claim_conflict: 409,
   by_item_unit_mismatch: 409,
+  by_item_cut_change_at_collect: 409,
   name_taken: 409,
   ticket_locked: 409,
   ticket_paid: 409,
@@ -114,6 +115,7 @@ export type CheckoutErrorCopyKey =
   | 'splitPlanLocked'
   | 'individualClaimConflict'
   | 'individualUnitMismatch'
+  | 'byItemCutChangeAtCollect'
   | 'individualNameTaken'
   | 'individualNothingClaimed'
   | 'individualCallRefused'
@@ -130,6 +132,7 @@ export const CHECKOUT_ERROR_COPY: Partial<Record<CheckoutErrorCode, CheckoutErro
   invalid_nif: 'invalidNif',
   claim_conflict: 'individualClaimConflict',
   by_item_unit_mismatch: 'individualUnitMismatch',
+  by_item_cut_change_at_collect: 'byItemCutChangeAtCollect',
   name_taken: 'individualNameTaken',
   empty_ticket: 'individualNothingClaimed',
   stale_plan: 'individualCallRefused',

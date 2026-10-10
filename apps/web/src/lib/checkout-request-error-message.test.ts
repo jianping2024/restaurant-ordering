@@ -42,6 +42,14 @@ describe('messageForCheckoutRequestError', () => {
     assert.equal(messageForCheckoutRequestError('by_item_unit_mismatch', labels), 'FALLBACK');
   });
 
+  it('maps by_item_cut_change_at_collect to its staff slot with the dish', () => {
+    const withCut = { ...labels, byItemCutChangeAtCollect: 'Cut of {dish} changes at collect' };
+    assert.equal(
+      messageForCheckoutRequestError('by_item_cut_change_at_collect', withCut, undefined, { dish: 'Mojito' }),
+      'Cut of Mojito changes at collect',
+    );
+  });
+
   it('uses fallback only for blank network or unknown codes', () => {
     assert.equal(messageForCheckoutRequestError(null, labels), 'FALLBACK');
     assert.equal(messageForCheckoutRequestError('', labels), 'FALLBACK');

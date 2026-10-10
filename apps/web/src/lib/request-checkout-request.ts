@@ -9,13 +9,15 @@ export async function requestCheckoutRequest(params: {
   result: SplitResult[];
   customerNif?: string | null;
   allowPartialByItem?: boolean;
+  /** Staff collect write only — see `submitCheckoutRequestForTable` `allowCutChange`. */
+  allowCutChange?: boolean;
   /** Guest phone id — individual-checkout sessions bind the called tickets to it. */
   guestClientId?: string | null;
 }): Promise<
   | { ok: true; bill_split_id: string; session_id: string; result: SplitResult[] }
   | { ok: false; error: string; lineKeys?: string[]; names?: string[] }
 > {
-  const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem, guestClientId } =
+  const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem, allowCutChange, guestClientId } =
     params;
   try {
     const res = await fetch(
@@ -31,6 +33,7 @@ export async function requestCheckoutRequest(params: {
           result,
           ...(customerNif ? { customer_nif: customerNif } : {}),
           ...(allowPartialByItem ? { allow_partial_by_item: true } : {}),
+          ...(allowCutChange ? { allow_cut_change: true } : {}),
           ...(guestClientId ? { guest_client_id: guestClientId } : {}),
         }),
       },

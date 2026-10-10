@@ -127,3 +127,27 @@ export function changedFractionLineKeys(
   }
   return changed;
 }
+
+/**
+ * Lines whose fraction cut a write would change: the stored plan already has a cut on the
+ * line and the new fractional shares are not cut the same way. A line left without fractional
+ * shares changes nothing. Used to keep a staff draft from re-cutting a dish before collect.
+ */
+export function fractionCutChangedLineKeys(
+  existing: ReadonlyArray<SplitPerson>,
+  next: ReadonlyArray<SplitPerson>,
+): string[] {
+  const before = sharesByLine(existing);
+  const after = sharesByLine(next);
+  const out: string[] = [];
+  for (const [key, nextShares] of Array.from(after)) {
+    const stored = fractionUnitOfLine(before.get(key) ?? []);
+    if (stored == null || stored > Math.max(...FRACTION_UNIT_DENS)) continue;
+    const fractional = nextShares.filter((share) => normalizeRational(share.qty).den > 1);
+    if (fractional.length === 0) continue;
+    if (fractionUnitConflict([{ qty: fractionUnitQty(stored), unitDen: stored }, ...fractional])) {
+      out.push(key);
+    }
+  }
+  return out;
+}

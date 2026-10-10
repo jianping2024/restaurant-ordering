@@ -198,7 +198,7 @@
 
 ### 5.1 数据
 
-- **`bill_splits.status` 含义：本桌至少有一张已呼叫且未付清的票，或店员已接手结账（`staff_checkout_requested_at` 非空）。** 仍是唯一的桌级标志，只在数据库函数里统一维护：呼叫 → `requested`；最后一张已呼叫票付清或全部被恢复、且店员未接手 → `confirmed`；全部付清 → `paid`。店员接手标记只由 `mark_bill_split_staff_checkout` 写入（楼面「呼叫结账」，或按菜分单收款后仍有菜未分完），由 RPC `resume_table_session_ordering` 清除，或按票解锁后已无「已呼叫且未付」的票且这桌从未收款时由 `individual_checkout_apply(unlock)` 清除（整桌/均摊页脚「恢复点单」会走该 RPC；按菜员工页不暴露会话恢复）。标记在时「票全付清但菜没分完」的桌子仍留在结账列表。**禁止在应用层随手改。**
+- **`bill_splits.status` 含义：本桌至少有一张已呼叫且未付清的票，或店员已接手结账（`staff_checkout_requested_at` 非空）。** 仍是唯一的桌级标志，只在数据库函数里统一维护：呼叫 → `requested`；最后一张已呼叫票付清或全部被恢复、且店员未接手 → `confirmed`；全部付清 → `paid`。店员接手标记只由 `mark_bill_split_staff_checkout` 写入（楼面「呼叫结账」、按菜分单收款后仍有未付票或菜未分完；按票解锁后若这桌已有收款且已无「已呼叫且未付」的票，也走该函数补打标记，避免只靠呼叫票吊在队列、解锁后整桌消失）。由 RPC `resume_table_session_ordering` 清除，或按票解锁后已无「已呼叫且未付」的票且这桌从未收款时由 `individual_checkout_apply(unlock)` 清除（整桌/均摊页脚「恢复点单」会走该 RPC；按菜员工页不暴露会话恢复）。标记在时「票全付清但菜没分完」或「已收款仍待收」的桌子仍留在结账列表。**禁止在应用层随手改。**
 - `result[]` 的每张票增加「已呼叫」标记和呼叫它的手机编号。具体字段形态实现时定，并写进 `docs/ai-schema.md`。
 - **新增窄表「呼叫通知」：** 只存会话编号、票编号、名字、认领的菜和份数。顾客订阅这张表，**不订阅 `bill_splits`**。权限用 `SECURITY DEFINER` 的会话检查（见第 8 节的坑），按会话过滤。加入实时发布；**店内部署还要加进 `deploy/on-prem/schema/ensure_realtime_publication.sql`**。
 - **迁移兼容：** 上线时已是 `requested` 的票一律视为「已呼叫」，不绑定手机，不拦任何手机点单。

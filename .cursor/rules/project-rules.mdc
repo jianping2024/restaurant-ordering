@@ -12,13 +12,14 @@ alwaysApply: true
 3. [`best-practice-not-patches.mdc`](./best-practice-not-patches.mdc) — best-practice end-state only; never lead with补丁/workaround options
 4. [`redundancy-cleanup-before-uat.mdc`](./redundancy-cleanup-before-uat.mdc) — after implement, **before UAT**: clear confirmed redundancy on the task surface
 5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
-6. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex 共用 `gate.sh`）
-7. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
-8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main; land 遇旁路 dirty WIP 禁止强切 `main` / restore / park（见 `feature-branch-before-code.mdc`）
-9. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
-10. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — `:3000` = local `main` only; feature/worktree UAT → `3002+` + `MESA_UAT_BASE`; never kill occupants
-11. [`local-dev-services.mdc`](./local-dev-services.mdc) — keep stack during UAT; **after merge/land stop this-thread listen ports**; never auto-restart after Will stops it; never wipe local DB or kill other sessions’ agents
-12. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
+6. [`business-scenario-testing.mdc`](./business-scenario-testing.mdc) — 编码后中文业务场景报告 + 多角色/顺序/并发/恢复粒度；落盘 `docs/test-scenarios/`（与 UAT 叠加，不替代 API/UI 断言）
+7. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex 共用 `gate.sh`）
+8. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
+9. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main; land 遇旁路 dirty WIP 禁止强切 `main` / restore / park（见 `feature-branch-before-code.mdc`）
+10. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
+11. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — `:3000` = local `main` only; feature/worktree UAT → `3002+` + `MESA_UAT_BASE`; never kill occupants
+12. [`local-dev-services.mdc`](./local-dev-services.mdc) — keep stack during UAT; **after merge/land stop this-thread listen ports**; never auto-restart after Will stops it; never wipe local DB or kill other sessions’ agents
+13. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 
 **Skills (read when task matches `description`)**
 
@@ -50,6 +51,7 @@ No third root “强制规则” markdown. Product truth under `docs/`.
 | DB compact schema | `docs/ai-schema.md` |
 | Historical plans | `docs/*-plan.md`, `docs/*.zh.md` |
 | Cleanup phases | `docs/optimization.md` (one phase at a time; confirm before next) |
+| 编码后业务场景测试报告 | `docs/test-scenarios/`（`YYYY-MM-DD-<功能>.md`；标准见 `business-scenario-testing.mdc`） |
 
 Before non-trivial edits: read matching rows only — not a whole-repo scan. Prefer `docs/ai-schema.md` over browsing all migrations.
 
@@ -59,7 +61,7 @@ Before non-trivial edits: read matching rows only — not a whole-repo scan. Pre
 2. **Plan** — non-trivial logic: follow analysis gates + `mesa-analyze-before-code` skill
 3. **Scope** — no out-of-scope features, unrelated files, silent rewrites, or temporary patches
 4. **Sync docs** — business rules → `docs/product/` or `docs/technical/`; major tech → `docs/decisions/`
-5. **Verify** — **清冗余** before UAT (`redundancy-cleanup-before-uat.mdc`); then checks per `AGENTS.md`; **functional changes:** localhost product UAT must **pass** before delivery (`uat-before-delivery.mdc` + `mesa-local-product-test`) — not lint-only
+5. **Verify** — **清冗余** before UAT (`redundancy-cleanup-before-uat.mdc`); then **业务场景报告 + 执行** (`business-scenario-testing.mdc` → `docs/test-scenarios/`) 与 localhost product UAT (`uat-before-delivery.mdc` + `mesa-local-product-test`) 必须 **pass**；再 `gate.sh check` per `AGENTS.md` — not lint-only
 
 ## High-risk (explicit user approval)
 

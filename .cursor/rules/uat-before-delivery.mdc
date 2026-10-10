@@ -36,9 +36,10 @@ Follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** and `.cursor/rules/
 1. `mesa-local-uat` (stack-health + login + API asserts for the touched path)
 2. Chrome DevTools (or IDE browser) on localhost — exercise the changed UI; for layout/chrome, **screenshot + measure**, not “class exists”
 3. Report each item **pass** / **fail**; `skip` only when truly blocked (same rule as local-product-testing)
+4. **业务场景报告** — 中文《本次改动业务场景测试报告》+ 落盘 `docs/test-scenarios/`；多角色/顺序/并发/恢复/回归粒度。完整标准：always-on [`.cursor/rules/business-scenario-testing.mdc`](./business-scenario-testing.mdc)。禁止只写笼统「正常/异常/边界」。
 
-If UAT **fails**: fix or report fail — do not merge/deliver. If blocked: report blocker; do not claim delivery.
+If UAT **fails**: fix or report fail — do not merge/deliver. If blocked: report blocker; do not claim delivery. Incomplete scenario coverage or unverified critical invariants → report「验证未完成」, not「开发完成」.
 
 ## Order with analyze / implement
 
-Analyze → implement → **清冗余** (`.cursor/rules/redundancy-cleanup-before-uat.mdc`) → **UAT pass** → `gate.sh check` → then commit/merge when the user asked for land. Production build waits for push (`scripts/agent-gates/README.md`). User “按方案改 / go ahead” includes this UAT gate unless they waived it. Do **not** start UAT until 清冗余 is done.
+Analyze → implement → **清冗余** (`.cursor/rules/redundancy-cleanup-before-uat.mdc`) → **业务场景测试 + UAT pass** → `gate.sh check` → then commit/merge when the user asked for land. Production build waits for push (`scripts/agent-gates/README.md`). User “按方案改 / go ahead” includes this UAT gate unless they waived it. Do **not** start UAT until 清冗余 is done.

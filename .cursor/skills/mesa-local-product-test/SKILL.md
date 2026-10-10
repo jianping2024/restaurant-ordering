@@ -54,6 +54,7 @@ Default stack (do not substitute “lint only” or raw curl when this skill app
 3. **Cleanup** — reverse writes via product APIs (`close-session`, void/cancel as appropriate).
 4. **Print smoke (when print in scope):** `node scripts/mesa-print-smoke.mjs` then full e2e only if agent/`npm run print` is up.
 5. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc`.
+6. **业务场景报告**（功能改动必做）— 中文《本次改动业务场景测试报告》落盘 `docs/test-scenarios/YYYY-MM-DD-<功能>.md`，聊天交付同结构；场景须可复现（角色/终端/顺序/状态/数据验证）。完整标准：`.cursor/rules/business-scenario-testing.mdc`。笼统「正常/异常/边界」清单不算过关。
 
 ### Realtime / dual-tab recipe (do not skip)
 
@@ -96,3 +97,4 @@ Lint/build/unit remain in `AGENTS.md` / `push-verification.mdc`.
 - [ ] Realtime/dual-tab items used the recipe above when in scope
 - [ ] Throwaway data cleaned up
 - [ ] Checklist reported pass/fail; any skip cites an objective blocker
+- [ ] 业务场景报告已写并落盘（或 Will 显式豁免）；关键不变量标【已验证】/【未验证】

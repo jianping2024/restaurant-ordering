@@ -33,7 +33,7 @@
 
 **规则**
 
-- Modal 取消 + 确认脚钮：**唯一** `ModalConfirmActions`（内部固定两侧 `size="action"`）。禁止在业务页再手写一套 `flex-col-reverse` + 两颗 `Button` 的确认行
+- Modal 取消 + 确认脚钮：**唯一** `ModalConfirmActions`（内部固定两侧 `size="action"` + 共用 `min-w-[7rem]`，短文案如「是/否」约为一倍触控宽）。禁止在业务页再手写一套 `flex-col-reverse` + 两颗 `Button` 的确认行
 - 加载中用 `loading` prop，禁止双点；loading 时仅显示居中旋转图标，label 不可见但保留占位宽度（勿在 call site 用条件文案重复表达进行中）
 - 链接形态用 `ButtonLink`，保持与 button 同形；外链主操作复用 `buttonClasses({ variant:'gold' })`，禁止另写一套 `bg-brand-gold` 主钮
 - 主操作脸唯一：`Button` / `ButtonLink` / `buttonClasses` 的 `variant="gold"`（靛青墨面 + 强浮雕底板 + 按下内凹）。结账「收款」也走这套（`size="action"`），金额旁置，不用绿底、不手写 `bg-brand-gold … py-1.5`

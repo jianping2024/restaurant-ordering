@@ -15,6 +15,7 @@ When Will asks to **push** / **ship**:
 1. **Do not** require `gate.sh build` / `next build` before push（已暂停，太慢）
 2. Commit must already have passed lint+typecheck（`gate.sh check`）+ 清冗余 + UAT when required
 3. Optional: targeted tests for touched logic (`node --import tsx --test …`) when justified — not a push hook
-4. Then `git push origin main`（或指定分支）
+4. If the push includes `supabase/migrations/**`（or Will asks to push migrations to staging/cloud）: **first** apply pending migrations on local Docker — see [`local-db-before-push.mdc`](./local-db-before-push.mdc); do not push cloud while local tip lags the files
+5. Then `git push origin main`（或指定分支）
 
 **Still require build** before on-prem **pack/zip** when web inputs change — see `on-prem-pack.mdc`.

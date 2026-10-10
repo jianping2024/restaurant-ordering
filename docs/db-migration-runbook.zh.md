@@ -14,7 +14,8 @@
 
 - 迁移文件只追加在 `supabase/migrations/`，**不要改已应用过的历史文件**。
 - 同一变更需同步更新 `docs/ai-schema.md`。
-- 应用顺序建议：**dev → staging → cloud**（先在本地验证，再上联调，最后生产）。
+- 应用顺序：**dev → staging → cloud**（先在本地验证，再上联调，最后生产）。
+- **硬门禁：** 对 staging/cloud 做 `db push`，或 `git push` 且本次含 `supabase/migrations/**` 之前，必须先把本机 Docker 补齐（`supabase db push --local --include-all` 或 `migration up --local --include-all`），确认 tip 与仓库文件一致。禁止只推云、本机落后。Agent 规则：`.cursor/rules/local-db-before-push.mdc`。
 
 ## 前置条件（每次执行前）
 

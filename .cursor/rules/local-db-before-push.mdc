@@ -1,0 +1,49 @@
+---
+description: >-
+  Hard gate: before git push (with migrations) or supabase db push to staging/cloud,
+  apply pending migrations to local Docker first so local never lags the cloud.
+alwaysApply: true
+---
+
+# 本地库先补齐再 push（硬门禁）
+
+**约定：本机 Docker 库不能落后于仓库迁移文件，更不能落后于云端。**  
+先本地、再 staging/cloud。禁止「只推云 / 只 push 代码、本机 Docker 没跑迁移」。
+
+## 何时必须做
+
+任一条成立，**先补齐本地 Docker**，再继续：
+
+1. 即将 `git push`（含 `origin main`），且本次改动含 `supabase/migrations/**`（新增或改迁移文件）
+2. 即将对 **staging / cloud** 执行 `supabase db push`（或等价把迁移打到远端）
+3. Will 说「推云 / push 迁移 / ship DB」而本机 Docker 还在跑、且 tip 未对齐仓库
+
+纯前端、无迁移文件改动的 `git push`：不强制对本机跑迁移；但若本机正用 `npm run dev` 测库相关功能，仍建议先对齐。
+
+## 必做步骤（不删数据）
+
+```bash
+# 本机 Supabase 在跑
+supabase status
+
+# 把仓库里还没上本机的迁移打上（含时间戳插在中间的）
+npx supabase db push --local --include-all --yes
+# 或：npx supabase migration up --local --include-all
+```
+
+**通过标准（须核对）：**
+
+- 仓库迁移 tip = 本机 `schema_migrations` tip（或 `migration list --local` 无「仅文件有、库没有」）
+- 准备打 staging/cloud 时：本机 tip 已与将推的文件 tip 一致，再 `db push` 远端
+
+## 禁止
+
+- 跳过本机，直接 `supabase db push --linked` / staging / cloud
+- 用 `npm run cloud` 验完迁移就 `git push`，本机 Docker 从未应用同一批文件
+- 改已应用迁移的文件名/时间戳后不修本机历史（会留下旧 stamp，本机与云对不齐）——应用 `migration repair --local` 纠历史，或按手册处理；**不要**为此擅自 `db reset`
+- 把「云端已推」当成「本机已齐」
+
+## 与手册
+
+细节与排障：`docs/db-migration-runbook.zh.md`（顺序仍是 **dev → staging → cloud**）。  
+`db reset` / 硬清库仍须 Will 在本线程明确批准。

@@ -81,6 +81,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 ## Database
 
 - Schema: read `docs/ai-schema.md` first. Open migrations only for exact SQL/RLS/indexes/defaults. Update `ai-schema.md` when schema changes.
+- **Local before push:** before `git push` that includes `supabase/migrations/**`, or before staging/cloud `supabase db push`, apply pending migrations on local Docker first (`db push --local --include-all` / `migration up --local --include-all`). Never leave local tip behind cloud/files — `.cursor/rules/local-db-before-push.mdc` + `docs/db-migration-runbook.zh.md`.
 
 ## Checks
 

@@ -19,7 +19,8 @@ alwaysApply: true
 10. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
 11. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — `:3000` = local `main` only; feature/worktree UAT → `3002+` + `MESA_UAT_BASE`; never kill occupants
 12. [`local-dev-services.mdc`](./local-dev-services.mdc) — keep stack during UAT; **after merge/land stop this-thread listen ports**; never auto-restart after Will stops it; never wipe local DB or kill other sessions’ agents
-13. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
+13. [`local-db-before-push.mdc`](./local-db-before-push.mdc) — **before** `git push`（含迁移）或 staging/cloud `db push`：先把本机 Docker 迁移补齐；禁止只推云、本地落后
+14. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 
 **Skills (read when task matches `description`)**
 

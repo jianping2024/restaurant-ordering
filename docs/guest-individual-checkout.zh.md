@@ -4,8 +4,8 @@
 >
 > 状态：**已实现，且已改版为「一机一人一票」并去掉开关**（见第 15 节，**以第 15 节为准**；下文早期「一批票」、多人编辑、`guest_individual_checkout` 开关、「开台盖章」均已被取代）。
 >
-> **现行口径：** 仅 **按菜** 走按票结账（呼叫不锁桌、不进整桌 `billing`）。**整桌 / 均摊** 仍会把会话打成 `billing`。客人手机无「恢复点单」；员工按菜用份额区「恢复点单」解锁票。方案与最初实现的偏差见第 14 节。
-> 文档中的结论分「已证实」和「未证实」。**未证实的不要当结论用。** 与 §15 冲突时以 §15 为准。
+> **现行口径：** 仅 **按菜** 走按票结账（呼叫不锁桌、不进整桌 `billing`）。**整桌 / 均摊** 会把会话打成 `billing`（整桌不能再点；员工「恢复点单」解开）。客人手机无「恢复点单」；员工按菜用份额区「恢复点单」解锁票。方案与最初实现的偏差见第 14 节；桌锁规则以文首现行口径与迁移 `20261010120000_restore_whole_table_even_session_billing` 为准。
+> 文档中的结论分「已证实」和「未证实」。**未证实的不要当结论用。**
 
 ---
 
@@ -396,7 +396,7 @@
 
 ### 数据库
 
-迁移 `supabase/migrations/20261005120000_guest_individual_checkout.sql`：`table_sessions.individual_checkout` 与开台触发器；会话永不进入 `billing`；`bill_splits.revision`；`bill_split_ticket_calls`（仅 service_role）；`table_checkout_signals`（匿名只读 + 实时）；`individual_checkout_apply`；`bill_splits_individual_sync` 触发器统一维护票状态与 `bill_splits.status`（员工整份写入、收款、恢复等所有写入者）。
+迁移 `supabase/migrations/20261005120000_guest_individual_checkout.sql`（历史）：`table_sessions.individual_checkout` 与开台触发器；当时按开关会话不进 `billing`（后由 always-per-ticket 误扩到全模式，再由 `20261010120000` 收窄回整桌/均摊进 `billing`）；`bill_splits.revision`；`bill_split_ticket_calls`（仅 service_role）；`table_checkout_signals`（匿名只读 + 实时）；`individual_checkout_apply`；`bill_splits_individual_sync` 触发器统一维护票状态与 `bill_splits.status`（员工整份写入、收款、恢复等所有写入者）。
 
 ### 关键代码位置
 
@@ -439,7 +439,7 @@
 
 | 旧 | 新 |
 |---|---|
-| 开关 `guest_individual_checkout`，开台时写 `table_sessions.individual_checkout` | 无开关；列与开台触发器已删除；`table_sessions_never_billing` 无条件把 `billing` 改回 `open`（`billing` 状态值本身保留，读取点未动） |
+| 开关 `guest_individual_checkout`，开台时写 `table_sessions.individual_checkout` | 无开关；列与开台触发器已删除。曾误加 `table_sessions_never_billing`（任何呼叫都不进 `billing`），已由 `20261010120000_restore_whole_table_even_session_billing` 删除：整桌/均摊进 `billing`，按菜仍不进 |
 | 一台手机多张票（一批一起锁 / 恢复） | 一台手机一张票：`validateIndividualCall` 要求恰好一张（`invalid_ticket`） |
 | 顾客端多人编辑（`ByItemDishAllocator` / `ConsumerNameCombobox` / 展开卡片 / `useGuestByItemSplitState` / `reconcileGuestByItemAllocations`） | `GuestClaimPanel` + `GuestClaimDishCard` + `useGuestClaim` + 纯逻辑 `lib/guest-claim.ts`（草稿本机存 `mesa:guest-claim:{餐厅}:{会话}`） |
 | `useCheckoutRequestSubmit`（含整桌 / 员工跳转 / 暂存） | `useGuestCallCheckout`（只发本机这一张票） |
@@ -454,7 +454,8 @@
 | 呼叫 | `apps/web/src/lib/use-guest-call-checkout.ts` |
 | UI | `components/menu/GuestClaimPanel.tsx`、`GuestClaimDishCard.tsx`、`BillPage.tsx`（顾客页 + 员工只读页） |
 | 去开关迁移 | `supabase/migrations/20261005180000_guest_checkout_always_per_ticket.sql` |
-| 唯一的桌锁规则 | `lib/waiter-board-session.ts` 的 `isCheckoutPending`（只认 `billing`，呼叫结账不锁桌） |
+| 恢复整桌/均摊桌锁 | `supabase/migrations/20261010120000_restore_whole_table_even_session_billing.sql`（删 never-billing；`upsert` 仅 whole_table/even → `billing`） |
+| 唯一的桌锁规则 | 会话 `billing`（整桌/均摊呼叫）；读侧 `isCheckoutPending` / `guestOrderingEnabled` / `loadAppendWriteContext`。按菜只锁本机票 |
 | 服务端校验 | `lib/individual-checkout.ts`（一张票、菜池、重名）、`individual-checkout-server.ts`、`checkout/request` 路由（顾客一律走按票呼叫） |
 
 ### 验证

@@ -19,8 +19,8 @@ export type WaiterTableSessionMeta = {
 };
 
 /**
- * Sole table-lock rule: a checkout request never locks the table (checkout is per ticket —
- * a called ticket is a reminder on the board and queue); only a `billing` session does.
+ * Sole table-lock rule: session `billing` (whole_table / even call).
+ * by_item call does not set billing — only that phone is held via ticket calls.
  */
 export function isCheckoutPending(
   sessionMeta: Pick<WaiterTableSessionMeta, 'status'> | null | undefined,

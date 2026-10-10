@@ -1,6 +1,6 @@
 # 寿司自助同桌轮次点餐（实现契约）
 
-> **状态**：已定稿（2026-08-12），待实现  
+> **状态**：已定稿（2026-08-12），**已实现**（以本仓库 `SushiMenuPage` / `table_order_round_*` 为准）  
 > **读者**：产品、开发、AI 代理  
 > **前置**：[`buffet-open-table.zh.md`](../buffet-open-table.zh.md)、[`menu-order-append.zh.md`](../menu-order-append.zh.md)、[`04-business-rules.md`](./04-business-rules.md)
 

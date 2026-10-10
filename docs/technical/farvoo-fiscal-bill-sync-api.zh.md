@@ -100,8 +100,9 @@
 | --- | --- | --- |
 | `whole_table` | `whole_table` | 整桌一张草稿 |
 | `even`（平分） | **`whole_table`** | 不同步每人份额；Agent 侧当整桌 |
-| `custom`（自定义） | **`whole_table`** | 同上 |
 | `by_item`（按菜） | `split` | 每人一块 `splits[]`；`scope_id` 为稳定 UUID |
+
+（手填金额 `custom` 已从产品删除；若历史 payload 仍带 `custom`，按整桌处理。）
 
 **禁止**为平分 / 自定义另造第三种 payload，或把 `person_index` 当 `scope_id`。
 
@@ -228,7 +229,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账/历史详情同一「打印发票」按钮（功能开关 + `mayFiscalBillQueue`）；唯一编排 `requestPrintFiscalInvoice` → 已有云端 `document_id` 则 `runStaffReprintFiscalInvoice`，否则开 modal → `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 返回 `job` + `issued`；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台、不另起重打 hang-queue。
+**Restaurant：** 结账/历史详情同一「打印发票」按钮（功能开关 + `mayFiscalBillQueue`）；唯一编排 `requestPrintFiscalInvoice` → 已有云端 `document_id` 则 `runStaffReprintFiscalInvoice`，否则开 modal → `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 返回 `job` + `issued`；payload：`by_item` → `scope_type=split`；`even`/`whole_table` → 整桌。不做打票工作台、不另起重打 hang-queue。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 

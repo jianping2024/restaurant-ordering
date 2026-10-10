@@ -185,10 +185,10 @@
 
 | 入口 | 允许状态 | 须原因 |
 |------|----------|--------|
-| 后厨 void | 任意非 voided | 是 |
+| 后厨大屏 | — | **禁止退菜**（只备餐/出餐/上桌） |
 | 前台 decrement | `pending`/`cooking` | 减至 0 时自动记 `qty_adjustment`（无需弹框） |
 | 收银员 decrement | `pending`/`cooking` | 同前台 |
-| 服务员 decrement | — | **禁止**（菜单减菜仅楼面；自助餐改人数走 buffet API） |
+| 服务员 decrement | — | **禁止**（菜单减菜仅楼面有权限角色；自助餐改人数走 buffet API） |
 | 强制关台 | 不 void 订单 | 关台原因 / 异常标记 |
 
 ### 风险等级（`riskLevelForVoidedItem`）
@@ -201,19 +201,19 @@
 
 ### 审计
 
-- **后厨** void：写 `operation_logs`
-- **后厨** void 创建 `abnormal_operations` 类型 `ITEM_DELETED`（按原 `item_status` 定风险）
 - **楼面**（前台 / 收银员）decrement 减至 0 写 `void_reason`（reason 默认 `qty_adjustment`），写 `ITEM_QTY_DECREMENTED` 操作记录，不进异常队列
+- 后厨大屏**不**写退菜审计（无退菜入口）
 
 ### 硬规则
 
 - 自助餐 `buffet_base` 行不可通过 decrement 删除（须改人数流程）
-- `billing` 会话下楼面不可 void/decrement（服务员同样不可）
-- void 后必须重算 `orders.status` 与 `total_amount`
+- `billing` 会话下楼面不可 decrement
+- decrement / void 后必须重算 `orders.status` 与 `total_amount`
+- 后厨不可退菜（减餐仅楼面有权限角色）
 
 ### 相关代码
 
-`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/decrement-order-item.service.ts`、`lib/audit/builders/item-deleted.ts`、`lib/abnormal-operations.ts`
+`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/decrement-order-item.service.ts`、`lib/abnormal-operations.ts`
 
 ---
 
@@ -261,14 +261,15 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 - 折扣率 ≥10% MEDIUM、≥30% HIGH 异常风险
 - 须记 `DISCOUNT_APPLIED` 审计
 
-### 恢复点餐（`resume_table_session_ordering`）
+### 恢复点单 / 按票解锁
 
-| 分单模式 | 零收款 | 有收款 |
-|----------|--------|--------|
-| `by_item` | 保留 `confirmed` 快照，顾客可改 | 锁定已付行人菜品行 |
-| `even`/`custom` | 可撤销 request | 保留分单与已收 |
+| 分单模式 | 入口 | 零收款 | 有收款 |
+|----------|------|--------|--------|
+| `whole_table` / `even` | 结账详情会话脚「恢复点单」→ `resume_table_session_ordering` | 可撤销 request（均摊）/ 取消整桌计划 | 保留分单与已收 |
+| `by_item` | **会话脚不放「恢复点单」**（`resumeCheckoutBlockReason` → `individual_session`）。份额区票级按钮文案仍是「恢复点单」，走解锁票 API | 未付票可退回可编辑 | 已付票不可解锁；锁定已付份额 |
 
-- 整桌已付清 → 禁止恢复（`whole_table_paid`）
+- 整桌已付清 → 禁止会话恢复（`whole_table_paid`）
+- 客人手机**无**「恢复点单」；加菜须员工解锁本机票（或付清后开新票）
 
 ### 关台（付清 vs 强制）
 
@@ -340,9 +341,10 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | `split_mode` | 规则 |
 |--------------|------|
-| `even` | 无续结时默认 **2** 人（`splitDraftPersonCount('even')`）；N 人均分（下限 2、上限 20）；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
-| `by_item` | 与账单明细/小票共用 **有金额的合并行**（闸：`isBillableSessionRowOnPaper` / `billableLineAmount > 0`；catalog 仍来自 `buildBillableSessionItems`，key=`menuId::price` / `buffet:buffetId`；€0 免费行不上屏、不进按菜池、不打纸）；同一消费者每行只占一行（`item_shares` qty）；部分收款后 **qty 下限锁定**（`buildLockedPersonLineMins`），可增不可减 |
-| `custom` | 无续结时默认 **1** 人（`splitDraftPersonCount('custom')`）；「+添加人员」才加人并自动填剩余；各人 amount 均可改（改一人时另一人/末行吃余数）；删到 1 人收成全单；`sum(result)=total` 精确到分；人数下限 1、上限 20 |
+| `whole_table` | 单行整桌应付；默认芯片；未收款时可改按菜/均摊 |
+| `even` | 无续结时默认 **1** 人（`splitDraftPersonCount()` 下限/默认 1、上限 20）；N 人均分；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
+| `by_item` | 与账单明细/小票共用 **有金额的合并行**（闸：`isBillableSessionRowOnPaper` / `billableLineAmount > 0`；catalog 仍来自 `buildBillableSessionItems`；€0 免费行不上屏、不进按菜池、不打纸）；客人一机一人一票；职员串行人轨；部分收款后 **qty 下限锁定**，可增不可减 |
+| ~~`custom`~~ | **已删除**（手填金额）；`parseSplitMode` 拒收 `custom` |
 
 ### 折扣（`checkout-split-math`）
 

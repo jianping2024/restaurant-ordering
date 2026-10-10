@@ -61,15 +61,15 @@
 
 ### 均摊（even）
 
-- 顾客手机只填自己的名字（页面顶部单个输入框，`GuestClaimPanel`），不再有多人姓名列表 / 联想轨
-- 人数 >6 时考虑 **折叠未分配** 或分页 — 当前实现纵向列表；新增勿改横向挤一排头像
+- 顾客手机填均摊人数与名单（`useGuestEvenSplit`）；默认/下限 1 人
+- 人数多时纵向列表；勿改横向挤一排头像
 
 ### 按菜（by_item）
 
-- **一道菜一张卡**；每人一行分配，不把所有客人列横滑
-- 自助餐卡：姓名全宽一行；大人/小孩为两列，**标签在上、数量在下**（勿与姓名挤同一横排）
-- 顶部 **进度条** `complete/total` 一眼看是否分完
-- 未完成：进度条 `red-500`；完成：`emerald-500`
+- **一道菜一张卡**（`GuestClaimDishCard`）；顶部一次名字（`GuestClaimPanel`），不是每人一行矩阵
+- 份数 sole 1|½|⅓|¼|⅕ 叠层；分母跟死；可「全部认领」
+- 他人认领只读可见；超额标红不可呼叫
+- 不必分完整池即可呼叫本票
 
 ### 结账待收款
 
@@ -92,8 +92,9 @@
 
 | 元素 | 规范 |
 |------|------|
-| 呼叫结账 | `BillPage` 底栏 gold 主按钮 |
-| 确认收款 | `Button gold` + `action`（52px）；金额旁置 |
+| 呼叫结账 | 客人 sole `GuestBillBottomDock` 上 gold；文本框 focus 时整条底栏隐藏 |
+| 返回点单 | 同底栏描边；待结账/已结清仅此钮 |
+| 确认收款 | `Button gold` + `action`（52px）；结账详情收款钮可约 2× action 宽 |
 | 待收金额 | 列表卡片 **最大数字 = 待收**（非消费总额） |
 
 ### 对比度
@@ -112,19 +113,19 @@
 
 ### 成功
 
-- 加菜：`showToast` 成功
-- 收款：Toast + 列表/详情移除该人待收行
+- 客人菜单加菜/提交：底栏 ✓ + 购物袋 pop（无成功 toast）
+- 收款：Toast + 列表/详情更新待收
 - 开台：详情刷新或乐观更新后对齐服务端
 
 ### 失败
 
-- Toast 错误 + 可理解 i18n（`session_billing`、`rate_limited` 等映射）
+- Toast 错误 + 可理解 i18n（结账错误 sole `messageForCheckoutRequestError` / 错误注册表）
 - 退菜/原因类：对话框 `externalError` 字段内联
 
 ### 禁用原因
 
 - 恢复点单、折扣锁定、菜单门禁 — **可见说明文字**，不只 `disabled` 灰掉
-- 示例：`guestOrderingActionHint` 区分 `billing` vs 未开台
+- 示例：`guestOrderingActionHint` 区分整桌 `billing` vs 未开台 vs 按菜本机占用
 
 ### 声音（结账）
 
@@ -149,8 +150,8 @@
 
 | 页面 | 必查项 |
 |------|--------|
-| `MenuPage` | 底栏购物车、左侧类目栏可竖滑、语言切换可达 |
-| `BillPage` | 分单进度、主按钮固定、锁定态有说明 |
+| `MenuPage` | 店面带、底栏购物车、左侧类目栏可竖滑、外观胶囊、同桌飘窗 |
+| `BillPage` | 三模式芯片、按菜认领卡、`GuestBillBottomDock`、无客人恢复/刷新 |
 | `WaiterDisplay` | 筛选 chip、桌卡可点区域够大、待结账色明显；lane tab 行上滑后吸在职员顶栏下（`waiterStaffStickyChrome.belowStaffTopBar`） |
 | `WaiterTableDetail` | 自助餐步进器、订单列表不截断主按钮 |
 | `CheckoutRequestsManager` | 返回列表、收款钮、金额字号 |

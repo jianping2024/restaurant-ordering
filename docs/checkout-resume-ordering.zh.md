@@ -7,7 +7,7 @@
 
 ## 1. 场景
 
-一桌客人已**呼叫结账**，并选择了**按菜分单**（或其它分单模式）。服务员在后台**可能已确认部分客人收款**（写入「已收款项」），且：
+一桌客人已**呼叫结账**（整桌或均摊）。服务员在后台**可能已确认部分客人收款**（写入「已收款项」），且：
 
 - 仍有客人未付清，或
 - 客人/服务员需要**继续加菜**，
@@ -15,6 +15,8 @@
 于是执行 **恢复点单**：餐次从 `billing` 回到 `open`，允许继续下单。
 
 恢复点单的业务含义是 **「续餐续结」**，不是作废本餐次已发生的结账进度。
+
+**按菜（`by_item`）不走本场景的会话脚恢复。** 按菜不靠整桌 `billing` 锁桌；需要某手机再点单时，员工在份额区点「恢复点单」（文案与会话恢复相同，API 为解锁该票）。客人手机无此按钮。详见 [`guest-individual-checkout.zh.md`](./guest-individual-checkout.zh.md) §15。
 
 ## 2. 核心原则
 
@@ -34,57 +36,29 @@
 - **已收款项**：展示本餐次全部历史确认收款（含恢复点单之前发生的）。
 - **分单结果**：仅展示**尚未确认收款**的客人；已收款者不在此重复出现。
 - **恢复点单**后再次进入结账详情：已收款项与待收名单须与恢复前一致（仅因新加菜而增加待结金额或新增待分配行，见 §4）。
-- **确认弹窗**：文案须与 RPC 分支一致——按菜分单统一为「保留分单快照」；均摊 / 自定义无收款时为「撤销结账请求」；有部分收款时为「保留分单与已收款项」。
-- **恢复点单出门禁**（sole `prepareStaffCheckoutResumeOrdering`）：会把分单留给手机时，**先**丢掉按菜未付且名下无份额的人，**再**检查仍留下的未付票是否仍是默认串号名（客人/Guest/… N）；是则提示改名并中止。已付票默认名放行。均摊/自定义零收款（撤销分单）不做此门禁。
+- **确认弹窗**：文案须与 RPC 分支一致——均摊无收款时为「撤销结账请求」；有部分收款时为「保留分单与已收款项」。按菜会话脚不出现此弹窗。
+- **恢复点单出门禁**（sole `prepareStaffCheckoutResumeOrdering`）：整桌/均摊会话恢复用。均摊零收款（撤销分单）不做默认名门禁。按菜票级解锁另走 unlock API。
 
 ## 4. 按菜分单（`split_mode = by_item`）续结规则
 
-### 4.1 恢复点单时保留分单快照（与收款无关）
+按菜**不**使用会话脚「恢复点单」。员工解锁未收款票后：
 
-客人已按菜分单并呼叫结账后，执行恢复点单时：
+- 该票退回可编辑；本机可再点、再呼叫。
+- 已付票只读；续消费开**新票**（新 `party_id`）。
+- 新菜进池，供未占用手机 / 员工分配；不得改写已付份额。
+- 职员确认收款：认弹窗金额、只写本票（见 [`product/by-item-collect-payment.zh.md`](./product/by-item-collect-payment.zh.md)）。
+- 楼面再次进结账：唯一入口 `ensureStaffCheckoutEntryForTable` / `POST …/checkout/ensure-entry`——有活跃 split 则 reopen；无则 mint `whole_table`。
 
-- `bill_splits` 置为 **`confirmed`**，保留 `split_mode`、`persons`（含 `item_shares`）、`result`。
-- **不**因「零收款」而将分单 `cancelled`。
-- 业务含义：快照用于账单页**预填**上次分配；**零收款时顾客仍可修改**（见 §4.4）。
-
-### 4.2 恢复点单前已存在的菜
-
-| 收款状态 | 顾客账单页行为 |
-|----------|----------------|
-| **零收款** | 所有已存在菜品行**可编辑**（可改归属、份额、消费者姓名）。 |
-| **部分收款** | **已付客人**名下菜品行 **只读**；**未付客人**名下行可编辑。 |
-| **台账有记录但 result 未标 paid** | 已分配行保守 **只读**（与 `lockedByItemLineKeys` + `hasCollectedLedger` 一致）。 |
-
-### 4.3 恢复点单后新加的菜
-
-- 新订单行纳入**同一餐次**、**同一按菜分单框架**。
-- **零收款**：新菜与旧菜一样可自由分配。
-- **已有收款**：新菜可分配；**不得**改动已锁定行的归属。
-- 新菜金额并入对应客人的应付；服务员确认收款时，「建议本次收」须扣除该客人历史已收（`session_collected_payments` + `suggestedCollectionAmount` 语义）。
-- **再次呼叫结账（顾客）**：按菜分单的 `result` 以客户端重算为准（`merge_by_item_split_result_with_ledger`）；保留已有 `person_index` 顺序，丢弃 incoming 中已不存在的旧行（避免 realloc 后幽灵金额）。客人姓名匹配**不区分大小写**；展示默认首字母大写（Latin）。按菜须分完才能提交。
-- **再次呼叫结账（楼面 Staff）**：唯一入口 `ensureStaffCheckoutEntryForTable` / `POST …/checkout/ensure-entry`——有活跃 `bill_splits`（`pending|confirmed|requested`）则 **reopen 原方案**；无活跃 split 才 mint `whole_table`。禁止在有保留分单时再 POST `whole_table`。
-
-### 4.4 顾客账单页（`BillPage`）
-
-锁定由 `isCheckoutSplitLocked` / `lockedByItemLineKeys`（`checkout-split-continuation.ts`）统一判定：
-
-| 条件 | 分单模式切换 | 按菜分配区 |
-|------|--------------|------------|
-| 零收款（含 `confirmed` + `open` 恢复后） | **可切换** | **全部可编辑** |
-| 已有收款 | **禁用** | 仅**已付客人**菜品行只读；其余可编辑 |
-| 首次结账、从未呼叫结账 | 与现网一致 | 可选模式、可编辑 |
-
-**提交成功页（`submitted=true`）**：分单结果展示须与服务员台一致，由 `result.amount`（应付）与 `session_collected_payments`（已收）推导，**不得**仅依赖 `result.paid` 显示「已收款」。部分已收客人（续结后仍有待付差额）显示「部分已收」、待付金额及应付/已收明细；仅当台账已收 > 0 且覆盖应付时显示「已收款」。应付为 0 且从未收款的人不显示该标记。
-
-`isPausedCheckoutSplit`（`open` + `confirmed`）仅用于控制**是否仍展示「已呼叫结账」成功页**，**不**单独触发锁定。
+客人账单阶段 sole `resolveGuestBillSurfacePhase`：`editing` / `awaiting_payment` / `settled`。全额付清关台后停在 `settled`，不自动回菜单。
 
 ## 5. 与其它分单模式
 
-| 模式 | 恢复点单时的分单处理 |
+| 模式 | 会话「恢复点单」 |
 |------|-------------------|
-| **按菜分单**（`by_item`） | RPC **始终**保留为 `confirmed`（快照）。**零收款**时顾客页可重选模式与归属；**有收款**后锁定。 |
-| **整桌总计**（单行 / 无分人） | 已有收款或台账非空 → **禁止**恢复点单（现状）。无收款时可恢复，分单 `cancelled`。 |
-| **均摊 / 自定义** | 已有部分收款 → 分单 **锁定**（`confirmed`）。**零收款** → 分单 `cancelled`，再次结账可重选。部分收款后不可改模式或推翻已 `paid` 行。 |
+| **按菜**（`by_item`） | **无会话脚恢复**；仅员工票级解锁（按钮文案仍是「恢复点单」）。 |
+| **整桌总计** | 已有收款或台账非空 → **禁止**恢复。无收款时可恢复，分单 `cancelled`。 |
+| **均摊**（`even`） | 已有部分收款 → 分单 **锁定**（`confirmed`）。**零收款** → 分单 `cancelled`，再次结账可重选。 |
+| ~~自定义~~ | **已删除**。 |
 
 ## 6. 允许与禁止（一览）
 
@@ -98,11 +72,13 @@
 
 **禁止**
 
-- **已有收款**后切换分单模式（均摊 / 按菜 / 自定义）。
+- **已有收款**后切换分单模式（整桌 / 均摊 / 按菜）。
 - 修改**已收款客人**已锁定的菜品归属或份额。
 - **已有收款**后将自助餐开台人数降到低于已付（或台账锁定）客人已分配的大人/小孩数（`buffet_headcount_below_paid_floor`；实现见 `buffet-paid-headcount-floor.ts` + waiter buffet 管道）。
 - 丢失或篡改 `session_collected_payments`。
 - 整桌已收后仍恢复点单。
+- 按菜详情会话脚出现「恢复点单」（应隐藏）。
+- 客人手机出现「恢复点单」或「刷新页面」。
 
 ## 7. 顾客端感知恢复点单（无轮询）
 
@@ -111,26 +87,26 @@
 | **菜单** `MenuPage` | 无后台轮询。恢复点单后，顾客点「+ 加入」或提交购物车时 **先拉** `customer/session`，服务端已 `open` 则立即加菜。 |
 | **账单编辑态** `BillPage` | 无常驻轮询。进入页 / 从后台回到前台时 sole `useCustomerBillReadModel` → `syncCustomerBill` → `customer/bill` **full**（订单 + `existing_split` + `collected_payments` + session 态）；与 SSR 同口径。呼叫结账前 `resolveFreshBill` 做权威校验（15s 内刚同步过可去重）。同桌加菜等变化若未触发上述事件，提交前会发现并 toast，不静默按旧单结账。 |
 | **账单成功页** `BillPage` | 同一进页 reconcile（不因 `submitted` 关掉）。职员恢复/解锁后，软停留或再进账单会翻成可编辑态并带上台账；**不依赖**硬刷新，成功页不提供「刷新页面」。 |
-| **返回菜单** | 唯一入口为底栏描边「返回点单」（`GuestBillBottomDock`）；进入菜单时首屏拉一次 session，与上表加菜前刷新一致。 |
+| **返回菜单** | 唯一入口为底栏描边「返回点单」（`GuestBillBottomDock`）；进入菜单时首屏拉一次 session，与上表加菜前刷新一致。客人无「恢复点单」「刷新页面」。 |
 
-员工端结账台仍用 Realtime + 兜底轮询，与顾客端策略分离。
+员工端结账台用 Realtime；可见性/焦点回前台时一次 reconcile（无间隔轮询读模型）。
 
 ## 8. 实现状态（文档与代码对照）
 
 | 能力 | 目标（本文） | 当前实现（摘要） |
 |------|----------------|------------------|
 | 已收款项跨恢复保留 | ✓ | ✓ `session_collected_payments` 不随恢复删除 |
-| 多人分账部分收款后可恢复 | ✓ | ✓ 非整桌单行时可恢复 |
-| 按菜分单恢复时保留快照 | ✓ | `20260710120000`：`by_item` 始终 `confirmed` |
-| 零收款恢复后顾客可改分单 | ✓ | `isCheckoutSplitLocked` 仅在有 `paid` 或台账时 true |
+| 整桌/均摊部分收款后可恢复 | ✓ | ✓ |
+| 按菜无会话脚恢复 | ✓ | `resumeCheckoutBlockReason` → `individual_session` |
+| 按菜票级解锁文案「恢复点单」 | ✓ | 份额区 sole `checkout.resumeOrdering` |
 | 部分收款后锁定已付菜品行 | ✓ | `lockedByItemLineKeys` + `paidSplitPersonNames` |
 | 已收款后禁止降自助餐人数低于锁定座位 | ✓ | `lockedBuffetHeadcountByBuffetId` + buffet 管道 409 |
-| 均摊/自定义零收款恢复 | 撤销分单 | `cancelled` |
-| 均摊/自定义部分收款恢复 | 保留分单 | `confirmed` |
+| 均摊零收款恢复 | 撤销分单 | `cancelled` |
+| 均摊部分收款恢复 | 保留分单 | `confirmed` |
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |
 | 楼面再次呼叫结账 | reopen 保留分单 / 无则 whole_table | `ensureStaffCheckoutEntryForTable` + `loadActiveBillSplitForSession` |
-| 恢复点单确认弹窗文案 | 与 RPC 分支一致 | `resumeOrderingConfirmVariant` + i18n |
-| 恢复前丢空票 + 默认名门禁 | 先 prune/flush 空未付，再拦未付默认名 | `prepareStaffCheckoutResumeOrdering` + `pruneUnpaidEmptyByItemTickets` |
+| 客人底栏无恢复/刷新 | ✓ | `GuestBillBottomDock` |
+| 付清关台后客人已结清面 | ✓ | `resolveGuestBillSurfacePhase` → `settled` |
 
 ## 9. 相关文件
 
@@ -140,11 +116,11 @@
 - `apps/web/src/components/waiter/WaiterTableDetailLayout.tsx` — 楼面按钮 → ensure-entry
 - `apps/web/src/components/dashboard/CheckoutRequestsManager.tsx` — 结账详情、恢复点单入口
 - `apps/web/src/components/menu/MenuPage.tsx` — 加菜前 session 刷新
-- `apps/web/src/components/menu/BillPage.tsx` — 顾客分单、成功页手动刷新
+- `apps/web/src/components/menu/BillPage.tsx` — 顾客分单与阶段面
+- `apps/web/src/components/menu/GuestBillBottomDock.tsx` — 客人账单底栏
 - `apps/web/src/lib/customer-bill-split-display.ts` — 成功页分单展示（ledger + result）
-- `apps/web/src/lib/customer-bill-checkout-resume.ts` — 成功页刷新结果判定
 - `apps/web/src/lib/checkout-split-continuation.ts` — 锁定判定、`paidSplitPersonNames`、`lockedByItemLineKeys`
-- `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截、确认文案分支
-- `apps/web/src/lib/checkout-resume-ordering-gate.ts` — 恢复点单出门禁（空票丢弃 → 默认名）
-- `apps/web/src/lib/checkout-by-item-collect.ts` — `pruneUnpaidEmptyByItemTickets` + merge 空 draft 回落
-- `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` — 按菜分单恢复保留 RPC
+- `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截（含按菜 `individual_session`）
+- `apps/web/src/lib/checkout-resume-ordering-gate.ts` — 恢复点单出门禁
+- `apps/web/src/lib/staff-ticket-unlock.ts` / unlock API — 按菜票级解锁
+- `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` — 历史：按菜会话恢复保留快照（现产品入口已收口为票级解锁）

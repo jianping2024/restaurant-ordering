@@ -339,17 +339,20 @@
 
 ```text
 顾客账单页配置分单
-  → POST .../checkout/request（upsert_bill_split_request）
-  → bill_splits.status = requested；table_sessions.status = billing
-前台结账台队列展示
+  → 整桌 / 均摊：POST .../checkout/request
+      → bill_splits.status = requested；table_sessions.status = billing
+  → 按菜：POST 个人呼叫（一机一人一票）
+      → 本机票锁定；会话保持可点（他人仍可点菜/认领）；不因本票进入整桌 billing
+前台结账台队列展示（仅 /dashboard/checkout 列表+详情）
   → 可选：apply-discount（折扣+原因）
-  → 逐人 POST .../checkout/confirm-payment（confirm_bill_split_payment RPC）
+  → 逐人 POST .../checkout/confirm-payment（confirm_bill_split_payment RPC；可带 client_request_id）
   → session_collected_payments 记账；result 行标 paid
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
+  （客人手机停在已结清面；仅点底栏「返回点单」才回菜单）
 
 前台 / 收银员桌台详情（Dashboard 看板，会话 `open`、未呼叫结账；**服务员同路由但无关台按钮**）
   → 「呼叫结账」（`quick_table_close` 关且有 `tables.checkout_close`）：`checkout/ensure-entry` 生成/沿用结账单 → 进结账页收款 → 最后一笔收款自动关台；总账单按「打印账单」开关自动打印
-  → 「关台结账」（`quick_table_close` 开且有 `tables.checkout_close`）：确认后 settled 关台；与「打印发票」互斥；顾客手机仍可呼叫结账
+  → 「关台结账」（`quick_table_close` 开且有 `tables.checkout_close`）：确认后 settled 关台；与「打印发票」互斥；顾客手机仍可呼叫结账；员工 ensure-entry 不可用
   → 「关台」（强制关台）：有 `tables.force_close` 即显示并可关（默认前台/店主；收银勾选后同样生效）；`closed_reason` 按角色记 `*_forced` 仅作审计
 ```
 
@@ -371,11 +374,13 @@
 
 | 阶段 | 会话 | 分单 | 收款 |
 |------|------|------|------|
-| 呼叫结账 | `open`→`billing` | →`requested` | — |
-| 部分收款 | `billing` | `requested`，result 部分 `paid` | 写入 collected_payments |
-| 恢复点餐 | `billing`→`open` | 按模式保留/撤销（见 resume 规则） | **不删除**已收台账 |
+| 整桌/均摊呼叫 | `open`→`billing` | →`requested` | — |
+| 按菜个人呼叫 | 保持可点（不锁桌） | `requested`（桌级：有未付呼叫票或员工接管） | — |
+| 部分收款 | 整桌/均摊：`billing`；按菜：仍可点 | `requested`，result 部分 `paid` | 写入 collected_payments |
+| 恢复点单（整桌/均摊） | `billing`→`open` | 按模式保留/撤销（见 resume 规则） | **不删除**已收台账 |
+| 按票解锁（按菜） | 不变 | 该票退回可编辑；会话脚不放「恢复点单」 | **不删除**已收台账 |
 | 全部付清 | →`closed` | →`paid` | 完整 |
-| 强制关台 | →`closed` | 未付→`cancelled` | 已收保留 |
+| 强制关台 / 关台结账 | →`closed` | 未付→`cancelled` | 已收保留（关台结账写 settled 快照） |
 
 ### 验收标准
 
@@ -479,46 +484,50 @@
 
 ### 使用角色
 
-顾客（主）
+顾客（主，一机一人一票）；职员台代分/收款
 
-### 正常流程
+### 正常流程（客人手机）
 
-1. 账单页选择「按菜分单」
-2. 分单列表与账单明细一致：**同类菜合并为一行**（与 receipt 同口径）
-3. 为每道菜分配至消费者（`item_shares`：每人每菜一行、qty 分数；自助餐含成人/儿童）
-4. `bill-split-by-item.ts` 计算各人金额
-5. 校验：每行菜品分配完整、份额合计 = 行 qty
-6. 确认 → `checkout/request`；`persons` 含 `item_shares`（key 为 catalog key）
+1. 账单页选择「按菜」
+2. 池行与账单明细一致：**有金额的合并行**（€0 不上屏、不进池）
+3. 顶部填一次名字；每道菜用 1|½|⅓|¼|⅕ 认领（可「全部认领」）；他人认领只读可见
+4. `guest-claim` / `bill-split-by-item` 算本票金额；不必分完整池即可呼叫
+5. 呼叫 → 个人呼叫 API：锁本机票 + 本机加菜；**不锁整桌**
+6. 付清本票后本机可开新票续点；名字预填允许改
 
-未提交前，三种分单草稿（模式 / 人数 / 金额 / 按菜分配）写入本机 `localStorage`（按 `restaurantId+sessionId`），刷新或手机划走再进可恢复；呼叫结账成功或已 `requested`/`paid`/有收款后不再用本地草稿。
+### 正常流程（职员台）
+
+1. 结账详情按菜工作台：人轨 + 池 + 当前人份额（串行下一未付票；无「+添加人员」）
+2. 确认收款定稿见 [`by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md)
+3. 会话脚**不**放「恢复点单」；份额区票级按钮文案仍是「恢复点单」（解锁未收款票）
+
+未提交前，三种分单草稿写入本机 `localStorage`（按 `restaurantId+sessionId`）；客人刷新后本地未付可恢复，已锁票以服务端为准。
 
 ### 异常流程
 
 | 情况 | 行为 |
 |------|------|
-| 未分配菜品 | `unassigned_items` |
-| 份额不足/超额 | `incomplete_qty` |
-| 恢复点单后 | 零收款可改分配；有收款则已付票 **只读**（不可叠菜、不可改 qty/金额）；同人续消费 → **新开一票**（可同名） |
-| 新加菜 / 同款加量 | 纳入 catalog；分给未付票；不得改写已付票 |
-
-### 职员台确认收款（按菜）
-
-定稿见 [`by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md)：认弹窗金额；只核/只写当前票；禁止确认时整桌重算。
+| 本票超额 / 重名未付 | 标红不可呼叫 |
+| 本票空份额 | 拒绝呼叫 |
+| 员工解锁后 | 本机回到可编辑；可再点、再呼叫 |
+| 已付票 | 只读；同人续消费 → **新开一票**（可同名） |
+| 新加菜 | 进池供未占用手机/员工分配；不得改写已付票 |
 
 ### 状态变化
 
-`split_mode=by_item`；`confirmed` 状态在恢复点单时保留快照。
+`split_mode=by_item`。票身份优先 `party_id`。桌级 `requested` = 有未付呼叫票或员工接管（`staff_checkout_requested_at`）。
 
 ### 验收标准
 
-- 每个 menu 行分配份额之和等于行数量
+- 一机一人一票；呼叫不锁他人点单
 - 池分完时各人金额之和 = 消费总额；池未分完可挨个收款（`allow_partial_by_item`）
 - 已付票金额不被后一次确认改写（含 1¢）
-- 续结规则与 `checkout-split-continuation.ts` 一致
+- 客人底栏无「恢复点单」/「刷新页面」；付清关台后停在已结清面
+- 续结规则与 `checkout-split-continuation.ts` / [`../guest-individual-checkout.zh.md`](../guest-individual-checkout.zh.md) §15 一致
 
 ### 相关代码位置
 
-`lib/bill-split-by-item.ts`、`lib/checkout-by-item-collect.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/GuestClaimPanel.tsx`、`components/dashboard/checkout/StaffByItemSplitWorkbench.tsx`、`lib/checkout-split-continuation.ts`
+`lib/bill-split-by-item.ts`、`lib/guest-claim.ts`、`lib/checkout-by-item-collect.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/GuestClaimPanel.tsx`、`GuestBillBottomDock`、`components/dashboard/checkout/StaffByItemSplitWorkbench.tsx`、`lib/checkout-split-continuation.ts`
 
 ---
 

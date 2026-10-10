@@ -18,8 +18,8 @@
 - 顾客扫桌码 → 多语言菜单 → 加菜下单
 - 服务员看板 → 开台（自助餐人头）→ 协助点餐 / 换桌并台
 - 后厨档口大屏 → 备餐 / 已出餐 / 上桌（方案见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)）
-- 顾客账单页 → 均摊 / 按菜 / 自定义分单 → 呼叫结账
-- 前台 Dashboard → 确认收款、折扣、打印、关台
+- 顾客账单页 → 整桌 / 按菜（一机一人一票）/ 均摊 → 呼叫结账（已移除手填金额）
+- 前台 Dashboard → 确认收款、折扣、打印、关台（可选「关台结账」开关）
 - 本地 **Windows 打印代理** → 后厨出品联与账单 ESC/POS 打印
 
 数据与身份：Supabase Postgres + RLS 多租户隔离；桌位以 `table_id`（UUID）为稳定标识，纸面与界面展示用 `display_name`（如 `A-01`）。
@@ -37,7 +37,7 @@
 | 多租户 SaaS | 每家餐厅独立 slug、菜单、桌位、员工、数据隔离 |
 | 扫码点餐闭环 | 会话开台 → 加菜 → 厨房出餐 → 账单分单 → 结账收款 → 关台 |
 | 自助餐开台 | 成人/儿童人头计价、改人数、开台优先于加菜 |
-| 分单与结账 | 三种分单模式、多人逐笔收款、折扣与恢复点餐 |
+| 分单与结账 | 整桌 / 按菜 / 均摊；按菜手机一人一票；多人逐笔收款；折扣；整桌/均摊可恢复点单；按菜仅员工按票解锁 |
 | 打印代理 v1 | 配对、claim、出品联自动入队、账单类 `print_jobs`、Dashboard 打印助手 |
 | 店主经营工具 | 数据概览、增值分析（7/30 天）、异常操作审计 |
 | 员工账号与角色 | kitchen / waiter / cashier / frontdesk + 店主 owner |
@@ -64,7 +64,7 @@
 | 外卖 / 配送 | 仅堂食桌码场景 |
 | GDPR 合规套件 / 数据导出自助 | P3 中长期 |
 | 自建 Postgres 生产替换 Supabase | 有迁移计划文档，未执行 |
-| 本地私有化一键部署 | 方案见 [`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md)；控制面+认领终态见 [`../decisions/ADR-004-on-prem-entitlement.md`](../decisions/ADR-004-on-prem-entitlement.md)；**建店路由与完成度**见 [`../on-prem-handoff.zh.md`](../on-prem-handoff.zh.md) §1.3。当前产品仍以云 SaaS 为主路径；本机认领页 `/setup` 尚未交付 |
+| 本地私有化一键部署 | 方案与交付步骤见 [`../technical/on-prem-pack-install-upgrade.zh.md`](../technical/on-prem-pack-install-upgrade.zh.md)、[`../on-prem-handoff.zh.md`](../on-prem-handoff.zh.md)；控制面见 ADR-004。云 SaaS 仍是主路径；店机 Mode B 已有交付路径（pack → 店机 upgrade） |
 | Authenticode 代码签名 | 第一期不签 |
 | 恢复 `table_number` 字段 | 已废弃，禁止回归 |
 

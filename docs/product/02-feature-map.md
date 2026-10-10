@@ -91,7 +91,10 @@
 - 服务员协助点餐：从看板带 `from=waiter` 跳转菜单，回桌台路径编码在 URL
 - 加菜入队：`POST .../orders/append`，合并同会话订单项
 - 地理围栏：可配置 `order_radius_meters`，超距拒绝下单
-- 点餐门禁：会话 `open` + 已开台；`billing` 时禁止加菜
+- 点餐门禁：会话 `open` + 已开台；整桌/均摊 `billing` 时禁止加菜；按菜仅本机已呼叫未付票时锁本机加菜
+- 店面信息带（客人页）：封面/Logo/营业时间（Lisbon）/简介；空封面用静态默认图；设置在餐厅资料
+- 同桌飘窗：经典 = 他人加菜；寿司 = 免费轮次同行 + 收费加菜；本机 baseline 后才飘，约 10s 淡出
+- 外观胶囊：语言+主题同一组；提交成功用底栏 ✓ / 购物袋 pop（菜单页无成功 toast）
 - Demo 菜单：`/demo/menu` 无后端
 
 ### 业务边界
@@ -100,11 +103,12 @@
 - 价格以服务端 `resolve-append-cart-items` 为准，不信任客户端价格
 - 新单默认进入 `pending`，订单级状态由 items 推导
 - 加菜成功后自动触发出品联入队（`station-ticket-enqueue`）
+- 客人 Realtime / 读模型 sole `createGuestClient`（anon），不用员工 cookie 客户端
 
-### 寿司同桌轮次（`buffet_service_mode = sushi`，**待实现**）
+### 寿司同桌轮次（`buffet_service_mode = sushi`，**已实现**）
 
 - 契约：[`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md)
-- 免费菜（`price=0`）：同桌 round 合单 → 全员确认送厨 → 一次 append；功能设置可配轮次上限、确认超时、桌级冷却
+- 免费菜（`price=0`）：同桌 round 合单 → 发起送厨 → 冷却后可再开轮；功能设置可配轮次上限、冷却秒数（5–1800）
 - 收费菜：不进 round，即时 append
 - 同 URL；`SushiMenuPage` vs `ClassicMenuPage` 服务端分支
 - Realtime：`table_order_round_*` postgres_changes；**禁止**顾客端 interval 轮询
@@ -122,9 +126,9 @@
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/[slug]/menu/page.tsx`、`demo/menu/page.tsx` |
-| UI | `apps/web/src/components/menu/MenuPage.tsx`、`CartDrawer.tsx`；轮次 `components/menu/sushi/*`（待建） |
-| API | `apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts`；轮次 `.../table-order-round/**`（待建） |
-| Lib | `apps/web/src/lib/resolve-append-cart-items.ts`、`customer-menu-order-gate.ts`、`customer-geo-order.ts` |
+| UI | `apps/web/src/components/menu/MenuPage.tsx`、`CartDrawer.tsx`、`CustomerStorefrontBand`、`CustomerMenuPeerFloats`；轮次 `components/menu/sushi/*` |
+| API | `apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts`；轮次 `.../table-order-round/**` |
+| Lib | `apps/web/src/lib/resolve-append-cart-items.ts`、`customer-menu-order-gate.ts`、`customer-geo-order.ts`、`restaurant-storefront-*` |
 | 顾客会话 | `apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts` |
 
 ---
@@ -246,23 +250,22 @@
 
 ### 已有功能
 
-- 后厨：将订单行标为 `voided`（须 `VoidItemReasonDialog` 填原因）
+- 后厨大屏：**不可退菜**（只备餐 / 已出餐 / 上桌；见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)）
 - 楼面（前台 / 收银员）：`/dashboard/waiter` 桌台详情减数量（`decrement-item`），`pending`/`cooking` 可减；点减号直接生效，无弹框
 - 服务员（同一 `/dashboard/waiter`，角色禁止）：**不可**菜单减数量（API `403 menu_decrement_not_allowed`）
 - 减到 0 等价退菜，写 `void_reason`（reason 默认 `qty_adjustment`），写 `ITEM_QTY_DECREMENTED` 操作记录，不进异常队列
-- 风险等级（后厨 void）：pending→LOW、cooking→MEDIUM、done→HIGH
 
 ### 业务边界
 
-- 已 `done` 的菜品由**后厨**退菜时风险更高，须记录 `ITEM_DELETED` 类异常
-- 退菜后重算订单 status；全 void 时订单特殊处理
-- 厨房 Demo 模式允许本地 void，不写库
+- 退菜 / 减量后重算订单 status；全 void 时订单特殊处理
+- 厨房 Demo 本地态不写库退菜
 
 ### 当前不做
 
 - 顾客自助退菜
 - 退菜自动退款（无支付网关）
 - 退菜后自动重打厨房联（P2）
+- 后厨 void 入口（已移除）
 
 ### 相关代码位置
 
@@ -270,8 +273,7 @@
 |------|------|
 | Lib | `apps/web/src/lib/order-item-void/*`、`apps/web/src/lib/order-item-decrement/decrement-policy.ts` |
 | API | `apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts` |
-| UI | `WaiterTableDetail.tsx` + `WaiterOrderQtyMinus.tsx`（楼面减号，无弹框；后厨已不提供 void） |
-| 审计 | `apps/web/src/lib/audit/builders/item-deleted.ts` |
+| UI | `WaiterTableDetail.tsx` + `WaiterOrderQtyMinus.tsx`（楼面减号；后厨无 void） |
 
 ---
 
@@ -279,13 +281,14 @@
 
 ### 已有功能
 
-- 顾客呼叫结账：`checkout/request`，会话进入 `billing`
+- 顾客呼叫结账：整桌/均摊 → 会话 `billing`；按菜 → 只锁本机票，桌不进 `billing`（见 [`../guest-individual-checkout.zh.md`](../guest-individual-checkout.zh.md) §15）
 - 呼叫结账：不因开台人数为 0 拦截；结账台进详情时若有自助餐套餐且人数为 0 则软确认。账单页同行组并桌门禁仍在；账单页靠进页/回前台拉权威单（顾客端无 orders Realtime）
-- 结账台队列：按桌展示等待时长、分单模式、待收金额
-- 按人确认收款：`confirm-payment`，写入 `session_collected_payments`
+- 员工楼面：`quick_table_close` 关 →「呼叫结账」进结账台；开 →「关台结账」settled 关台（与打印发票互斥）；顾客手机呼叫不受该开关影响
+- 结账台：仅列表+详情壳；三 tab（整桌/按菜/均摊）；队列空完回楼面
+- 按人确认收款：`confirm-payment`（可带 `client_request_id` 幂等），写入 `session_collected_payments`
 - 折扣：折后金额 + 原因，有收款后不可再改
-- 恢复点餐：`resume-ordering`，会话回 `open`
-- 关台：收讫或强制未付关台（原因 + 异常记录）
+- 恢复点单：整桌/均摊会话脚可用；**按菜会话脚不放「恢复点单」**（份额区票级按钮文案仍是「恢复点单」，API 为解锁票）
+- 关台：收讫自动关、关台结账（开关）、或强制未付关台（原因 + 异常记录）
 - 收银员角色仅见结账页
 
 ### 业务边界
@@ -294,12 +297,13 @@
 - 多人分账须逐人收款；摘要「待收」= 折后应收 − 已收合计
 - 确认收款与并发安全见专项文档（RPC / 竞态防护）
 - `bill_receipt_print` 功能关时跳过自动账单 print_jobs，手动打印不受影响
+- 员工「接管结账」标记 `staff_checkout_requested_at`：票都付清但池未分完时队列仍保留
 
 ### 当前不做
 
 - 银行卡 / MB Way 等在线支付
 - 自动小费 / 服务费行
-- 发票税务系统对接（仅有顾客 NIF 字段）
+- 手填金额分单（`custom` 已删除）
 - 跨会话合并结账
 
 ### 相关代码位置
@@ -319,10 +323,11 @@
 ### 已有功能
 
 - 出品联：加菜后 `station_ticket` 自动入队
+- 开台小票（可选）：冷开台成功入队 `receipt_variant=open_table`（`open_table_receipt_print`）；改人数不重打
 - 账单类：`order_receipt`、`pre_bill` 入队（受 `bill_receipt_print` 门控）
 - 打印代理：配对码、claim JWT、轮询 `pending-jobs`、TCP/WinSpool 打印
 - Dashboard：打印助手、设备列表、吊销、档口映射、重试失败任务
-- 手动打印账单：确认收款后的询问（财政关时问是否打印账单；财政开时：有效 NIF 或 Multibanco/混合则直接打发票，否则问是否打印发票）
+- 打印发票：`runStaffPrintFiscalInvoice`（auto_issue，**不关台**）；确认收款后询问打印账单/发票
 - 无代理时：`TablesManager` HTML 打印兜底
 
 ### 业务边界
@@ -357,18 +362,19 @@
 
 - 顾客账单页 `/{slug}/bill`：查看会话消费
 - 三种模式（按钮顺序）：`whole_table`（整桌，默认）、`by_item`（按菜；手机一人认菜）、`even`（均摊）；已移除 `custom`（手填金额）
-- 按菜分单：手机伸缩卡选 1~1/5 再叠加（分母跟死）；职员台仍多人池
+- 按菜分单：手机 `GuestClaimPanel` 填一次名 + 1|½|⅓|¼|⅕ 认领；职员台 `StaffByItemSplitWorkbench` 串行人轨+池（无「+添加人员」）
 - 客人可见分单词表（短标签 + 何时用 + 进店第 3 步）以 `guest-split-mode-messages` 为唯一来源；进店预览与账单模式区共用，不另写一套
-- 消费者姓名 roster、自助餐菜品分配 UI
+- 均摊 draft 人数下限/默认 1（`splitDraftPersonCount`）；自助餐份数分配
 - 分单确认 → `bill_splits` 持久化 → 可发起结账请求
 - 结账台展示分单结果与逐人应收
 - 未提交分单草稿本机缓存（`localStorage`，三种模式），避免手机刷新丢失
+- 客人账单底栏 sole `GuestBillBottomDock`：编辑态呼叫+返回；待结账/已结清只「返回点单」（无客人「恢复点单」/「刷新页面」）
 
 ### 业务边界
 
 - 分单数据在 `bill_splits.persons` / `result` JSONB
 - 按菜分单金额算法以 `bill-split-by-item.ts` 为唯一真相
-- 会话 `billing` 后菜单禁止加菜；恢复点单须走 checkout resume
+- 整桌/均摊 `billing` 后菜单禁止加菜；恢复点单走会话 resume。按菜不靠会话 `billing` 锁桌；加菜门禁用本机占用票
 - 纸面展示桌名用 `display_name`
 
 ### 当前不做
@@ -428,10 +434,12 @@
 - 餐厅资料：名称、地址、电话、Logo、国家码、点餐地理半径
 - 员工账号：kitchen / waiter / cashier / frontdesk / owner 等 CRUD、禁用、重置密码；持 `settings.staff.manage` 时列表为全店员工（与 staff API 同 admin 读路径，不依赖员工 RLS 自看）；新建/改角色下拉经 `GET /api/dashboard/roles`，持 `settings.staff.manage` 或 `settings.roles.manage` 可读（改角色定义仍仅 `settings.roles.manage`）
 - 账户菜单：外观 / 语言 / **自愿修改密码**（与强制改密同一表单与 API）/ 退出登录
-- 功能开关：`kitchen_serve_to_table`、`bill_receipt_print`；自动已出餐等待分钟 `kitchen_ready_after_minutes` 仅功能管理可改（档口后厨大屏见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台顶栏厨房入口与厨房页共用 `floor.kitchen_board.view`）
+- 功能开关：`kitchen_serve_to_table`、`bill_receipt_print`、`open_table_receipt_print`、`quick_table_close`（关台结账）、打印发票相关等；自动已出餐等待分钟 `kitchen_ready_after_minutes` 仅功能管理可改（档口后厨大屏见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台顶栏厨房入口与厨房页共用 `floor.kitchen_board.view`）
 - 自助餐规则：时段、价格矩阵、周五晚周末、日历覆盖
-- 打印助手：配对、设备、档口、账单打印机、营业时间 schedule
+- 店面资料：封面/Logo/营业时间/简介（客人菜单店面带）
+- 打印助手：配对、设备、档口、账单打印机、打印代理 schedule（与客人营业时间字段分开）
 - 桌位与分组：也可从 `/dashboard/tables` 进入（设置 hub 外）
+- 角色权限：楼面用餐人数翼 `dashboard.waiter_board.dining_headcount.view`；桌台详情/桌卡金额 `dashboard.waiter_board.table_detail_amounts.view`；开台与改人数 `tables.open_session`
 
 ### 业务边界
 
@@ -560,13 +568,13 @@
 ## 15. 模块依赖简图
 
 ```text
-开台 → 点餐 → 订单 → 厨房/退菜
+开台 → 点餐 → 订单 → 厨房备餐（楼面减菜）
               ↓
          分单 → 结账 → 关台 → 经营分析
               ↓
-            打印（出品联 / 账单）
+            打印（出品联 / 开台小票 / 账单 / 发票）
               ↓
-         异常操作（折扣/退菜/未付关台）
+         异常操作（折扣/未付关台等）
 ```
 
 ---
@@ -578,7 +586,14 @@
 | 桌位 / 分组 | [`../restaurant-tables-design.zh.md`](../restaurant-tables-design.zh.md) |
 | 转台 / 并台 | [`../table-transfer-merge-plan.zh.md`](../table-transfer-merge-plan.zh.md) |
 | 结账 UI | [`../checkout-dashboard-ui.zh.md`](../checkout-dashboard-ui.zh.md) |
-| 打印 | [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md) |
+| 恢复点单 | [`../checkout-resume-ordering.zh.md`](../checkout-resume-ordering.zh.md) |
+| 按菜收款 | [`./by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md) |
+| 客人按票结账 | [`../guest-individual-checkout.zh.md`](../guest-individual-checkout.zh.md) §15 |
+| 关台 | [`../table-session-close.zh.md`](../table-session-close.zh.md) |
+| 档口后厨 | [`./station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md) |
+| 寿司轮次 | [`./sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md) |
+| 打印 | [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md)、[`../technical/04-printing.md`](../technical/04-printing.md) |
 | 自助餐 | [`../buffet-open-table.zh.md`](../buffet-open-table.zh.md) |
 | 经营分析 | [`../value-analytics-design.zh.md`](../value-analytics-design.zh.md) |
 | 功能开关 | [`../restaurant-features.zh.md`](../restaurant-features.zh.md) |
+| E2E 用例 | [`./e2e-order-to-checkout-test-cases.zh.md`](./e2e-order-to-checkout-test-cases.zh.md) |

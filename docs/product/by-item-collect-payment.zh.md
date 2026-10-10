@@ -67,9 +67,9 @@
 - **待收** = 折后应收合计 − 台账已收合计。  
 - 只用于摘要；**不**夹断单人本次应收。
 
-## 均摊 / 手填
+## 均摊（even）
 
-- 本篇只定按菜。均摊/手填确认前仍可整单落库分单计划（`persistBeforePay`）；**不得**把按菜确认接到这条整单路径上。
+- 本篇只定按菜。均摊确认前仍可整单落库分单计划（`persistBeforePay`）；**不得**把按菜确认接到这条整单路径上。手填金额（`custom`）已删除，勿再写回。
 
 ## 实现落点（唯一）
 
@@ -87,4 +87,4 @@
 | 客人手机按菜进行中编辑 | `useGuestClaim` + `guest-claim.ts`（一机一人一票） |
 | 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
 
-已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）；单票 `mergeCurrentByItemTicketForCollect`（跨票挪菜后会留下旧未付份额）。均摊/手填仍用 `persistBeforePay`。按菜恢复点单前走同一未付整案落库。
+已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）；单票 `mergeCurrentByItemTicketForCollect`（跨票挪菜后会留下旧未付份额）；手填金额模式。均摊仍用 `persistBeforePay`。按菜：会话脚**不**放「恢复点单」；未付整案在员工解锁票 / 收款盖章前走同一落库。

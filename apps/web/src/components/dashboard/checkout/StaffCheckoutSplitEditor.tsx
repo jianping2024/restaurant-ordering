@@ -729,6 +729,7 @@ export function StaffCheckoutSplitEditor({
             : splitDraft.splitDisplayRows
         }
         lockedPersonNames={splitDraft.lockedPersonNames}
+        lockedPartyIds={splitDraft.lockedEvenPartyIds}
         splitValidationMessage={splitValidationMessage}
         guestName={guestName}
         editingSplitNameIndex={splitDraft.editingSplitNameIndex}
@@ -761,7 +762,7 @@ export function StaffCheckoutSplitEditor({
                     index,
                     splitSettlementCollectAmount(settlementRow),
                     row.name,
-                    undefined,
+                    row.party_id,
                     row.amount,
                   );
                 },

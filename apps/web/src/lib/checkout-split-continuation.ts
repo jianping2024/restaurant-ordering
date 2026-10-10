@@ -26,6 +26,10 @@ import {
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectedPersonNames } from '@/lib/checkout-session-payments';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
+import {
+  evenAuthoritativeRowCount,
+  evenPersonDraftsFromSplit,
+} from '@/lib/even-split-party';
 
 export type CheckoutContinuationIssue =
   | 'split_mode_locked'
@@ -54,15 +58,21 @@ export type ByItemLineEditContext = {
   locks: LockedPersonLineMins;
 };
 
-/** Locked split row count from persisted persons or result snapshot. */
+/**
+ * Locked split row count from persisted persons or result snapshot.
+ * Even: sole length is {@link evenAuthoritativeRowCount} (no max-inflate on dirty rename-append).
+ */
 export function lockedSplitRowCount(split: BillSplit | null | undefined): number {
   if (!split) return 0;
+  if (split.split_mode === 'even') return evenAuthoritativeRowCount(split);
   return Math.max(split.persons?.length ?? 0, split.result?.length ?? 0);
 }
 
 export type ContinuationSplitShape = {
   personCount: number;
   personNames: string[];
+  /** Parallel even seat ids — empty/omitted for non-even shapes. */
+  personPartyIds?: string[];
 };
 
 /**
@@ -102,6 +112,7 @@ export function defaultSplitPersonNames(guestName: (n: number) => string): strin
 /**
  * Hydrate even draft shape from a paused continuation split.
  * Whole-table is not a multi-person draft — returns null so callers seed the default roster.
+ * Even seats include stable {@link ContinuationSplitShape.personPartyIds}.
  */
 export function resolveContinuationSplitShape(
   split: BillSplit | null | undefined,
@@ -109,13 +120,20 @@ export function resolveContinuationSplitShape(
 ): ContinuationSplitShape | null {
   if (!split) return null;
   if (isWholeTableSplit(split)) return null;
+
+  if (split.split_mode === 'even') {
+    const drafts = evenPersonDraftsFromSplit(split, guestName);
+    if (!drafts?.length) return null;
+    return {
+      personCount: drafts.length,
+      personNames: drafts.map((row) => row.name),
+      personPartyIds: drafts.map((row) => row.partyId),
+    };
+  }
+
   const locked = lockedSplitRowCount(split);
   if (locked < 1) return null;
 
-  const personCount =
-    split.split_mode === 'even'
-      ? splitDraftPersonCount(locked)
-      : locked;
   const rawNames: string[] = [];
   for (let i = 0; i < locked; i += 1) {
     const fromResult = split.result?.[i]?.name?.trim();
@@ -124,8 +142,8 @@ export function resolveContinuationSplitShape(
   }
 
   return {
-    personCount,
-    personNames: ensureSplitPersonNames(rawNames, personCount, guestName),
+    personCount: locked,
+    personNames: ensureSplitPersonNames(rawNames, locked, guestName),
   };
 }
 
@@ -687,6 +705,13 @@ export function validateCheckoutContinuation(params: {
   if (hasCollectedLedger && isShapeLockSplitMode(existing.split_mode)) {
     const existingCount = lockedSplitRowCount(existing);
     if (existingCount > 0 && payload.result.length !== existingCount) {
+      return { ok: false, issue: 'split_shape_locked' };
+    }
+    if (
+      existing.split_mode === 'even' &&
+      payload.persons.length > 0 &&
+      payload.persons.length !== payload.result.length
+    ) {
       return { ok: false, issue: 'split_shape_locked' };
     }
   }

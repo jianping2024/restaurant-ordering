@@ -8,6 +8,8 @@ const DRAFT_VERSION = 2 as const;
 export type BillSplitLocalDraftPerson = {
   id: string;
   name: string;
+  /** Even seat identity — optional for older local drafts (minted on hydrate). */
+  partyId?: string;
 };
 
 export type BillSplitLocalDraft = {
@@ -80,7 +82,11 @@ export function parseBillSplitLocalDraft(raw: string): BillSplitLocalDraft | nul
       if (!person || typeof person !== 'object') return null;
       const row = person as Record<string, unknown>;
       if (typeof row.id !== 'string' || typeof row.name !== 'string') return null;
-      splitPeople.push({ id: row.id, name: row.name });
+      const partyId =
+        typeof row.partyId === 'string' && row.partyId.trim()
+          ? row.partyId.trim()
+          : undefined;
+      splitPeople.push({ id: row.id, name: row.name, ...(partyId ? { partyId } : {}) });
     }
 
     const byItemAllocations: Record<string, ByItemConsumerRow[]> = {};

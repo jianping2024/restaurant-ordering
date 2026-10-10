@@ -28,14 +28,18 @@ import {
   allocationLockedPersonNames,
   buildLockedPersonLineMins,
   commitAllByItemAllocations,
-  defaultSplitPersonNames,
-  ensureSplitPersonNames,
   isCheckoutSplitLocked,
   isStaffCheckoutSplitModeFrozen,
   resolveContinuationSplitShape,
   splitDraftPersonCount,
   staffMayChangeCheckoutSplitMode,
 } from '@/lib/checkout-split-continuation';
+import {
+  allocationLockedEvenPartyIds,
+  defaultEvenPersonDrafts,
+  ensureEvenPersonDrafts,
+  type EvenPersonDraft,
+} from '@/lib/even-split-party';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
@@ -43,16 +47,17 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import type { BillSplit, SplitMode } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 
-export type SplitPersonSlot = {
+export type SplitPersonSlot = EvenPersonDraft & {
+  /** @deprecated Use partyId — kept equal to partyId for local-draft id field. */
   id: string;
-  name: string;
 };
 
-/** Sole mapper: continuation/default names → draft person slots (stable ids). */
-function slotsFromNames(names: readonly string[], prev?: readonly SplitPersonSlot[]): SplitPersonSlot[] {
-  return names.map((name, idx) => ({
-    id: prev?.[idx]?.id ?? `p${idx + 1}`,
-    name,
+/** Sole mapper: even drafts → UI slots (id === partyId). */
+function slotsFromEvenDrafts(drafts: readonly EvenPersonDraft[]): SplitPersonSlot[] {
+  return drafts.map((row) => ({
+    id: row.partyId,
+    partyId: row.partyId,
+    name: row.name,
   }));
 }
 
@@ -66,8 +71,19 @@ function initialSplitPeople(
   guestName: (n: number) => string,
 ): SplitPersonSlot[] {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
-  return slotsFromNames(names);
+  if (shape?.personPartyIds?.length) {
+    return slotsFromEvenDrafts(
+      ensureEvenPersonDrafts(
+        shape.personNames.map((name, index) => ({
+          name,
+          partyId: shape.personPartyIds?.[index],
+        })),
+        shape.personCount,
+        guestName,
+      ),
+    );
+  }
+  return slotsFromEvenDrafts(defaultEvenPersonDrafts(guestName));
 }
 
 export function useBillSplitDraft(params: {
@@ -148,22 +164,34 @@ export function useBillSplitDraft(params: {
       setSplitMode(draft.splitMode);
       if (draft.splitMode === 'even') {
         const count = splitDraftPersonCount(draft.personCount);
-        const names = ensureSplitPersonNames(
-          draft.splitPeople.map((person) => person.name),
-          count,
-          guestName,
-        );
         setPersonCount(count);
-        setSplitPeople(slotsFromNames(names, draft.splitPeople));
+        setSplitPeople(
+          slotsFromEvenDrafts(
+            ensureEvenPersonDrafts(
+              draft.splitPeople.map((person) => ({
+                name: person.name,
+                partyId: person.partyId,
+              })),
+              count,
+              guestName,
+            ),
+          ),
+        );
       } else {
         setPersonCount(splitDraftPersonCount(draft.personCount));
         if (draft.splitPeople.length > 0) {
-          const names = ensureSplitPersonNames(
-            draft.splitPeople.map((person) => person.name),
-            Math.max(1, draft.splitPeople.length),
-            guestName,
+          setSplitPeople(
+            slotsFromEvenDrafts(
+              ensureEvenPersonDrafts(
+                draft.splitPeople.map((person) => ({
+                  name: person.name,
+                  partyId: person.partyId,
+                })),
+                Math.max(1, draft.splitPeople.length),
+                guestName,
+              ),
+            ),
           );
-          setSplitPeople(slotsFromNames(names, draft.splitPeople));
         } else {
           setSplitPeople(initialSplitPeople(null, guestName));
         }
@@ -306,16 +334,15 @@ export function useBillSplitDraft(params: {
   /** Keep even roster length === personCount (sole even people source for compute/submit). */
   useLayoutEffect(() => {
     if (splitMode !== 'even') return;
-    const names = ensureSplitPersonNames(
-      splitPeople.map((person) => person.name),
-      personCount,
-      guestName,
-    );
-    const sameLength = splitPeople.length === names.length;
-    const sameNames =
-      sameLength && splitPeople.every((person, idx) => person.name === names[idx]);
-    if (!sameNames) {
-      setSplitPeople((prev) => slotsFromNames(names, prev));
+    const drafts = ensureEvenPersonDrafts(splitPeople, personCount, guestName);
+    const same =
+      splitPeople.length === drafts.length &&
+      splitPeople.every(
+        (person, idx) =>
+          person.name === drafts[idx]?.name && person.partyId === drafts[idx]?.partyId,
+      );
+    if (!same) {
+      setSplitPeople(slotsFromEvenDrafts(drafts));
     }
   }, [splitMode, personCount, splitPeople, guestName]);
 
@@ -395,6 +422,11 @@ export function useBillSplitDraft(params: {
     () => allocationLockedPersonNames(lockAnchorSplit, collectedPayments),
     [lockAnchorSplit, collectedPayments],
   );
+  /** Even rename lock — paid seats by party_id (sole; not name). */
+  const lockedEvenPartyIds = useMemo(
+    () => allocationLockedEvenPartyIds(lockAnchorSplit, collectedPayments),
+    [lockAnchorSplit, collectedPayments],
+  );
 
   /** Sole by-item draft roster: ledger `result` order + party_id (same as collect person_index). */
   const byItemLedgerRoster = useMemo(() => {
@@ -458,7 +490,9 @@ export function useBillSplitDraft(params: {
   );
 
   const syncNameAcrossModes = useCallback((index: number, name: string) => {
-    setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
+    setSplitPeople((prev) =>
+      prev.map((person, idx) => (idx === index ? { ...person, name } : person)),
+    );
   }, []);
 
   const handleSplitModeClick = useCallback(
@@ -499,11 +533,15 @@ export function useBillSplitDraft(params: {
     (index: number) => {
       const current = splitPeople[index];
       if (!current) return;
-      if (splitLocked && lockedPersonNames.has(current.name.trim().toLowerCase())) return;
+      if (splitMode === 'even') {
+        if (splitLocked && lockedEvenPartyIds.has(current.partyId)) return;
+      } else if (splitLocked && lockedPersonNames.has(current.name.trim().toLowerCase())) {
+        return;
+      }
       setEditingSplitNameIndex(index);
       setEditingSplitNameValue(current.name);
     },
-    [splitPeople, splitLocked, lockedPersonNames],
+    [splitPeople, splitMode, splitLocked, lockedEvenPartyIds, lockedPersonNames],
   );
 
   const commitInlineRename = useCallback(
@@ -520,6 +558,18 @@ export function useBillSplitDraft(params: {
           renameByItemConsumer(oldName, normalized);
         }
       } else {
+        const current = splitPeople[index];
+        if (
+          splitMode === 'even' &&
+          current &&
+          splitLocked &&
+          lockedEvenPartyIds.has(current.partyId)
+        ) {
+          setEditingSplitNameIndex(null);
+          setEditingSplitNameValue('');
+          return;
+        }
+        // Rename keeps partyId — never mint a new seat.
         syncNameAcrossModes(index, normalized || guestName(index + 1));
       }
       setEditingSplitNameIndex(null);
@@ -529,8 +579,10 @@ export function useBillSplitDraft(params: {
       editingSplitNameValue,
       splitMode,
       results,
+      splitPeople,
       splitLocked,
       lockedPersonNames,
+      lockedEvenPartyIds,
       renameByItemConsumer,
       syncNameAcrossModes,
       guestName,
@@ -540,29 +592,13 @@ export function useBillSplitDraft(params: {
   const decrementPersonCount = useCallback(() => {
     const n = splitDraftPersonCount(personCount - 1);
     setPersonCount(n);
-    setSplitPeople((prev) => {
-      const names = ensureSplitPersonNames(
-        prev.map((person) => person.name),
-        n,
-        guestName,
-      );
-      const next = slotsFromNames(names, prev);
-      return next;
-    });
+    setSplitPeople((prev) => slotsFromEvenDrafts(ensureEvenPersonDrafts(prev, n, guestName)));
   }, [personCount, guestName]);
 
   const incrementPersonCount = useCallback(() => {
     const n = splitDraftPersonCount(personCount + 1);
     setPersonCount(n);
-    setSplitPeople((prev) => {
-      const names = ensureSplitPersonNames(
-        prev.map((person) => person.name),
-        n,
-        guestName,
-      );
-      const next = slotsFromNames(names, prev);
-      return next;
-    });
+    setSplitPeople((prev) => slotsFromEvenDrafts(ensureEvenPersonDrafts(prev, n, guestName)));
   }, [personCount, guestName]);
 
   const commitByItemDraft = useCallback(() => {
@@ -598,6 +634,7 @@ export function useBillSplitDraft(params: {
     modeChipsLocked,
     lockedPersonLineMins,
     lockedPersonNames,
+    lockedEvenPartyIds,
     splitDraftInput,
     splitValidation,
     results,

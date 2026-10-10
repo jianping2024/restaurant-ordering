@@ -606,14 +606,13 @@ export function CheckoutRequestDetailHost({
         rowIndex = ticket.personIndex;
         amount = pending.amount;
       } else if (persistBeforePay.current) {
-        // Even: persist full split plan before collect (unchanged).
+        // Even: persist full split plan before collect; resolve seat by party_id.
         const persisted = await persistBeforePay.current();
         if (!persisted) return;
-        if (pending.personName) {
+        if (pending.partyId || pending.personName) {
+          const want = splitPartyKey(pending.partyId, pending.personName ?? '');
           const idx = persisted.result.findIndex(
-            (entry) =>
-              splitPartyKey(entry.party_id, entry.name) ===
-              splitPartyKey(pending.partyId, pending.personName ?? ''),
+            (entry) => splitPartyKey(entry.party_id, entry.name) === want,
           );
           if (idx >= 0) rowIndex = idx;
         }

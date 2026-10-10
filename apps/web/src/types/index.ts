@@ -370,7 +370,7 @@ export interface SplitPersonItemShare {
 
 export interface SplitPerson {
   name: string;
-  /** Atomic ticket id when present (by-item). Optional for old clients. */
+  /** Stable seat/ticket id (even + by-item). Optional on legacy rows. */
   party_id?: string;
   /** @deprecated Legacy by_item: line keys only (equal split). Prefer item_shares. */
   items?: string[];
@@ -382,7 +382,7 @@ export interface SplitResult {
   name: string;
   amount: number;
   paid?: boolean;
-  /** Atomic ticket id when present (by-item). Optional for old clients. */
+  /** Stable seat/ticket id (even + by-item). Optional on legacy rows. */
   party_id?: string;
   items?: { name: string; qty: number; price: number }[];
 }

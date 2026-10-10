@@ -13,7 +13,7 @@ import { wholeTableSplitResult } from '@/lib/checkout-split-intent';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
-import { toWireSplitResult } from '@/lib/split-party-id';
+import { parseOptionalPartyId, toWireSplitResult } from '@/lib/split-party-id';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -22,7 +22,8 @@ export type BillSplitDraftInput = {
   orderLines: BillSplitOrderLine[];
   lineSpecs: ByItemLineSpec[];
   personCount: number;
-  splitPeople: Array<{ name: string }>;
+  /** Even seats: name + optional stable partyId (required on submit path). */
+  splitPeople: Array<{ name: string; partyId?: string }>;
   byItemDraftRows: Record<string, ByItemConsumerRow[]>;
   parsedByItemAllocations: ByItemLineAllocation;
   lang: UILanguage;
@@ -51,12 +52,16 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
   }
 
   if (splitMode === 'even') {
-    const names = splitPeople.slice(0, personCount).map((person) => person.name);
+    const seats = splitPeople.slice(0, personCount);
+    const names = seats.map((person) => person.name);
     const amounts = allocateEvenAmounts(total, names);
-    return names.map((name, index) => ({
-      name,
-      amount: amounts[index] ?? 0,
-    }));
+    return seats.map((person, index) =>
+      toWireSplitResult({
+        name: person.name,
+        amount: amounts[index] ?? 0,
+        partyId: parseOptionalPartyId(person.partyId),
+      }),
+    );
   }
 
   return calcByItemSplitResults({

@@ -40,6 +40,7 @@ No third root “强制规则” markdown. Product truth under `docs/`.
 | User flows & rules | `docs/product/03-user-flows.md`, `04-business-rules.md` |
 | 菜品风味提示（定稿 · 默认关） | `docs/product/menu-flavor-hints.zh.md` |
 | 按菜确认收款（定稿） | `docs/product/by-item-collect-payment.zh.md` |
+| 收款台账按人 party_id（方案·未实现） | `docs/product/checkout-ledger-party-id.zh.md` |
 | 收款 / 热敏 IVA / 预结免责 / 人头费 IVA（定稿） | `docs/product/collect-payment-receipt-iva.zh.md` |
 | Station kitchen screens (locked) | `docs/product/station-kitchen-screens.zh.md` |
 | 软件+硬件报价表（客户页） | `docs/product/commercial-pricing.html` |

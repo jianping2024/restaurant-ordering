@@ -206,7 +206,10 @@ export function hasConfirmedPerson(split: BillSplit): boolean {
   );
 }
 
-export type ResumeCheckoutBlockReason = 'whole_table_paid' | 'individual_session';
+export type ResumeCheckoutBlockReason =
+  | 'whole_table_paid'
+  | 'individual_session'
+  | 'even_session';
 
 export type ResumeOrderingConfirmVariant =
   | 'preserve_by_item'
@@ -215,13 +218,21 @@ export type ResumeOrderingConfirmVariant =
 
 /**
  * Sole staff gate: by_item plans are per-ticket (unlock vs session resume).
- * Whole-table / even never count as per-ticket — session resume-ordering owns restore.
+ * Even has no session footer resume (same omit as by_item; no ticket unlock).
+ * Whole-table alone may offer session「恢复点单」.
  * Call-row hydrate is separate (`individual_tickets`); unlock keys need those rows.
  */
 export function isByItemPerTicketCheckoutPlan(
   split: Pick<BillSplit, 'split_mode'>,
 ): boolean {
   return split.split_mode === 'by_item';}
+
+/** Sole UI omit: session footer「恢复点单」absent (not disabled). */
+export function omitsSessionResumeOrdering(
+  reason: ResumeCheckoutBlockReason | null | undefined,
+): boolean {
+  return reason === 'individual_session' || reason === 'even_session';
+}
 
 export function resumeOrderingConfirmVariant(
   split: BillSplit,
@@ -241,6 +252,10 @@ export function resumeCheckoutBlockReason(
   // By-item: ticket unlock only — never session「恢复点单」in the checkout footer.
   if (isByItemPerTicketCheckoutPlan(split)) {
     return 'individual_session';
+  }
+  // Even: no session resume button (no per-ticket unlock either).
+  if (split.split_mode === 'even') {
+    return 'even_session';
   }
   if (!isWholeTableSplit(split)) return null;
   if (hasConfirmedPerson(split)) return 'whole_table_paid';

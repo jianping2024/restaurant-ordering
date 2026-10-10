@@ -3,6 +3,10 @@
 import type { ReactNode } from 'react';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
+import {
+  omitsSessionResumeOrdering,
+  type ResumeCheckoutBlockReason,
+} from '@/lib/checkout-session-payments';
 import type { getMessages } from '@/lib/i18n/messages';
 import { checkoutSettlementBarStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
@@ -101,7 +105,7 @@ export function CheckoutSessionActions(props: {
   t: CheckoutT;
   detailLocked: boolean;
   resumeOperating: boolean;
-  resumeBlockReason: string | null;
+  resumeBlockReason: ResumeCheckoutBlockReason | null;
   onResumeOrderingClick: () => void;
   leading?: ReactNode;
 }) {
@@ -117,7 +121,7 @@ export function CheckoutSessionActions(props: {
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
       <div className="flex flex-wrap items-center gap-2">{leading}</div>
       <div className="flex flex-wrap items-center gap-2">
-        {resumeBlockReason === 'individual_session' ? null : (
+        {omitsSessionResumeOrdering(resumeBlockReason) ? null : (
         <div className="flex flex-col items-end gap-1">
           <button
             type="button"

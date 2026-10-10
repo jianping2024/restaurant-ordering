@@ -6,6 +6,7 @@ import {
   hasConfirmedPerson,
   isByItemPerTicketCheckoutPlan,
   isSplitRowCollectible,
+  omitsSessionResumeOrdering,
   parseSessionCollectedPayments,
   reconcileSplitResultPaid,
   resumeCheckoutBlockReason,
@@ -244,5 +245,39 @@ describe('resumeCheckoutBlockReason', () => {
       ),
       'individual_session',
     );
+  });
+
+  it('omits session resume for even (no footer button; collections ignored)', () => {
+    const even = billSplit({
+      split_mode: 'even',
+      result: [
+        { name: 'Alice', amount: 10, paid: true },
+        { name: 'Bob', amount: 10 },
+      ],
+    });
+    assert.equal(resumeCheckoutBlockReason(even, []), 'even_session');
+    assert.equal(
+      resumeCheckoutBlockReason(even, [
+        {
+          id: 'p1',
+          person_index: 0,
+          person_name: 'Alice',
+          amount: 10,
+          created_at: '2026-10-10T12:00:00.000Z',
+          payment_method: null,
+          payment_lines: null,
+        },
+      ]),
+      'even_session',
+    );
+  });
+});
+
+describe('omitsSessionResumeOrdering', () => {
+  it('is true only for by_item / even omit reasons', () => {
+    assert.equal(omitsSessionResumeOrdering(null), false);
+    assert.equal(omitsSessionResumeOrdering('whole_table_paid'), false);
+    assert.equal(omitsSessionResumeOrdering('individual_session'), true);
+    assert.equal(omitsSessionResumeOrdering('even_session'), true);
   });
 });

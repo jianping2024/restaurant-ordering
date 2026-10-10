@@ -265,7 +265,8 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | 分单模式 | 入口 | 零收款 | 有收款 |
 |----------|------|--------|--------|
-| `whole_table` / `even` | 结账详情会话脚「恢复点单」→ `resume_table_session_ordering` | 可撤销 request（均摊）/ 取消整桌计划 | 保留分单与已收 |
+| `whole_table` | 结账详情会话脚「恢复点单」→ `resume_table_session_ordering` | 可取消整桌计划 | 保留分单与已收；整桌已付清 → `whole_table_paid` 禁用 |
+| `even` | **会话脚不放「恢复点单」**（`resumeCheckoutBlockReason` → `even_session`；`omitsSessionResumeOrdering`） | — | — |
 | `by_item` | **会话脚不放「恢复点单」**（`resumeCheckoutBlockReason` → `individual_session`）。份额区票级按钮文案仍是「恢复点单」，走解锁票 API | 未付票可退回可编辑 | 已付票不可解锁；锁定已付份额 |
 
 - 整桌已付清 → 禁止会话恢复（`whole_table_paid`）

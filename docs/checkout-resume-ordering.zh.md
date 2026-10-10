@@ -96,7 +96,8 @@
 | 能力 | 目标（本文） | 当前实现（摘要） |
 |------|----------------|------------------|
 | 已收款项跨恢复保留 | ✓ | ✓ `session_collected_payments` 不随恢复删除 |
-| 整桌/均摊部分收款后可恢复 | ✓ | ✓ |
+| 整桌部分收款后可恢复 | ✓ | ✓ |
+| 均摊无会话脚恢复 | ✓ | `resumeCheckoutBlockReason` → `even_session` |
 | 按菜无会话脚恢复 | ✓ | `resumeCheckoutBlockReason` → `individual_session` |
 | 按菜票级解锁文案「恢复点单」 | ✓ | 份额区 sole `checkout.resumeOrdering` |
 | 部分收款后锁定已付菜品行 | ✓ | `lockedByItemLineKeys` + `paidSplitPersonNames` |
@@ -120,7 +121,7 @@
 - `apps/web/src/components/menu/GuestBillBottomDock.tsx` — 客人账单底栏
 - `apps/web/src/lib/customer-bill-split-display.ts` — 成功页分单展示（ledger + result）
 - `apps/web/src/lib/checkout-split-continuation.ts` — 锁定判定、`paidSplitPersonNames`、`lockedByItemLineKeys`
-- `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截（含按菜 `individual_session`）
+- `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截（按菜 `individual_session` / 均摊 `even_session`；UI omit 唯一 `omitsSessionResumeOrdering`）
 - `apps/web/src/lib/checkout-resume-ordering-gate.ts` — 恢复点单出门禁
 - `apps/web/src/lib/staff-ticket-unlock.ts` / unlock API — 按菜票级解锁
 - `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` — 历史：按菜会话恢复保留快照（现产品入口已收口为票级解锁）

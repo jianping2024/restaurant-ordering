@@ -47,14 +47,14 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 ## 3. 高频操作明显
 
-主 CTA 唯一使用 **`Button variant="gold"`**（强浮雕 + 按下内凹；触控档 `size="action"` = 52px）。
+主 CTA 唯一使用 **`Button variant="gold"`**（强浮雕 + 按下内凹；触控档 `size="action"` = 52px）。次要 `outline` / `soft` / `ghost` 等用同一文件里的**轻**浮雕（`buttonPressReliefSoftClass`）；chip / 图标钮用**紧凑**浮雕（`buttonPressReliefCompactClass`）。
 
 | 场景 | 主操作样式 |
 |------|------------|
 | 提交订单 | 购物车抽屉底部 gold 全宽按钮 |
 | 确认收款 | `Button gold` + `action`「收款」，金额旁置 |
 | 确认开台 | 服务员桌台 gold 主按钮 |
-| 次要操作 | `outline` / `soft` / 文字链接 |
+| 次要操作 | `outline` / `soft`（轻浮雕按下，勿手写 shadow） |
 
 **字号**：结账行动金额（队列待收 / 本票应收 / 待收人旁 / 收款弹窗）唯一 `CHECKOUT_ACTION_AMOUNT_CLASS`（`text-lg` + `font-semibold` + `text-brand-gold`）；摘要条中「待收」用 `font-semibold text-brand-gold`（随条字号）。
 

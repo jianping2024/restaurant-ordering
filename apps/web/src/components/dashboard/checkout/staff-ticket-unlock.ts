@@ -6,8 +6,10 @@ import {
 import type { BillSplit } from '@/types';
 
 /**
- * Staff「解锁本票」control for by-item plans (sole shape — workbench takes this one prop).
- * Label/copy: checkout.unlockTicket* — never reuse session resumeOrdering.
+ * Staff by-item share-panel control to send one unpaid called ticket back to draft
+ * (sole shape — workbench takes this one prop).
+ * Visible copy: sole `checkout.resumeOrdering` / `resumeOrderingOperating`
+ * (same words as session resume — do not invent a second label).
  */
 export type StaffTicketUnlock = {
   unlockableKeys: ReadonlySet<string>;

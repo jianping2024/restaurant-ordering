@@ -19,6 +19,7 @@ import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
+import { buttonPressReliefCompactClass } from '@/components/ui/button-press-relief';
 import {
   CHECKOUT_ACTION_AMOUNT_CLASS,
   CHECKOUT_COLLECT_BUTTON_CLASS,
@@ -701,7 +702,7 @@ export function StaffByItemSplitWorkbench({
                 userPickedChipRef.current = true;
                 setCurrentIndex(idx);
               }}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${buttonPressReliefCompactClass} ${
                 active
                   ? 'border-brand-gold bg-brand-gold text-white'
                   : 'border-brand-border bg-brand-card text-brand-text hover:border-brand-gold/50'
@@ -1117,18 +1118,19 @@ export function StaffByItemSplitWorkbench({
                   {showUnlockTicket || showCollectCurrent ? (
                     <div className="flex shrink-0 items-center gap-2">
                       {showUnlockTicket && ticketUnlock ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           disabled={
                             disabled || ticketUnlock.unlockingKeys.has(currentUnlockKey)
                           }
                           onClick={() => ticketUnlock.onUnlock(currentUnlockKey)}
-                          className="text-sm font-semibold px-3 py-1.5 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50"
                         >
                           {ticketUnlock.unlockingKeys.has(currentUnlockKey)
                             ? ticketUnlock.busyLabel
                             : ticketUnlock.label}
-                        </button>
+                        </Button>
                       ) : null}
                       {showCollectCurrent && onCollectCurrent ? (
                         <Button

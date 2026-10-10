@@ -2,10 +2,13 @@
  * Sole selected/idle chrome for selectable chips.
  * Strong = switches the whole content block; soft = pick within a local option group.
  * Call sites add size/layout only — do not restate gold fill/border/text beside these.
+ * Press feedback = sole {@link buttonPressReliefCompactClass}.
  */
 
+import { buttonPressReliefCompactClass } from '@/components/ui/button-press-relief';
+
 /** Shared shell: always bordered so soft selected gold edge is visible on paper. */
-export const mesaSelectionChipShellClass = 'rounded-full border transition-colors';
+export const mesaSelectionChipShellClass = `rounded-full border transition-all duration-200 ${buttonPressReliefCompactClass}`;
 
 /** Soft: notes / allergens / sub-categories / weekday toggles. */
 export function mesaSelectionChipSoftClass(selected: boolean): string {

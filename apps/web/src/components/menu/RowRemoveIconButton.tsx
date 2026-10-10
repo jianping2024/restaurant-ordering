@@ -1,5 +1,7 @@
 'use client';
 
+import { buttonPressReliefCompactClass } from '@/components/ui/button-press-relief';
+
 type Props = {
   /** False when the row must stay (e.g. last by-item payer). */
   removable: boolean;
@@ -24,7 +26,7 @@ function TrashIcon({ className }: { className?: string }) {
 }
 
 const SLOT_CLASS =
-  'w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-colors';
+  `w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-all duration-200 ${buttonPressReliefCompactClass}`;
 
 /** Sole trash icon remove control (cart lines, by-item / buffet consumer rows). */
 export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled = false }: Props) {
@@ -32,7 +34,7 @@ export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled =
     return (
       <div
         aria-hidden
-        className={`${SLOT_CLASS} text-brand-text-muted/30 ${disabled ? 'opacity-40' : ''}`}
+        className={`${SLOT_CLASS} border border-transparent text-brand-text-muted/30 ${disabled ? 'opacity-40' : ''}`}
       >
         <TrashIcon className="w-4 h-4" />
       </div>
@@ -44,7 +46,7 @@ export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled =
       type="button"
       onClick={onRemove}
       aria-label={ariaLabel}
-      className={`${SLOT_CLASS} text-brand-text-muted hover:text-red-500 hover:bg-red-500/10`}
+      className={`${SLOT_CLASS} border border-brand-border/70 bg-brand-bg text-brand-text-muted hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/25`}
     >
       <TrashIcon className="w-4 h-4" />
     </button>

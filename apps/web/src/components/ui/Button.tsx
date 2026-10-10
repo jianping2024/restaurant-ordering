@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { ButtonHTMLAttributes, ComponentProps, forwardRef } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
+import {
+  buttonPressReliefSoftClass,
+  buttonPressReliefStrongClass,
+} from '@/components/ui/button-press-relief';
 
 export type ButtonVariant = 'gold' | 'outline' | 'ghost' | 'danger' | 'soft' | 'close';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'action';
@@ -18,19 +22,14 @@ const baseClass =
 const variants: Record<ButtonVariant, string> = {
   /**
    * Primary face — azulejo ink (variant id `gold` kept for call-site stability).
-   * Sole strong-relief + press-in feedback for staff/customer primary CTAs.
+   * Strong relief + press-in feedback for staff/customer primary CTAs.
    */
-  gold:
-    'border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold focus-visible:ring-brand-ink/45 shadow-[0_5px_0_0_rgb(0_0_0/0.35),0_8px_16px_rgb(0_0_0/0.2),inset_0_1px_0_rgb(255_255_255/0.22),inset_0_-1px_0_rgb(0_0_0/0.2)] enabled:active:translate-y-[4px] enabled:active:bg-[rgb(var(--color-brand-ink)/0.92)] enabled:active:shadow-[0_0_0_0_rgb(0_0_0/0),0_2px_4px_rgb(0_0_0/0.16),inset_0_5px_10px_rgb(0_0_0/0.45),inset_0_1px_0_rgb(0_0_0/0.25)] motion-reduce:enabled:active:translate-y-0',
-  outline:
-    'border border-brand-ink text-brand-ink hover:bg-brand-ink/10 font-semibold focus-visible:ring-brand-ink/30',
-  ghost:
-    'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-ink/30',
-  danger: 'bg-red-600 text-white hover:bg-red-700 font-semibold focus-visible:ring-red-400/40',
-  soft:
-    'border border-transparent bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-ink/30',
-  close:
-    'border border-rose-500 bg-brand-card text-rose-700 hover:bg-rose-500/8 font-medium focus-visible:ring-rose-400/40',
+  gold: `border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold focus-visible:ring-brand-ink/45 ${buttonPressReliefStrongClass} enabled:active:bg-[rgb(var(--color-brand-ink)/0.92)]`,
+  outline: `border border-brand-ink text-brand-ink hover:bg-brand-ink/10 font-semibold focus-visible:ring-brand-ink/30 ${buttonPressReliefSoftClass}`,
+  ghost: `text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-ink/30 ${buttonPressReliefSoftClass}`,
+  danger: `bg-red-600 text-white hover:bg-red-700 font-semibold focus-visible:ring-red-400/40 ${buttonPressReliefSoftClass}`,
+  soft: `border border-transparent bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-ink/30 ${buttonPressReliefSoftClass}`,
+  close: `border border-rose-500 bg-brand-card text-rose-700 hover:bg-rose-500/8 font-medium focus-visible:ring-rose-400/40 ${buttonPressReliefSoftClass}`,
 };
 
 const sizes: Record<ButtonSize, string> = {

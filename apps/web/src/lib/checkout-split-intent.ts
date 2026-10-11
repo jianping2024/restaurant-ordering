@@ -28,9 +28,25 @@ export function isShapeLockSplitMode(mode: SplitMode): boolean {
   return mode === 'whole_table' || mode === 'even';
 }
 
+/**
+ * Whole-table result row. Callers pass a stable seat id (draft state / plan).
+ * Omitting `partyId` mints once — only for one-shot builders (e.g. guest call);
+ * draft recompute must pass {@link resolveWholeTablePartyIdFromSplit} or held state.
+ */
 export function wholeTableSplitResult(total: number, partyId?: string): SplitResult[] {
   const party_id = parseOptionalPartyId(partyId) ?? mintSplitPartyId();
   return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total, party_id }];
+}
+
+/** Sole read of whole-table payer `party_id` from a persisted plan (result, else persons). */
+export function resolveWholeTablePartyIdFromSplit(
+  split: Pick<BillSplit, 'split_mode' | 'result' | 'persons'> | null | undefined,
+): string | undefined {
+  if (!split || !isWholeTableSplit(split)) return undefined;
+  return (
+    parseOptionalPartyId(split.result?.[0]?.party_id) ??
+    parseOptionalPartyId(split.persons?.[0]?.party_id)
+  );
 }
 
 /** Authoritative whole-table check: persisted mode first, legacy row shape as fallback. */

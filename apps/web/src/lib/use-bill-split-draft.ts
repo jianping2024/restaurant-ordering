@@ -22,7 +22,9 @@ import {
   type BillSplitLocalDraft,
 } from '@/lib/bill-split-local-draft';
 import {
+  isWholeTableSplit,
   resolvePersistedSplitModeForDraft,
+  resolveWholeTablePartyIdFromSplit,
 } from '@/lib/checkout-split-intent';
 import {
   allocationLockedPersonNames,
@@ -44,8 +46,14 @@ import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import { mintSplitPartyId } from '@/lib/split-party-id';
 import type { BillSplit, SplitMode } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
+
+/** Sole draft holder seed: plan id when whole_table, else mint once for a new whole-table intent. */
+function initialWholeTablePartyId(split: BillSplit | null | undefined): string {
+  return resolveWholeTablePartyIdFromSplit(split) ?? mintSplitPartyId();
+}
 
 export type SplitPersonSlot = EvenPersonDraft & {
   /** @deprecated Use partyId — kept equal to partyId for local-draft id field. */
@@ -134,6 +142,12 @@ export function useBillSplitDraft(params: {
   const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() =>
     initialSplitPeople(splitSeed, guestName),
   );
+  /** Stable whole-table payer id — never remint on amount recompute (even seats pattern). */
+  const [wholeTablePartyId, setWholeTablePartyId] = useState(() =>
+    initialWholeTablePartyId(
+      existingSplit && isWholeTableSplit(existingSplit) ? existingSplit : null,
+    ),
+  );
   const [storageReady, setStorageReady] = useState(false);
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
@@ -155,6 +169,11 @@ export function useBillSplitDraft(params: {
       setPersonCount(splitDraftPersonCount());
     }
     setSplitPeople(initialSplitPeople(seed, guestName));
+    if (existingSplit && isWholeTableSplit(existingSplit)) {
+      setWholeTablePartyId(initialWholeTablePartyId(existingSplit));
+    } else if (!existingSplit) {
+      setWholeTablePartyId(mintSplitPartyId());
+    }
     setEditingSplitNameIndex(null);
     setEditingSplitNameValue('');
   }, [continuationSplit, existingSplit, guestName]);
@@ -461,6 +480,7 @@ export function useBillSplitDraft(params: {
       lang,
       byItemPersonOrder,
       byItemPersonPartyIds,
+      wholeTablePartyId,
     }),
     [
       splitMode,
@@ -474,6 +494,7 @@ export function useBillSplitDraft(params: {
       lang,
       byItemPersonOrder,
       byItemPersonPartyIds,
+      wholeTablePartyId,
     ],
   );
 
@@ -512,6 +533,12 @@ export function useBillSplitDraft(params: {
         return;
       }
       setSplitMode(mode === 'whole_table' ? null : mode);
+      if (mode === 'whole_table') {
+        // New whole-table intent — mint once; do not reuse even/by_item seat ids.
+        setWholeTablePartyId(
+          resolveWholeTablePartyIdFromSplit(lockAnchorSplit) ?? mintSplitPartyId(),
+        );
+      }
       if (mode === 'even') {
         setPersonCount(
           splitDraftPersonCount(Math.max(personCount, splitPeople.length, 1)),

@@ -252,6 +252,7 @@ describe('resolvePersistedSplitModeForDraft', () => {
   });
 
   it('uses stable whole-table payer key when no split mode selected', () => {
+    const partyId = '11111111-1111-4111-8111-111111111111';
     const rows = computeSplitResults({
       splitMode: null,
       total: 50,
@@ -259,28 +260,56 @@ describe('resolvePersistedSplitModeForDraft', () => {
       lineSpecs: [menuSpec('o1-0', 1, 50)],
       personCount: 2,
       splitPeople: [],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
+      wholeTablePartyId: partyId,
     });
     assert.equal(rows.length, 1);
     assert.equal(rows[0]?.name, '__whole_table__');
     assert.equal(rows[0]?.amount, 50);
+    assert.equal(rows[0]?.party_id, partyId);
+  });
+
+  it('keeps the same whole-table party_id across total recomputes', () => {
+    const partyId = '22222222-2222-4222-8222-222222222222';
+    const base = {
+      splitMode: null as const,
+      orderLines: [menuLine('o1-0', 1, 50)],
+      lineSpecs: [menuSpec('o1-0', 1, 50)],
+      personCount: 2,
+      splitPeople: [] as { name: string }[],
+      byItemDraftRows: {},
+      parsedByItemAllocations: {},
+      lang: 'pt' as const,
+      wholeTablePartyId: partyId,
+    };
+    const low = computeSplitResults({ ...base, total: 50 });
+    const high = computeSplitResults({ ...base, total: 80 });
+    assert.equal(low[0]?.party_id, partyId);
+    assert.equal(high[0]?.party_id, partyId);
+    assert.equal(high[0]?.amount, 80);
   });
 
   it('uses the same whole-table result when splitMode is whole_table', () => {
+    const partyId = '33333333-3333-4333-8333-333333333333';
     const input = {
       total: 87.75,
       orderLines: [menuLine('o1-0', 1, 87.75)],
       lineSpecs: [menuSpec('o1-0', 1, 87.75)],
       personCount: 2,
       splitPeople: [{ name: '客人 1' }],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'zh' as const,
+      wholeTablePartyId: partyId,
     };
     const fromNull = computeSplitResults({ ...input, splitMode: null });
     const fromWhole = computeSplitResults({ ...input, splitMode: 'whole_table' });
     assert.deepEqual(fromWhole, fromNull);
-    assert.deepEqual(fromWhole, [{ name: '__whole_table__', amount: 87.75 }]);
+    assert.deepEqual(fromWhole, [
+      { name: '__whole_table__', amount: 87.75, party_id: partyId },
+    ]);
   });
 
   it('returns null for whole-table persisted split', () => {

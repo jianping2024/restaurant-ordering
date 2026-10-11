@@ -11,6 +11,8 @@ import {
 
 export type CustomerSplitResultListCopy = SplitSettlementCopy & {
   splitResult: string;
+  /** Tag on this phone's own row (by-item table view). */
+  mine?: string;
 };
 
 type Props = {
@@ -36,6 +38,11 @@ export function CustomerSplitResultList({ rows, lang, copy }: Props) {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-brand-text text-sm">{localizeSplitPersonName(row.name, lang)}</span>
+                  {row.mine && copy.mine ? (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full border border-brand-border text-brand-text-muted">
+                      {copy.mine}
+                    </span>
+                  ) : null}
                   <SplitSettlementStatusBadges row={row} copy={copy} />
                 </div>
                 <SplitSettlementPartialBreakdown row={row} copy={copy} />

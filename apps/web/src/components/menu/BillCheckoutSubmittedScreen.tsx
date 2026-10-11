@@ -1,6 +1,9 @@
 'use client';
 
-import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
+import type {
+  CustomerSplitRowDisplay,
+  CustomerTableSettlementSummary,
+} from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
 import type { DishFeedbackReasonKey } from '@/lib/dish-feedback-reasons';
 import type { GuestReviewableItem } from '@/lib/guest-reviewable-items';
@@ -37,6 +40,9 @@ interface Props {
   copy: BillCheckoutSubmittedCopy;
   total: number;
   splitRows: CustomerSplitRowDisplay[];
+  /** By-item only: whole-table collected / called / unclaimed under the total. */
+  tableSummary: CustomerTableSettlementSummary | null;
+  tableSummaryCopy: { collected: string; called: string; unclaimed: string; mine: string };
   backHref: string;
   backLabel: string;
   /** This phone called its ticket — ordering paused until staff unlocks. */
@@ -56,6 +62,15 @@ interface Props {
   onSubmitFeedback: () => void;
 }
 
+function SummaryLine({ label, amount }: { label: string; amount: number }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-brand-text-muted">{label}</dt>
+      <dd className="mesa-money text-brand-text">€{amount.toFixed(2)}</dd>
+    </div>
+  );
+}
+
 export function BillCheckoutSubmittedScreen({
   restaurantName,
   displayName,
@@ -64,6 +79,8 @@ export function BillCheckoutSubmittedScreen({
   copy,
   total,
   splitRows,
+  tableSummary,
+  tableSummaryCopy,
   backHref,
   backLabel,
   heldHint = null,
@@ -108,6 +125,17 @@ export function BillCheckoutSubmittedScreen({
         <section className="bg-brand-card border border-brand-border rounded-xl px-4 py-5 text-center">
           <p className="text-[13px] font-medium text-brand-text">{copy.totalLabel}</p>
           <p className="mesa-money text-3xl text-brand-gold mt-1">€{total.toFixed(2)}</p>
+          {tableSummary ? (
+            <dl className="mt-4 space-y-1.5 border-t border-brand-border pt-3 text-[13px]">
+              <SummaryLine label={tableSummaryCopy.collected} amount={tableSummary.collected} />
+              {tableSummary.called > 0 ? (
+                <SummaryLine label={tableSummaryCopy.called} amount={tableSummary.called} />
+              ) : null}
+              {tableSummary.unclaimed > 0 ? (
+                <SummaryLine label={tableSummaryCopy.unclaimed} amount={tableSummary.unclaimed} />
+              ) : null}
+            </dl>
+          ) : null}
         </section>
 
         <CustomerSplitResultList
@@ -118,6 +146,7 @@ export function BillCheckoutSubmittedScreen({
             splitPaid: copy.splitPaid,
             splitPartialPaid: copy.splitPartialPaid,
             splitAmountBreakdown: copy.splitAmountBreakdown,
+            mine: tableSummaryCopy.mine,
           }}
         />
 

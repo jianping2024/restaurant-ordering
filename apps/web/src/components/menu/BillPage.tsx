@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
+import {
+  buildCustomerSplitDisplayRows,
+  buildCustomerTableSettlementSummary,
+} from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { resolveGuestBillCollectionFooter } from '@/lib/checkout-settlement';
 import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
@@ -418,22 +421,18 @@ function GuestBillPage({
       return {
         rows,
         total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
+        tableSummary: null,
       };
     }
     const mineKeys = new Set(
       individualTickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
     );
-    const rows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total).filter(
-      (_, index) => {
-        const row = results[index];
-        return !!row && mineKeys.has(splitResultTicketKey(row));
-      },
+    const allRows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total).map(
+      (row, index) => ({ ...row, mine: mineKeys.has(splitResultTicketKey(results[index]!)) }),
     );
-    if (rows.length === 0) return null;
-    return {
-      rows,
-      total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
-    };
+    if (allRows.length === 0) return null;
+    const rows = [...allRows.filter((row) => row.mine), ...allRows.filter((row) => !row.mine)];
+    return { rows, total, tableSummary: buildCustomerTableSettlementSummary(rows, total) };
   }, [
     billSubmitted,
     guestMode,
@@ -801,6 +800,13 @@ function GuestBillPage({
         }}
         total={calledMine?.total ?? total}
         splitRows={calledMine?.rows ?? []}
+        tableSummary={calledMine?.tableSummary ?? null}
+        tableSummaryCopy={{
+          collected: t.splitPaid,
+          called: t.claimOthersCalled,
+          unclaimed: t.claimMoneyLeft,
+          mine: t.claimMoneyMine,
+        }}
         heldHint={
           guestMode === 'by_item' && orderingHeld && surfacePhase === 'awaiting_payment'
             ? t.individualCalledHint

@@ -1403,6 +1403,7 @@ export const MESSAGES_DE = {
     "actionFailed": "Vorgang fehlgeschlagen, bitte erneut versuchen",
     "checkoutSubmittedHint": "Bitte bringen Sie die Aufteilung auf dem Handy zur Kasse zum Bezahlen",
     "checkoutSettledHint": "Dieser Tisch ist abgerechnet — danke, bis zum nächsten Mal",
+    "checkoutClosedUnpaidHint": "Dieser Tisch ist geschlossen — bei Fragen zur Rechnung wenden Sie sich bitte an das Personal",
     "feedbackTitle": "Wie war jedes Gericht?",
     "feedbackHint": "Dauert etwa 10 Sekunden, optional",
     "feedbackSkip": "Überspringen",

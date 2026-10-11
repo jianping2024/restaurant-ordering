@@ -400,13 +400,15 @@ export async function loadCustomerSessionOrders(params: {
 export async function loadCustomerExistingSplit(params: {
   admin: AdminClient;
   sessionId: string;
+  /** Closed-session settlement read: the paid plan is part of the final truth. */
+  includePaid?: boolean;
 }): Promise<BillSplit | null> {
-  const { admin, sessionId } = params;
+  const { admin, sessionId, includePaid = false } = params;
   const { data } = await admin
     .from('bill_splits')
     .select('*')
     .eq('session_id', sessionId)
-    .in('status', ['requested', 'confirmed', 'pending'])
+    .in('status', includePaid ? ['requested', 'confirmed', 'pending', 'paid'] : ['requested', 'confirmed', 'pending'])
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();

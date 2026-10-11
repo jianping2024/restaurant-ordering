@@ -1405,6 +1405,7 @@ export const MESSAGES_FR = {
     "actionFailed": "Échec de l’action, veuillez réessayer",
     "checkoutSubmittedHint": "Merci de présenter votre part d’addition sur votre téléphone à la caisse pour payer",
     "checkoutSettledHint": "Cette table est réglée — merci, à bientôt",
+    "checkoutClosedUnpaidHint": "Cette table est fermée — adressez-vous à un serveur pour toute question sur l'addition",
     "feedbackTitle": "Qu’avez-vous pensé de chaque plat ?",
     "feedbackHint": "Environ 10 secondes, facultatif",
     "feedbackSkip": "Ignorer",

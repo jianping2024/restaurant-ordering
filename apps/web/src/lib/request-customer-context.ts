@@ -40,12 +40,14 @@ export function requestCustomerBillContext(
   tableId: string,
   scope: CustomerBillScope = 'full',
   guestClientId?: string | null,
+  closedSessionId?: string | null,
 ) {
   const params = new URLSearchParams({
     table_id: tableId,
     scope,
   });
   if (guestClientId) params.set('guest_client_id', guestClientId);
+  if (closedSessionId) params.set('closed_session_id', closedSessionId);
   return fetchJson<CustomerBillResponse>(
     `/api/restaurants/${encodeURIComponent(slug)}/customer/bill?${params.toString()}`,
   );

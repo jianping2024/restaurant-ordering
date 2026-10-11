@@ -812,7 +812,11 @@ function GuestBillPage({
         lang={lang}
         copy={{
           checkoutSubmittedHint:
-            surfacePhase === 'settled' ? t.checkoutSettledHint : t.checkoutSubmittedHint,
+            surfacePhase !== 'settled'
+              ? t.checkoutSubmittedHint
+              : calledMine?.rows.some((row) => row.settlementStatus !== 'settled')
+                ? t.checkoutClosedUnpaidHint
+                : t.checkoutSettledHint,
           totalLabel: t.totalLabel,
           splitResult: t.splitResult,
           splitPaid: t.splitPaid,

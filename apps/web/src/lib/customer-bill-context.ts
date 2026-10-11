@@ -16,6 +16,26 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 type AdminClient = SupabaseClient;
 
+/** The phone's last live session, only when it is this table's closed session. */
+async function resolveClosedSessionId(params: {
+  admin: AdminClient;
+  restaurantId: string;
+  tableId: string;
+  sessionId?: string | null;
+}): Promise<string | null> {
+  const sessionId = params.sessionId?.trim();
+  if (!sessionId) return null;
+  const { data } = await params.admin
+    .from('table_sessions')
+    .select('id')
+    .eq('id', sessionId)
+    .eq('restaurant_id', params.restaurantId)
+    .eq('table_id', params.tableId)
+    .eq('status', 'closed')
+    .maybeSingle();
+  return (data?.id as string | undefined) ?? null;
+}
+
 export async function loadCustomerBillContext(params: {
   admin: AdminClient;
   restaurantId: string;
@@ -25,6 +45,11 @@ export async function loadCustomerBillContext(params: {
   scope?: CustomerBillScope;
   /** Asking phone (individual-checkout sessions): marks which called tickets are `mine`. */
   guestClientId?: string | null;
+  /**
+   * Session this phone last saw live. Only read when the table has no live session and that
+   * session is this table's closed one: returns its final split / ledger / tickets (no orders).
+   */
+  closedSessionId?: string | null;
 }): Promise<CustomerBillContext | null> {
   const scope = params.scope ?? 'full';
   const tableContext =
@@ -37,15 +62,42 @@ export async function loadCustomerBillContext(params: {
   if (!tableContext) return null;
 
   if (!tableContext.activeSession?.id) {
+    const closedSessionId = await resolveClosedSessionId({
+      admin: params.admin,
+      restaurantId: params.restaurantId,
+      tableId: tableContext.tableId,
+      sessionId: params.closedSessionId,
+    });
+    const closedSplit = closedSessionId
+      ? await loadCustomerExistingSplit({
+          admin: params.admin,
+          sessionId: closedSessionId,
+          includePaid: true,
+        })
+      : null;
+    const [closedPayments, closedTickets] = closedSessionId
+      ? await Promise.all([
+          params.admin
+            .from('session_collected_payments')
+            .select(SESSION_COLLECTED_PAYMENT_SELECT)
+            .eq('restaurant_id', params.restaurantId)
+            .eq('session_id', closedSessionId)
+            .then(({ data }) => parseSessionCollectedPayments(data)),
+          loadIndividualTickets(params.admin, {
+            billSplitId: closedSplit?.id,
+            clientId: params.guestClientId,
+          }),
+        ])
+      : [[], []];
     return {
       table_id: tableContext.tableId,
       display_name: tableContext.displayName,
       active_session: null,
       orders: [],
-      existing_split: null,
-      collected_payments: [],
+      existing_split: closedSplit,
+      collected_payments: closedPayments,
       party_member_count: 0,
-      individual_tickets: [],
+      individual_tickets: closedTickets,
     };
   }
 

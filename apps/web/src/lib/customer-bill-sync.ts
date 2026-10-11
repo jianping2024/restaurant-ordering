@@ -65,8 +65,16 @@ export async function syncCustomerBill(
   slug: string,
   tableId: string,
   guestClientId?: string | null,
+  /** Last live session of this phone — lets a closed table return its final settlement. */
+  closedSessionId?: string | null,
 ): Promise<CustomerBillSyncSnapshot | null> {
-  const data = await requestCustomerBillContext(slug, tableId, 'full', guestClientId);
+  const data = await requestCustomerBillContext(
+    slug,
+    tableId,
+    'full',
+    guestClientId,
+    closedSessionId,
+  );
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
   const partyMemberCount =

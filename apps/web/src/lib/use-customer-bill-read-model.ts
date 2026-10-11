@@ -111,6 +111,8 @@ export function useCustomerBillReadModel(
     promise: Promise<CustomerBillSyncSnapshot | null>;
   } | null>(null);
   const syncSeqRef = useRef(0);
+  /** Last live session this phone saw: the key for the closed table's final settlement read. */
+  const lastLiveSessionIdRef = useRef<string | null>(initial.sessionId);
   const guestClientIdRef = useRef<string | null>(params.guestClientId ?? null);
   guestClientIdRef.current = params.guestClientId ?? null;
   const callBillBusyRef = useRef(false);
@@ -167,6 +169,7 @@ export function useCustomerBillReadModel(
     setExistingSplit(boot.existingSplit);
     setCollectedPayments(boot.collectedPayments);
     setSessionId(boot.sessionId);
+    if (boot.sessionId) lastLiveSessionIdRef.current = boot.sessionId;
     setSessionStatus(boot.sessionStatus ?? initial.sessionStatus);
     setIndividualTickets(boot.individualTickets);
     applyPhaseFromSnapshot(boot);
@@ -198,6 +201,13 @@ export function useCustomerBillReadModel(
 
       if (freezeSettledDisplay) {
         setSessionId(null);
+        // The closed table's final plan + ledger (the last collect closes the table in the same
+        // write, so no live read ever carries it). Orders stay frozen; empty = keep what we had.
+        if (synced.existingSplit) {
+          setExistingSplit(synced.existingSplit);
+          setCollectedPayments(synced.collectedPayments);
+          setIndividualTickets(synced.individualTickets);
+        }
         applyPhaseFromSnapshot(synced);
         markSynced();
         return;
@@ -208,6 +218,7 @@ export function useCustomerBillReadModel(
       setExistingSplit(synced.existingSplit);
       setCollectedPayments(synced.collectedPayments);
       setSessionId(synced.sessionId);
+      if (synced.sessionId) lastLiveSessionIdRef.current = synced.sessionId;
       if (synced.sessionStatus) setSessionStatus(synced.sessionStatus);
       setIndividualTickets(synced.individualTickets);
       applyPhaseFromSnapshot(synced);
@@ -229,7 +240,12 @@ export function useCustomerBillReadModel(
     handle.promise = (async () => {
       setIsSyncing(true);
       try {
-        const synced = await syncCustomerBill(params.slug, params.tableId, clientId);
+        const synced = await syncCustomerBill(
+          params.slug,
+          params.tableId,
+          clientId,
+          lastLiveSessionIdRef.current,
+        );
         if (!synced) {
           // Do not hold the page blank forever when the id'd read fails; writes stay server-guarded.
           if (clientId && seq === syncSeqRef.current) setTicketsReady(true);

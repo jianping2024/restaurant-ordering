@@ -228,7 +228,7 @@
 - 桌上已有分单后，分单方式**只提供「按菜分单」**（`split_mode` 整桌共用，其它方式会触发 `split_mode_locked`），不能只靠服务端报错。
 - 「待结账」页（按菜）：从上到下是「本次呼叫菜品清单」→ 整桌总额与三笔汇总 → 整桌分单结果 → 评价区块，详见 §15「待结账页」；**无**客人「恢复点单」/「刷新页面」。加菜须员工解锁。
 - **账单底栏唯一写法** `GuestBillBottomDock`：编辑态上「呼叫结账」下描边「返回点单」（按菜时主按钮上方多一行摘要：左「谁的账单 · n 道菜」、右金额，主按钮整宽）；待结账/已结清只留描边「返回点单」。填名字时整条底栏仍由 `globals.css` 藏起。
-- **账单页阶段唯一写法** `resolveGuestBillSurfacePhase`（`editing` / `awaiting_payment` / `settled`）：与点单闸口 `individualPhoneHoldsOrdering` 拆开。全额付清关台后停在 `settled`（结清文案 + 评价，冻结最后一屏金额；按菜时同样是 §15「待结账页」的总计 / 三笔汇总 / 分单结果，只是没有菜品清单），**不**自动进点餐页；仅客人点底栏「返回点单」才去菜单。按菜只收清本机票、桌未关 → 回 `editing` 可开新票。店员解锁/恢复点单 → 回 `editing`。
+- **账单页阶段唯一写法** `resolveGuestBillSurfacePhase`（`editing` / `awaiting_payment` / `settled`）：与点单闸口 `individualPhoneHoldsOrdering` 拆开。关台后停在 `settled`（评价 + 冻结的菜品；分单与收款在关台后读一次最终结果，见 §15「关台后的最终读取」；按菜时同样是 §15「待结账页」的总计 / 三笔汇总 / 分单结果，付清后没有菜品清单），**不**自动进点餐页；仅客人点底栏「返回点单」才去菜单。按菜只收清本机票、桌未关 → 回 `editing` 可开新票。店员解锁/恢复点单 → 回 `editing`。
 - **通知弹框**（不用飘窗）：标题「呼叫结账」；正文按人分块列出认领菜、份数、金额与每人合计；人多时中间滚动、底栏「知道了」固定；同时多人合并为一个弹窗（按票合入，开着也可追加）；自己呼叫的和已待结账的手机不弹；弹框期间保留输入草稿；同时自动拉最新数据并标红冲突行。员工解锁/改单只静默刷新，不弹。通知内容只读 `table_checkout_signals`（呼叫时盖入菜名三语 + 行金额），不依赖点菜页本地解菜名。
 
 ### 5.4 员工端
@@ -453,6 +453,16 @@
 - 菜品清单唯一入口 `guestCalledTicket`（`lib/guest-claim.ts`）：份数取 `guestOthersClaimBlocks`，每道菜金额取 `guestClaimLineAmounts`（与认领面板同一个分摊器，合计精确到分；不用「单价 × 份数」），不新写金额算法。
 - 三笔汇总唯一入口 `buildCustomerTableSettlementSummary`；整行排序唯一入口 `orderCustomerTableSplitRows`（均在 `lib/customer-bill-split-display.ts`）；分单行金额和已收/待收状态仍来自 `buildCustomerSplitDisplayRows` → `buildSplitSettlementRows`（账本为准）。
 - 文案复用已有 key：已收款 `splitPaid`、已呼叫结账 `claimOthersCalled`、待认领 `claimMoneyLeft`、我 `claimMoneyMine`、清单标题 `claimDockTitle`、自助餐人数 `buffetGuestCounts`，没有新增 key。
+
+### 关台后的最终读取
+
+最后一笔收款会在**同一个事务里**把桌子关掉，所以活的账单读取里永远没有「最后一笔已入账、桌子还没关」这个状态；桌子一关，活读取只返回空。若页面只冻结关台前最后一次读到的画面，最后一位付款的人就永远没有「已收款」，汇总里也永远留着「已呼叫结账」，与「已结清」的标题互相矛盾。
+
+规则：
+
+- 页面记住自己最后见到的活会话号（`lastLiveSessionIdRef`）。桌子关了之后，`GET …/customer/bill` 带 `closed_session_id`，服务端**只在该桌当前没有活会话、且这个会话号是本餐厅这张桌子的已关闭会话时**，返回它的最终分单（含 `paid`）、收款记录和票（`mine` 照常），订单仍为空（页面保留冻结的菜品）。会话号不对、不属于这张桌子、或没关闭 → 返回与以前相同的空结果，不泄漏任何东西。唯一读取入口是 `loadCustomerBillContext` 的 `closedSessionId`（分单读取复用 `loadCustomerExistingSplit({ includePaid })`，没有第二个加载器）。
+- 页面收到最终读取后，分单、收款、票用它重算：付清关台 → 所有人 `已收款`、汇总已收全额、没有菜品清单。强制关台、夜间自动关台等没付清就关的，没付的人如实显示未付（保留「已呼叫结账」那一行和我的菜品清单）。**不**因为桌子关了就把所有人标成已收款。
+- 标题：关台后所有票都已收款（或没有分单）→ `checkoutSettledHint`「本桌已结清，欢迎下次光临」；还有票没付清 → `checkoutClosedUnpaidHint`「本桌已关台，如有账单疑问请联系服务员」（zh / en / pt / es / fr / de 都有）。
 
 ### 取代了什么
 

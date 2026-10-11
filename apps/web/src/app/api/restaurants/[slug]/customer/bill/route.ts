@@ -43,6 +43,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     tableIdParam: searchParams.get('table_id'),
     scope: parseCustomerBillScope(searchParams.get('scope')),
     guestClientId: parseGuestClientId(searchParams.get('guest_client_id')),
+    closedSessionId: parseGuestClientId(searchParams.get('closed_session_id')),
   });
   if (!bill) {
     return NextResponse.json(

@@ -8,7 +8,7 @@ import type { SplitResult } from '@/types';
 export async function requestCheckoutConfirmPayment(params: {
   slug: string;
   billSplitId: string;
-  personIndex: number;
+  partyId: string;
   paymentMethod: BillSyncPaymentMethod;
   paymentLines?: BillSyncPaymentLine[] | null;
   collectedAmount?: number;
@@ -28,7 +28,7 @@ export async function requestCheckoutConfirmPayment(params: {
   const {
     slug,
     billSplitId,
-    personIndex,
+    partyId,
     paymentMethod,
     paymentLines,
     collectedAmount,
@@ -44,7 +44,7 @@ export async function requestCheckoutConfirmPayment(params: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bill_split_id: billSplitId,
-          person_index: personIndex,
+          party_id: partyId,
           client_request_id: clientRequestId,
           payment_method: paymentMethod,
           ...(paymentLines ? { payment_lines: paymentLines } : {}),

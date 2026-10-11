@@ -32,6 +32,7 @@ export const CHECKOUT_ERROR_STATUS = {
   empty_split: 400,
   empty_session: 400,
   invalid_person_index: 400,
+  invalid_party_id: 400,
   invalid_collected_amount: 400,
   table_not_available: 400,
   guest_count_required: 400,

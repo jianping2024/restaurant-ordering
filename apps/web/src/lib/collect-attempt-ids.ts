@@ -9,13 +9,13 @@ import type { BillSyncPaymentLine } from '@/lib/bill-sync-payload';
 
 export function collectAttemptFingerprint(params: {
   billSplitId: string;
-  personIndex: number;
+  partyId: string;
   amount: number;
   paymentMethod: string;
   paymentLines?: BillSyncPaymentLine[] | null;
 }): string {
-  const { billSplitId, personIndex, amount, paymentMethod, paymentLines } = params;
-  return JSON.stringify([billSplitId, personIndex, amount, paymentMethod, paymentLines ?? null]);
+  const { billSplitId, partyId, amount, paymentMethod, paymentLines } = params;
+  return JSON.stringify([billSplitId, partyId, amount, paymentMethod, paymentLines ?? null]);
 }
 
 export function createCollectAttemptIds(mint: () => string = mintBrowserUuid) {

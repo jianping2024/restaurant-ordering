@@ -10,6 +10,7 @@ import {
   parseBillSyncPaymentMethod,
   type BillSyncPaymentLine,
 } from '@/lib/bill-sync-payload';
+import { parseOptionalPartyId } from '@/lib/split-party-id';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type SplitRowWithIndex = {
@@ -41,6 +42,7 @@ export function collectibleSplitRowsWithIndex(
     if (amount <= 0) return;
     payments.push({
       id: `legacy-${index}`,
+      party_id: null,
       person_index: index,
       person_name: rows[index]?.name ?? '',
       amount,
@@ -57,6 +59,9 @@ export function collectibleSplitRowsWithIndex(
 
 export type SessionCollectedPayment = {
   id: string;
+  /** Stable seat/ticket id; authoritative when set (see checkout-ledger-party-id). */
+  party_id: string | null;
+  /** Legacy only when party_id is null. */
   person_index: number | null;
   person_name: string;
   amount: number;
@@ -68,12 +73,17 @@ export type SessionCollectedPayment = {
 };
 
 export const SESSION_COLLECTED_PAYMENT_SELECT =
-  'id, session_id, person_index, person_name, amount, created_at, payment_method, payment_lines' as const;
+  'id, session_id, party_id, person_index, person_name, amount, created_at, payment_method, payment_lines' as const;
+
+function parseLedgerPartyId(raw: unknown): string | null {
+  return parseOptionalPartyId(raw) ?? null;
+}
 
 export function parseSessionCollectedPayments(
   data: Array<{
     id: unknown;
     session_id?: unknown;
+    party_id?: unknown;
     person_index?: unknown;
     person_name: unknown;
     amount: unknown;
@@ -84,6 +94,7 @@ export function parseSessionCollectedPayments(
 ): SessionCollectedPayment[] {
   return (data ?? []).map((row) => ({
     id: row.id as string,
+    party_id: parseLedgerPartyId(row.party_id),
     person_index:
       typeof row.person_index === 'number' && Number.isInteger(row.person_index)
         ? row.person_index
@@ -102,6 +113,7 @@ export function parseSessionCollectedPaymentsWithSession(
   data: Array<{
     id: unknown;
     session_id: unknown;
+    party_id?: unknown;
     person_index?: unknown;
     person_name: unknown;
     amount: unknown;
@@ -113,6 +125,7 @@ export function parseSessionCollectedPaymentsWithSession(
   return (data ?? []).map((row) => ({
     id: row.id as string,
     session_id: row.session_id as string,
+    party_id: parseLedgerPartyId(row.party_id),
     person_index:
       typeof row.person_index === 'number' && Number.isInteger(row.person_index)
         ? row.person_index
@@ -127,11 +140,52 @@ export function parseSessionCollectedPaymentsWithSession(
   }));
 }
 
+/**
+ * Sole per-seat ledger sum (matches SQL `session_seat_collected`):
+ * payment.party_id set → match seat party_id; else legacy person_index.
+ */
+export function collectedAmountForResultSeat(
+  payments: SessionCollectedPayment[],
+  resultRows: SplitResult[],
+  rowIndex: number,
+): number {
+  const seatParty = parseOptionalPartyId(resultRows[rowIndex]?.party_id);
+  let sum = 0;
+  for (const payment of payments) {
+    const payParty = parseOptionalPartyId(payment.party_id);
+    if (payParty) {
+      if (seatParty && payParty === seatParty) sum += Number(payment.amount);
+      continue;
+    }
+    if (payment.person_index != null && payment.person_index === rowIndex) {
+      sum += Number(payment.amount);
+    }
+  }
+  return sum;
+}
+
+/** Sole map: result index → collected for that seat (id first, else index). */
+export function sumCollectedForResultSeats(
+  payments: SessionCollectedPayment[],
+  resultRows: SplitResult[],
+): Map<number, number> {
+  const map = new Map<number, number>();
+  for (let i = 0; i < resultRows.length; i += 1) {
+    map.set(i, collectedAmountForResultSeat(payments, resultRows, i));
+  }
+  return map;
+}
+
+/**
+ * Legacy index-only sum (null-party_id payments). Prefer `sumCollectedForResultSeats`.
+ * @deprecated
+ */
 export function sumCollectedByPersonIndex(
   payments: SessionCollectedPayment[],
 ): Map<number, number> {
   const map = new Map<number, number>();
   for (const payment of payments) {
+    if (parseOptionalPartyId(payment.party_id)) continue;
     if (payment.person_index == null || payment.person_index < 0) continue;
     const prior = map.get(payment.person_index) ?? 0;
     map.set(payment.person_index, prior + Number(payment.amount));

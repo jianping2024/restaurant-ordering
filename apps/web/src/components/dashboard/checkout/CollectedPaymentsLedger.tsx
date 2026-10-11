@@ -86,11 +86,13 @@ export function CollectedPaymentsLedger({
             : onCooldown
               ? t.printReceiptCooldown.replace('{n}', String(cooldownSeconds))
               : t.printReceipt;
-          const personIndex = payment.person_index;
+          const personIndex =
+            payment.person_index != null && payment.person_index >= 0
+              ? payment.person_index
+              : null;
           const canExpand =
             canExpandPersonDishes &&
             personIndex != null &&
-            personIndex >= 0 &&
             shareLinesByPersonIndex != null;
           const shareLines =
             canExpand && personIndex != null
@@ -120,9 +122,7 @@ export function CollectedPaymentsLedger({
                   <span className="text-brand-text font-medium tabular-nums text-[13px]">
                     €{payment.amount.toFixed(2)}
                   </span>
-                  {showPrintReceiptActions &&
-                  onPrintReceipt &&
-                  payment.person_index != null ? (
+                  {showPrintReceiptActions && onPrintReceipt ? (
                     <button
                       type="button"
                       onClick={() => onPrintReceipt(payment)}
@@ -132,9 +132,7 @@ export function CollectedPaymentsLedger({
                       {printLabel}
                     </button>
                   ) : null}
-                  {showPrintInvoiceActions &&
-                  onPrintInvoice &&
-                  payment.person_index != null ? (
+                  {showPrintInvoiceActions && onPrintInvoice ? (
                     <button
                       type="button"
                       onClick={() => onPrintInvoice(payment)}

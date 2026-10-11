@@ -78,6 +78,7 @@ describe('buildOrderHistoryBillDetailView', () => {
         collectedPayments: [
           {
             id: 'p1',
+            party_id: null,
             person_index: 0,
             person_name: 'John',
             amount: 6,
@@ -85,6 +86,7 @@ describe('buildOrderHistoryBillDetailView', () => {
           },
           {
             id: 'p2',
+            party_id: null,
             person_index: 1,
             person_name: 'Mike',
             amount: 4,

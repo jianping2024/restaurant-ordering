@@ -31,6 +31,11 @@ export type BillSplitDraftInput = {
   byItemPersonOrder?: readonly string[];
   /** Parallel party ids for {@link byItemPersonOrder} — sole by-item ticket identity. */
   byItemPersonPartyIds?: readonly (string | undefined)[];
+  /**
+   * Stable whole-table payer id (like even seat `partyId`).
+   * Required for draft recompute — do not omit or every compute remints.
+   */
+  wholeTablePartyId?: string;
 };
 
 export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
@@ -44,11 +49,12 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     lang,
     byItemPersonOrder,
     byItemPersonPartyIds,
+    wholeTablePartyId,
   } = input;
 
-  // Sole whole-table mint: draft null and persisted `'whole_table'` share one result shape.
+  // Draft null and persisted `'whole_table'` share one result shape; id from held state.
   if (!splitMode || splitMode === 'whole_table') {
-    return wholeTableSplitResult(total);
+    return wholeTableSplitResult(total, wholeTablePartyId);
   }
 
   if (splitMode === 'even') {

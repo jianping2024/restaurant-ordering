@@ -116,7 +116,10 @@ export function defaultEvenPersonDrafts(guestName: (n: number) => string): EvenP
 /** Paid / ledger-locked even seats — rename blocked by party_id (not name). */
 export function allocationLockedEvenPartyIds(
   split: BillSplit | null | undefined,
-  collectedPayments: ReadonlyArray<{ person_index: number | null }> = [],
+  collectedPayments: ReadonlyArray<{
+    party_id?: string | null;
+    person_index: number | null;
+  }> = [],
 ): ReadonlySet<string> {
   const ids = new Set<string>();
   const result = split?.result ?? [];
@@ -126,6 +129,11 @@ export function allocationLockedEvenPartyIds(
     if (id) ids.add(id);
   }
   for (const payment of collectedPayments) {
+    const payParty = parseOptionalPartyId(payment.party_id);
+    if (payParty) {
+      ids.add(payParty);
+      continue;
+    }
     if (payment.person_index == null || payment.person_index < 0) continue;
     const row = result[payment.person_index];
     const id = parseOptionalPartyId(row?.party_id);

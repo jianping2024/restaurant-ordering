@@ -117,6 +117,7 @@ describe('resolveByItemCollectTarget', () => {
       collectedPayments: [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: '客人 1',
           amount: 76.99,
@@ -138,6 +139,7 @@ describe('resolveByItemCollectTarget', () => {
       collectedPayments: [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: 'Ana',
           amount: 10,
@@ -176,6 +178,7 @@ describe('applyCollectedObligationFloors', () => {
       [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: '客人 4',
           amount: 2.2,
@@ -184,6 +187,7 @@ describe('applyCollectedObligationFloors', () => {
         },
         {
           id: '2',
+          party_id: null,
           person_index: 1,
           person_name: '客人 7',
           amount: 2.2,
@@ -207,6 +211,7 @@ describe('settledByItemPersonKeys', () => {
       [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: '客人 1',
           amount: 27.38,
@@ -215,6 +220,7 @@ describe('settledByItemPersonKeys', () => {
         },
         {
           id: '2',
+          party_id: null,
           person_index: 1,
           person_name: '客人 3',
           amount: 2.38,
@@ -233,6 +239,7 @@ describe('settledByItemPersonKeys', () => {
       [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: 'J',
           amount: 20.21,

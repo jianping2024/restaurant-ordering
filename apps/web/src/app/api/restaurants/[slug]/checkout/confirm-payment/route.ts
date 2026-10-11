@@ -11,6 +11,7 @@ import {
   parseBillSyncPaymentMethod,
   validatePaymentLinesForMethod,
 } from '@/lib/bill-sync-payload';
+import { parseOptionalPartyId } from '@/lib/split-party-id';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +26,7 @@ export async function POST(
 
   let body: {
     bill_split_id?: unknown;
-    person_index?: unknown;
+    party_id?: unknown;
     collected_amount?: unknown;
     payment_method?: unknown;
     payment_lines?: unknown;
@@ -47,10 +48,10 @@ export async function POST(
     return checkoutErrorResponse('invalid_client_request_id');
   }
 
-  const personIndex =
-    typeof body.person_index === 'number' && Number.isInteger(body.person_index)
-      ? body.person_index
-      : 0;
+  const partyId = parseOptionalPartyId(body.party_id);
+  if (!partyId) {
+    return checkoutErrorResponse('invalid_party_id');
+  }
 
   const collectedAmount =
     typeof body.collected_amount === 'number' && Number.isFinite(body.collected_amount)
@@ -92,14 +93,14 @@ export async function POST(
     admin: auth.admin,
     restaurantId: auth.restaurantId,
     billSplitId,
-    personIndex,
+    partyId,
   });
 
   const result = await confirmBillSplitPayment({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
     billSplitId,
-    personIndex,
+    partyId,
     paymentMethod,
     paymentLines,
     collectedAmount,

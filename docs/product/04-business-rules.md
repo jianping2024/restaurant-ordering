@@ -355,9 +355,9 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 收款台账
 
-- **现网**：`session_collected_payments.person_index` 为台账认人键（该位 = 当前 `result` 里对应座位的下标）；`person_name` 仅展示。分单花名册（均摊 / 按菜）认人优先 `party_id`；点收款时先用 id 定位座位再写下标。
-- **目标（未实现）**：台账以 `party_id` 为人的唯一标记；无 id 的旧行仍按下标兼容。定稿方案见 [`checkout-ledger-party-id.zh.md`](./checkout-ledger-party-id.zh.md)。
-- 待收[i] = 折后[i] − 台账[i]；RPC 拒绝超收与重复收满
+- **认人**：台账以 `session_collected_payments.party_id` 为人的唯一标记（与分单座位 / 按菜票同一套 id）。无 `party_id` 的旧行仍用 `person_index` 兼容。`person_name` 仅展示。sole 读法：TS `sumCollectedForResultSeats` / SQL `session_seat_collected`。方案见 [`checkout-ledger-party-id.zh.md`](./checkout-ledger-party-id.zh.md)。
+- 确认收款：调用方传 `party_id`；RPC `confirm_bill_split_payment` 用 id 定位座位；新行必写 `party_id`，不强制写 `person_index`。
+- 待收[座位] = 折后 − 该座位台账已收；RPC 拒绝超收与重复收满
 - 续结时 **保留已有 result 行顺序**；均摊 / 按菜有收款后按 `party_id` 合并（见均摊 / 按菜专节），禁止靠改名追加新人
 
 ### 校验（`validateBillSplit`）

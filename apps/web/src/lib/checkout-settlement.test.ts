@@ -43,7 +43,7 @@ describe('buildCheckoutSettlementSummary', () => {
     const summary = buildCheckoutSettlementSummary(
       billSplit(),
       0,
-      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
+      [{ id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
       payment_lines: null }],
     );
     assert.equal(summary.payable, 60);
@@ -72,6 +72,7 @@ describe('buildCheckoutSettlementSummary', () => {
       [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: '客人 1',
           amount: 69.17,
@@ -92,7 +93,7 @@ describe('liveSessionUncollectedAmount', () => {
       orders: [],
       billSplit: billSplit({ discount_rate: 10 }),
       collectedPayments: [
-        { id: '1', person_index: 0, person_name: 'John', amount: 27, created_at: '', payment_method: null,
+        { id: '1', party_id: null, person_index: 0, person_name: 'John', amount: 27, created_at: '', payment_method: null,
       payment_lines: null },
       ],
     });
@@ -126,7 +127,7 @@ describe('liveSessionUncollectedAmount', () => {
       ],
       billSplit: null,
       collectedPayments: [
-        { id: '1', person_index: null, person_name: '', amount: 3, created_at: '', payment_method: null,
+        { id: '1', party_id: null, person_index: null, person_name: '', amount: 3, created_at: '', payment_method: null,
       payment_lines: null },
       ],
     });
@@ -153,6 +154,7 @@ describe('resolveGuestBillCollectionFooter', () => {
       collectedPayments: [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: 'John',
           amount: 30,
@@ -178,6 +180,7 @@ describe('resolveGuestBillCollectionFooter', () => {
       collectedPayments: [
         {
           id: '1',
+          party_id: null,
           person_index: 0,
           person_name: 'John',
           amount: 27,

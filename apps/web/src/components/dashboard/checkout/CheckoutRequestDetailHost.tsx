@@ -625,9 +625,17 @@ export function CheckoutRequestDetailHost({
         if (idx >= 0) rowIndex = idx;
       }
       const billSplitId = persistedBillSplitId.current ?? row.id;
+      const partyId =
+        pending.partyId?.trim() ||
+        (row.result ?? [])[rowIndex]?.party_id?.trim() ||
+        '';
+      if (!partyId) {
+        showToast('操作失败，请重试', 'error');
+        return;
+      }
       const attemptFingerprint = collectAttemptFingerprint({
         billSplitId,
-        personIndex: rowIndex,
+        partyId,
         amount,
         paymentMethod: input.paymentMethod,
         paymentLines: input.payment_lines,
@@ -635,7 +643,7 @@ export function CheckoutRequestDetailHost({
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
         billSplitId,
-        personIndex: rowIndex,
+        partyId,
         paymentMethod: input.paymentMethod,
         paymentLines: input.payment_lines,
         collectedAmount: amount,
@@ -660,10 +668,7 @@ export function CheckoutRequestDetailHost({
         wholeTable: pending.wholeTable,
         allPaid: outcome.all_paid,
         personName: outcome.collection.person_name,
-        partyId:
-          pending.partyId ??
-          (row.result ?? [])[rowIndex]?.party_id ??
-          undefined,
+        partyId,
         obligation: amount,
         paymentMethod: input.paymentMethod,
         payment_lines: input.payment_lines,

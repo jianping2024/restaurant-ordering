@@ -159,6 +159,7 @@ export function groupCollectedPaymentsBySession(
     const list = map.get(row.session_id) ?? [];
     list.push({
       id: row.id,
+      party_id: row.party_id,
       person_index: row.person_index,
       person_name: row.person_name,
       amount: row.amount,

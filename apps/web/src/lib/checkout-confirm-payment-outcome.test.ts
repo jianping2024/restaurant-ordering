@@ -33,6 +33,7 @@ describe('appendCollectedPayment', () => {
   it('appends and dedupes by id', () => {
     const payment = {
       id: 'pay-1',
+      party_id: null,
       person_index: 0,
       person_name: 'A',
       amount: 30,
@@ -48,6 +49,7 @@ describe('appendCollectedPaymentToSessionMap', () => {
   it('groups by session id', () => {
     const payment = {
       id: 'pay-1',
+      party_id: null,
       person_index: 0,
       person_name: 'A',
       amount: 30,
@@ -93,6 +95,7 @@ describe('mergeCollectedLedgersBySession', () => {
         [
           {
             id: 'pay-new',
+            party_id: null,
             person_index: 0,
             person_name: 'A',
             amount: 30,

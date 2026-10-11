@@ -20,7 +20,10 @@ import {
   claimFromServerTicket,
   clampGuestClaimBuffetRows,
   clearGuestClaimDraft,
+  guestClaimForDisplay,
   guestClaimIssue,
+  guestClaimLineAmounts,
+  guestClaimMoney,
   guestClaimPoolResults,
   guestOthersClaimBlocks,
   lineOverClaimed,
@@ -180,10 +183,13 @@ export function useGuestClaim(params: {
     [persons, claim, lineSpecs],
   );
 
-  /** One pool calc: call-CTA amount + others-card amounts. */
+  /** Euro preview runs on a named claim so dishes show money before the guest types a name. */
+  const displayClaim = useMemo(() => guestClaimForDisplay(claim), [claim]);
+
+  /** One pool calc: call-CTA amount + others-card amounts + panel money. */
   const poolResults = useMemo(
-    () => guestClaimPoolResults({ claim, lineSpecs, orderLines, others, lang }),
-    [claim, lineSpecs, orderLines, others, lang],
+    () => guestClaimPoolResults({ claim: displayClaim, lineSpecs, orderLines, others, lang }),
+    [displayClaim, lineSpecs, orderLines, others, lang],
   );
 
   const othersBlocks = useMemo(
@@ -196,6 +202,19 @@ export function useGuestClaim(params: {
     [claim, lineSpecs, orderLines, others, lang, poolResults],
   );
 
+  const money = useMemo(
+    () => guestClaimMoney({ claim: displayClaim, lineSpecs, poolResults }),
+    [displayClaim, lineSpecs, poolResults],
+  );
+
+  const lineAmounts = useMemo(
+    () => guestClaimLineAmounts({ claim: displayClaim, lineSpecs, orderLines, others, lang }),
+    [displayClaim, lineSpecs, orderLines, others, lang],
+  );
+
+  /** Something is claimed, named or not — the call CTA asks for the name next. */
+  const hasClaim = money.mine > 0;
+
   const issue = useMemo(
     () =>
       guestClaimIssue({
@@ -203,9 +222,9 @@ export function useGuestClaim(params: {
         lineSpecs,
         others,
         results: results ?? [],
-        hasClaim: myTicket.hasClaim,
+        hasClaim,
       }),
-    [claim, lineSpecs, others, results, myTicket.hasClaim],
+    [claim, lineSpecs, others, results, hasClaim],
   );
 
   const nameTaken = useMemo(() => claimNameTaken(results ?? [], claim), [results, claim]);
@@ -254,6 +273,9 @@ export function useGuestClaim(params: {
     others,
     othersBlocks,
     myTicket,
+    money,
+    lineAmounts,
+    hasClaim,
     issue,
     nameTaken,
     overClaimedKeys,

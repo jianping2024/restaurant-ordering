@@ -7,6 +7,7 @@
  * the wire shape is the same ticket the server merges (`submitIndividualCall`).
  */
 import {
+  allocateByItemShareAmounts,
   buildByItemAllocationsFromPersons,
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
@@ -24,6 +25,7 @@ import {
   type BillSplitOrderLine,
   type ByItemLineSpec,
 } from '@/lib/bill-split-by-item-lines';
+import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
 import { rationalFromGuestClaimRow } from './guest-claim-qty-stack';
@@ -456,6 +458,85 @@ export function guestClaimPoolResults(params: {
     ),
     allocations: combine(others, mine),
   }).map((row) => toWireSplitResult(row));
+}
+
+/**
+ * Name stand-in while this phone has claimed dishes but not typed a name yet. Parsers drop
+ * nameless rows, so the euro preview (never the call payload) runs on this claim instead.
+ */
+const GUEST_CLAIM_DISPLAY_NAME = '…';
+
+/** Sole claim the euro preview reads: this claim, named even before the guest types a name. */
+export function guestClaimForDisplay(claim: GuestClaim): GuestClaim {
+  return claim.name.trim() ? claim : { ...claim, name: GUEST_CLAIM_DISPLAY_NAME };
+}
+
+/**
+ * Sole per-dish euro of this phone's claim. Same allocator and share order as
+ * {@link guestClaimPoolResults} (others first, mine appended), so the dishes add up to
+ * this phone's pool amount to the cent — never `unit × qty` per dish.
+ */
+export function guestClaimLineAmounts(params: {
+  claim: GuestClaim;
+  lineSpecs: ReadonlyArray<ByItemLineSpec>;
+  orderLines: ReadonlyArray<BillSplitOrderLine>;
+  others: ByItemLineAllocation;
+  lang: UILanguage;
+}): Record<string, number> {
+  const { claim, lineSpecs, orderLines, others, lang } = params;
+  const allocations = combine(others, mySharesOf(claim, lineSpecs));
+  const myKey = splitPartyKey(claim.partyId, claim.name);
+  const out: Record<string, number> = {};
+  for (const line of orderLines) {
+    const shares = (allocations[line.key] ?? []).filter((share) => share.qty.num > 0);
+    if (shares.length === 0) continue;
+    const amounts = allocateByItemShareAmounts(
+      byItemSplitLineFromOrderLine(line, resolveMenuItemLocalizedName(line, lang)),
+      shares,
+    );
+    let cents = 0;
+    shares.forEach((share, index) => {
+      if (splitPartyKey(share.partyId, share.name) === myKey) {
+        cents += eurosToCents(amounts[index] ?? 0);
+      }
+    });
+    if (cents > 0) out[line.key] = centsToEuros(cents);
+  }
+  return out;
+}
+
+export type GuestClaimMoney = {
+  /** Whole bill on the by-item ledger (Σ dish lines). */
+  table: number;
+  mine: number;
+  others: number;
+  /** Nobody has claimed it yet: table − mine − others (floor 0). */
+  left: number;
+};
+
+/** Sole money split of the claim panel: one pass over {@link guestClaimPoolResults} rows. */
+export function guestClaimMoney(params: {
+  claim: Pick<GuestClaim, 'name' | 'partyId'>;
+  lineSpecs: ReadonlyArray<ByItemLineSpec>;
+  poolResults: ReadonlyArray<SplitResult>;
+}): GuestClaimMoney {
+  const { claim, lineSpecs, poolResults } = params;
+  const myKey = splitPartyKey(claim.partyId, claim.name);
+  let tableCents = 0;
+  for (const spec of lineSpecs) tableCents += eurosToCents(spec.lineTotal);
+  let mineCents = 0;
+  let othersCents = 0;
+  for (const row of poolResults) {
+    const cents = eurosToCents(row.amount);
+    if (splitPartyKey(row.party_id, row.name) === myKey) mineCents += cents;
+    else othersCents += cents;
+  }
+  return {
+    table: centsToEuros(tableCents),
+    mine: centsToEuros(mineCents),
+    others: centsToEuros(othersCents),
+    left: centsToEuros(Math.max(0, tableCents - mineCents - othersCents)),
+  };
 }
 
 /** This phone's ticket as the call payload; amount is from {@link guestClaimPoolResults}. */

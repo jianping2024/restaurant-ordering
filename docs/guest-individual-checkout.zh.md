@@ -450,7 +450,7 @@
 
 | 能力 | 位置 |
 |---|---|
-| 单人认领纯规则（菜池叠加、可认领量、超额、重名、我的票金额、全部认领、从服务端票还原） | `apps/web/src/lib/guest-claim.ts`（测试 `guest-claim.test.ts`） |
+| 单人认领纯规则（菜池叠加、可认领量、超额、重名、我的票金额、每道菜我的 €、我/其他人/待认领金额、剩下都算我、从服务端票还原） | `apps/web/src/lib/guest-claim.ts`（测试 `guest-claim.test.ts`） |
 | 认领状态（服务端已解锁票 → 本机草稿 → 新票；付清后换新票） | `apps/web/src/lib/use-guest-claim.ts` |
 | 呼叫 | `apps/web/src/lib/use-guest-call-checkout.ts` |
 | UI | `components/menu/GuestClaimPanel.tsx`、`GuestClaimDishCard.tsx`、`BillPage.tsx`（顾客页 + 员工只读页） |

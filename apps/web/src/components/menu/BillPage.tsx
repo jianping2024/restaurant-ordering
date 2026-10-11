@@ -41,7 +41,7 @@ import {
   BillDetailsSection,
   type BillDetailsCollectionFooter,
 } from '@/components/menu/BillDetailsSection';
-import { GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
+import { GUEST_CLAIM_NAME_INPUT_ID, GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { buildGuestReviewableItems } from '@/lib/guest-reviewable-items';
@@ -387,13 +387,6 @@ function GuestBillPage({
     },
   });
 
-  const callAmountShown =
-    guestMode === 'by_item'
-      ? myTicket.amount
-      : guestMode === 'even'
-        ? total
-        : total;
-
   const handleModeClick = (mode: SplitMode) => {
     if (modeLocked) return;
     if (mode === 'whole_table' || mode === 'even' || mode === 'by_item') {
@@ -462,15 +455,30 @@ function GuestBillPage({
       nameLabel: t.claimNameLabel,
       namePlaceholder: t.claimNamePlaceholder,
       nameTaken: t.individualNameTaken,
-      claimAll: t.claimAll,
+      nameRequired: t.claimNameRequired,
+      nameRequiredTag: t.claimNameRequiredTag,
+      nameHint: t.claimNameHint,
+      stepMineTitle: t.claimStepMineTitle,
+      stepMineHint: t.claimStepMineHint,
+      progressTitle: t.claimProgressTitle,
+      tableTotal: t.claimTableTotal,
+      moneyMine: t.claimMoneyMine,
+      moneyOthers: t.claimMoneyOthers,
+      moneyLeft: t.claimMoneyLeft,
+      restAmount: t.claimRestAmount,
+      restDone: t.claimRestDone,
       othersSection: t.claimOthersSection,
-      mineLabel: t.claimMineLabel,
-      unitPickerLabel: t.claimUnitPicker,
-      stackLabel: t.claimStack,
+      othersCalled: t.claimOthersCalled,
+      mineQty: t.claimMineQty,
+      chipWhole: t.claimChipWhole,
+      chipShare: t.claimChipShare,
+      minusAria: t.claimMinusAria,
+      pricePortion: t.claimPricePortion,
+      priceAdult: t.claimPriceAdult,
+      priceBuffet: t.claimPriceBuffet,
+      cutHint: t.claimCutHint,
       paidLockedHint: t.claimPaidLocked,
       othersLockedHint: t.claimOthersLocked,
-      expandLabel: t.claimExpand,
-      collapseLabel: t.claimCollapse,
     }),
     [t],
   );
@@ -499,24 +507,90 @@ function GuestBillPage({
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
   const checkoutGateMessage = !partyCheckoutAllowed ? t.partyMergeRequired : null;
 
+  const [nameAsked, setNameAsked] = useState(false);
+  const claimNameMissing = nameAsked && !claim.claim.name.trim();
+
+  /** The name is the next step: scroll the field into view, focus it and mark it. */
+  const askForClaimName = () => {
+    setNameAsked(true);
+    const input = document.getElementById(GUEST_CLAIM_NAME_INPUT_ID);
+    if (!input) return;
+    input.scrollIntoView({ block: 'center' });
+    input.focus({ preventScroll: true });
+  };
+
   const handleCallBill = () => {
     if (!partyCheckoutAllowed) {
       showToast(t.partyMergeRequired, 'error');
       return;
     }
     if (guestMode === 'by_item' && claim.issue) {
-      showToast(
-        claim.issue === 'name_required'
-          ? t.claimNameRequired
-          : claim.issue === 'name_taken'
-            ? t.individualNameTaken
-            : (claimIssueMessage ?? t.actionFailed),
-        'error',
-      );
+      if (claim.issue === 'name_required' || claim.issue === 'name_taken') {
+        askForClaimName();
+        return;
+      }
+      showToast(claimIssueMessage ?? t.actionFailed, 'error');
       return;
     }
     void submitCall();
   };
+
+  /** By-item dock: one CTA whose label is the next step (claim → name → call) + the bill summary. */
+  const claimBlocked =
+    claim.issue === 'over_claim' || claim.issue === 'invalid_qty' || claim.issue === 'unit_mismatch';
+  const claimCtaKind: 'claim_first' | 'name' | 'rename' | 'call' = claimBlocked
+    ? 'call'
+    : !claim.hasClaim
+      ? 'claim_first'
+      : claim.issue === 'name_required'
+        ? 'name'
+        : claim.issue === 'name_taken'
+          ? 'rename'
+          : 'call';
+  const claimOwnerName = claim.claim.name.trim();
+  const byItemDockSummary =
+    guestMode === 'by_item'
+      ? {
+          title: claimOwnerName
+            ? t.claimDockTitle.replace('{name}', claimOwnerName)
+            : claim.hasClaim
+              ? t.claimDockNoName
+              : t.claimDockMine,
+          warn: claim.hasClaim && !claimOwnerName,
+          amountLabel: `€${claim.money.mine.toFixed(2)}`,
+          sub: claim.hasClaim
+            ? t.claimDockDishes.replace('{n}', String(Object.keys(claim.lineAmounts).length))
+            : t.claimDockNothing,
+        }
+      : null;
+  const byItemDockCta =
+    guestMode === 'by_item'
+      ? {
+          label:
+            claimCtaKind === 'claim_first'
+              ? t.claimCtaClaimFirst
+              : claimCtaKind === 'name'
+                ? t.claimCtaFillName
+                : claimCtaKind === 'rename'
+                  ? t.claimCtaChangeName
+                  : t.callBill,
+          icon:
+            claimCtaKind === 'claim_first'
+              ? undefined
+              : claimCtaKind === 'call'
+                ? '🔔'
+                : '✏️',
+          busy: isCallBillBusy,
+          disabled:
+            orderLines.length === 0
+            || !activeSessionId
+            || isCallBillBusy
+            || !partyCheckoutAllowed
+            || claimCtaKind === 'claim_first'
+            || (claimCtaKind === 'call' && claim.issue !== null),
+          onClick: handleCallBill,
+        }
+      : null;
 
   const reviewableItems = useMemo(() => {
     const mineTicketKeys = new Set(
@@ -836,6 +910,10 @@ function GuestBillPage({
               overClaimedKeys={claim.overClaimedKeys}
               unitMismatchKeys={claim.unitMismatchKeys}
               nameTaken={claim.nameTaken}
+              nameMissing={claimNameMissing}
+              money={claim.money}
+              lineAmounts={claim.lineAmounts}
+              hasClaim={claim.hasClaim}
               disabled={isCallBillBusy}
               itemCodeByMenuId={itemCodeByMenuId}
               onNameChange={claim.setName}
@@ -856,16 +934,17 @@ function GuestBillPage({
         gateBanner={
           checkoutGateMessage ? <BillCheckoutGateBanner message={checkoutGateMessage} /> : null
         }
-        callCheckout={{
+        summary={byItemDockSummary}
+        callCheckout={byItemDockCta ?? {
           label: t.callBill,
-          amountLabel: `€${callAmountShown.toFixed(2)}`,
+          icon: '🔔',
+          amountLabel: `€${total.toFixed(2)}`,
           busy: isCallBillBusy,
           disabled:
             orderLines.length === 0
             || !activeSessionId
             || isCallBillBusy
-            || !partyCheckoutAllowed
-            || (guestMode === 'by_item' && claim.issue !== null),
+            || !partyCheckoutAllowed,
           onClick: handleCallBill,
         }}
       />

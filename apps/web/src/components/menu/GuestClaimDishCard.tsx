@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   guestBuffetSeatCeil,
   guestClaimLeftToClaim,
@@ -16,7 +17,6 @@ import {
   stackGuestClaimUnit,
   unstackGuestClaimUnit,
 } from '@/lib/guest-claim-qty-stack';
-import { mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
 import { unitDenForQty } from '@/lib/by-item-fraction-unit';
 
 export type GuestClaimDishCardLabels = {
@@ -29,13 +29,20 @@ export type GuestClaimDishCardLabels = {
   buffetAdultQtyLabel: string;
   buffetChildQtyLabel: string;
   buffetGuestCounts: string;
-  mineLabel: string;
-  unitPickerLabel: string;
-  stackLabel: string;
-  paidLockedHint: string;
+  /** Carries `{qty}`: this phone's portions of the dish. */
+  mineQty: string;
+  chipWhole: string;
+  /** Carries `{n}`. */
+  chipShare: string;
+  minusAria: string;
+  /** Carries `{price}`. */
+  pricePortion: string;
+  priceAdult: string;
+  /** Carries `{adult}` and `{child}`. */
+  priceBuffet: string;
+  /** Carries `{n}`: the cut fixed on this dish. */
+  cutHint: string;
   othersLockedHint: string;
-  expandLabel: string;
-  collapseLabel: string;
 };
 
 function fill(template: string, values: Record<string, string | number>): string {
@@ -45,14 +52,18 @@ function fill(template: string, values: Record<string, string | number>): string
   );
 }
 
-function unitChipLabel(den: number): string {
-  return den === 1 ? '1' : `1/${den}`;
+function euro(amount: number): string {
+  return `€${amount.toFixed(2)}`;
 }
 
+const CHIP_CLASS =
+  'min-h-[56px] rounded-xl border border-brand-border bg-brand-bg/60 px-1 flex flex-col items-center justify-center text-brand-gold transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:border-dashed disabled:bg-transparent disabled:text-brand-text-muted/50';
+const MINUS_CLASS =
+  'w-10 h-10 shrink-0 rounded-full border border-brand-border bg-brand-card text-brand-text flex items-center justify-center text-xl leading-none disabled:opacity-40';
+
 type Props = {
-  lineKey: string;
+  spec: ByItemLineSpec;
   title: ReactNode;
-  mode: 'menu' | 'buffet';
   row: ByItemConsumerRow;
   availability: LineAvailability;
   over: boolean;
@@ -61,32 +72,34 @@ type Props = {
   disabled: boolean;
   /** No remaining and nothing mine — card stays read-only. */
   lineLocked: boolean;
-  /** Already collected / called ticket share — emerald read-only chrome. */
-  paidLocked?: boolean;
   /** Follow others' fraction method (Will: 分母跟死). */
   lockedUnitDen: number | null;
+  /** This phone's euro on the dish — sole `guestClaimLineAmounts`, 0 when nothing claimed. */
+  mineAmount: number;
   labels: GuestClaimDishCardLabels;
   onChange: (patch: Partial<ByItemConsumerRow>) => void;
 };
 
-/** One dish: expand to pick unit + stack; buffet stays integer −/+. */
+/**
+ * One dish: the portion buttons ARE the add action (one tap adds that size to this phone),
+ * − takes one back, the footer states this phone's portions and euro.
+ */
 export function GuestClaimDishCard({
-  lineKey,
+  spec,
   title,
-  mode,
   row,
   availability,
   over,
   unitMismatch = false,
   disabled,
   lineLocked,
-  paidLocked = false,
   lockedUnitDen,
+  mineAmount,
   labels,
   onChange,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const readOnly = disabled || lineLocked || paidLocked;
+  const mode = spec.mode;
+  const readOnly = disabled || lineLocked;
 
   const displayLeft = guestClaimLeftToClaim(availability, row);
   const leftText =
@@ -100,88 +113,87 @@ export function GuestClaimDishCard({
         });
 
   const mineQty = mode === 'menu' ? rationalFromGuestClaimRow(row) : null;
-  const hasMine =
-    mode === 'menu'
-      ? !!mineQty && mineQty.num > 0
-      : (Number.parseInt(row.adultQty || '0', 10) || 0) +
-          (Number.parseInt(row.childQty || '0', 10) || 0) >
-        0;
-
-  const mineLabel =
-    mode === 'menu'
-      ? `${labels.mineLabel} ${formatGuestClaimQtyLabel(mineQty!)}`
-      : `${labels.mineLabel} ${row.adultQty || '0'}A / ${row.childQty || '0'}C`;
+  const adultQty = Number.parseInt(row.adultQty || '0', 10) || 0;
+  const childQty = Number.parseInt(row.childQty || '0', 10) || 0;
+  const hasMine = mode === 'menu' ? !!mineQty && mineQty.num > 0 : adultQty + childQty > 0;
 
   const myDen = Number.parseInt(row.qtyDen.trim() || '0', 10);
   const effectiveLockedDen =
-    lockedUnitDen ??
-    row.unitDen ??
-    (Number.isFinite(myDen) && myDen > 1 ? myDen : null);
-
+    lockedUnitDen ?? row.unitDen ?? (Number.isFinite(myDen) && myDen > 1 ? myDen : null);
   const presets = useMemo(
     () => guestClaimUnitPresets(effectiveLockedDen),
     [effectiveLockedDen],
   );
-  const [unitDen, setUnitDen] = useState<number>(() => effectiveLockedDen ?? 1);
-  // A picked unit the line no longer allows falls back to the line's cut (not to whole).
-  const activeUnit = presets.includes(unitDen)
-    ? unitDen
-    : effectiveLockedDen && presets.includes(effectiveLockedDen)
-      ? effectiveLockedDen
-      : presets[0] ?? 1;
+
+  /** The size last added: − takes the same size back first. */
+  const [lastDen, setLastDen] = useState<number | null>(null);
 
   /** Stack result carries the unit it was picked in (whole portions carry none). */
   const withUnit = (
     fields: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>,
+    den: number,
   ): Partial<ByItemConsumerRow> => ({
     ...fields,
     unitDen: unitDenForQty(
       rationalFromGuestClaimRow({ ...row, ...fields }),
-      activeUnit > 1 ? activeUnit : effectiveLockedDen,
+      den > 1 ? den : effectiveLockedDen,
     ),
   });
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!unitMismatch) return;
-    setExpanded(true);
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [unitMismatch]);
 
   const remainingCap =
     availability.mode === 'menu' ? availability.remaining : { num: 0, den: 1 };
-  const canPlus =
-    !readOnly &&
-    mode === 'menu' &&
-    !!mineQty &&
-    canStackGuestClaimUnit({
-      current: mineQty,
-      unitDen: activeUnit,
-      remaining: remainingCap,
-    });
-  const canMinus =
-    !readOnly &&
-    mode === 'menu' &&
-    !!mineQty &&
-    canUnstackGuestClaimUnit({ current: mineQty, unitDen: activeUnit });
 
-  const shellClass = paidLocked
-    ? 'border-emerald-600/35 bg-emerald-500/5'
-    : lineLocked
-      ? 'border-brand-border bg-brand-border/25 opacity-90'
-      : over || unitMismatch
-        ? 'border-red-500/40 ring-1 ring-red-500/20 bg-brand-card'
-        : hasMine
-          ? 'border-brand-gold/50 bg-brand-gold/5'
-          : 'border-brand-border bg-brand-card';
+  const addMenuUnit = (den: number) => {
+    if (!mineQty) return;
+    const next = stackGuestClaimUnit({ current: mineQty, unitDen: den, remaining: remainingCap });
+    if (!next) return;
+    setLastDen(den);
+    onChange(withUnit(next, den));
+  };
+
+  const minusCandidates = [lastDen, effectiveLockedDen, 1].filter(
+    (den, index, all): den is number => den != null && all.indexOf(den) === index,
+  );
+  const minusMenuDen =
+    mineQty && !readOnly
+      ? minusCandidates.find((den) => canUnstackGuestClaimUnit({ current: mineQty, unitDen: den }))
+      : undefined;
+  const minusMenuUnit = () => {
+    if (!mineQty || minusMenuDen == null) return;
+    const next = unstackGuestClaimUnit({ current: mineQty, unitDen: minusMenuDen });
+    if (next) onChange(withUnit(next, minusMenuDen));
+  };
+
+  const setBuffetField = (field: 'adultQty' | 'childQty', value: number) =>
+    onChange({ [field]: value <= 0 ? '' : String(value) } as Partial<ByItemConsumerRow>);
+
+  const shellClass = lineLocked
+    ? 'border-brand-border bg-brand-border/25 opacity-90'
+    : over || unitMismatch
+      ? 'border-red-500/40 ring-1 ring-red-500/20 bg-brand-card'
+      : hasMine
+        ? 'border-brand-gold/50 bg-brand-gold/5'
+        : 'border-brand-border bg-brand-card';
+
+  const priceText =
+    spec.mode === 'menu'
+      ? fill(labels.pricePortion, { price: spec.unitPrice.toFixed(2) })
+      : spec.children > 0
+        ? fill(labels.priceBuffet, {
+            adult: spec.adultUnitPrice.toFixed(2),
+            child: spec.childUnitPrice.toFixed(2),
+          })
+        : fill(labels.priceAdult, { price: spec.adultUnitPrice.toFixed(2) });
 
   const metaLine = (
-    <p className="mt-1 text-[12px] text-brand-text-muted">
-      {paidLocked ? (
-        <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-          {labels.paidLockedHint}
-        </span>
-      ) : lineLocked ? (
+    <p className="mt-1 text-[13px] text-brand-text-muted">
+      {lineLocked ? (
         <span>{labels.othersLockedHint}</span>
       ) : (
         <span className={over || unitMismatch ? 'text-red-500 font-medium' : undefined}>
@@ -197,160 +209,139 @@ export function GuestClaimDishCard({
     </p>
   );
 
+  const buffetChips: Array<{
+    field: 'adultQty' | 'childQty';
+    label: string;
+    value: number;
+  }> = [
+    { field: 'adultQty', label: labels.buffetAdultQtyLabel, value: adultQty },
+    ...(spec.mode === 'buffet' && spec.children > 0
+      ? [{ field: 'childQty' as const, label: labels.buffetChildQtyLabel, value: childQty }]
+      : []),
+  ];
+
   return (
     <div
       ref={rootRef}
-      data-guest-claim-line={lineKey}
-      data-claim-state={
-        paidLocked ? 'paid' : lineLocked ? 'locked' : hasMine ? 'mine' : 'open'
-      }
-      className={`rounded-xl p-3.5 border ${shellClass}`}
+      data-guest-claim-line={spec.key}
+      data-claim-state={lineLocked ? 'locked' : hasMine ? 'mine' : 'open'}
+      className={`rounded-2xl p-4 border ${shellClass}`}
     >
-      <button
-        type="button"
-        className="w-full text-left flex items-start justify-between gap-2"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((v) => !v)}
-      >
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-brand-text text-sm leading-snug">{title}</p>
+          <p className="text-brand-text text-base leading-snug">{title}</p>
           {metaLine}
         </div>
-        <div className="shrink-0 flex flex-col items-end gap-1">
-          <span
-            className={`text-[12px] font-medium px-2 py-0.5 rounded-full border ${
-              hasMine
-                ? 'border-brand-gold/60 text-brand-gold'
-                : 'border-brand-border text-brand-text-muted'
-            }`}
-          >
-            {mineLabel}
-          </span>
-          <span className="text-[11px] text-brand-text-muted">
-            {expanded ? labels.collapseLabel : labels.expandLabel}
-          </span>
-        </div>
-      </button>
+        <p className="shrink-0 text-[13px] text-brand-text-muted tabular-nums whitespace-nowrap leading-snug">
+          {priceText}
+        </p>
+      </div>
 
-      {expanded ? (
-        <div className="mt-3 space-y-3 border-t border-brand-border/60 pt-3">
-          {mode === 'menu' ? (
-            <>
-              <div>
-                <p className="text-[11px] text-brand-text-muted mb-1.5">{labels.unitPickerLabel}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {presets.map((den) => (
-                    <button
-                      key={den}
-                      type="button"
-                      disabled={readOnly}
-                      onClick={() => setUnitDen(den)}
-                      className={`min-w-[2.5rem] px-2.5 py-1.5 rounded-lg text-sm ${mesaSelectionChipSoftClass(
-                        activeUnit === den,
-                      )} disabled:opacity-50`}
-                    >
-                      {unitChipLabel(den)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-[11px] text-brand-text-muted mb-1.5">{labels.stackLabel}</p>
-                <div className="flex items-center justify-center gap-3">
+      {mode === 'menu' && effectiveLockedDen ? (
+        <p className="mt-2 inline-block rounded-full bg-brand-ink/10 px-2.5 py-0.5 text-[12px] text-brand-ink">
+          {fill(labels.cutHint, { n: effectiveLockedDen })}
+        </p>
+      ) : null}
+
+      {!lineLocked ? (
+        <div
+          className="mt-3 grid gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${
+              mode === 'menu' ? presets.length : buffetChips.length
+            }, minmax(0, 1fr))`,
+          }}
+        >
+          {mode === 'menu'
+            ? presets.map((den) => {
+                const canAdd =
+                  !readOnly &&
+                  !!mineQty &&
+                  canStackGuestClaimUnit({
+                    current: mineQty,
+                    unitDen: den,
+                    remaining: remainingCap,
+                  });
+                return (
                   <button
+                    key={den}
                     type="button"
-                    aria-label="−"
-                    disabled={!canMinus}
-                    onClick={() => {
-                      const next = unstackGuestClaimUnit({
-                        current: mineQty!,
-                        unitDen: activeUnit,
-                      });
-                      if (next) onChange(withUnit(next));
-                    }}
-                    className="w-10 h-10 rounded-full bg-brand-border text-brand-text text-lg disabled:opacity-40"
+                    disabled={!canAdd}
+                    onClick={() => addMenuUnit(den)}
+                    className={CHIP_CLASS}
                   >
-                    −
+                    <span className="text-lg font-semibold leading-5">
+                      {den === 1 ? '+1' : `+1/${den}`}
+                    </span>
+                    <span className="mt-0.5 text-[11px] leading-[14px] text-brand-text-muted">
+                      {den === 1 ? labels.chipWhole : fill(labels.chipShare, { n: den })}
+                    </span>
                   </button>
-                  <div className="min-w-[4.5rem] text-center">
-                    <p className="text-lg font-semibold tabular-nums text-brand-gold">
-                      {formatGuestClaimQtyLabel(mineQty!)}
-                    </p>
-                    <p className="text-[11px] text-brand-text-muted">
-                      {activeUnit === 1 ? '×1' : `×1/${activeUnit}`}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="+"
-                    disabled={!canPlus}
-                    onClick={() => {
-                      const next = stackGuestClaimUnit({
-                        current: mineQty!,
-                        unitDen: activeUnit,
-                        remaining: remainingCap,
-                      });
-                      if (next) onChange(withUnit(next));
-                    }}
-                    className="w-10 h-10 rounded-full bg-brand-gold text-brand-on-gold text-lg disabled:opacity-40"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {(
-                [
-                  ['adultQty', labels.buffetAdultQtyLabel] as const,
-                  ['childQty', labels.buffetChildQtyLabel] as const,
-                ] as const
-              ).map(([field, label]) => {
-                const value = Number.parseInt(String(row[field] || '0'), 10) || 0;
+                );
+              })
+            : buffetChips.map(({ field, label, value }) => {
                 const ceil =
                   availability.mode === 'buffet' ? guestBuffetSeatCeil(availability, field) : 0;
                 return (
-                  <div key={field} className="flex flex-col gap-1">
-                    <span className="text-[11px] text-brand-text-muted">{label}</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        disabled={readOnly || value <= 0}
-                        onClick={() =>
-                          onChange({
-                            [field]: value <= 1 ? '' : String(value - 1),
-                          } as Partial<ByItemConsumerRow>)
-                        }
-                        className="w-9 h-9 rounded-full bg-brand-border text-brand-text disabled:opacity-40"
-                      >
-                        −
-                      </button>
-                      <span
-                        className={`flex-1 text-center tabular-nums font-semibold ${
-                          over ? 'text-red-500' : 'text-brand-gold'
-                        }`}
-                      >
-                        {value}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={readOnly || value >= ceil}
-                        onClick={() =>
-                          onChange({
-                            [field]: String(value + 1),
-                          } as Partial<ByItemConsumerRow>)
-                        }
-                        className="w-9 h-9 rounded-full bg-brand-gold text-brand-on-gold disabled:opacity-40"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    key={field}
+                    type="button"
+                    disabled={readOnly || value >= ceil}
+                    onClick={() => setBuffetField(field, value + 1)}
+                    className={CHIP_CLASS}
+                  >
+                    <span className="text-lg font-semibold leading-5">+1</span>
+                    <span className="mt-0.5 text-[11px] leading-[14px] text-brand-text-muted">
+                      {label}
+                    </span>
+                  </button>
                 );
               })}
+        </div>
+      ) : null}
+
+      {hasMine ? (
+        <div className="mt-3 flex items-center gap-3 border-t border-brand-gold/25 pt-3">
+          {mode === 'menu' ? (
+            <>
+              <button
+                type="button"
+                aria-label={labels.minusAria}
+                disabled={minusMenuDen == null}
+                onClick={minusMenuUnit}
+                className={MINUS_CLASS}
+              >
+                −
+              </button>
+              <p className="min-w-0 flex-1 text-[15px] font-semibold text-brand-gold tabular-nums">
+                {fill(labels.mineQty, { qty: formatGuestClaimQtyLabel(mineQty!) })}
+              </p>
+            </>
+          ) : (
+            <div className="min-w-0 flex-1 flex flex-wrap items-center gap-x-4 gap-y-2">
+              {buffetChips
+                .filter(({ value }) => value > 0)
+                .map(({ field, label, value }) => (
+                  <div key={field} className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label={labels.minusAria}
+                      disabled={readOnly}
+                      onClick={() => setBuffetField(field, value - 1)}
+                      className={MINUS_CLASS}
+                    >
+                      −
+                    </button>
+                    <span className="text-[15px] font-semibold text-brand-gold tabular-nums">
+                      {label} {value}
+                    </span>
+                  </div>
+                ))}
             </div>
           )}
+          <p className="shrink-0 text-lg font-semibold text-brand-gold tabular-nums">
+            {euro(mineAmount)}
+          </p>
         </div>
       ) : null}
     </div>

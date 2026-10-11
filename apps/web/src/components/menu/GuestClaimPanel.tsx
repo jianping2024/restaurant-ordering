@@ -24,16 +24,35 @@ import {
   rationalFromGuestClaimRow,
 } from '@/lib/guest-claim-qty-stack';
 import { fractionUnitOfLine } from '@/lib/by-item-fraction-unit';
+import type { GuestClaimMoney } from '@/lib/guest-claim';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 
 export type GuestClaimPanelLabels = GuestClaimDishCardLabels & {
   nameLabel: string;
   namePlaceholder: string;
   nameTaken: string;
-  claimAll: string;
+  /** Inline under the name field once the call CTA asked for it. */
+  nameRequired: string;
+  nameRequiredTag: string;
+  nameHint: string;
+  stepMineTitle: string;
+  stepMineHint: string;
+  progressTitle: string;
+  tableTotal: string;
+  moneyMine: string;
+  moneyOthers: string;
+  moneyLeft: string;
+  /** Carries `{amount}`. */
+  restAmount: string;
+  restDone: string;
   /** Section title above read-only others' person blocks. */
   othersSection: string;
+  othersCalled: string;
+  paidLockedHint: string;
 };
+
+/** Sole DOM id of the claim name field (the call CTA scrolls to and focuses it). */
+export const GUEST_CLAIM_NAME_INPUT_ID = 'guest-claim-name';
 
 type Props = {
   lang: UILanguage;
@@ -49,6 +68,12 @@ type Props = {
   unitMismatchKeys: ReadonlySet<string>;
   /** Show the "name already used" hint under the name field. */
   nameTaken: boolean;
+  /** The call CTA asked for a name and the field is still empty. */
+  nameMissing: boolean;
+  /** Sole money split (me / others / unclaimed) and per-dish euro of this phone. */
+  money: GuestClaimMoney;
+  lineAmounts: Record<string, number>;
+  hasClaim: boolean;
   disabled: boolean;
   itemCodeByMenuId?: Record<string, string>;
   onNameChange: (name: string) => void;
@@ -60,6 +85,56 @@ function fill(template: string, values: Record<string, string | number>): string
   return Object.entries(values).reduce(
     (text, [key, value]) => text.replace(`{${key}}`, String(value)),
     template,
+  );
+}
+
+function euro(amount: number): string {
+  return `€${amount.toFixed(2)}`;
+}
+
+function StepBadge({ n, done }: { n: number; done: boolean }) {
+  return done ? (
+    <span
+      aria-hidden="true"
+      className="w-[26px] h-[26px] shrink-0 rounded-full bg-brand-gold text-brand-on-gold flex items-center justify-center text-[14px]"
+    >
+      ✓
+    </span>
+  ) : (
+    <span
+      aria-hidden="true"
+      className="w-[26px] h-[26px] shrink-0 rounded-full border-[1.5px] border-brand-gold text-brand-gold flex items-center justify-center text-[14px] font-semibold"
+    >
+      {n}
+    </span>
+  );
+}
+
+function MoneyCell({
+  label,
+  amount,
+  dot,
+  strong = false,
+}: {
+  label: string;
+  amount: number;
+  dot: string;
+  strong?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="flex items-center gap-1.5 text-[12px] text-brand-text-muted">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+        <span className="truncate">{label}</span>
+      </p>
+      <p
+        className={`mt-0.5 text-[17px] font-semibold tabular-nums ${
+          strong ? 'text-brand-gold' : 'text-brand-text'
+        }`}
+      >
+        {euro(amount)}
+      </p>
+    </div>
   );
 }
 
@@ -75,6 +150,10 @@ export function GuestClaimPanel({
   overClaimedKeys,
   unitMismatchKeys,
   nameTaken,
+  nameMissing,
+  money,
+  lineAmounts,
+  hasClaim,
   disabled,
   itemCodeByMenuId = {},
   onNameChange,
@@ -85,7 +164,16 @@ export function GuestClaimPanel({
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
     [orderLines],
   );
-  const nameHint = nameTaken ? labels.nameTaken : null;
+  const nameDone = claim.name.trim().length > 0;
+  const nameHint = nameTaken
+    ? labels.nameTaken
+    : nameMissing && !nameDone
+      ? labels.nameRequired
+      : labels.nameHint;
+  const nameInvalid = nameTaken || (nameMissing && !nameDone);
+  const leftAll = money.left <= 0;
+  const share = (amount: number) =>
+    money.table > 0 ? `${Math.min(100, Math.max(0, (amount / money.table) * 100)).toFixed(2)}%` : '0%';
 
   const lineTitle = (lineKey: string) => {
     const spec = lineSpecs.find((row) => row.key === lineKey);
@@ -105,12 +193,20 @@ export function GuestClaimPanel({
 
   return (
     <div className="space-y-3">
-      <div className="bg-brand-card border border-brand-border rounded-xl p-3.5">
-        <label htmlFor="guest-claim-name" className="text-brand-text font-medium text-sm block mb-1.5">
-          {labels.nameLabel}
-        </label>
+      <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
+        <div className="flex items-center gap-2.5">
+          <StepBadge n={1} done={nameDone} />
+          <label htmlFor={GUEST_CLAIM_NAME_INPUT_ID} className="flex-1 text-brand-text font-semibold text-base">
+            {labels.nameLabel}
+          </label>
+          {!nameDone ? (
+            <span className="text-[12px] text-red-500 border border-red-500/35 rounded-full px-2.5 py-0.5">
+              {labels.nameRequiredTag}
+            </span>
+          ) : null}
+        </div>
         <input
-          id="guest-claim-name"
+          id={GUEST_CLAIM_NAME_INPUT_ID}
           type="text"
           autoComplete="off"
           enterKeyHint="done"
@@ -128,23 +224,54 @@ export function GuestClaimPanel({
             if (e.key === 'Enter') e.currentTarget.blur();
           }}
           placeholder={labels.namePlaceholder}
-          aria-invalid={nameTaken || undefined}
-          className={`${customerTextInputClass}${nameTaken ? ' !border-red-500' : ''}`}
+          aria-invalid={nameInvalid || undefined}
+          className={`mt-3 ${customerTextInputClass}${nameInvalid ? ' !border-red-500' : ''}`}
         />
-        {nameHint ? (
-          <p
-            className={`text-[12px] mt-1.5 ${nameTaken ? 'text-red-500' : 'text-brand-text-muted'}`}
-          >
-            {nameHint}
-          </p>
-        ) : null}
+        <p
+          className={`text-[13px] mt-2 ${nameInvalid ? 'text-red-500 font-medium' : 'text-brand-text-muted'}`}
+        >
+          {nameHint}
+        </p>
+      </div>
+
+      <div className="flex items-start gap-2.5 pt-3">
+        <StepBadge n={2} done={hasClaim} />
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-brand-text leading-[26px]">{labels.stepMineTitle}</h3>
+          <p className="text-[13px] text-brand-text-muted mt-0.5">{labels.stepMineHint}</p>
+        </div>
+      </div>
+
+      <div data-guest-claim-money="" className="bg-brand-card border border-brand-border rounded-2xl p-4">
+        <div className="flex items-baseline justify-between gap-2 mb-2.5">
+          <span className="text-[13px] text-brand-text-muted">{labels.progressTitle}</span>
+          <span className="text-[13px] text-brand-text-muted">
+            {labels.tableTotal}
+            <span className="ml-1.5 text-[15px] font-semibold text-brand-text tabular-nums">
+              {euro(money.table)}
+            </span>
+          </span>
+        </div>
+        <div className="flex h-2.5 overflow-hidden rounded-full bg-brand-border/60" aria-hidden="true">
+          <div className="bg-brand-gold transition-[width] duration-200" style={{ width: share(money.mine) }} />
+          <div className="bg-brand-text-muted/60" style={{ width: share(money.others) }} />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <MoneyCell label={labels.moneyMine} amount={money.mine} dot="bg-brand-gold" strong />
+          <MoneyCell label={labels.moneyOthers} amount={money.others} dot="bg-brand-text-muted/60" />
+          <MoneyCell
+            label={labels.moneyLeft}
+            amount={money.left}
+            dot="border border-brand-text-muted/60"
+          />
+        </div>
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || leftAll}
           onClick={onClaimAll}
-          className="mt-3 w-full text-[13px] py-2 border border-dashed border-brand-border rounded-lg text-brand-text-muted hover:border-brand-gold/50 hover:text-brand-gold transition-colors disabled:opacity-50"
+          className="mt-3.5 w-full min-h-[44px] text-[14px] border border-dashed border-brand-border rounded-xl text-brand-text hover:border-brand-gold/50 hover:text-brand-gold transition-colors disabled:text-brand-text-muted/60"
         >
-          {labels.claimAll}
+          {leftAll ? labels.restDone : fill(labels.restAmount, { amount: money.left.toFixed(2) })}
         </button>
       </div>
 
@@ -168,9 +295,8 @@ export function GuestClaimPanel({
         return (
           <GuestClaimDishCard
             key={spec.key}
-            lineKey={spec.key}
+            spec={spec}
             title={lineTitle(spec.key)}
-            mode={spec.mode}
             row={row}
             availability={availability}
             over={overClaimedKeys.has(spec.key)}
@@ -178,6 +304,7 @@ export function GuestClaimPanel({
             disabled={disabled}
             lineLocked={lineLocked}
             lockedUnitDen={lockedUnitDen}
+            mineAmount={lineAmounts[spec.key] ?? 0}
             labels={labels}
             onChange={(patch) => onRowChange(spec, patch)}
           />
@@ -204,11 +331,15 @@ export function GuestClaimPanel({
                   <span className="mesa-money tabular-nums text-sm font-semibold text-brand-gold">
                     €{block.amount.toFixed(2)}
                   </span>
-                  {block.paidLocked ? (
-                    <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                      {labels.paidLockedHint}
-                    </span>
-                  ) : null}
+                  <span
+                    className={`text-[11px] font-medium ${
+                      block.paidLocked
+                        ? 'text-emerald-700 dark:text-emerald-400'
+                        : 'text-brand-text-muted'
+                    }`}
+                  >
+                    {block.paidLocked ? labels.paidLockedHint : labels.othersCalled}
+                  </span>
                 </div>
               </div>
               <ul className="space-y-1.5">

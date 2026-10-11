@@ -10,7 +10,10 @@ import {
   claimRowFor,
   clampGuestClaimBuffetRows,
   guestBuffetSeatCeil,
+  guestClaimForDisplay,
   guestClaimIssue,
+  guestClaimLineAmounts,
+  guestClaimMoney,
   guestClaimLeftToClaim,
   guestClaimPoolResults,
   lineAvailability,
@@ -593,5 +596,113 @@ describe('mintGuestClaim + last name memory', () => {
       }),
       '',
     );
+  });
+});
+
+describe('guest claim money (per-dish euro, panel split)', () => {
+  const WANG = '33333333-3333-4333-8333-333333333333';
+  /** €1.00 and €2.50 dishes shared three ways: the cent remainder cannot sit on every ticket. */
+  const thirdSpecs: ByItemLineSpec[] = [menuSpec('W', 1, 1), menuSpec('C', 1, 2.5), buffetSpec];
+  const thirdLines = [orderLine('W', 1, 1), orderLine('C', 1, 2.5)];
+  const third = (partyId: string, name: string): SplitPerson => ({
+    name,
+    party_id: partyId,
+    item_shares: ['W', 'C'].map((key) => ({
+      key,
+      qty_num: 1,
+      qty_den: 3,
+      qty_unit_den: 3,
+      party_id: partyId,
+    })),
+  });
+  const myThirds = (): GuestClaim => {
+    let c = claim('Me');
+    for (const key of ['W', 'C']) {
+      const spec = thirdSpecs.find((row) => row.key === key)!;
+      c = withQty(c, spec, { qtyWhole: '', qtyNum: '1', qtyDen: '3', unitDen: 3 } as never);
+    }
+    return c;
+  };
+
+  it('per-dish euros add up to the call amount to the cent, whoever gets the spare cent', () => {
+    const persons = [third(LI, 'Li'), third(WANG, 'Wang')];
+    let sawSpareCent = false;
+    for (const name of ['Ann', 'Me', 'Zed']) {
+      const me = { ...myThirds(), name };
+      const others = othersAllocation(persons, me, thirdSpecs);
+      const common = { claim: me, lineSpecs: thirdSpecs, orderLines: thirdLines, others, lang: 'pt' as const };
+      const amounts = guestClaimLineAmounts(common);
+      const ticket = buildMyTicket(common);
+      const sumCents = Object.values(amounts).reduce((sum, euros) => sum + Math.round(euros * 100), 0);
+      assert.equal(sumCents, Math.round(ticket.amount * 100), `name ${name}`);
+      // unit × qty per dish would be 0.33 + 0.83 = 1.16; a ticket holding the spare cents differs
+      if (sumCents !== 116) sawSpareCent = true;
+    }
+    assert.equal(sawSpareCent, true, 'at least one name must hold a spare cent so the case is not vacuous');
+  });
+
+  it('the three tickets together pay the whole of the claimed dishes', () => {
+    const persons = [third(LI, 'Li'), third(WANG, 'Wang')];
+    const me = myThirds();
+    const others = othersAllocation(persons, me, thirdSpecs);
+    const pool = guestClaimPoolResults({
+      claim: me,
+      lineSpecs: thirdSpecs,
+      orderLines: thirdLines,
+      others,
+      lang: 'pt',
+    });
+    const money = guestClaimMoney({ claim: me, lineSpecs: thirdSpecs, poolResults: pool });
+    const claimedCents = Math.round((money.mine + money.others) * 100);
+    assert.equal(claimedCents, 100 + 250);
+    assert.equal(
+      Math.round((money.mine + money.others + money.left) * 100),
+      Math.round(money.table * 100),
+    );
+  });
+
+  it('splits the table into mine / others / unclaimed and never goes negative', () => {
+    const persons = [liPerson([['L1', 3]])];
+    const me = withQty(claim('Me'), specs[0]!, { qtyWhole: '1' });
+    const others = othersAllocation(persons, me, specs);
+    const pool = guestClaimPoolResults({ claim: me, lineSpecs: specs, orderLines, others, lang: 'pt' });
+    const money = guestClaimMoney({ claim: me, lineSpecs: specs, poolResults: pool });
+    assert.equal(money.table, 20 + 20 + 50);
+    assert.equal(money.mine, 5);
+    assert.equal(money.others, 15);
+    assert.equal(money.left, 70);
+  });
+
+  it('previews euros before a name is typed, without turning it into a callable ticket', () => {
+    const unnamed = withQty(claim(''), specs[0]!, { qtyWhole: '2' });
+    const display = guestClaimForDisplay(unnamed);
+    const pool = guestClaimPoolResults({
+      claim: display,
+      lineSpecs: specs,
+      orderLines,
+      others: {},
+      lang: 'pt',
+    });
+    assert.equal(guestClaimMoney({ claim: display, lineSpecs: specs, poolResults: pool }).mine, 10);
+    assert.deepEqual(
+      guestClaimLineAmounts({ claim: display, lineSpecs: specs, orderLines, others: {}, lang: 'pt' }),
+      { L1: 10 },
+    );
+    // the call payload stays empty until the name exists
+    assert.equal(
+      buildMyTicket({ claim: unnamed, lineSpecs: specs, orderLines, others: {}, lang: 'pt', poolResults: pool })
+        .persons.length,
+      0,
+    );
+    // …and a claim without a name asks for the name, not for "claim something"
+    assert.equal(
+      guestClaimIssue({ claim: unnamed, lineSpecs: specs, others: {}, results: [], hasClaim: true }),
+      'name_required',
+    );
+  });
+
+  it('leaves a named claim untouched by the display stand-in', () => {
+    const named = withQty(claim('Me'), specs[0]!, { qtyWhole: '1' });
+    assert.equal(guestClaimForDisplay(named), named);
   });
 });

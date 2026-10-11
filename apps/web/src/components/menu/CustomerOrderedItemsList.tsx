@@ -1,3 +1,4 @@
+import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
 import type { CustomerSubmittedOrderGroup } from '@/lib/customer-submitted-order-display';
 
 type Props = {
@@ -54,9 +55,12 @@ export function CustomerOrderedItemsList({
               {group.lines.map((line) => (
                 <div
                   key={line.key}
-                  className="flex items-baseline justify-between gap-3 text-sm text-brand-text"
+                  className="flex items-center justify-between gap-3 text-sm text-brand-text"
                 >
-                  <p className="min-w-0 flex-1">{line.label}</p>
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <PeerFloatDishThumb thumb={line.thumb} />
+                    <p className="min-w-0 flex-1">{line.label}</p>
+                  </div>
                   {line.statusLabel ? (
                     <span className="shrink-0 text-[12px] text-brand-text-muted tabular-nums">
                       {line.statusLabel}

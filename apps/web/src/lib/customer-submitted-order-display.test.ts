@@ -154,6 +154,68 @@ describe('buildCustomerSubmittedDisplayOrders', () => {
     ], 'zh');
     assert.match(groups[0]?.lines[0]?.label ?? '', /矿泉水/);
     assert.doesNotMatch(groups[0]?.lines[0]?.label ?? '', /Água/);
+    assert.equal(groups[0]?.lines[0]?.label.includes('💧'), false);
+  });
+
+  it('uses the live menu photo and does not put emoji in the label', () => {
+    const groups = buildCustomerSubmittedDisplayOrders(
+      [
+        orderWithItems([
+          {
+            id: 'cola',
+            name: 'Cola',
+            name_pt: 'Cola',
+            name_zh: '可乐',
+            qty: 1,
+            price: 2,
+            emoji: '🍺',
+            batch_id: 'batch-a',
+            added_at: '2026-07-15T12:30:00.000Z',
+          },
+        ]),
+      ],
+      'zh',
+      {
+        menuItems: [
+          {
+            id: 'cola',
+            emoji: '🥤',
+            image_url: 'https://example.com/cola.jpg',
+          },
+        ],
+      },
+    );
+    const line = groups[0]?.lines[0];
+    assert.equal(line?.label, '可乐 × 1');
+    assert.equal(line?.thumb.imageUrl, 'https://example.com/cola.jpg');
+    assert.equal(line?.thumb.emoji, '🥤');
+  });
+
+  it('falls back to the order emoji when the dish is gone from the menu', () => {
+    const groups = buildCustomerSubmittedDisplayOrders(
+      [
+        orderWithItems([
+          {
+            id: 'buffet:1',
+            name: 'Buffet livre',
+            name_pt: 'Buffet livre',
+            kind: 'buffet_base',
+            qty: 1,
+            price: 20,
+            emoji: '🍽️',
+            adult_count: 2,
+            child_count: 2,
+            batch_id: 'batch-a',
+            added_at: '2026-07-15T12:30:00.000Z',
+          },
+        ]),
+      ],
+      'zh',
+    );
+    const line = groups[0]?.lines[0];
+    assert.equal(line?.label, 'Buffet livre · A2-C2');
+    assert.equal(line?.thumb.imageUrl, undefined);
+    assert.equal(line?.thumb.emoji, '🍽️');
   });
 
   it('handles missing items array', () => {

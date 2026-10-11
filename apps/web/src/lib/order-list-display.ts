@@ -67,7 +67,7 @@ export function formatOrderItemQuantityLabel(
   return guestLabel ? `· ${guestLabel}` : '';
 }
 
-/** Staff buffet line: `Buffet livre · A1-C2` — headcount stays in label when embedded. */
+/** Screen line without a leading emoji: buffet `Name · A1-C2`, menu `Name × n`. */
 export function formatStaffBuffetLineLabel(
   item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
   lang: UILanguage,
@@ -84,17 +84,6 @@ export function formatOrderItemNameLabel(
   lang: UILanguage,
 ): string {
   return `${item.emoji} ${resolveMenuItemLocalizedName(item, lang)}`;
-}
-
-/** Single order line label shared by waiter, guest menu, and dashboard lists. */
-export function formatOrderItemListLabel(
-  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'emoji' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
-  lang: UILanguage,
-  options: OrderItemListLabelOptions = {},
-): string {
-  const name = resolveMenuItemLocalizedName(item, lang);
-  const quantityLabel = formatOrderItemQuantityLabel(item, options);
-  return `${item.emoji} ${name} ${quantityLabel}`;
 }
 
 /** Print receipt qty column: menu uses xN; buffet uses A1-C2 tokens. */

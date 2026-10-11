@@ -1108,6 +1108,7 @@ export function MenuOrderingController({
       <OrderedDrawer
         open={orderedOpen}
         orders={recentOrders}
+        menuItems={menuItems}
         lang={lang}
         sessionResolved={sessionResolved}
         kitchenProgress={kitchenProgress}

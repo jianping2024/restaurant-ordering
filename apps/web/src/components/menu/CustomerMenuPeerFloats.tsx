@@ -1,18 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
 import {
   CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
 } from '@/lib/customer-menu-chrome-layout';
-import {
-  MENU_IMAGE_OBJECT_FIT_CLASS,
-  MENU_IMAGE_UNOPTIMIZED,
-  MENU_IMAGE_WELL_BG_CLASS,
-  resolveMenuImageDisplayUrl,
-} from '@/lib/menu-image';
 import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import {
   mintPaidPeerFloatBaselineAtMs,
@@ -69,30 +63,6 @@ export const customerMenuPeerFloatBubbleClass = (fading: boolean) =>
     'transition-opacity duration-300',
     fading ? 'opacity-0' : 'opacity-100',
   ].join(' ');
-
-/** Sole peer-float dish thumb UI: photo else emoji (28×28). */
-function PeerFloatDishThumb({ thumb }: { thumb: PeerFloatThumb }) {
-  const src = resolveMenuImageDisplayUrl(thumb.imageUrl);
-  return (
-    <span
-      className={`relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[15px] leading-none ${MENU_IMAGE_WELL_BG_CLASS}`}
-      data-peer-float-thumb={src ? 'photo' : 'emoji'}
-    >
-      {src ? (
-        <Image
-          src={src}
-          alt=""
-          fill
-          className={MENU_IMAGE_OBJECT_FIT_CLASS}
-          sizes="28px"
-          unoptimized={MENU_IMAGE_UNOPTIMIZED}
-        />
-      ) : (
-        thumb.emoji
-      )}
-    </span>
-  );
-}
 
 /** Sole batch merge + chronological sort before render cap. */
 export function appendPeerFloatItems(

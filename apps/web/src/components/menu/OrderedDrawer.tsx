@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Order } from '@/types';
+import type { MenuItem, Order } from '@/types';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
@@ -20,6 +20,7 @@ type Labels = {
 type Props = {
   open: boolean;
   orders: Order[];
+  menuItems: readonly Pick<MenuItem, 'id' | 'image_url' | 'emoji'>[];
   lang: Language;
   sessionResolved: boolean;
   kitchenProgress?: CustomerKitchenProgress | null;
@@ -33,6 +34,7 @@ type Props = {
 export function OrderedDrawer({
   open,
   orders,
+  menuItems,
   lang,
   sessionResolved,
   kitchenProgress = null,
@@ -45,9 +47,9 @@ export function OrderedDrawer({
   const groups = useMemo(
     () =>
       open && sessionResolved
-        ? buildCustomerSubmittedDisplayOrders(orders, lang, { kitchenProgress })
+        ? buildCustomerSubmittedDisplayOrders(orders, lang, { kitchenProgress, menuItems })
         : [],
-    [kitchenProgress, lang, open, orders, sessionResolved],
+    [kitchenProgress, lang, menuItems, open, orders, sessionResolved],
   );
 
   const showSubmittedHint = open && sessionResolved && groups.length > 0;

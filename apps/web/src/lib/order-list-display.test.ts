@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildOrderListDisplayChips,
-  formatOrderItemListLabel,
   formatOrderItemQuantityLabel,
   formatOrderListItemPrintQty,
   formatStaffBuffetLineLabel,
@@ -119,27 +118,6 @@ describe('formatStaffBuffetLineLabel', () => {
         { headcountStyle: 'receipt' },
       ),
       'Buffet almoço · A7-C3',
-    );
-  });
-});
-
-describe('formatOrderItemListLabel', () => {
-  it('joins emoji, name, and quantity label', () => {
-    assert.equal(
-      formatOrderItemListLabel(
-        {
-          emoji: '🍽️',
-          name: 'Buffet almoço',
-          name_pt: 'Buffet almoço',
-          kind: 'buffet_base',
-          qty: 1,
-          adult_count: 7,
-          child_count: 3,
-        },
-        'pt',
-        { headcountStyle: 'receipt' },
-      ),
-      '🍽️ Buffet almoço · A7-C3',
     );
   });
 });

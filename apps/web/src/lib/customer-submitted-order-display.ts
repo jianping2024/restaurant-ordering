@@ -1,5 +1,5 @@
 import { formatCustomerOrderSubmittedTime } from '@/lib/format-dashboard-date';
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
+import { formatStaffBuffetLineLabel } from '@/lib/order-list-display';
 import {
   resolveKitchenItemProgressLabel,
   type CustomerKitchenProgress,
@@ -8,12 +8,18 @@ import { isKitchenRemakeItem, orderBatchDisplayGroupKey, orderItemBatchKey } fro
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { stationTicketOrderTimeIso } from '@/lib/table-guest-count';
+import {
+  resolvePeerFloatThumb,
+  type PeerFloatThumb,
+} from '@/lib/table-order-round/sushi-peer-float-display';
 import type { UILanguage } from '@/lib/i18n';
-import type { Order } from '@/types';
+import type { MenuItem, Order } from '@/types';
 
 export type CustomerSubmittedOrderLine = {
   key: string;
+  /** Localized name + qty only. The thumb owns the picture. */
   label: string;
+  thumb: PeerFloatThumb;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
   statusLabel: string | null;
 };
@@ -30,9 +36,13 @@ type BatchBucket = {
   lines: CustomerSubmittedOrderLine[];
 };
 
+type OrderedMenuThumb = Pick<MenuItem, 'id' | 'image_url' | 'emoji'>;
+
 export type BuildCustomerSubmittedDisplayOptions = {
   kitchenProgress?: CustomerKitchenProgress | null;
   nowMs?: number;
+  /** Live catalog. Photo and emoji come from here when the dish is still on the menu. */
+  menuItems?: readonly OrderedMenuThumb[];
 };
 
 /** Read-only submitted-order rows grouped by append batch — no locale/time in UI components. */
@@ -47,6 +57,7 @@ export function buildCustomerSubmittedDisplayOrders(
   const readyAfterMinutes =
     kitchenProgress?.ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;
   const nowMs = options.nowMs ?? Date.now();
+  const menuById = new Map((options.menuItems ?? []).map((row) => [row.id, row]));
 
   for (const order of orders) {
     const items = order.items ?? [];
@@ -81,7 +92,11 @@ export function buildCustomerSubmittedDisplayOrders(
 
       bucket.lines.push({
         key: `${order.id}-${idx}`,
-        label: formatOrderItemListLabel(item, lang, { headcountStyle: 'receipt' }),
+        label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
+        thumb: resolvePeerFloatThumb({
+          menu: menuById.get(item.id),
+          fallbackEmoji: item.emoji,
+        }),
         statusLabel,
       });
     }

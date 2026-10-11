@@ -89,7 +89,7 @@
 ### 3.2 顾客手机
 
 - 账单页 `apps/web/src/components/menu/BillPage.tsx`；提交 hook `useCheckoutRequestSubmit`（`lib/use-checkout-request-submit.ts`）；顾客分单编辑状态 `useGuestByItemSplitState`（`lib/use-guest-by-item-split-state.ts`）；账单读模型 `useCustomerBillReadModel`（`lib/use-customer-bill-read-model.ts`）。
-- 呼叫成功后 `commitSubmittedCheckout` 把 `submitted` 设为 true，`BillPage` 整页换成 `BillCheckoutSubmittedScreen`（含菜品评价）。
+- 呼叫成功后 `commitSubmittedCheckout` 把 `submitted` 设为 true，`BillPage` 整页换成 `BillCheckoutSubmittedScreen`（按菜时的版式见 §15「待结账页」）。
 - `submitted` 是否显示由 `shouldShowCheckoutSubmitted` 决定：分单为 `requested` 就显示（`lib/checkout-split-continuation.ts:246`）。**这是整桌语义**。
 - 本地草稿保存：`mayPersistBillSplitLocalDraft`（`lib/bill-split-local-draft.ts:183`），遇到分单 `requested` 就停止保存。
 - 顾客端合并同步：`reconcileGuestByItemAllocations`（服务端锁定票覆盖进来、本地未付款草稿保留）。
@@ -226,9 +226,9 @@
 - 去掉按整桌 `requested` 显示「已提交」页的逻辑，改为只看「我这批票」的状态。
 - 本地草稿保存条件改为按「我自己有没有已呼叫的票」判断。
 - 桌上已有分单后，分单方式**只提供「按菜分单」**（`split_mode` 整桌共用，其它方式会触发 `split_mode_locked`），不能只靠服务端报错。
-- 「待结账」页：我的票、评价区块；**无**客人「恢复点单」/「刷新页面」。加菜须员工解锁。
+- 「待结账」页（按菜）：从上到下是「本次呼叫菜品清单」→ 整桌总额与三笔汇总 → 整桌分单结果 → 评价区块，详见 §15「待结账页」；**无**客人「恢复点单」/「刷新页面」。加菜须员工解锁。
 - **账单底栏唯一写法** `GuestBillBottomDock`：编辑态上「呼叫结账」下描边「返回点单」（按菜时主按钮上方多一行摘要：左「谁的账单 · n 道菜」、右金额，主按钮整宽）；待结账/已结清只留描边「返回点单」。填名字时整条底栏仍由 `globals.css` 藏起。
-- **账单页阶段唯一写法** `resolveGuestBillSurfacePhase`（`editing` / `awaiting_payment` / `settled`）：与点单闸口 `individualPhoneHoldsOrdering` 拆开。全额付清关台后停在 `settled`（结清文案 + 评价，冻结最后一屏金额），**不**自动进点餐页；仅客人点底栏「返回点单」才去菜单。按菜只收清本机票、桌未关 → 回 `editing` 可开新票。店员解锁/恢复点单 → 回 `editing`。
+- **账单页阶段唯一写法** `resolveGuestBillSurfacePhase`（`editing` / `awaiting_payment` / `settled`）：与点单闸口 `individualPhoneHoldsOrdering` 拆开。全额付清关台后停在 `settled`（结清文案 + 评价，冻结最后一屏金额；按菜时同样是 §15「待结账页」的总计 / 三笔汇总 / 分单结果，只是没有菜品清单），**不**自动进点餐页；仅客人点底栏「返回点单」才去菜单。按菜只收清本机票、桌未关 → 回 `editing` 可开新票。店员解锁/恢复点单 → 回 `editing`。
 - **通知弹框**（不用飘窗）：标题「呼叫结账」；正文按人分块列出认领菜、份数、金额与每人合计；人多时中间滚动、底栏「知道了」固定；同时多人合并为一个弹窗（按票合入，开着也可追加）；自己呼叫的和已待结账的手机不弹；弹框期间保留输入草稿；同时自动拉最新数据并标红冲突行。员工解锁/改单只静默刷新，不弹。通知内容只读 `table_checkout_signals`（呼叫时盖入菜名三语 + 行金额），不依赖点菜页本地解菜名。
 
 ### 5.4 员工端
@@ -436,6 +436,24 @@
 - 员工桌台详情里的「呼叫结账」不变（`ensure-entry`，整桌或已有分单原样提交）。员工点单页底部的「查看账单」（`from=waiter`）只读：只展示账单明细，不渲染编辑器，也不提供呼叫。
 - 换浏览器 / 清缓存认不出自己之前已解锁的票时，新票同名会报「名字已被本桌使用，请换一个名字，或请员工协助」。
 
+### 待结账页（按菜；`BillCheckoutSubmittedScreen`）
+
+呼叫之后、结清之前，顾客手机看到的是**整桌**的结账情况，不再只看自己那一份。仅按菜分单的桌这样显示；整桌付、均摊的待结账页保持原样（总计 + 分单结果，没有下面的清单和三笔汇总，因为本来就只有一次付款）。
+
+从上到下：
+
+1. **本次呼叫菜品清单**（放在总计上面）。标题「{名字} 的账单」加这张票的小计，每行：缩略图、菜名、份数（自助餐为「n成人 · n儿童」）、这道菜的金额，各行相加等于小计。只显示**我这张还没结清的票**；我的票已结清（`settled`）、或本机没有未结清的票时不显示。
+2. **总计**：整桌账单总额（不再是我这份）。下面三行，三项相加等于总计：已收款（账本已收到）、已呼叫结账（已呼叫、还没收齐的部分）、待认领（没有任何人呼叫的菜 = 总额 − 所有已呼叫票的应付之和，下限 0）。「已呼叫结账」「待认领」为 0 时该行不显示。
+3. **分单结果**：列出所有已呼叫的票，每行名字、金额，已收款的带「已收款」，我自己的带「我」。排序固定三层：我没付的那张（同一台手机同一时间最多一张未付的）→ 其他没付的 → 已收款的；每层都按**呼叫结账时间**新的在上，最早的在最底；没有呼叫时间的票（例如员工代收产生的）排本层最后。已收款的也按呼叫时间排，不按收款时间，这样一张票的位置不会因为付款而乱跳，只是整体沉到下面。
+4. **评价区块**：不变，仍在最下面，不含金额、不含自助餐人头，和第 1 项的清单是两件事，不合并。
+
+数据与唯一写法：
+
+- 呼叫时间复用 `bill_split_ticket_calls.called_at`，经 `loadIndividualTickets` 带到顾客端（`IndividualTicketInfo.called_at`）。没有新字段、没有新迁移。
+- 菜品清单唯一入口 `guestCalledTicket`（`lib/guest-claim.ts`）：份数取 `guestOthersClaimBlocks`，每道菜金额取 `guestClaimLineAmounts`（与认领面板同一个分摊器，合计精确到分；不用「单价 × 份数」），不新写金额算法。
+- 三笔汇总唯一入口 `buildCustomerTableSettlementSummary`；整行排序唯一入口 `orderCustomerTableSplitRows`（均在 `lib/customer-bill-split-display.ts`）；分单行金额和已收/待收状态仍来自 `buildCustomerSplitDisplayRows` → `buildSplitSettlementRows`（账本为准）。
+- 文案复用已有 key：已收款 `splitPaid`、已呼叫结账 `claimOthersCalled`、待认领 `claimMoneyLeft`、我 `claimMoneyMine`、清单标题 `claimDockTitle`、自助餐人数 `buffetGuestCounts`，没有新增 key。
+
 ### 取代了什么
 
 | 旧 | 新 |
@@ -454,6 +472,7 @@
 | 认领状态（服务端已解锁票 → 本机草稿 → 新票；付清后换新票） | `apps/web/src/lib/use-guest-claim.ts` |
 | 呼叫 | `apps/web/src/lib/use-guest-call-checkout.ts` |
 | UI | `components/menu/GuestClaimPanel.tsx`、`GuestClaimDishCard.tsx`、`BillPage.tsx`（顾客页 + 员工只读页） |
+| 待结账页（本次菜品清单 / 整桌三笔汇总 / 分单排序） | `components/menu/BillCheckoutSubmittedScreen.tsx`、`CustomerSplitResultList.tsx`；纯逻辑 `guestCalledTicket`（`lib/guest-claim.ts`）、`buildCustomerTableSettlementSummary` / `orderCustomerTableSplitRows`（`lib/customer-bill-split-display.ts`）；呼叫时间 `individual-checkout-reads.ts` |
 | 去开关迁移 | `supabase/migrations/20261005180000_guest_checkout_always_per_ticket.sql` |
 | 恢复整桌/均摊桌锁 | `supabase/migrations/20261010120000_restore_whole_table_even_session_billing.sql`（删 never-billing；`upsert` 仅 whole_table/even → `billing`） |
 | 唯一的桌锁规则 | 会话 `billing`（整桌/均摊呼叫）；读侧 `isCheckoutPending` / `guestOrderingEnabled` / `loadAppendWriteContext`。按菜只锁本机票 |

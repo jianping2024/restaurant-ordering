@@ -1252,6 +1252,7 @@ export function SushiMenuPage({
       <CartDrawer
         open={cartOpen}
         cart={cart}
+        menuItems={menuItems}
         menuItemCodeById={menuItemCodeById}
         notePresetCatalog={notePresetCatalog}
         lang={lang}

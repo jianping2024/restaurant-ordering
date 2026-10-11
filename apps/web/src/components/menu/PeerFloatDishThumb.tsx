@@ -9,7 +9,7 @@ import {
 } from '@/lib/menu-image';
 import type { PeerFloatThumb } from '@/lib/table-order-round/sushi-peer-float-display';
 
-/** Sole guest dish thumb (peer float + 已点): photo else emoji, 28×28. */
+/** Sole guest dish thumb (peer float + 已点 + cart): photo else emoji, 28×28. */
 export function PeerFloatDishThumb({ thumb }: { thumb: PeerFloatThumb }) {
   const src = resolveMenuImageDisplayUrl(thumb.imageUrl);
   return (

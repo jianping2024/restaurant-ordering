@@ -1,11 +1,12 @@
 'use client';
 
-import { APPEND_CART_QTY_MAX, type CartItem, type Language } from '@/types';
+import { APPEND_CART_QTY_MAX, type CartItem, type Language, type MenuItem } from '@/types';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerCartItemNoteFields } from '@/components/menu/CustomerCartItemNoteFields';
+import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
@@ -14,10 +15,13 @@ import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-cli
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import { resolvePeerFloatThumb } from '@/lib/table-order-round/sushi-peer-float-display';
 
 interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
+  /** Live catalog — cart thumbs read photo/emoji from here. */
+  menuItems: readonly Pick<MenuItem, 'id' | 'image_url' | 'emoji'>[];
   menuItemCodeById: Record<string, string>;
   notePresetCatalog: MenuNotePresetCatalog;
   lang: Language;
@@ -35,6 +39,7 @@ interface CartDrawerProps {
 export function CartDrawer({
   open,
   cart,
+  menuItems,
   menuItemCodeById,
   notePresetCatalog,
   lang,
@@ -48,6 +53,7 @@ export function CartDrawer({
   submitCooldownRemaining = 0,
 }: CartDrawerProps) {
   const t = MENU_PAGE_MESSAGES[lang];
+  const menuById = new Map(menuItems.map((row) => [row.id, row]));
   const cartTotal = sumLineTotals(cart);
   const cooldownActive = submitCooldownRemaining > 0;
   const cartLocked = submitting;
@@ -101,7 +107,12 @@ export function CartDrawer({
             <div key={item.menuItemId} className="rounded-xl border border-brand-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="text-2xl">{item.emoji}</span>
+                  <PeerFloatDishThumb
+                    thumb={resolvePeerFloatThumb({
+                      menu: menuById.get(item.menuItemId),
+                      fallbackEmoji: item.emoji,
+                    })}
+                  />
                   <div className="min-w-0">
                     <p className={`truncate text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName}`}>
                       {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}

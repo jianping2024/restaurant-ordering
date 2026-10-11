@@ -1079,6 +1079,7 @@ export function MenuOrderingController({
       <CartDrawer
         open={cartOpen}
         cart={cart}
+        menuItems={menuItems}
         menuItemCodeById={menuItemCodeById}
         notePresetCatalog={notePresetCatalog}
         lang={lang}

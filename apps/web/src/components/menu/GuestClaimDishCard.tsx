@@ -31,9 +31,6 @@ export type GuestClaimDishCardLabels = {
   buffetGuestCounts: string;
   /** Carries `{qty}`: this phone's portions of the dish. */
   mineQty: string;
-  chipWhole: string;
-  /** Carries `{n}`. */
-  chipShare: string;
   minusAria: string;
   /** Carries `{price}`. */
   pricePortion: string;
@@ -57,7 +54,7 @@ function euro(amount: number): string {
 }
 
 const CHIP_CLASS =
-  'min-h-[56px] rounded-xl border border-brand-border bg-brand-bg/60 px-1 flex flex-col items-center justify-center text-brand-gold transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:border-dashed disabled:bg-transparent disabled:text-brand-text-muted/50';
+  'h-11 rounded-xl border border-brand-border bg-brand-bg/60 px-1 flex items-center justify-center gap-1 text-base font-semibold leading-none tabular-nums whitespace-nowrap text-brand-gold transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:border-dashed disabled:bg-transparent disabled:text-brand-text-muted/50';
 const MINUS_CLASS =
   'w-10 h-10 shrink-0 rounded-full border border-brand-border bg-brand-card text-brand-text flex items-center justify-center text-xl leading-none disabled:opacity-40';
 
@@ -81,7 +78,8 @@ type Props = {
 };
 
 /**
- * One dish: the portion buttons ARE the add action (one tap adds that size to this phone),
+ * One dish: title on its own line, price + left/status as one muted meta line, then one
+ * row of single-line portion buttons (`+1` / `+1/n`) that ARE the add action (one tap adds that size to this phone),
  * − takes one back, the footer states this phone's portions and euro.
  */
 export function GuestClaimDishCard({
@@ -192,7 +190,9 @@ export function GuestClaimDishCard({
         : fill(labels.priceAdult, { price: spec.adultUnitPrice.toFixed(2) });
 
   const metaLine = (
-    <p className="mt-1 text-[13px] text-brand-text-muted">
+    <p className="mt-1 text-[13px] text-brand-text-muted tabular-nums">
+      <span>{priceText}</span>
+      <span aria-hidden="true"> · </span>
       {lineLocked ? (
         <span>{labels.othersLockedHint}</span>
       ) : (
@@ -227,15 +227,8 @@ export function GuestClaimDishCard({
       data-claim-state={lineLocked ? 'locked' : hasMine ? 'mine' : 'open'}
       className={`rounded-2xl p-4 border ${shellClass}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-brand-text text-base leading-snug">{title}</p>
-          {metaLine}
-        </div>
-        <p className="shrink-0 text-[13px] text-brand-text-muted tabular-nums whitespace-nowrap leading-snug">
-          {priceText}
-        </p>
-      </div>
+      <p className="text-brand-text text-base leading-snug">{title}</p>
+      {metaLine}
 
       {mode === 'menu' && effectiveLockedDen ? (
         <p className="mt-2 inline-block rounded-full bg-brand-ink/10 px-2.5 py-0.5 text-[12px] text-brand-ink">
@@ -270,12 +263,7 @@ export function GuestClaimDishCard({
                     onClick={() => addMenuUnit(den)}
                     className={CHIP_CLASS}
                   >
-                    <span className="text-lg font-semibold leading-5">
-                      {den === 1 ? '+1' : `+1/${den}`}
-                    </span>
-                    <span className="mt-0.5 text-[11px] leading-[14px] text-brand-text-muted">
-                      {den === 1 ? labels.chipWhole : fill(labels.chipShare, { n: den })}
-                    </span>
+                    {den === 1 ? '+1' : `+1/${den}`}
                   </button>
                 );
               })
@@ -290,10 +278,8 @@ export function GuestClaimDishCard({
                     onClick={() => setBuffetField(field, value + 1)}
                     className={CHIP_CLASS}
                   >
-                    <span className="text-lg font-semibold leading-5">+1</span>
-                    <span className="mt-0.5 text-[11px] leading-[14px] text-brand-text-muted">
-                      {label}
-                    </span>
+                    +1
+                    <span className="text-[13px] font-normal text-brand-text-muted">{label}</span>
                   </button>
                 );
               })}

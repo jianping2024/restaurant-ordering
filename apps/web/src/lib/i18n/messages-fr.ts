@@ -1464,8 +1464,6 @@ export const MESSAGES_FR = {
     "claimMoneyLeft": "Non attribué",
     "claimRestAmount": "Prendre les €{amount} restants",
     "claimRestDone": "Tout est attribué",
-    "claimChipWhole": "Entière",
-    "claimChipShare": "Partager {n}",
     "claimMinusAria": "Retirer une",
     "claimPricePortion": "€{price} / portion",
     "claimPriceAdult": "€{price} / adulte",

@@ -1460,8 +1460,6 @@ export const MESSAGES_ES = {
     "claimMoneyLeft": "Sin elegir",
     "claimRestAmount": "Quedarme con los €{amount} restantes",
     "claimRestDone": "Todo está elegido",
-    "claimChipWhole": "Entera",
-    "claimChipShare": "Dividir {n}",
     "claimMinusAria": "Quitar una",
     "claimPricePortion": "€{price} / ración",
     "claimPriceAdult": "€{price} / adulto",

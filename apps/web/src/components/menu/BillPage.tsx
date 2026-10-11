@@ -470,8 +470,6 @@ function GuestBillPage({
       othersSection: t.claimOthersSection,
       othersCalled: t.claimOthersCalled,
       mineQty: t.claimMineQty,
-      chipWhole: t.claimChipWhole,
-      chipShare: t.claimChipShare,
       minusAria: t.claimMinusAria,
       pricePortion: t.claimPricePortion,
       priceAdult: t.claimPriceAdult,

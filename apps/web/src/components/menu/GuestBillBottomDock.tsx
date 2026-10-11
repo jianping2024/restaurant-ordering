@@ -15,7 +15,7 @@ export type GuestBillCallCheckoutDockAction = {
   onClick: () => void;
 };
 
-/** By-item claim only: whose bill, how much, how many dishes — beside the one CTA. */
+/** By-item claim only: one row above the CTA — whose bill · how many dishes, amount right. */
 export type GuestBillDockSummary = {
   title: string;
   /** The title is a blocking prompt (name missing) rather than a plain caption. */
@@ -53,26 +53,26 @@ export function GuestBillBottomDock({
       <div className="space-y-2 px-4 py-3">
         {gateBanner}
         {callCheckout ? (
-          <div className="flex items-center gap-3">
+          <>
             {summary ? (
-              <div className="min-w-0 flex-1" data-guest-dock-summary="">
-                <p
-                  className={`truncate text-[13px] ${
-                    summary.warn ? 'text-red-500 font-semibold' : 'text-brand-text-muted'
-                  }`}
-                >
-                  {summary.title}
-                </p>
-                <p className="mt-0.5 flex items-baseline gap-1.5">
-                  <span className="text-[22px] font-semibold text-brand-text tabular-nums">
-                    {summary.amountLabel}
+              <div className="flex items-baseline gap-3" data-guest-dock-summary="">
+                <p className="min-w-0 flex-1 truncate text-[13px]">
+                  <span
+                    className={
+                      summary.warn ? 'text-red-500 font-semibold' : 'text-brand-text-muted'
+                    }
+                  >
+                    {summary.title}
                   </span>
-                  <span className="text-[13px] text-brand-text-muted">{summary.sub}</span>
+                  <span className="text-brand-text-muted"> · {summary.sub}</span>
                 </p>
+                <span className="shrink-0 text-[22px] font-semibold leading-none text-brand-text tabular-nums">
+                  {summary.amountLabel}
+                </span>
               </div>
             ) : null}
             <Button
-              className={summary ? 'shrink-0 min-w-[9.75rem]' : 'w-full'}
+              className="w-full"
               size="action"
               onClick={callCheckout.onClick}
               loading={callCheckout.busy}
@@ -82,7 +82,7 @@ export function GuestBillBottomDock({
               {callCheckout.label}
               {callCheckout.amountLabel ? ` — ${callCheckout.amountLabel}` : ''}
             </Button>
-          </div>
+          </>
         ) : null}
         <ButtonLink variant="outline" size="action" className="w-full" href={backHref}>
           ← {backLabel}

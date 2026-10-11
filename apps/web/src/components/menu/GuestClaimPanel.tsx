@@ -119,11 +119,13 @@ export function GuestClaimPanel({
           disabled={disabled}
           onChange={(e) => onNameChange(e.target.value)}
           onKeyDown={(e) => {
-            // Return/Done closes the keyboard so the call-checkout dock comes back.
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              e.currentTarget.blur();
-            }
+            // Cancel Return before the key ends. Blurring here makes the phone
+            // write the current text a second time.
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+          onKeyUp={(e) => {
+            // After the key finishes, leave the field so the call-checkout dock returns.
+            if (e.key === 'Enter') e.currentTarget.blur();
           }}
           placeholder={labels.namePlaceholder}
           aria-invalid={nameTaken || undefined}

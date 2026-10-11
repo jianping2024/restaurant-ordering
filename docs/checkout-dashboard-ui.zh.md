@@ -36,7 +36,7 @@
 
 ## 4. 详情区（唯一页面2）
 
-1. **结算摘要条** — 消费 · 应收 · 已收 · 待收；折扣 %（有收款后禁用）。sticky：`checkoutSettlementBarStickyShellClass`  
+1. **结算摘要条** — 桌号与队列卡片同一句（`checkout.table` + 该单 `display_name`，字号与队列标题相同），在金额上面，随摘要条粘在员工顶栏下。窄屏「返回列表」仍在桌号上面。消费 · 应收 · 已收 · 待收；折扣 %（有收款后禁用）。sticky：`checkoutSettlementBarStickyShellClass`  
 2. **结账方式** — `BillSplitPanel` 三 tab + 分单结果；整桌/均摊行尾「收款」；按菜为 `StaffByItemSplitWorkbench`  
 3. **本桌菜品** — 唯一 `CheckoutTableItemsSection` + `checkoutLinesFromOrders`（与订单历史同一套纸面行）；默认折叠，标题含道数  
 4. **方式锁定** — 整桌未收款可改按菜/均摊；按菜/均摊已提交不可改、不可回整桌；开收后锁（`isStaffCheckoutSplitModeFrozen` + `isCheckoutSplitLocked`）  

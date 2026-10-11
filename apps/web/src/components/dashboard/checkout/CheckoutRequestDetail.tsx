@@ -22,6 +22,7 @@ export function SettlementBar({
   t,
   onDiscountRateCommit,
   onDiscountRateFocus,
+  tableDisplayName,
   leading,
   stickyShellClass = checkoutSettlementBarStickyShellClass,
 }: {
@@ -34,6 +35,8 @@ export function SettlementBar({
   /** Sole path: IntegerInput blur parse → commit (no business onBlur). */
   onDiscountRateCommit: (rate: number) => void;
   onDiscountRateFocus: () => void;
+  /** Table label (`bill_splits.display_name`). Same sentence as the queue card. */
+  tableDisplayName: string;
   /** Optional chrome above amounts (e.g. mobile back) — stays in the sticky strip. */
   leading?: ReactNode;
   /** Sole sticky shell — default under staff top bar. */
@@ -42,6 +45,9 @@ export function SettlementBar({
   return (
     <div className={stickyShellClass}>
       {leading ? <div className="mb-1 lg:hidden">{leading}</div> : null}
+      <p className="mb-2 font-heading text-2xl text-brand-text leading-none">
+        {t.table} {tableDisplayName}
+      </p>
       <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm min-w-0 flex-1">

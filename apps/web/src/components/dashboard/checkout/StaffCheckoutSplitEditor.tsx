@@ -686,6 +686,7 @@ export function StaffCheckoutSplitEditor({
         discountLocked={discountLocked}
         detailLocked={detailLocked || submitting}
         t={checkoutT}
+        tableDisplayName={request.display_name}
         stickyShellClass={stickyShellClass}
         onDiscountRateCommit={onDiscountRateCommit}
         onDiscountRateFocus={onDiscountRateFocus}

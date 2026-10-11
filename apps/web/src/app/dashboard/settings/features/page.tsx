@@ -5,17 +5,13 @@ import type { PermissionKey } from '@/lib/permissions/registry';
 export default async function SettingsFeaturesPage() {
   const permission: PermissionKey = 'settings.features.manage';
   const restaurant = await requireRestaurantForSettingsPermission(permission);
-  const data = await loadFeatureSettingsPageData(restaurant.id, restaurant.feature_flags, restaurant.print_locale);
+  const data = await loadFeatureSettingsPageData(restaurant.id, restaurant.feature_flags);
   return (
     <FeatureFlagsManager
       embedded
       initialFlags={data.flags}
-      initialCredentialTtlDays={data.credentialTtlDays}
-      initialStationSlipShowCategoryGroup={data.stationSlipShowCategoryGroup}
-      initialHanBitmapFontPx={data.hanBitmapFontPx}
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
       initialOperationLogRetentionDays={data.operationLogRetentionDays}
-      initialPrintLocale={data.printLocale}
       initialKitchenReadyAfterMinutes={data.kitchenReadyAfterMinutes}
       initialSushiRoundOrderingEnabled={data.sushiRoundOrderingEnabled}
       initialSushiPerPersonPerRoundCap={data.sushiPerPersonPerRoundCap}

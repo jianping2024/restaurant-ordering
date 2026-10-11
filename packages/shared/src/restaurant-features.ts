@@ -118,6 +118,62 @@ export function groupRestaurantFeaturesByModule(): RestaurantFeatureModuleGroup[
     .filter((group) => group.features.length > 0);
 }
 
+/**
+ * Sole host for these modules: Dashboard「打印设置」(`/dashboard/settings/print-assistant`).
+ * Not rendered on「功能管理」.
+ */
+export const PRINT_SETTINGS_FEATURE_MODULE_IDS = ['billing'] as const satisfies readonly RestaurantFeatureModuleId[];
+
+const PRINT_SETTINGS_MODULE_ID_SET = new Set<string>(PRINT_SETTINGS_FEATURE_MODULE_IDS);
+
+export function isPrintSettingsFeatureModuleId(moduleId: RestaurantFeatureModuleId): boolean {
+  return PRINT_SETTINGS_MODULE_ID_SET.has(moduleId);
+}
+
+export function isPrintSettingsFeatureKey(key: RestaurantFeatureKey): boolean {
+  const def = RESTAURANT_FEATURE_DEFINITIONS.find((d) => d.key === key);
+  return def != null && isPrintSettingsFeatureModuleId(def.moduleId);
+}
+
+/** Flags for one save body — print page sends billing only; features page omits billing. */
+export function pickRestaurantFeatureFlagsForModules(
+  flags: ResolvedRestaurantFeatureFlags,
+  moduleIds: readonly RestaurantFeatureModuleId[],
+): RestaurantFeatureFlags {
+  const idSet = new Set<string>(moduleIds);
+  const out: RestaurantFeatureFlags = {};
+  for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
+    if (idSet.has(def.moduleId)) {
+      out[def.key] = flags[def.key];
+    }
+  }
+  return out;
+}
+
+export function featureFlagsPatchTouchesPrintSettings(patch: RestaurantFeatureFlags): boolean {
+  return (Object.keys(patch) as RestaurantFeatureKey[]).some((key) =>
+    isPrintSettingsFeatureKey(key),
+  );
+}
+
+export function featureFlagsPatchTouchesNonPrintSettings(patch: RestaurantFeatureFlags): boolean {
+  return (Object.keys(patch) as RestaurantFeatureKey[]).some(
+    (key) => !isPrintSettingsFeatureKey(key),
+  );
+}
+
+export function groupRestaurantFeaturesForPrintSettings(): RestaurantFeatureModuleGroup[] {
+  return groupRestaurantFeaturesByModule().filter((group) =>
+    isPrintSettingsFeatureModuleId(group.module.id),
+  );
+}
+
+export function groupRestaurantFeaturesForFeatureSettings(): RestaurantFeatureModuleGroup[] {
+  return groupRestaurantFeaturesByModule().filter(
+    (group) => !isPrintSettingsFeatureModuleId(group.module.id),
+  );
+}
+
 export function getRestaurantFeatureModule(
   moduleId: RestaurantFeatureModuleId,
 ): RestaurantFeatureModuleDefinition {

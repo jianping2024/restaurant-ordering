@@ -2,10 +2,16 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   applyBillingCheckoutModeExclusions,
+  featureFlagsPatchTouchesNonPrintSettings,
+  featureFlagsPatchTouchesPrintSettings,
+  groupRestaurantFeaturesForFeatureSettings,
+  groupRestaurantFeaturesForPrintSettings,
+  isPrintSettingsFeatureKey,
   mergeRestaurantFeatureFlags,
   mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsRecord,
+  pickRestaurantFeatureFlagsForModules,
 } from './restaurant-features';
 
 describe('parseFeatureFlagsRecord', () => {
@@ -113,5 +119,47 @@ describe('normalizeRestaurantFeatureFlags', () => {
     assert.equal(flags.quick_table_close, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);
     assert.equal('kitchen_board' in flags, false);
+  });
+});
+
+describe('print settings feature host split', () => {
+  it('marks billing keys as print-settings', () => {
+    assert.equal(isPrintSettingsFeatureKey('bill_receipt_print'), true);
+    assert.equal(isPrintSettingsFeatureKey('quick_table_close'), true);
+    assert.equal(isPrintSettingsFeatureKey('kitchen_serve_to_table'), false);
+    assert.equal(isPrintSettingsFeatureKey('menu_flavor_hints_enabled'), false);
+  });
+
+  it('picks only requested modules for a save body', () => {
+    const flags = normalizeRestaurantFeatureFlags({
+      bill_receipt_print: true,
+      kitchen_serve_to_table: true,
+    });
+    assert.deepEqual(pickRestaurantFeatureFlagsForModules(flags, ['billing']), {
+      bill_receipt_print: true,
+      open_table_receipt_print: false,
+      bill_sync_to_fiscal: false,
+      quick_table_close: false,
+    });
+    assert.deepEqual(pickRestaurantFeatureFlagsForModules(flags, ['kitchen', 'flavor']), {
+      kitchen_serve_to_table: true,
+      menu_flavor_hints_enabled: false,
+    });
+  });
+
+  it('classifies patches for permission gates', () => {
+    assert.equal(featureFlagsPatchTouchesPrintSettings({ quick_table_close: true }), true);
+    assert.equal(featureFlagsPatchTouchesNonPrintSettings({ quick_table_close: true }), false);
+    assert.equal(featureFlagsPatchTouchesPrintSettings({ kitchen_serve_to_table: true }), false);
+    assert.equal(featureFlagsPatchTouchesNonPrintSettings({ kitchen_serve_to_table: true }), true);
+  });
+
+  it('splits module groups for the two settings pages', () => {
+    const printIds = groupRestaurantFeaturesForPrintSettings().map((g) => g.module.id);
+    const featureIds = groupRestaurantFeaturesForFeatureSettings().map((g) => g.module.id);
+    assert.deepEqual(printIds, ['billing']);
+    assert.ok(featureIds.includes('kitchen'));
+    assert.ok(featureIds.includes('flavor'));
+    assert.ok(!featureIds.includes('billing'));
   });
 });

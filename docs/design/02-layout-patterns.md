@@ -197,9 +197,9 @@
 |------|--------|
 | `/settings` | `SettingsForm` |
 | `/settings/staff` | `StaffAccountsManager` |
-| `/settings/features` | `FeatureFlagsManager` |
+| `/settings/features` | `FeatureFlagsManager`（无 billing / 纸面块） |
 | `/settings/buffet` | `BuffetSettingsManager` |
-| `/settings/print-assistant` | 打印配对/设备/schedule 多个 Panel |
+| `/settings/print-assistant` | `RestaurantPrintSettingsSection` + 配对/设备/schedule Panels（Tab「打印设置」） |
 
 **要点**
 

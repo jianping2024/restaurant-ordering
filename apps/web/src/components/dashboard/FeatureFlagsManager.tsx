@@ -6,18 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { printLocaleOption, SUPPORTED_PRINT_LOCALES, type PrintLocale } from '@/lib/i18n';
 import {
-  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
-  PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,
-  applyBillingCheckoutModeExclusions,
-  groupRestaurantFeaturesByModule,
+  groupRestaurantFeaturesForFeatureSettings,
+  pickRestaurantFeatureFlagsForModules,
   type RestaurantFeatureKey,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import {
-  HAN_BITMAP_FONT_PX_MAX,
-  HAN_BITMAP_FONT_PX_MIN,
   KITCHEN_READY_AFTER_MINUTES_MAX,
   KITCHEN_READY_AFTER_MINUTES_MIN,
 } from '@/lib/print-agent-config';
@@ -37,24 +32,13 @@ import {
   ORDER_COOLDOWN_SECONDS_MAX,
   ORDER_COOLDOWN_SECONDS_MIN,
 } from '@/lib/order-submit-cooldown-client';
-
-/** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
-const FEATURES_CONTROL_SURFACE =
-  'rounded-lg border border-brand-border bg-brand-bg text-brand-text';
-const PRINT_LOCALE_OPTION_IDLE = `${FEATURES_CONTROL_SURFACE} hover:border-brand-gold/60`;
-const PRINT_LOCALE_OPTION_SELECTED =
-  'rounded-lg border border-brand-gold bg-brand-gold/10 text-brand-text';
-const FEATURES_INTEGER_INPUT = `w-24 ${FEATURES_CONTROL_SURFACE} px-3 py-2 tabular-nums`;
+import { FEATURES_INTEGER_INPUT } from '@/components/dashboard/feature-settings-control-chrome';
 
 type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
-  initialCredentialTtlDays: number;
-  initialStationSlipShowCategoryGroup: boolean;
-  initialHanBitmapFontPx: number;
   initialOrderCooldownSeconds: number;
   initialOperationLogRetentionDays: number;
-  initialPrintLocale: PrintLocale;
   initialKitchenReadyAfterMinutes: number;
   initialSushiRoundOrderingEnabled: boolean;
   initialSushiPerPersonPerRoundCap: number;
@@ -67,12 +51,8 @@ type Props = {
 export function FeatureFlagsManager({
   embedded,
   initialFlags,
-  initialCredentialTtlDays,
-  initialStationSlipShowCategoryGroup,
-  initialHanBitmapFontPx,
   initialOrderCooldownSeconds,
   initialOperationLogRetentionDays,
-  initialPrintLocale,
   initialKitchenReadyAfterMinutes,
   initialSushiRoundOrderingEnabled,
   initialSushiPerPersonPerRoundCap,
@@ -85,16 +65,10 @@ export function FeatureFlagsManager({
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
-  const [credentialTtlDays, setCredentialTtlDays] = useState(initialCredentialTtlDays);
-  const [stationSlipShowCategoryGroup, setStationSlipShowCategoryGroup] = useState(
-    initialStationSlipShowCategoryGroup,
-  );
-  const [hanBitmapFontPx, setHanBitmapFontPx] = useState(initialHanBitmapFontPx);
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
   const [operationLogRetentionDays, setOperationLogRetentionDays] = useState(
     initialOperationLogRetentionDays,
   );
-  const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [kitchenReadyAfterMinutes, setKitchenReadyAfterMinutes] = useState(
     initialKitchenReadyAfterMinutes,
   );
@@ -130,13 +104,12 @@ export function FeatureFlagsManager({
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          flags,
-          credentialTtlDays,
-          stationSlipShowCategoryGroup,
-          hanBitmapFontPx,
+          flags: pickRestaurantFeatureFlagsForModules(
+            flags,
+            groupRestaurantFeaturesForFeatureSettings().map((g) => g.module.id),
+          ),
           orderCooldownSeconds,
           operationLogRetentionDays,
-          printLocale,
           kitchenReadyAfterMinutes,
           sushiRoundOrderingEnabled,
           sushiPerPersonPerRoundCap,
@@ -150,12 +123,8 @@ export function FeatureFlagsManager({
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
         flags?: ResolvedRestaurantFeatureFlags;
-        credentialTtlDays?: number;
-        stationSlipShowCategoryGroup?: boolean;
-        hanBitmapFontPx?: number;
         orderCooldownSeconds?: number;
         operationLogRetentionDays?: number;
-        printLocale?: PrintLocale;
         kitchenReadyAfterMinutes?: number;
         sushiRoundOrderingEnabled?: boolean;
         sushiPerPersonPerRoundCap?: number;
@@ -167,30 +136,20 @@ export function FeatureFlagsManager({
 
       if (!res.ok) {
         if (json.error === 'migration_required') setError(t.migrationRequired);
-        else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
-        else if (json.error === 'invalid_han_bitmap_font_px') setError(t.hanBitmapFontPxInvalid);
         else if (json.error === 'invalid_kitchen_ready_after_minutes') {
           setError(t.kitchenReadyAfterMinutesInvalid);
-        }
-        else if (json.error === 'invalid_operation_log_retention_days') {
+        } else if (json.error === 'invalid_operation_log_retention_days') {
           setError(t.operationLogRetentionDaysInvalid);
-        }
-        else if (json.error?.startsWith('invalid_sushi_')) setError(t.sushiRoundInvalid);
+        } else if (json.error?.startsWith('invalid_sushi_')) setError(t.sushiRoundInvalid);
         else setError(t.saveFail);
         return;
       }
 
       if (json.flags) setFlags(json.flags);
-      if (json.credentialTtlDays != null) setCredentialTtlDays(json.credentialTtlDays);
-      if (json.stationSlipShowCategoryGroup != null) {
-        setStationSlipShowCategoryGroup(json.stationSlipShowCategoryGroup);
-      }
-      if (json.hanBitmapFontPx != null) setHanBitmapFontPx(json.hanBitmapFontPx);
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
       if (json.operationLogRetentionDays != null) {
         setOperationLogRetentionDays(json.operationLogRetentionDays);
       }
-      if (json.printLocale) setPrintLocale(json.printLocale);
       if (json.kitchenReadyAfterMinutes != null) {
         setKitchenReadyAfterMinutes(json.kitchenReadyAfterMinutes);
       }
@@ -233,7 +192,7 @@ export function FeatureFlagsManager({
       ) : null}
 
       <div className="space-y-6">
-        {groupRestaurantFeaturesByModule().map(({ module, features }) => (
+        {groupRestaurantFeaturesForFeatureSettings().map(({ module, features }) => (
           <section key={module.id}>
             <h2 className="text-sm font-medium text-brand-text mb-2">{t[module.labelKey]}</h2>
             <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
@@ -248,12 +207,7 @@ export function FeatureFlagsManager({
                     onChange={(e) => {
                       const key = def.key as RestaurantFeatureKey;
                       const checked = e.target.checked;
-                      setFlags((prev) =>
-                        applyBillingCheckoutModeExclusions(
-                          { ...prev, [key]: checked },
-                          { [key]: checked },
-                        ),
-                      );
+                      setFlags((prev) => ({ ...prev, [key]: checked }));
                     }}
                     className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                   />
@@ -293,94 +247,6 @@ export function FeatureFlagsManager({
             </div>
           </section>
         ))}
-
-
-        <section>
-          <h2 className="text-sm font-medium text-brand-text mb-2">{t.printLocale}</h2>
-          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
-            <p className="text-[13px] text-brand-text-muted mb-3">{t.printLocaleDesc}</p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {SUPPORTED_PRINT_LOCALES.map((optionId) => {
-                const option = printLocaleOption(optionId);
-                const selected = printLocale === optionId;
-                return (
-                  <button
-                    key={optionId}
-                    type="button"
-                    onClick={() => setPrintLocale(optionId)}
-                    className={`px-3 py-2 text-left text-sm transition ${
-                      selected ? PRINT_LOCALE_OPTION_SELECTED : PRINT_LOCALE_OPTION_IDLE
-                    }`}
-                    aria-pressed={selected}
-                  >
-                    <span className="block font-medium">{option.nativeName}</span>
-                    <span className="block text-xs text-brand-text-muted">{option.shortLabel}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-sm font-medium text-brand-text mb-2">{t.modulePrintAgent}</h2>
-          <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
-            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer select-none hover:bg-brand-border/20 transition-colors">
-              <input
-                type="checkbox"
-                checked={stationSlipShowCategoryGroup}
-                onChange={(e) => setStationSlipShowCategoryGroup(e.target.checked)}
-                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-              />
-              <span className="min-w-0">
-                <span className="block text-[15px] font-medium text-brand-text">
-                  {t.stationSlipShowCategoryGroup}
-                </span>
-                <span className="block text-[13px] text-brand-text-muted mt-0.5">
-                  {t.stationSlipShowCategoryGroupDesc}
-                </span>
-              </span>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.hanBitmapFontPx}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.hanBitmapFontPxDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={hanBitmapFontPx}
-                  min={HAN_BITMAP_FONT_PX_MIN}
-                  max={HAN_BITMAP_FONT_PX_MAX}
-                  onChange={setHanBitmapFontPx}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.hanBitmapFontPx}
-                />
-                <span className="text-[13px] text-brand-text-muted">{t.hanBitmapFontPxUnit}</span>
-              </div>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.credentialTtlDays}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.credentialTtlDaysDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={credentialTtlDays}
-                  min={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN}
-                  max={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX}
-                  onChange={setCredentialTtlDays}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.credentialTtlDays}
-                />
-                <span className="text-[13px] text-brand-text-muted">{t.credentialTtlDaysUnit}</span>
-              </div>
-            </label>
-          </div>
-        </section>
 
         <section>
           <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleOrderCooldown}</h2>

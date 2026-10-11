@@ -6,12 +6,16 @@ import {
   resolveOperationLogRetentionDays,
 } from '@/lib/operation-logs/retention-days';
 import {
+  featureFlagsPatchTouchesNonPrintSettings,
+  featureFlagsPatchTouchesPrintSettings,
   mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsPatch,
   parsePrintAgentCredentialTtlDaysPatch,
   resolvePrintAgentCredentialTtlDays,
 } from '@/lib/restaurant-features';
+import { can } from '@/lib/permissions/can';
+import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import {
   isStationSlipShowCategoryGroupEnabled,
   parseStationSlipShowCategoryGroupPatch,
@@ -157,10 +161,6 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const permission: PermissionKey = 'settings.features.manage';
-  const auth = await requirePermission(permission);
-  if (auth instanceof NextResponse) return auth;
-
   let body: unknown;
   try {
     body = await req.json();
@@ -216,6 +216,39 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'invalid_kitchen_ready_after_minutes' }, { status: 400 });
   }
 
+  const needsPrintSettings =
+    (patch != null && featureFlagsPatchTouchesPrintSettings(patch)) ||
+    credentialTtlDays !== undefined ||
+    stationSlipShowCategoryGroup !== undefined ||
+    hanBitmapFontPx !== undefined ||
+    printLocale !== undefined;
+  const needsFeatureSettings =
+    (patch != null && featureFlagsPatchTouchesNonPrintSettings(patch)) ||
+    kitchenReadyAfterMinutes !== undefined ||
+    orderCooldownSeconds !== undefined ||
+    operationLogRetentionDays !== undefined ||
+    Boolean(sushiRoundPatch);
+
+  const loaded = await loadPrincipalWithCapabilities();
+  if (!loaded) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  if (
+    needsPrintSettings &&
+    !can(loaded.capabilities, 'settings.print_assistant.manage')
+  ) {
+    return NextResponse.json(
+      { error: 'forbidden', permission: 'settings.print_assistant.manage' satisfies PermissionKey },
+      { status: 403 },
+    );
+  }
+  if (needsFeatureSettings && !can(loaded.capabilities, 'settings.features.manage')) {
+    return NextResponse.json(
+      { error: 'forbidden', permission: 'settings.features.manage' satisfies PermissionKey },
+      { status: 403 },
+    );
+  }
+
   let admin;
   try {
     admin = createAdminClient();
@@ -228,7 +261,7 @@ export async function PATCH(req: Request) {
     .select(
       `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, suspended_at, ${SUSHI_ROUND_SELECT}`,
     )
-    .eq('id', auth.principal.restaurantId)
+    .eq('id', loaded.principal.restaurantId)
     .maybeSingle();
 
   if (readError) {
@@ -321,7 +354,7 @@ export async function PATCH(req: Request) {
   const { error } = await admin
     .from('restaurants')
     .update(updatePayload)
-    .eq('id', auth.principal.restaurantId);
+    .eq('id', loaded.principal.restaurantId);
 
   if (error) {
     if (isDbMigrationRequiredError(error)) {

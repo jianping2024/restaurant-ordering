@@ -434,10 +434,10 @@
 - 餐厅资料：名称、地址、电话、Logo、国家码、点餐地理半径
 - 员工账号：kitchen / waiter / cashier / frontdesk / owner 等 CRUD、禁用、重置密码；持 `settings.staff.manage` 时列表为全店员工（与 staff API 同 admin 读路径，不依赖员工 RLS 自看）；新建/改角色下拉经 `GET /api/dashboard/roles`，持 `settings.staff.manage` 或 `settings.roles.manage` 可读（改角色定义仍仅 `settings.roles.manage`）
 - 账户菜单：外观 / 语言 / **自愿修改密码**（与强制改密同一表单与 API）/ 退出登录
-- 功能开关：`kitchen_serve_to_table`、`bill_receipt_print`、`open_table_receipt_print`、`quick_table_close`（关台结账）、打印发票相关等；自动已出餐等待分钟 `kitchen_ready_after_minutes` 仅功能管理可改（档口后厨大屏见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台顶栏厨房入口与厨房页共用 `floor.kitchen_board.view`）
+- 功能开关：`kitchen_serve_to_table`、风味等在功能管理；`bill_receipt_print`、`open_table_receipt_print`、`quick_table_close`、打印发票等在**打印设置**页编辑；自动已出餐等待分钟 `kitchen_ready_after_minutes` 仍在功能管理（档口后厨大屏见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台顶栏厨房入口与厨房页共用 `floor.kitchen_board.view`）
 - 自助餐规则：时段、价格矩阵、周五晚周末、日历覆盖
 - 店面资料：封面/Logo/营业时间/简介（客人菜单店面带）
-- 打印助手：配对、设备、档口、账单打印机、打印代理 schedule（与客人营业时间字段分开）
+- 打印设置（原打印助手 Tab）：结账出票开关 + 打印语言/纸面选项 + 配对、设备、档口、账单打印机、打印代理 schedule（与客人营业时间字段分开）
 - 桌位与分组：也可从 `/dashboard/tables` 进入（设置 hub 外）
 - 角色权限：楼面用餐人数翼 `dashboard.waiter_board.dining_headcount.view`；桌台详情/桌卡金额 `dashboard.waiter_board.table_detail_amounts.view`；开台与改人数 `tables.open_session`
 

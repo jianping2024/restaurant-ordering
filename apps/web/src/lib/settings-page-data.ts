@@ -106,12 +106,8 @@ export async function loadStaffSettingsPageData(
 
 export type FeatureSettingsPageData = {
   flags: ResolvedRestaurantFeatureFlags;
-  credentialTtlDays: number;
-  stationSlipShowCategoryGroup: boolean;
-  hanBitmapFontPx: number;
   orderCooldownSeconds: number;
   operationLogRetentionDays: number;
-  printLocale: PrintLocale;
   kitchenReadyAfterMinutes: number;
   sushiRoundOrderingEnabled: boolean;
   sushiPerPersonPerRoundCap: number;
@@ -121,11 +117,41 @@ export type FeatureSettingsPageData = {
   sushiMenuAllergenFilterEnabled: boolean;
 };
 
-/** Loads print-agent config only; feature_flags come from cached dashboard access. */
-export async function loadFeatureSettingsPageData(
+export type PrintSettingsPageData = {
+  flags: ResolvedRestaurantFeatureFlags;
+  credentialTtlDays: number;
+  stationSlipShowCategoryGroup: boolean;
+  hanBitmapFontPx: number;
+  printLocale: PrintLocale;
+};
+
+/** Paper / billing-print options for「打印设置」page. */
+export async function loadPrintSettingsPageData(
   restaurantId: string,
   featureFlags: Restaurant['feature_flags'],
   printLocale: Restaurant['print_locale'],
+): Promise<PrintSettingsPageData> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('print_agent_config')
+    .eq('id', restaurantId)
+    .single();
+
+  const config = isDbMigrationRequiredError(error) ? undefined : data?.print_agent_config;
+  return {
+    flags: normalizeRestaurantFeatureFlags(featureFlags),
+    credentialTtlDays: resolvePrintAgentCredentialTtlDays(config),
+    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(config),
+    hanBitmapFontPx: hanBitmapFontPxFromConfig(config),
+    printLocale: normalizePrintLocale(printLocale),
+  };
+}
+
+/** Feature-management page load (kitchen/flavor/cooldown/sushi/logs — not billing/print paper). */
+export async function loadFeatureSettingsPageData(
+  restaurantId: string,
+  featureFlags: Restaurant['feature_flags'],
 ): Promise<FeatureSettingsPageData> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -150,12 +176,8 @@ export async function loadFeatureSettingsPageData(
 
   return {
     flags: normalizeRestaurantFeatureFlags(featureFlags),
-    credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
-    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
-    hanBitmapFontPx: hanBitmapFontPxFromConfig(data?.print_agent_config),
     orderCooldownSeconds: clampOrderCooldownSeconds(orderCooldownSeconds),
     operationLogRetentionDays,
-    printLocale: normalizePrintLocale(printLocale),
     kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(data?.print_agent_config),
     sushiRoundOrderingEnabled: sushiApi.sushiRoundOrderingEnabled,
     sushiPerPersonPerRoundCap: sushiApi.sushiPerPersonPerRoundCap,

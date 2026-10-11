@@ -2,9 +2,12 @@
 
 ## 概述
 
-店主可在 **餐厅设置 → 功能管理**（`/dashboard/settings/features`）控制可选产品行为是否执行。
+店主可在 **餐厅设置** 控制可选产品行为是否执行：
 
-**唯一可写入口：** 店主侧 `PATCH /api/restaurant/features`（UI：`FeatureFlagsManager`）。Ops 餐厅详情**不**编辑、**不**写入 `restaurants.feature_flags`（`PATCH /api/ops/restaurants/[id]` 若带 `featureFlags` 返回 `400 feature_flags_owner_only`）。
+- **功能管理**（`/dashboard/settings/features`）：后厨、风味、下单冷却、寿司轮次、操作日志等（UI：`FeatureFlagsManager`）
+- **打印设置**（`/dashboard/settings/print-assistant`）：结账与账单四开关（含快速关台）、打印语言、纸面与代理选项（UI：`RestaurantPrintSettingsSection`）
+
+**唯一可写入口：** 店主侧 `PATCH /api/restaurant/features`。写结账出票 / 纸面字段需 `settings.print_assistant.manage`；写功能管理字段需 `settings.features.manage`。Ops 餐厅详情**不**编辑、**不**写入 `restaurants.feature_flags`（`PATCH /api/ops/restaurants/[id]` 若带 `featureFlags` 返回 `400 feature_flags_owner_only`）。
 
 当前内置功能：
 
@@ -45,11 +48,11 @@
 
 当前模块：
 
-| 模块 ID | 设置页分组名 | 说明 |
+| 模块 ID | 设置页分组名 | 编辑页 |
 |---------|--------------|------|
-| `kitchen` | 后厨流程 | 后厨相关可选行为 |
-| `billing` | 结账与账单 | 结账流程相关可选行为 |
-| `flavor` | 风味 | 菜品风味提示（顾客展示）；落地时新增，见 [`product/menu-flavor-hints.zh.md`](./product/menu-flavor-hints.zh.md) |
+| `kitchen` | 后厨流程 | 功能管理 |
+| `billing` | 结账与账单 | **打印设置**（`PRINT_SETTINGS_FEATURE_MODULE_IDS`） |
+| `flavor` | 风味 | 功能管理 |
 
 功能定义示例：
 
@@ -106,11 +109,12 @@
 
 | 路径 | 说明 |
 |------|------|
-| `/dashboard/settings/features` | 功能管理页（`FeatureFlagsManager`） |
+| `/dashboard/settings/features` | 功能管理（非 billing 开关 + 冷却/寿司/日志） |
+| `/dashboard/settings/print-assistant` | 打印设置（billing 开关 + 打印语言 + 纸面/代理；Tab 文案「打印设置」） |
 | `DashboardNav` / top nav | 厨房入口：`floor.kitchen_board.view`（与厨房页同一 key；无店级 flag） |
 | `enqueueReceiptPrint` | 自动账单 variant（`pre_bill` / `split_payment` / `final`）受 `bill_receipt_print` 门控；手动 `checkout_bill` 不受限 |
 
-设置子导航见 `src/lib/settings-nav.ts`（分组「功能」）。
+设置子导航见 `src/lib/settings-nav.ts`。
 
 ## 迁移
 
@@ -126,7 +130,8 @@ supabase db push
 - `src/lib/order-receipt-enqueue.ts` — 账单打印入队门控
 - `src/lib/checkout-request-server.ts` — 呼叫结账成功后自动入队 `pre_bill`
 - `src/app/api/restaurant/features/route.ts` — REST API
-- `src/components/dashboard/FeatureFlagsManager.tsx` — 设置 UI
+- `src/components/dashboard/FeatureFlagsManager.tsx` — 功能管理 UI
+- `src/components/dashboard/print-assistant/RestaurantPrintSettingsSection.tsx` — 打印设置 UI
 
 ## 档口后厨
 

@@ -5,6 +5,7 @@ import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
   buildCustomerSplitDisplayRows,
   buildCustomerTableSettlementSummary,
+  orderCustomerTableSplitRows,
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { resolveGuestBillCollectionFooter } from '@/lib/checkout-settlement';
@@ -21,6 +22,7 @@ import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader
 import { useCustomerBillReadModel } from '@/lib/use-customer-bill-read-model';
 import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
 import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
+import { guestCalledTicket } from '@/lib/guest-claim';
 import { useGuestClaim } from '@/lib/use-guest-claim';
 import { useGuestCallCheckout } from '@/lib/use-guest-call-checkout';
 import {
@@ -422,24 +424,51 @@ function GuestBillPage({
         rows,
         total: Math.round(rows.reduce((sum, row) => sum + row.obligationAmount, 0) * 100) / 100,
         tableSummary: null,
+        calledTicket: null,
       };
     }
     const mineKeys = new Set(
       individualTickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
     );
-    const allRows = buildCustomerSplitDisplayRows(results, collectedPayments, 0, total).map(
-      (row, index) => ({ ...row, mine: mineKeys.has(splitResultTicketKey(results[index]!)) }),
+    const calledAtByKey = new Map(
+      individualTickets.map((ticket) => [ticket.ticket_key, ticket.called_at]),
     );
-    if (allRows.length === 0) return null;
-    const rows = [...allRows.filter((row) => row.mine), ...allRows.filter((row) => !row.mine)];
-    return { rows, total, tableSummary: buildCustomerTableSettlementSummary(rows, total) };
+    const rows = orderCustomerTableSplitRows(
+      buildCustomerSplitDisplayRows(results, collectedPayments, 0, total).map((row, index) => {
+        const key = splitResultTicketKey(results[index]!);
+        return { ...row, mine: mineKeys.has(key), ticketKey: key, calledAt: calledAtByKey.get(key) };
+      }),
+    );
+    if (rows.length === 0) return null;
+    const mineUnpaid = rows.find((row) => row.mine && row.settlementStatus !== 'settled');
+    const calledTicket = mineUnpaid?.ticketKey
+      ? guestCalledTicket({
+          persons: (liveSplit?.persons ?? []) as SplitPerson[],
+          ticketKey: mineUnpaid.ticketKey,
+          lineSpecs,
+          orderLines,
+          imageUrlByMenuId,
+          lang,
+        })
+      : null;
+    return {
+      rows,
+      total,
+      tableSummary: buildCustomerTableSettlementSummary(rows, total),
+      calledTicket,
+    };
   }, [
     billSubmitted,
     guestMode,
     liveSplit?.result,
+    liveSplit?.persons,
     individualTickets,
     collectedPayments,
     total,
+    lineSpecs,
+    orderLines,
+    imageUrlByMenuId,
+    lang,
   ]);
 
   const claimLabels = useMemo(
@@ -801,6 +830,9 @@ function GuestBillPage({
         total={calledMine?.total ?? total}
         splitRows={calledMine?.rows ?? []}
         tableSummary={calledMine?.tableSummary ?? null}
+        calledTicket={calledMine?.calledTicket ?? null}
+        calledTicketTitle={t.claimDockTitle}
+        buffetGuestCounts={t.buffetGuestCounts}
         tableSummaryCopy={{
           collected: t.splitPaid,
           called: t.claimOthersCalled,

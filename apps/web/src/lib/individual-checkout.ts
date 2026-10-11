@@ -32,6 +32,8 @@ export type IndividualTicketInfo = {
   ticket_key: string;
   name: string;
   state: IndividualTicketState;
+  /** When the ticket was called (ISO); orders the guest table view. */
+  called_at: string;
   /** True when the asking phone (guest_client_id) is the one that called it. */
   mine: boolean;
 };

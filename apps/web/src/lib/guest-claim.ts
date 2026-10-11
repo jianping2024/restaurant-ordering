@@ -809,3 +809,70 @@ export function clearGuestClaimDraft(restaurantId: string, sessionId: string): v
     /* ignore */
   }
 }
+
+export type GuestCalledTicketLine = {
+  lineKey: string;
+  menuItemId: string;
+  name: string;
+  emoji: string;
+  imageUrl: string | null;
+  /** Euro of this dish on the ticket (sums to the ticket amount to the cent). */
+  amount: number;
+} & (
+  | { mode: 'menu'; qty: Rational }
+  | { mode: 'buffet'; adults: number; children: number }
+);
+
+export type GuestCalledTicket = {
+  name: string;
+  amount: number;
+  lines: GuestCalledTicketLine[];
+};
+
+/**
+ * Read-only dishes of one already-called ticket. Quantities are {@link guestOthersClaimBlocks}
+ * lines, euros are {@link guestClaimLineAmounts} — the same sources the claim panel uses.
+ */
+export function guestCalledTicket(params: {
+  persons: ReadonlyArray<SplitPerson>;
+  ticketKey: string;
+  lineSpecs: ReadonlyArray<ByItemLineSpec>;
+  orderLines: ReadonlyArray<BillSplitOrderLine>;
+  imageUrlByMenuId?: Record<string, string>;
+  lang: UILanguage;
+}): GuestCalledTicket | null {
+  const { persons, ticketKey, lineSpecs, orderLines, imageUrlByMenuId = {}, lang } = params;
+  const person = persons.find(
+    (candidate) => splitPartyKey(candidate.party_id, candidate.name) === ticketKey,
+  );
+  if (!person) return null;
+  const claim = claimFromServerTicket(person, lineSpecs);
+  const block = guestOthersClaimBlocks([person], { name: '', partyId: '' }, lineSpecs)[0];
+  if (!block) return null;
+  const amounts = guestClaimLineAmounts({
+    claim,
+    lineSpecs,
+    orderLines,
+    others: othersAllocation(persons, claim, lineSpecs),
+    lang,
+  });
+  const orderLineByKey = new Map(orderLines.map((line) => [line.key, line] as const));
+  const lines: GuestCalledTicketLine[] = [];
+  let cents = 0;
+  for (const blockLine of block.lines) {
+    const item = orderLineByKey.get(blockLine.lineKey);
+    if (!item) continue;
+    const amount = amounts[blockLine.lineKey] ?? 0;
+    cents += eurosToCents(amount);
+    lines.push({
+      ...blockLine,
+      menuItemId: item.id,
+      name: resolveMenuItemLocalizedName(item, lang),
+      emoji: item.emoji,
+      imageUrl: imageUrlByMenuId[item.id] ?? null,
+      amount,
+    });
+  }
+  if (lines.length === 0) return null;
+  return { name: block.name, amount: centsToEuros(cents), lines };
+}

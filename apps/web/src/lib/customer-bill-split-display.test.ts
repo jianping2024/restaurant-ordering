@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildCustomerSplitDisplayRows } from './customer-bill-split-display';
+import {
+  buildCustomerSplitDisplayRows,
+  orderCustomerTableSplitRows,
+  type CustomerSplitRowDisplay,
+} from './customer-bill-split-display';
 
 describe('buildCustomerSplitDisplayRows', () => {
   it('shows partial continuation balance despite stale paid flag', () => {
@@ -63,3 +67,43 @@ describe('partial split display rows', () => {
   });
 });
 
+
+describe('orderCustomerTableSplitRows', () => {
+  const row = (
+    name: string,
+    settlementStatus: CustomerSplitRowDisplay['settlementStatus'],
+    calledAt?: string,
+    mine = false,
+  ): CustomerSplitRowDisplay => ({
+    name,
+    obligationAmount: 1,
+    collectedAmount: settlementStatus === 'settled' ? 1 : 0,
+    outstandingAmount: settlementStatus === 'settled' ? 0 : 1,
+    settlementStatus,
+    mine,
+    calledAt,
+  });
+
+  it('puts my unpaid ticket first, other unpaid next, settled last, newest call first per band', () => {
+    const ordered = orderCustomerTableSplitRows([
+      row('paid-old', 'settled', '2026-10-12T10:00:00Z'),
+      row('other-old', 'due', '2026-10-12T10:05:00Z'),
+      row('mine-paid', 'settled', '2026-10-12T10:20:00Z', true),
+      row('other-new', 'due', '2026-10-12T10:30:00Z'),
+      row('mine', 'due', '2026-10-12T10:10:00Z', true),
+      row('paid-new', 'settled', '2026-10-12T10:25:00Z'),
+    ]);
+    assert.deepEqual(
+      ordered.map((r) => r.name),
+      ['mine', 'other-new', 'other-old', 'paid-new', 'mine-paid', 'paid-old'],
+    );
+  });
+
+  it('treats a ticket without a call time as the oldest of its band', () => {
+    const ordered = orderCustomerTableSplitRows([
+      row('no-time', 'due'),
+      row('timed', 'due', '2026-10-12T10:00:00Z'),
+    ]);
+    assert.deepEqual(ordered.map((r) => r.name), ['timed', 'no-time']);
+  });
+});

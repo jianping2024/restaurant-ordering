@@ -316,9 +316,9 @@ describe('buildIndividualCallSignalItemsByTicket', () => {
 
 describe('phone ordering hold', () => {
   const tickets: IndividualTicketInfo[] = [
-    { ticket_key: `p:${PA}`, name: 'Wang', state: 'called', mine: true },
-    { ticket_key: `p:${PB}`, name: 'Li', state: 'called', mine: false },
-    { ticket_key: `p:${PC}`, name: 'Zhang', state: 'unlocked', mine: true },
+    { ticket_key: `p:${PA}`, name: 'Wang', state: 'called', called_at: '2026-10-12T10:00:00Z', mine: true },
+    { ticket_key: `p:${PB}`, name: 'Li', state: 'called', called_at: '2026-10-12T10:00:00Z', mine: false },
+    { ticket_key: `p:${PC}`, name: 'Zhang', state: 'unlocked', called_at: '2026-10-12T10:00:00Z', mine: true },
   ];
 
   it('holds ordering only for my called unpaid ticket', () => {
@@ -326,7 +326,7 @@ describe('phone ordering hold', () => {
     assert.equal(individualPhoneHoldsOrdering(tickets, [row('Wang', PA, 11, true)]), false);
     assert.equal(
       individualPhoneHoldsOrdering(
-        [{ ticket_key: `p:${PC}`, name: 'Zhang', state: 'unlocked', mine: true }],
+        [{ ticket_key: `p:${PC}`, name: 'Zhang', state: 'unlocked', called_at: '2026-10-12T10:00:00Z', mine: true }],
         [],
       ),
       false,

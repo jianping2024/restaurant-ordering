@@ -11,6 +11,7 @@ export type TicketCallRow = {
   name: string;
   state: 'called' | 'unlocked';
   client_id: string | null;
+  called_at: string;
 };
 
 /** Server-internal: rows carry `client_id` — never serialize them to a guest. */
@@ -20,7 +21,7 @@ export async function loadTicketCallRows(
 ): Promise<TicketCallRow[]> {
   const { data } = await admin
     .from('bill_split_ticket_calls')
-    .select('ticket_key, name, state, client_id')
+    .select('ticket_key, name, state, client_id, called_at')
     .eq('bill_split_id', billSplitId);
   return (data ?? []) as TicketCallRow[];
 }
@@ -50,6 +51,7 @@ export async function loadIndividualTickets(
     ticket_key: row.ticket_key,
     name: row.name,
     state: row.state,
+    called_at: row.called_at,
     mine: !!clientId && row.client_id === clientId,
   }));
 }

@@ -11,6 +11,7 @@ import {
   clampGuestClaimBuffetRows,
   guestBuffetSeatCeil,
   guestClaimForDisplay,
+  guestCalledTicket,
   guestClaimIssue,
   guestClaimLineAmounts,
   guestClaimMoney,
@@ -704,5 +705,34 @@ describe('guest claim money (per-dish euro, panel split)', () => {
   it('leaves a named claim untouched by the display stand-in', () => {
     const named = withQty(claim('Me'), specs[0]!, { qtyWhole: '1' });
     assert.equal(guestClaimForDisplay(named), named);
+  });
+});
+
+describe('guestCalledTicket', () => {
+  const meTicket: SplitPerson = {
+    name: 'Me',
+    party_id: ME,
+    item_shares: [
+      { key: 'L1', qty_num: 2, qty_den: 1, party_id: ME },
+      { key: 'L2', qty_num: 1, qty_den: 1, party_id: ME },
+    ],
+  };
+  const params = {
+    persons: [meTicket, liPerson([['L1', 1]])],
+    ticketKey: splitPartyKey(ME, 'Me'),
+    lineSpecs: specs,
+    orderLines,
+    lang: 'pt' as const,
+  };
+
+  it('lists this ticket dishes with euros that add up to the ticket amount', () => {
+    const ticket = guestCalledTicket(params)!;
+    assert.deepEqual(ticket.lines.map((line) => line.lineKey), ['L1', 'L2']);
+    assert.deepEqual(ticket.lines.map((line) => line.amount), [10, 20]);
+    assert.equal(ticket.amount, 30);
+  });
+
+  it('returns null for a ticket that is not on the plan', () => {
+    assert.equal(guestCalledTicket({ ...params, ticketKey: 'nobody' }), null);
   });
 });

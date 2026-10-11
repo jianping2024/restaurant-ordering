@@ -4,6 +4,8 @@ import type {
   CustomerSplitRowDisplay,
   CustomerTableSettlementSummary,
 } from '@/lib/customer-bill-split-display';
+import type { GuestCalledTicket } from '@/lib/guest-claim';
+import { formatGuestClaimQtyLabel } from '@/lib/guest-claim-qty-stack';
 import type { UILanguage } from '@/lib/i18n';
 import type { DishFeedbackReasonKey } from '@/lib/dish-feedback-reasons';
 import type { GuestReviewableItem } from '@/lib/guest-reviewable-items';
@@ -43,6 +45,12 @@ interface Props {
   /** By-item only: whole-table collected / called / unclaimed under the total. */
   tableSummary: CustomerTableSettlementSummary | null;
   tableSummaryCopy: { collected: string; called: string; unclaimed: string; mine: string };
+  /** By-item only: dishes of this phone's current unpaid called ticket, above the total. */
+  calledTicket: GuestCalledTicket | null;
+  /** `{name}` template, e.g. `{name} 的账单`. */
+  calledTicketTitle: string;
+  /** `{adults}` / `{children}` template for buffet headcount lines. */
+  buffetGuestCounts: string;
   backHref: string;
   backLabel: string;
   /** This phone called its ticket — ordering paused until staff unlocks. */
@@ -81,6 +89,9 @@ export function BillCheckoutSubmittedScreen({
   splitRows,
   tableSummary,
   tableSummaryCopy,
+  calledTicket,
+  calledTicketTitle,
+  buffetGuestCounts,
   backHref,
   backLabel,
   heldHint = null,
@@ -121,6 +132,40 @@ export function BillCheckoutSubmittedScreen({
             <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{heldHint}</p>
           ) : null}
         </section>
+
+        {calledTicket ? (
+          <section className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <div className="flex items-baseline justify-between gap-3 px-4 py-2.5 border-b border-brand-border">
+              <h3 className="min-w-0 truncate text-[13px] font-medium text-brand-text">
+                {calledTicketTitle.replace('{name}', calledTicket.name)}
+              </h3>
+              <span className="mesa-money shrink-0 text-brand-gold font-medium">
+                €{calledTicket.amount.toFixed(2)}
+              </span>
+            </div>
+            {calledTicket.lines.map((line) => (
+              <div
+                key={line.lineKey}
+                className="flex items-center gap-3 px-4 py-2.5 border-b border-brand-border last:border-0"
+              >
+                <MenuItemListThumb item={{ image_url: line.imageUrl, emoji: line.emoji }} />
+                <p className="min-w-0 flex-1 line-clamp-2 break-words text-sm text-brand-text">
+                  {line.name}
+                </p>
+                <span className="shrink-0 text-[13px] tabular-nums text-brand-text-muted">
+                  {line.mode === 'menu'
+                    ? `×${formatGuestClaimQtyLabel(line.qty)}`
+                    : buffetGuestCounts
+                        .replace('{adults}', String(line.adults))
+                        .replace('{children}', String(line.children))}
+                </span>
+                <span className="mesa-money shrink-0 w-16 text-right text-sm text-brand-text">
+                  €{line.amount.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </section>
+        ) : null}
 
         <section className="bg-brand-card border border-brand-border rounded-xl px-4 py-5 text-center">
           <p className="text-[13px] font-medium text-brand-text">{copy.totalLabel}</p>

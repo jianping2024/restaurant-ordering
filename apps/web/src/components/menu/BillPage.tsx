@@ -510,13 +510,10 @@ function GuestBillPage({
   const [nameAsked, setNameAsked] = useState(false);
   const claimNameMissing = nameAsked && !claim.claim.name.trim();
 
-  /** The name is the next step: scroll the field into view, focus it and mark it. */
+  /** The name is the next step: mark it and focus the field — the phone reveals it as on a tap. */
   const askForClaimName = () => {
     setNameAsked(true);
-    const input = document.getElementById(GUEST_CLAIM_NAME_INPUT_ID);
-    if (!input) return;
-    input.scrollIntoView({ block: 'center' });
-    input.focus({ preventScroll: true });
+    document.getElementById(GUEST_CLAIM_NAME_INPUT_ID)?.focus();
   };
 
   const handleCallBill = () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { customerBottomDockSurfaceClass } from '@/lib/customer-menu-bottom-bar-layout';
 
@@ -36,7 +36,10 @@ type Props = {
 /**
  * Sole guest bill bottom dock: optional「呼叫结账」(primary) then「返回点单」(outline, bottom).
  * Yields while a bill-page text field is focused — sole rule in globals.css via
- * `data-guest-call-checkout-dock`.
+ * `data-guest-call-checkout-dock`. iOS keyboard-dismiss (Safari ✓ bar / hide-keyboard
+ * icon) only blurs the window and leaves the field as `activeElement`; the next touch
+ * refocuses the window, `:focus` matches again and the dock vanishes under the finger.
+ * So window blur also blurs that field — the one place the rule's focus stays truthful.
  */
 export function GuestBillBottomDock({
   backHref,
@@ -45,6 +48,20 @@ export function GuestBillBottomDock({
   summary = null,
   gateBanner = null,
 }: Props) {
+  useEffect(() => {
+    const blurBillTextField = () => {
+      const el = document.activeElement;
+      if (
+        (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) &&
+        el.closest('[data-guest-bill-page]')
+      ) {
+        el.blur();
+      }
+    };
+    window.addEventListener('blur', blurBillTextField);
+    return () => window.removeEventListener('blur', blurBillTextField);
+  }, []);
+
   return (
     <div
       data-guest-call-checkout-dock=""

@@ -18,6 +18,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  byItemAllocationTicketKeys,
   byItemLineTicketOmitKey,
   byItemPersonsSeedShareSig,
   extractByItemDraftAllocations,
@@ -25,6 +26,7 @@ import {
   mergeByItemCommittedAndDraft,
   mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
+  pruneByItemDraftDroppedSeedTickets,
   reconcileByItemShareOmitKeys,
   type ByItemAllocationRows,
 } from '@/lib/by-item-committed-draft';
@@ -82,12 +84,22 @@ export function useByItemSplitState(params: {
 
   /**
    * Sole unpaid-draft wipe: session owner or server authority fingerprint.
-   * Adjust state during render (React restart) so mergeMissing never paints one
-   * frame of stale local unpaid over a newer server plan.
+   * Adjust state during render (React restart). Critical: this render must
+   * already merge against an empty draft — scheduling setState({}) alone still
+   * leaves the previous unpaid rows in `draftAllocations` for mergeMissing
+   * (append-only), which re-paints unlocked tickets as €0 ghosts.
    */
   const unpaidDraftWipeKey = `${draftOwnerKey ?? ''}\u001f${authorityKey ?? ''}`;
   const [appliedUnpaidDraftWipeKey, setAppliedUnpaidDraftWipeKey] =
     useState(unpaidDraftWipeKey);
+  const draftAllocationsForMerge =
+    appliedUnpaidDraftWipeKey !== unpaidDraftWipeKey
+      ? {}
+      : draftAllocations;
+  const omitSigByKeyForMerge =
+    appliedUnpaidDraftWipeKey !== unpaidDraftWipeKey
+      ? new Map<string, string>()
+      : omitSigByKey;
   if (appliedUnpaidDraftWipeKey !== unpaidDraftWipeKey) {
     setAppliedUnpaidDraftWipeKey(unpaidDraftWipeKey);
     setDraftAllocations({});
@@ -144,10 +156,10 @@ export function useByItemSplitState(params: {
   const reconciledOmitSigByKey = useMemo(
     () =>
       reconcileByItemShareOmitKeys({
-        omitSigByKey,
+        omitSigByKey: omitSigByKeyForMerge,
         unlockedPersonsSeed,
       }),
-    [omitSigByKey, unlockedPersonsSeed],
+    [omitSigByKeyForMerge, unlockedPersonsSeed],
   );
 
   useLayoutEffect(() => {
@@ -178,14 +190,56 @@ export function useByItemSplitState(params: {
   const omitKeysRef = useRef(omitLineTicketKeys);
   omitKeysRef.current = omitLineTicketKeys;
 
+  const unlockedSeedTicketKeys = useMemo(
+    () => byItemAllocationTicketKeys(unlockedPersonsSeed),
+    [unlockedPersonsSeed],
+  );
+  /**
+   * Tickets ever seen on the unlocked persons seed in this hook instance.
+   * Unlock removes a key from the live seed but it stays here so prune keeps
+   * firing after the one-frame `previous→current` diff would have gone empty —
+   * including inside {@link setByItemAllocations} (mergeMissing is append-only
+   * and absolute writes can re-inject deleted tickets after authority wipe).
+   * Cleared only when {@link draftOwnerKey} changes (new session) — not on
+   * authority wipe, or unlock leftovers are forgotten in the same render.
+   * Local mints never enter.
+   */
+  const seenUnlockedSeedKeysRef = useRef<Set<string>>(new Set());
+  const seenSeedOwnerKeyRef = useRef(draftOwnerKey);
+  if (seenSeedOwnerKeyRef.current !== draftOwnerKey) {
+    seenUnlockedSeedKeysRef.current = new Set();
+    seenSeedOwnerKeyRef.current = draftOwnerKey;
+  }
+  for (const key of Array.from(unlockedSeedTicketKeys)) {
+    seenUnlockedSeedKeysRef.current.add(key);
+  }
+  const droppedUnlockedSeedKeys = useMemo(() => {
+    const dropped = new Set<string>();
+    for (const key of Array.from(seenUnlockedSeedKeysRef.current)) {
+      if (!unlockedSeedTicketKeys.has(key)) dropped.add(key);
+    }
+    return dropped;
+  }, [unlockedSeedTicketKeys, draftOwnerKey]);
+  const droppedUnlockedSeedKeysRef = useRef(droppedUnlockedSeedKeys);
+  droppedUnlockedSeedKeysRef.current = droppedUnlockedSeedKeys;
+
   const draftWithPersons = useMemo(
     () =>
       mergeMissingByItemDraftTickets(
-        pruneByItemDraftAgainstLocks(draftAllocations, lockedTicketKeys),
+        pruneByItemDraftDroppedSeedTickets(
+          pruneByItemDraftAgainstLocks(draftAllocationsForMerge, lockedTicketKeys),
+          droppedUnlockedSeedKeys,
+        ),
         unlockedPersonsSeed,
         omitLineTicketKeys,
       ),
-    [draftAllocations, unlockedPersonsSeed, lockedTicketKeys, omitLineTicketKeys],
+    [
+      draftAllocationsForMerge,
+      droppedUnlockedSeedKeys,
+      unlockedPersonsSeed,
+      lockedTicketKeys,
+      omitLineTicketKeys,
+    ],
   );
 
   const byItemAllocations = useMemo(() => {
@@ -212,11 +266,15 @@ export function useByItemSplitState(params: {
   const setByItemAllocations = useCallback(
     (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
       setDraftAllocations((prevDraft) => {
+        const prunedPrev = pruneByItemDraftDroppedSeedTickets(
+          prevDraft,
+          droppedUnlockedSeedKeysRef.current,
+        );
         const prevMerged = withDefaultByItemLineRows(
           mergeByItemCommittedAndDraft(
             committedRef.current,
             mergeMissingByItemDraftTickets(
-              prevDraft,
+              prunedPrev,
               personsSeedRef.current,
               omitKeysRef.current,
             ),
@@ -230,7 +288,13 @@ export function useByItemSplitState(params: {
           nextMerged,
           lockedKeysRef.current,
         );
-        return extractByItemDraftAllocations(normalized, lockedKeysRef.current);
+        return extractByItemDraftAllocations(
+          pruneByItemDraftDroppedSeedTickets(
+            normalized,
+            droppedUnlockedSeedKeysRef.current,
+          ),
+          lockedKeysRef.current,
+        );
       });
     },
     [lineSpecs],

@@ -44,6 +44,50 @@ test('mergeBillSplitsFromRefresh replaces queue with server list', () => {
   );
 });
 
+test('mergeBillSplitsFromRefresh drops unpaid by-item tickets removed on server', () => {
+  const prev = [
+    baseSplit('a', {
+      split_mode: 'by_item',
+      result: [
+        { name: 'Aa', amount: 17.9, paid: false, party_id: 'p-aa' },
+        { name: 'Kk4', amount: 17.9, paid: false, party_id: 'p-kk' },
+      ],
+    }),
+  ];
+  const incoming = [
+    baseSplit('a', {
+      split_mode: 'by_item',
+      result: [{ name: 'Aa', amount: 17.9, paid: false, party_id: 'p-aa' }],
+    }),
+  ];
+  const merged = mergeBillSplitsFromRefresh(prev, incoming);
+  assert.deepEqual(
+    (merged[0]?.result ?? []).map((row) => row.name),
+    ['Aa'],
+  );
+});
+
+test('mergeBillSplitsFromRefresh does not pad shorter even result with dropped people', () => {
+  const prev = [
+    baseSplit('a', {
+      result: [
+        { name: 'A', amount: 10, paid: false },
+        { name: 'B', amount: 10, paid: false },
+      ],
+    }),
+  ];
+  const incoming = [
+    baseSplit('a', {
+      result: [{ name: 'A', amount: 20, paid: false }],
+    }),
+  ];
+  const merged = mergeBillSplitsFromRefresh(prev, incoming);
+  assert.deepEqual(
+    (merged[0]?.result ?? []).map((row) => row.name),
+    ['A'],
+  );
+});
+
 test('isCheckoutDetailLocked is true for payment and resume operations', () => {
   const billSplitId = 'split-1';
   assert.equal(

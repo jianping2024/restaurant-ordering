@@ -455,6 +455,8 @@ export function StaffByItemSplitWorkbench({
 
   /** True after a genuine blank staff mint; false until then / after hydrate replace. */
   const blankMintRef = useRef(false);
+  /** Prior authoritative roster — sole input so unlock drops leave the rail. */
+  const previousAuthoritativeRef = useRef<StaffByItemRailPerson[]>(authoritativePeople);
   const [people, setPeople] = useState<StaffByItemRailPerson[]>(() => {
     if (authoritativePeople.length > 0) return authoritativePeople;
     if (awaitingRailHydrate) return [];
@@ -470,12 +472,20 @@ export function StaffByItemSplitWorkbench({
 
   useEffect(() => {
     setPeople((prev) => {
+      const previousAuthoritative = previousAuthoritativeRef.current;
+      const synced = syncStaffByItemRailPeople(
+        prev,
+        authoritativePeople,
+        previousAuthoritative,
+      );
+      previousAuthoritativeRef.current = authoritativePeople;
+
       if (authoritativePeople.length > 0) {
         blankMintRef.current = false;
-        return syncStaffByItemRailPeople(prev, authoritativePeople);
+        return synced;
       }
-      if (awaitingRailHydrate) return prev;
-      if (prev.length > 0 || blankMintRef.current) return prev;
+      if (awaitingRailHydrate) return synced;
+      if (synced.length > 0 || blankMintRef.current) return synced;
       blankMintRef.current = true;
       return [mintStaffByItemRailPerson(guestName(1))];
     });
@@ -1171,7 +1181,16 @@ export function StaffByItemSplitWorkbench({
                           disabled={
                             disabled || ticketUnlock.unlockingKeys.has(currentUnlockKey)
                           }
-                          onClick={() => ticketUnlock.onUnlock(currentUnlockKey)}
+                          onClick={() => {
+                            const unlockKey = currentUnlockKey;
+                            // Drop chip immediately; authority remount / sync also drop after reload.
+                            setPeople((prev) =>
+                              prev.filter(
+                                (person) => staffByItemRailPersonKey(person) !== unlockKey,
+                              ),
+                            );
+                            ticketUnlock.onUnlock(unlockKey);
+                          }}
                         >
                           {ticketUnlock.unlockingKeys.has(currentUnlockKey)
                             ? ticketUnlock.busyLabel

@@ -186,6 +186,30 @@ export function reconcileByItemShareOmitKeys(params: {
 }
 
 /**
+ * Sole prune: drop unpaid draft rows for tickets that left the unlocked persons
+ * seed (staff unlock / server deleted ticket). Does not touch tickets that were
+ * never on the seed (in-progress local mint / rename).
+ */
+export function pruneByItemDraftDroppedSeedTickets(
+  draft: ByItemAllocationRows,
+  droppedTicketKeys: ReadonlySet<string>,
+): ByItemAllocationRows {
+  if (droppedTicketKeys.size === 0) return draft;
+  let changed = false;
+  const next: ByItemAllocationRows = {};
+  for (const [lineKey, rows] of Object.entries(draft)) {
+    const filtered = rows.filter((row) => {
+      const key = rowTicketKey(row);
+      if (!key || !droppedTicketKeys.has(key)) return true;
+      changed = true;
+      return false;
+    });
+    if (filtered.length > 0) next[lineKey] = filtered;
+  }
+  return changed ? next : draft;
+}
+
+/**
  * Sole hydrate merge for unpaid draft vs unlocked persons seed.
  * - Empty draft (after session/authority wipe) ⇒ append all unlocked seed rows
  *   (= full server unpaid reseed).
@@ -194,6 +218,8 @@ export function reconcileByItemShareOmitKeys(params: {
  *   mid-edit keeps). Guest re-submit that changes the plan bumps authority and
  *   wipes draft upstream — not handled here by overwriting in place.
  * `omitLineTicketKeys`: staff-deleted (line×ticket) must not resurrect from the same seed.
+ * Callers that track prior seed keys should {@link pruneByItemDraftDroppedSeedTickets}
+ * before this merge so unlock leftovers are not append-kept.
  */
 export function mergeMissingByItemDraftTickets(
   draft: ByItemAllocationRows,

@@ -17,7 +17,7 @@ export const buttonIcon = {
 } as const;
 
 const baseClass =
-  'relative inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer focus-visible:ring-2';
+  'relative inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer select-none focus-visible:ring-2';
 
 const variants: Record<ButtonVariant, string> = {
   /**

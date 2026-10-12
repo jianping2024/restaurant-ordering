@@ -44,7 +44,20 @@ describe('waiter-board-card-theme theme tokens', () => {
       globals,
       /\.mesa-scroll-frame,\s*\n\s*\.mesa-stat\s*\{[\s\S]*?user-select:\s*none/,
     );
-    assert.doesNotMatch(globals, /WaiterBoardTableCard|select-none/);
+    assert.doesNotMatch(globals, /WaiterBoardTableCard/);
+    assert.doesNotMatch(globals, /\bselect-none\b/);
+  });
+
+  it('button tap chrome disables long-press text selection in globals only', () => {
+    const globals = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../app/globals.css'),
+      'utf8',
+    );
+    assert.match(
+      globals,
+      /button,\s*\n\s*\[role='button'\]\s*\{[\s\S]*?user-select:\s*none[\s\S]*?-webkit-touch-callout:\s*none/,
+    );
+    assert.doesNotMatch(globals, /\bselect-none\b/);
   });
 
   it('board shells use scroll-frame status modifiers, not Tailwind media dark:', () => {

@@ -134,9 +134,54 @@ describe('syncStaffByItemRailPeople', () => {
     assert.deepEqual(syncStaffByItemRailPeople(prev, auth), auth);
   });
 
-  it('keeps prev when authoritative empty', () => {
+  it('keeps local blank when authoritative empty and nothing was dropped', () => {
     const prev = [{ name: '客人 1', partyId: 'g' }];
     assert.equal(syncStaffByItemRailPeople(prev, []), prev);
+  });
+
+  it('unlock: drops ticket that left previous authoritative (keeps sibling + blank)', () => {
+    const prev = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+      { name: '客人 3', partyId: 'blank' },
+    ];
+    const previous = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+    ];
+    const auth = [{ name: 'Aa', partyId: 'aa' }];
+    assert.deepEqual(syncStaffByItemRailPeople(prev, auth, previous), [
+      { name: 'Aa', partyId: 'aa' },
+      { name: '客人 3', partyId: 'blank' },
+    ]);
+  });
+
+  it('unlock last unpaid: drops departed tickets when authoritative empty', () => {
+    const prev = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+    ];
+    const previous = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+    ];
+    assert.deepEqual(syncStaffByItemRailPeople(prev, [], previous), []);
+  });
+
+  it('unlock while hydrate adds others: dropped ticket not kept as renamedExtra', () => {
+    const prev = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+    ];
+    const previous = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Kk', partyId: 'kk' },
+    ];
+    const auth = [
+      { name: 'Aa', partyId: 'aa' },
+      { name: 'Jim', partyId: 'j1' },
+    ];
+    assert.deepEqual(syncStaffByItemRailPeople(prev, auth, previous), auth);
   });
 });
 

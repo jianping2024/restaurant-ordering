@@ -81,16 +81,43 @@ export function resolveStaffByItemRailPeople(params: {
  * Sole rail sync after hydrate / seed change.
  * - No overlap → replace (drops early blank mint).
  * - Auth gains new tickets (persons hydrate) → auth wins; drop default guest blanks.
- * - Overlap, no new auth tickets → append only (keeps in-progress serial-collect blank).
+ * - Overlap, no new auth tickets → append only (keeps in-progress serial-collect blank /
+ *   renamed unpaid chips that never left the rail).
+ * - Tickets that left `previousAuthoritative` (unlock / server drop) are always removed —
+ *   never kept as append leftovers or renamedExtras.
  */
 export function syncStaffByItemRailPeople(
   prev: StaffByItemRailPerson[],
   authoritative: StaffByItemRailPerson[],
+  previousAuthoritative: ReadonlyArray<StaffByItemRailPerson> = [],
 ): StaffByItemRailPerson[] {
-  if (authoritative.length === 0) return prev;
   const authKeys = new Set(
     authoritative.map((person) => staffByItemRailPersonKey(person)).filter(Boolean),
   );
+  const previousAuthKeys = new Set(
+    previousAuthoritative
+      .map((person) => staffByItemRailPersonKey(person))
+      .filter(Boolean),
+  );
+  const droppedKeys = new Set(
+    Array.from(previousAuthKeys).filter((key) => !authKeys.has(key)),
+  );
+
+  const withoutDropped = (
+    list: StaffByItemRailPerson[],
+  ): StaffByItemRailPerson[] => {
+    if (droppedKeys.size === 0) return list;
+    const filtered = list.filter((person) => {
+      const key = staffByItemRailPersonKey(person);
+      return !key || !droppedKeys.has(key);
+    });
+    return filtered.length === list.length ? list : filtered;
+  };
+
+  if (authoritative.length === 0) {
+    return withoutDropped(prev);
+  }
+
   const overlap = prev.some((person) => {
     const key = staffByItemRailPersonKey(person);
     return Boolean(key && authKeys.has(key));
@@ -107,12 +134,12 @@ export function syncStaffByItemRailPeople(
   if (authHasNew) {
     const renamedExtras = prev.filter((person) => {
       const key = staffByItemRailPersonKey(person);
-      if (!key || authKeys.has(key)) return false;
+      if (!key || authKeys.has(key) || droppedKeys.has(key)) return false;
       return !isDefaultGuestRailName(person.name);
     });
     return staffByItemLedgerPeople([...authoritative, ...renamedExtras]);
   }
-  return appendStaffByItemRailPeople(prev, authoritative);
+  return withoutDropped(appendStaffByItemRailPeople(prev, authoritative));
 }
 
 /**

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { mergeByItemSplitResultWithLedger } from './bill-split-result-merge';
+import {
+  mergeByItemSplitResultWithLedger,
+  mergeSplitResultPaid,
+} from './bill-split-result-merge';
 
 describe('mergeByItemSplitResultWithLedger', () => {
   it('keeps paid ticket amount; updates unpaid only', () => {
@@ -86,5 +89,29 @@ describe('mergeByItemSplitResultWithLedger', () => {
     assert.equal(merged[0]?.amount, 19.95);
     assert.equal(merged[1]?.party_id, unpaidId);
     assert.equal(merged[1]?.amount, 2.2);
+  });
+});
+
+describe('mergeSplitResultPaid', () => {
+  it('does not resurrect existing-only rows when incoming is shorter', () => {
+    const merged = mergeSplitResultPaid(
+      [{ name: 'Aa', amount: 17.9 }],
+      [
+        { name: 'Aa', amount: 17.9 },
+        { name: 'Kk4', amount: 17.9 },
+      ],
+    );
+    assert.deepEqual(
+      merged.map((row) => row.name),
+      ['Aa'],
+    );
+  });
+
+  it('keeps local paid when incoming omits paid flag', () => {
+    const merged = mergeSplitResultPaid(
+      [{ name: 'Aa', amount: 17.9, paid: false }],
+      [{ name: 'Aa', amount: 17.9, paid: true }],
+    );
+    assert.equal(merged[0]?.paid, true);
   });
 });

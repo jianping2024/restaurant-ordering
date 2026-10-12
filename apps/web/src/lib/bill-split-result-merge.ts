@@ -79,7 +79,11 @@ export function mergeByItemSplitResultWithLedger(
   return merged;
 }
 
-/** Merge paid flags by index when no ledger (realtime refresh). */
+/**
+ * Merge paid flags by index on queue refresh.
+ * Incoming roster length is authoritative — never pad with existing-only rows
+ * (unlock / server drop must not resurrect unpaid tickets as €0 ghosts).
+ */
 export function mergeSplitResultPaid(
   incoming: SplitResult[] | undefined,
   existing: SplitResult[] | undefined,
@@ -87,16 +91,8 @@ export function mergeSplitResultPaid(
   const inc = incoming ?? [];
   const ex = existing ?? [];
   if (ex.length === 0) return inc;
-  if (inc.length === 0) return ex;
-  const len = Math.max(inc.length, ex.length);
-  const merged: SplitResult[] = [];
-  for (let i = 0; i < len; i += 1) {
-    const row = inc[i] ?? ex[i];
-    if (!row) continue;
-    merged.push({
-      ...row,
-      paid: !!row.paid || !!ex[i]?.paid,
-    });
-  }
-  return merged;
+  return inc.map((row, i) => ({
+    ...row,
+    paid: !!row.paid || !!ex[i]?.paid,
+  }));
 }

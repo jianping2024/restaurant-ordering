@@ -1,5 +1,8 @@
 import type { BillSplit } from '@/types';
-import { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
+import {
+  mergeByItemSplitResultWithLedger,
+  mergeSplitResultPaid,
+} from '@/lib/bill-split-result-merge';
 
 export { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
 
@@ -14,10 +17,13 @@ export function mergeBillSplitsFromRefresh(
   return incoming.map((row) => {
     const old = prevById.get(row.id);
     if (!old?.result?.length) return row;
-    return {
-      ...row,
-      result: mergeSplitResultPaid(row.result, old.result),
-    };
+    // By-item: party_id-first merge — unpaid tickets dropped on server stay dropped;
+    // paid omitted tickets keep ledger amounts. Other modes: index paid-flag only.
+    const result =
+      row.split_mode === 'by_item'
+        ? mergeByItemSplitResultWithLedger(old.result, row.result ?? [])
+        : mergeSplitResultPaid(row.result, old.result);
+    return { ...row, result };
   });
 }
 

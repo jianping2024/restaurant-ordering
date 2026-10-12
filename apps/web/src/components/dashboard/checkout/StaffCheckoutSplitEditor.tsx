@@ -64,6 +64,7 @@ import {
   resumeCheckoutBlockReason,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
+import { billSplitDraftAuthorityKey } from '@/lib/bill-split-local-draft';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 
@@ -791,6 +792,10 @@ export function StaffCheckoutSplitEditor({
         }
         byItemContent={(
           <StaffByItemSplitWorkbench
+            key={billSplitDraftAuthorityKey({
+              existingSplit: request,
+              collectedPaymentCount: collectedPayments.length,
+            })}
             lang={lang}
             lineSpecs={lineSpecs}
             orderLines={splitOrderLines}

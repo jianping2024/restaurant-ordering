@@ -9,6 +9,7 @@ import {
   mergeByItemCommittedAndDraft,
   mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
+  pruneByItemDraftDroppedSeedTickets,
   reconcileByItemShareOmitKeys,
 } from './by-item-committed-draft';
 import type { ByItemConsumerRow } from './bill-split-by-item';
@@ -174,6 +175,21 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     assert.equal(reseeded['line-a']?.[1]?.partyId, 'p-jim');
     assert.equal(reseeded['line-a']?.[1]?.qtyWhole, '2');
     assert.equal(reseeded['line-b']?.[0]?.partyId, 'p-jim');
+  });
+
+  it('pruneDroppedSeedTickets removes unlock leftovers; keeps never-seeded local mint', () => {
+    const draft = {
+      'line-a': [
+        row('Aa', { partyId: 'aa', qty: '1' }),
+        row('Kk', { partyId: 'kk', qty: '1' }),
+        row('Maria', { partyId: 'local', qty: '1' }),
+      ],
+    };
+    const pruned = pruneByItemDraftDroppedSeedTickets(draft, new Set(['p:aa']));
+    assert.deepEqual(
+      pruned['line-a']?.map((r) => r.partyId),
+      ['kk', 'local'],
+    );
   });
 
   it('mergeMissing skips omitted line×ticket until seed fingerprint changes', () => {

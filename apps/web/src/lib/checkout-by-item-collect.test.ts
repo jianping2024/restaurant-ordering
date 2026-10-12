@@ -199,6 +199,30 @@ describe('applyCollectedObligationFloors', () => {
     assert.equal(floored[0]?.amount, 2.2);
     assert.equal(floored[1]?.amount, 2.2);
   });
+
+  it('floors by party_id when person_index points at another ticket', () => {
+    const pedroId = '103bcad1-21e0-4314-bfbb-5c2a1667457b';
+    const yId = '14654286-19cf-498e-a220-bdad2504152c';
+    const floored = applyCollectedObligationFloors(
+      [
+        { name: 'Pedro', amount: 50, party_id: pedroId },
+        { name: 'Y', amount: 53.01, party_id: yId },
+      ],
+      [
+        {
+          id: '1',
+          party_id: pedroId,
+          person_index: 1,
+          person_name: 'Pedro',
+          amount: 107.4,
+          created_at: '',
+          payment_method: 'CASH',
+        },
+      ],
+    );
+    assert.equal(floored[0]?.amount, 107.4);
+    assert.equal(floored[1]?.amount, 53.01);
+  });
 });
 
 describe('settledByItemPersonKeys', () => {

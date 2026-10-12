@@ -6,6 +6,7 @@ import {
   hasConfirmedPerson,
   isByItemPerTicketCheckoutPlan,
   isSplitRowCollectible,
+  ledgerPaymentTicketKey,
   omitsSessionResumeOrdering,
   parseSessionCollectedPayments,
   reconcileSplitResultPaid,
@@ -33,6 +34,41 @@ function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
     ...overrides,
   };
 }
+
+describe('ledgerPaymentTicketKey', () => {
+  it('prefers party_id over stale person_index', () => {
+    const pedroId = '103bcad1-21e0-4314-bfbb-5c2a1667457b';
+    const yId = '14654286-19cf-498e-a220-bdad2504152c';
+    const key = ledgerPaymentTicketKey(
+      {
+        party_id: pedroId,
+        person_index: 1,
+        person_name: 'Pedro',
+      },
+      [
+        { name: 'Pedro', party_id: pedroId },
+        { name: 'Y', party_id: yId },
+      ],
+    );
+    assert.equal(key, `p:${pedroId}`);
+  });
+
+  it('falls back to person_index when party_id is null', () => {
+    const bobId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const key = ledgerPaymentTicketKey(
+      {
+        party_id: null,
+        person_index: 1,
+        person_name: 'Bob',
+      },
+      [
+        { name: 'Ana', party_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+        { name: 'Bob', party_id: bobId },
+      ],
+    );
+    assert.equal(key, `p:${bobId}`);
+  });
+});
 
 describe('parseSessionCollectedPayments', () => {
   it('maps person_index', () => {

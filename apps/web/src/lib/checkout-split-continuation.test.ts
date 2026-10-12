@@ -334,6 +334,65 @@ describe('allocationLockedTicketKeys', () => {
     assert.equal(keys.has(`p:${stampedId}`), true);
     assert.equal(keys.has(`p:${openId}`), false);
   });
+
+  it('party_id wins over stale person_index pointing at another ticket (桌90)', () => {
+    const pedroId = '103bcad1-21e0-4314-bfbb-5c2a1667457b';
+    const yId = '14654286-19cf-498e-a220-bdad2504152c';
+    const keys = allocationLockedTicketKeys(
+      split({
+        split_mode: 'by_item',
+        result: [
+          { name: 'Pedro', amount: 107.4, paid: true, party_id: pedroId },
+          { name: 'Y', amount: 53.01, party_id: yId },
+          {
+            name: 'Pedro',
+            amount: 107.4,
+            party_id: '896d30d4-43b2-4064-b070-4a250d9636f6',
+          },
+        ],
+      }),
+      [
+        {
+          id: 'pay-1',
+          party_id: pedroId,
+          person_index: 1,
+          person_name: 'Pedro',
+          amount: 107.4,
+          created_at: '',
+          payment_method: 'CASH',
+          payment_lines: null,
+        },
+      ],
+    );
+    assert.equal(keys.has(`p:${pedroId}`), true);
+    assert.equal(keys.has(`p:${yId}`), false);
+  });
+
+  it('legacy null party_id still locks via person_index', () => {
+    const keys = allocationLockedTicketKeys(
+      split({
+        split_mode: 'by_item',
+        result: [
+          { name: 'Ana', amount: 10, party_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+          { name: 'Bob', amount: 20, party_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' },
+        ],
+      }),
+      [
+        {
+          id: 'pay-legacy',
+          party_id: null,
+          person_index: 1,
+          person_name: 'Bob',
+          amount: 20,
+          created_at: '',
+          payment_method: 'CASH',
+          payment_lines: null,
+        },
+      ],
+    );
+    assert.equal(keys.has('p:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), false);
+    assert.equal(keys.has('p:bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'), true);
+  });
 });
 
 describe('splitDraftPersonCount', () => {

@@ -9,6 +9,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  ledgerPaymentTicketKey,
   outstandingAmount,
   sumCollectedForResultSeats,
   type SessionCollectedPayment,
@@ -98,19 +99,14 @@ export function orderByItemResultsToRoster(
   return ordered;
 }
 
-/** Collected euros keyed by ticket key; index used when name empty. */
+/** Collected euros keyed by ticket key — sole {@link ledgerPaymentTicketKey}. */
 export function collectedTotalsByPersonKey(
   payments: SessionCollectedPayment[],
   roster: ReadonlyArray<SplitResult>,
 ): Map<string, number> {
   const byKey = new Map<string, number>();
   for (const payment of payments) {
-    const fromIndex =
-      payment.person_index != null && payment.person_index >= 0
-        ? splitResultTicketKey(roster[payment.person_index] ?? { name: '' })
-        : '';
-    const fromName = splitPartyKey(undefined, payment.person_name);
-    const key = fromIndex || fromName;
+    const key = ledgerPaymentTicketKey(payment, roster);
     if (!key) continue;
     byKey.set(key, (byKey.get(key) ?? 0) + Number(payment.amount || 0));
   }

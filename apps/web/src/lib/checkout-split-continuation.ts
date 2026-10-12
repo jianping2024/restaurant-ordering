@@ -24,7 +24,10 @@ import {
   parseSplitMode,
 } from '@/lib/checkout-split-intent';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { collectedPersonNames } from '@/lib/checkout-session-payments';
+import {
+  collectedPersonNames,
+  ledgerPaymentTicketKey,
+} from '@/lib/checkout-session-payments';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 import {
   evenAuthoritativeRowCount,
@@ -202,11 +205,10 @@ export function staffMayChangeCheckoutSplitMode(params: {
 /**
  * Sole by-item lock set: ticket keys ({@link splitPartyKey}) that are frozen
  * for UI layering (committed vs draft). Includes:
- * - `result.paid` / collection history
+ * - `result.paid`
+ * - ledger payments via sole {@link ledgerPaymentTicketKey} (party_id first)
  * - persons with any `item_shares.locked_amount` (collect stamp — must lock
  *   before ledger lands, or merge flashes committed+draft duplicates)
- * Prefer party_id; name-only keys only for legacy rows / payments without an
- * indexable ticket.
  */
 export function allocationLockedTicketKeys(
   split: BillSplit | null | undefined,
@@ -223,17 +225,10 @@ export function allocationLockedTicketKeys(
     if (key) keys.add(key);
   }
 
+  // Same sole rule as ledger read / even lock: party_id first, else index, else name.
   for (const payment of collectedPayments) {
-    if (payment.person_index != null && payment.person_index >= 0) {
-      const row = result[payment.person_index];
-      if (row) {
-        const key = splitPartyKey(row.party_id, row.name);
-        if (key) keys.add(key);
-        continue;
-      }
-    }
-    const legacy = splitPartyKey(undefined, payment.person_name);
-    if (legacy) keys.add(legacy);
+    const key = ledgerPaymentTicketKey(payment, result);
+    if (key) keys.add(key);
   }
 
   // Collect upsert stamps locked_amount before confirm-payment writes the ledger.

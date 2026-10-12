@@ -10,7 +10,7 @@ import {
   parseBillSyncPaymentMethod,
   type BillSyncPaymentLine,
 } from '@/lib/bill-sync-payload';
-import { parseOptionalPartyId } from '@/lib/split-party-id';
+import { parseOptionalPartyId, splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type SplitRowWithIndex = {
@@ -138,6 +138,23 @@ export function parseSessionCollectedPaymentsWithSession(
     ),
     payment_lines: parseBillSyncPaymentLines(row.payment_lines),
   }));
+}
+
+/**
+ * Sole ticket key for one ledger payment (checkout-ledger-party-id):
+ * party_id set → id key; else person_index on roster; else name (legacy display rows).
+ * Never prefer a stale index when party_id is present.
+ */
+export function ledgerPaymentTicketKey(
+  payment: Pick<SessionCollectedPayment, 'party_id' | 'person_index' | 'person_name'>,
+  roster: ReadonlyArray<Pick<SplitResult, 'name' | 'party_id'>> = [],
+): string {
+  const payParty = parseOptionalPartyId(payment.party_id);
+  if (payParty) return splitPartyKey(payParty, payment.person_name);
+  if (payment.person_index != null && payment.person_index >= 0) {
+    return splitResultTicketKey(roster[payment.person_index] ?? { name: '' });
+  }
+  return splitPartyKey(undefined, payment.person_name);
 }
 
 /**

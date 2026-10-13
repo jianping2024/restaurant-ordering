@@ -11,6 +11,8 @@ import {
 
 export type CustomerSplitResultListCopy = SplitSettlementCopy & {
   splitResult: string;
+  /** Soft note under the title: phone amounts are reference; payment confirms. */
+  splitResultAmountNote: string;
   /** Tag on this phone's own row (by-item table view). */
   mine?: string;
 };
@@ -27,9 +29,12 @@ export function CustomerSplitResultList({ rows, lang, copy }: Props) {
 
   return (
     <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-      <p className="px-4 py-2.5 text-[13px] text-brand-text-muted border-b border-brand-border">
-        {copy.splitResult}
-      </p>
+      <div className="px-4 py-2.5 border-b border-brand-border">
+        <p className="text-[13px] text-brand-text-muted">{copy.splitResult}</p>
+        <p className="mt-0.5 text-[11px] leading-snug text-brand-text-muted/80">
+          {copy.splitResultAmountNote}
+        </p>
+      </div>
       {rows.map((row, i) => (
         <div key={i} className="px-4 py-3 border-b border-brand-border last:border-0">
           <div className="flex items-center justify-between gap-3">

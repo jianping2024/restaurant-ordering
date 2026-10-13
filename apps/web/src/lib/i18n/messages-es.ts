@@ -1426,6 +1426,7 @@ export const MESSAGES_ES = {
     "people": "Personas",
     "removePerson": "Eliminar persona",
     "splitResult": "Resultado de la división",
+    "splitResultAmountNote": "Importes orientativos; prevalece el cobro",
     "splitPaid": "Pagado",
     "splitPartialPaid": "Pagado parcialmente",
     "splitAmountBreakdown": "Debe {obligation} € · Pagado {collected} €",

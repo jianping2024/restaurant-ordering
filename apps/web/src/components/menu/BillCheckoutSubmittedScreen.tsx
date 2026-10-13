@@ -21,6 +21,7 @@ export type BillCheckoutSubmittedCopy = {
   checkoutSubmittedHint: string;
   totalLabel: string;
   splitResult: string;
+  splitResultAmountNote: string;
   splitPaid: string;
   splitPartialPaid: string;
   splitAmountBreakdown: string;
@@ -188,6 +189,7 @@ export function BillCheckoutSubmittedScreen({
           lang={lang}
           copy={{
             splitResult: copy.splitResult,
+            splitResultAmountNote: copy.splitResultAmountNote,
             splitPaid: copy.splitPaid,
             splitPartialPaid: copy.splitPartialPaid,
             splitAmountBreakdown: copy.splitAmountBreakdown,

@@ -14,7 +14,7 @@
 1. **开台优先**：`table_sessions.status = open` 且 session 内存在未作废的 `buffet_base` 行，才允许加菜（`guestOrderingEnabled`）。否则客户端禁用购物车、服务端返回 `buffet_required`。
 2. **结账中不可加单**：`session.status = billing` → `session_billing`（409）。
 3. **自助餐行不可经 append 创建**：请求体不得含 `kind: buffet_base`、`buffet:` 前缀或客户端价格字段；自助餐仅走 `POST .../staff/waiter/buffet`。
-4. **同餐次合并写单**：session 内若已有「最新一条」order，新批次 **merge 进该 order**（追加 `items`、重算 `total_amount` 与 `status`）；否则 **insert** 新 order。首单与加单由响应 `is_first_order` / `had_done_before` 区分。
+4. **同餐次合并写单**：session 内若已有「最新一条」order，新批次 **merge 进该 order**（追加 `items`、重算 `total_amount` 与 `status`）；否则 **insert** 新 order。首单与加单由响应 `is_first_order` / `had_done_before` 区分。**写库唯一入口**为 SQL `append_order_items`（会话 advisory lock + 最新订单行 `FOR UPDATE` 后再拼 `items`）；禁止在应用层对 `orders.items` 无锁读改写（并发会丢菜仍回成功）。
 5. **地理围栏仅顾客流**：餐厅配置了 `geo_latitude/longitude` 时，**非** `waiter_flow` 须带合法 `latitude/longitude` 且在 `order_radius_meters` 内（本地 dev host 可 bypass）。
 6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `verifyOpenTableStaffAuth`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
 7. **出品联自动入队**：append 成功后返回短期 `enqueue_token`；客户端再调 `station-tickets/auto` 按档口分组入队（无手动「打印」按钮）。
@@ -49,7 +49,8 @@
 ⑥ 定价   resolveAppendCartItems
          menu_items + 仅 cart 所需 category 祖先链（非全树）
 
-⑦ 写单   writeAppendBatch（update 合并 | insert 新单）
+⑦ 写单   writeAppendBatch → RPC `append_order_items`
+         （会话锁 + 最新单 FOR UPDATE：合并 items 或 insert）
          失败则 release pending claim，允许同号重试
 
 ⑧ 完成   completeAppendIdempotency（pending → completed + order/batch 快照）

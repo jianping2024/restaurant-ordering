@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Order, OrderItem } from '@/types';
-import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
+import type { OrderItem } from '@/types';
 import type { AppendWriteContext } from '@/lib/append-write-context';
 
 export type WriteAppendBatchParams = {
@@ -9,6 +8,7 @@ export type WriteAppendBatchParams = {
   tableId: string;
   displayName: string;
   sessionId: string;
+  /** Kept for call-site compatibility; merge target is resolved under lock inside RPC. */
   context: AppendWriteContext;
   newItems: OrderItem[];
 };
@@ -22,60 +22,46 @@ export type WriteAppendBatchResult =
     }
   | { ok: false; status: number; error: string };
 
-export async function writeAppendBatch(params: WriteAppendBatchParams): Promise<WriteAppendBatchResult> {
-  const { admin, restaurantId, tableId, displayName, sessionId, context, newItems } = params;
-  const openOrder = context.openOrder;
+type AppendOrderItemsRpc = {
+  ok?: boolean;
+  order_id?: string;
+  had_done_before?: boolean;
+  is_first_order?: boolean;
+  code?: string;
+};
 
-  if (openOrder?.id) {
-    const prior = openOrder.items || [];
-    const hadDoneBefore =
-      prior.length > 0 && prior.every((item) => (item.item_status || 'pending') === 'done');
-    const mergedItems = [...prior, ...newItems];
-    const openRow = context.sessionOrders.find((row) => row.id === openOrder.id);
-    const orderStatus = (openRow?.status ?? 'pending') as Order['status'];
-    const { nextStatus, total_amount } = computeOrderTotalsFromItems(mergedItems, orderStatus);
-    const { error: updErr } = await admin
-      .from('orders')
-      .update({
-        items: mergedItems,
-        total_amount,
-        status: nextStatus,
-      })
-      .eq('id', openOrder.id);
-    if (updErr) {
-      return { ok: false, status: 500, error: 'order_update_failed' };
-    }
-    return {
-      ok: true,
-      orderId: openOrder.id,
-      hadDoneBefore,
-      isFirstOrder: false,
-    };
+/**
+ * Sole append persist: RPC `append_order_items` (session advisory lock + latest order FOR UPDATE).
+ * Do not read-merge-write `orders.items` in TypeScript beside this.
+ */
+export async function writeAppendBatch(params: WriteAppendBatchParams): Promise<WriteAppendBatchResult> {
+  const { admin, restaurantId, tableId, displayName, sessionId, newItems } = params;
+
+  const { data, error } = await admin.rpc('append_order_items', {
+    p_restaurant_id: restaurantId,
+    p_session_id: sessionId,
+    p_table_id: tableId,
+    p_display_name: displayName,
+    p_new_items: newItems,
+  });
+
+  if (error) {
+    return { ok: false, status: 500, error: 'order_update_failed' };
   }
 
-  const { nextStatus, total_amount } = computeOrderTotalsFromItems(newItems, 'pending');
-  const { data: inserted, error: insErr } = await admin
-    .from('orders')
-    .insert({
-      restaurant_id: restaurantId,
-      session_id: sessionId,
-      table_id: tableId,
-      display_name: displayName,
-      status: nextStatus,
-      items: newItems,
-      total_amount,
-    })
-    .select('id')
-    .single();
-
-  if (insErr || !inserted) {
-    return { ok: false, status: 500, error: 'order_insert_failed' };
+  const row = (data ?? {}) as AppendOrderItemsRpc;
+  if (!row.ok || !row.order_id) {
+    const code = row.code || 'order_update_failed';
+    if (code === 'invalid_items' || code === 'invalid_args') {
+      return { ok: false, status: 400, error: code };
+    }
+    return { ok: false, status: 500, error: code };
   }
 
   return {
     ok: true,
-    orderId: inserted.id as string,
-    hadDoneBefore: false,
-    isFirstOrder: true,
+    orderId: row.order_id,
+    hadDoneBefore: row.had_done_before === true,
+    isFirstOrder: row.is_first_order === true,
   };
 }

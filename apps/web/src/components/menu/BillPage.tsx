@@ -819,6 +819,7 @@ function GuestBillPage({
                 : t.checkoutSettledHint,
           totalLabel: t.totalLabel,
           splitResult: t.splitResult,
+          splitResultAmountNote: t.splitResultAmountNote,
           splitPaid: t.splitPaid,
           splitPartialPaid: t.splitPartialPaid,
           splitAmountBreakdown: t.splitAmountBreakdown,

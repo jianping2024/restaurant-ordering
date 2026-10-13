@@ -1428,6 +1428,7 @@ export const MESSAGES_DE = {
     "people": "Personen",
     "removePerson": "Person entfernen",
     "splitResult": "Teilungsergebnis",
+    "splitResultAmountNote": "Beträge zur Orientierung; Zahlung gilt",
     "splitPaid": "Bezahlt",
     "splitPartialPaid": "Teilweise bezahlt",
     "splitAmountBreakdown": "Offen €{obligation} · Bezahlt €{collected}",

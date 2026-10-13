@@ -1430,6 +1430,7 @@ export const MESSAGES_FR = {
     "people": "Convives",
     "removePerson": "Retirer une personne",
     "splitResult": "Résultat du partage",
+    "splitResultAmountNote": "Montants indicatifs ; le paiement fait foi",
     "splitPaid": "Payé",
     "splitPartialPaid": "Partiellement payé",
     "splitAmountBreakdown": "Dû {obligation} € · Payé {collected} €",

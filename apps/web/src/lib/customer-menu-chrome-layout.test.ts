@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
+  CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS,
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
@@ -70,10 +71,22 @@ describe('customerMenuChromeLayout', () => {
     assert.doesNotMatch(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /backdrop-blur|bg-brand-bg\//);
   });
 
-  it('page-scroll rail height is viewport-capped self-start (not stretch-to-catalog)', () => {
+  it('page-scroll rail height is viewport-capped self-start above the bottom dock', () => {
     assert.match(customerMenuCategoryNavShellPageScrollClass, /items-start/);
     assert.match(customerMenuCategoryRailPageScrollClass, /self-start/);
-    assert.match(customerMenuCategoryRailPageScrollClass, /max-h-\[calc\(100dvh-6\.5rem\)\]/);
+    assert.ok(
+      customerMenuCategoryRailPageScrollClass.includes(
+        CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS,
+      ),
+    );
+    assert.match(
+      CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS,
+      /100dvh-6\.5rem-3\.5rem-var\(--mesa-customer-menu-bottom-safe\)/,
+    );
+    assert.doesNotMatch(
+      CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS,
+      /100dvh-6\.5rem\]/,
+    );
     assert.match(customerMenuCategoryRailPageScrollClass, /overflow-y-auto/);
     assert.match(customerMenuCategoryRailPageScrollClass, /sticky/);
   });

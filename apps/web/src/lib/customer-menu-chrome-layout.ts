@@ -60,13 +60,22 @@ export const customerMenuCategoryRailClass = [
 ].join(' ');
 
 /**
+ * Page-scroll left rail height: viewport minus header budget (6.5rem) minus
+ * footer bar (3.5rem = h-14) minus bottom safe area — so the last category is
+ * not parked under the fixed bottom dock.
+ */
+export const CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS =
+  'h-[calc(100dvh-6.5rem-3.5rem-var(--mesa-customer-menu-bottom-safe))] max-h-[calc(100dvh-6.5rem-3.5rem-var(--mesa-customer-menu-bottom-safe))]';
+
+/**
  * Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away.
- * Sole height contract: `self-start` + viewport `max-h` (not stretch-to-catalog) so
- * left categories scroll independently of how tall the right dish list is.
+ * Sole height contract: `self-start` + {@link CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS}
+ * (not stretch-to-catalog; not under the bottom dock).
  */
 export const customerMenuCategoryRailPageScrollClass = [
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
-  'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] max-h-[calc(100dvh-6.5rem)] shrink-0 flex-col self-start overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
+  CUSTOMER_MENU_CATEGORY_RAIL_PAGE_SCROLL_HEIGHT_CLASS,
+  'sticky top-0 z-20 flex shrink-0 flex-col self-start overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
 /**

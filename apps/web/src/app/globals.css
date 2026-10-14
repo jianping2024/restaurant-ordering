@@ -36,8 +36,22 @@
   --auth-pattern-opacity: 0.04;
   /* Sole customer-menu bottom inset (dock / sheet / detail / list). Needs viewportFit: cover. */
   --mesa-customer-menu-bottom-safe: env(safe-area-inset-bottom, 0px);
+  /*
+   * Sole page-scroll left category rail height: viewport minus header budget
+   * (6.5rem) minus footer bar (3.5rem = h-14) minus bottom safe area.
+   * Applied only via `.mesa-menu-category-rail-page` — not a Tailwind arbitrary.
+   */
+  --mesa-menu-category-rail-page-h: calc(
+    100dvh - 6.5rem - 3.5rem - var(--mesa-customer-menu-bottom-safe)
+  );
   /* Sole toast stack bottom offset; lifted above any mounted bottom dock. */
   --mesa-toast-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/** Sole page-scroll left category rail size (storefront + menu one outer scroll). */
+.mesa-menu-category-rail-page {
+  height: var(--mesa-menu-category-rail-page-h);
+  max-height: var(--mesa-menu-category-rail-page-h);
 }
 
 /* Customer menu footer dock (h-14 + inset) — toasts float above, never on the CTA. */

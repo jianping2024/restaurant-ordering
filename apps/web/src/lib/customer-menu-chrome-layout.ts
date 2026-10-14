@@ -48,9 +48,10 @@ export const customerMenuCategoryNavShellClass =
 /**
  * When storefront shares one page scroll with the menu: nav fills at least the
  * remaining viewport so categories stay usable after the band scrolls away.
+ * `items-start` keeps the sticky rail from stretching to the catalog column height.
  */
 export const customerMenuCategoryNavShellPageScrollClass =
-  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full';
+  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full items-start';
 
 /** Sole left top-category rail scrollport. */
 export const customerMenuCategoryRailClass = [
@@ -58,10 +59,21 @@ export const customerMenuCategoryRailClass = [
   'z-20 flex shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
-/** Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away. */
+/**
+ * Sole page-scroll left rail class name — height lives in globals.css
+ * (`.mesa-menu-category-rail-page` / `--mesa-menu-category-rail-page-h`).
+ */
+export const CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS = 'mesa-menu-category-rail-page';
+
+/**
+ * Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away.
+ * Height: sole {@link CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS} (CSS var, not Tailwind
+ * arbitrary). `self-start` so the rail is not stretched to the catalog column.
+ */
 export const customerMenuCategoryRailPageScrollClass = [
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
-  'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
+  CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS,
+  'sticky top-0 z-20 flex shrink-0 flex-col self-start overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
 /**

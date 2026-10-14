@@ -2,13 +2,16 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
+  CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS,
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
   customerMenuCatalogPaneClass,
   customerMenuCategoryNavShellClass,
+  customerMenuCategoryNavShellPageScrollClass,
   customerMenuCategoryRailClass,
+  customerMenuCategoryRailPageScrollClass,
   customerMenuDualPaneRootClass,
   customerMenuFixedShellDockClass,
   customerMenuNoticeTabShellClass,
@@ -66,5 +69,17 @@ describe('customerMenuChromeLayout', () => {
     assert.match(customerMenuCatalogPaneClass, /before:h-4/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /(^|\s)bg-brand-bg(\s|$)/);
     assert.doesNotMatch(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /backdrop-blur|bg-brand-bg\//);
+  });
+
+  it('page-scroll rail uses sole CSS height class + self-start (not Tailwind arbitrary h)', () => {
+    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS, 'mesa-menu-category-rail-page');
+    assert.match(customerMenuCategoryNavShellPageScrollClass, /items-start/);
+    assert.match(customerMenuCategoryRailPageScrollClass, /self-start/);
+    assert.ok(
+      customerMenuCategoryRailPageScrollClass.includes(CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS),
+    );
+    assert.doesNotMatch(customerMenuCategoryRailPageScrollClass, /h-\[calc/);
+    assert.match(customerMenuCategoryRailPageScrollClass, /overflow-y-auto/);
+    assert.match(customerMenuCategoryRailPageScrollClass, /sticky/);
   });
 });

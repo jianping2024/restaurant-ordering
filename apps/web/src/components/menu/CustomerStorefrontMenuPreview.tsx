@@ -10,7 +10,9 @@ import { CustomerRecommendedRail } from '@/components/menu/CustomerRecommendedRa
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
-  CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
+  customerMenuCatalogPanePageScrollClass,
+  customerMenuCategoryNavShellPageScrollClass,
+  customerMenuCategoryRailPageScrollClass,
   customerMenuDualPaneRootClass,
   customerMenuShellRootClass,
 } from '@/lib/customer-menu-chrome-layout';
@@ -87,13 +89,10 @@ export function CustomerStorefrontMenuPreview({
       >
         <CustomerStorefrontBand model={model} lang={lang} />
 
-        {/* Viewport-tall menu dock so after the band scrolls away, categories fill the screen */}
-        <div className="flex min-h-[calc(100dvh-6.5rem)]">
+        {/* Same page-scroll shell/rail/catalog tokens as live CustomerMenuCategoryNav */}
+        <div className={customerMenuCategoryNavShellPageScrollClass}>
           <nav
-            className={[
-              CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
-              'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
-            ].join(' ')}
+            className={customerMenuCategoryRailPageScrollClass}
             aria-label="categories"
           >
             {topCategories.map((cat) => {
@@ -131,7 +130,7 @@ export function CustomerStorefrontMenuPreview({
           </nav>
 
           <div
-            className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} min-w-0 flex-1 px-3 pb-8 pt-4`}
+            className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} ${customerMenuCatalogPanePageScrollClass}`}
           >
             <CustomerRecommendedRail
               items={view.recommendedItems}

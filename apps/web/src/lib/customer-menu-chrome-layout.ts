@@ -47,11 +47,11 @@ export const customerMenuCategoryNavShellClass =
 
 /**
  * When storefront shares one page scroll with the menu: nav fills at least the
- * remaining viewport so categories stay usable after the band scrolls away.
+ * visible scrollport height (`.mesa-menu-category-nav-page` = 100cqh in globals.css).
  * `items-start` keeps the sticky rail from stretching to the catalog column height.
  */
 export const customerMenuCategoryNavShellPageScrollClass =
-  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full items-start';
+  'mesa-menu-category-nav-page flex min-w-0 w-full items-start';
 
 /** Sole left top-category rail scrollport. */
 export const customerMenuCategoryRailClass = [
@@ -61,14 +61,14 @@ export const customerMenuCategoryRailClass = [
 
 /**
  * Sole page-scroll left rail class name — height lives in globals.css
- * (`.mesa-menu-category-rail-page` / `--mesa-menu-category-rail-page-h`).
+ * (`.mesa-menu-category-rail-page` = 100cqh of the storefront scrollport).
  */
 export const CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS = 'mesa-menu-category-rail-page';
 
 /**
  * Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away.
- * Height: sole {@link CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS} (CSS var, not Tailwind
- * arbitrary). `self-start` so the rail is not stretched to the catalog column.
+ * Height: sole {@link CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS} (container-query height,
+ * not a viewport calc). `self-start` so the rail is not stretched to the catalog column.
  */
 export const customerMenuCategoryRailPageScrollClass = [
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,

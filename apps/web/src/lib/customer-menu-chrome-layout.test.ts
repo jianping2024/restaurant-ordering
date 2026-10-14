@@ -71,9 +71,11 @@ describe('customerMenuChromeLayout', () => {
     assert.doesNotMatch(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /backdrop-blur|bg-brand-bg\//);
   });
 
-  it('page-scroll rail uses sole CSS height class + self-start (not Tailwind arbitrary h)', () => {
+  it('page-scroll rail/shell use sole CSS container-height classes (no viewport calc)', () => {
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS, 'mesa-menu-category-rail-page');
     assert.match(customerMenuCategoryNavShellPageScrollClass, /items-start/);
+    assert.match(customerMenuCategoryNavShellPageScrollClass, /mesa-menu-category-nav-page/);
+    assert.doesNotMatch(customerMenuCategoryNavShellPageScrollClass, /dvh/);
     assert.match(customerMenuCategoryRailPageScrollClass, /self-start/);
     assert.ok(
       customerMenuCategoryRailPageScrollClass.includes(CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS),

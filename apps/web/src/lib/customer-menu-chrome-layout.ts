@@ -48,10 +48,9 @@ export const customerMenuCategoryNavShellClass =
 /**
  * When storefront shares one page scroll with the menu: nav fills at least the
  * remaining viewport so categories stay usable after the band scrolls away.
- * `items-start` keeps the sticky rail from stretching to the catalog column height.
  */
 export const customerMenuCategoryNavShellPageScrollClass =
-  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full items-start';
+  'flex min-h-[calc(100dvh-6.5rem)] min-w-0 w-full';
 
 /** Sole left top-category rail scrollport. */
 export const customerMenuCategoryRailClass = [
@@ -59,14 +58,10 @@ export const customerMenuCategoryRailClass = [
   'z-20 flex shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
-/**
- * Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away.
- * Sole height contract: `self-start` + viewport `max-h` (not stretch-to-catalog) so
- * left categories scroll independently of how tall the right dish list is.
- */
+/** Page-scroll mode: rail sticks under the fixed header while the storefront scrolls away. */
 export const customerMenuCategoryRailPageScrollClass = [
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
-  'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] max-h-[calc(100dvh-6.5rem)] shrink-0 flex-col self-start overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
+  'sticky top-0 z-20 flex h-[calc(100dvh-6.5rem)] shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
 ].join(' ');
 
 /**

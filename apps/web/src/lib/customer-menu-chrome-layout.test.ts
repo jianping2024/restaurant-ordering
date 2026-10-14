@@ -8,9 +8,7 @@ import {
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
   customerMenuCatalogPaneClass,
   customerMenuCategoryNavShellClass,
-  customerMenuCategoryNavShellPageScrollClass,
   customerMenuCategoryRailClass,
-  customerMenuCategoryRailPageScrollClass,
   customerMenuDualPaneRootClass,
   customerMenuFixedShellDockClass,
   customerMenuNoticeTabShellClass,
@@ -68,13 +66,5 @@ describe('customerMenuChromeLayout', () => {
     assert.match(customerMenuCatalogPaneClass, /before:h-4/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /(^|\s)bg-brand-bg(\s|$)/);
     assert.doesNotMatch(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /backdrop-blur|bg-brand-bg\//);
-  });
-
-  it('page-scroll rail height is viewport-capped self-start (not stretch-to-catalog)', () => {
-    assert.match(customerMenuCategoryNavShellPageScrollClass, /items-start/);
-    assert.match(customerMenuCategoryRailPageScrollClass, /self-start/);
-    assert.match(customerMenuCategoryRailPageScrollClass, /max-h-\[calc\(100dvh-6\.5rem\)\]/);
-    assert.match(customerMenuCategoryRailPageScrollClass, /overflow-y-auto/);
-    assert.match(customerMenuCategoryRailPageScrollClass, /sticky/);
   });
 });

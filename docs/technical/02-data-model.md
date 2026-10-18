@@ -99,6 +99,14 @@
 
 价格、`vat_rate`、`available`（上下架）、`category_id`、`print_station_id`、`image_url`（Storage）。
 
+出品联多语勾选（定稿 [`../product/station-slip-multilang-names.zh.md`](../product/station-slip-multilang-names.zh.md)）：
+
+| 列 | 类型 | 必填 | 默认 | 说明 |
+|----|------|------|------|------|
+| station_print_pt | BOOLEAN | 是 | true | 出品联是否打葡语名 |
+| station_print_en | BOOLEAN | 是 | false | 出品联是否打英语名 |
+| station_print_zh | BOOLEAN | 是 | false | 出品联是否打中文名 |
+
 ### `print_stations`
 
 每店多行；`name_pt/en/zh` 展示名；`sort_order` 排序。类目/菜品通过 `print_station_id` 绑定出品路由。

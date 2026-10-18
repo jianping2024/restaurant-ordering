@@ -108,6 +108,68 @@ export function formatStationSlipItemLabel(params: {
   return name;
 }
 
+type StationPrintFlags = Pick<OrderItem, 'station_print_pt' | 'station_print_en' | 'station_print_zh'>;
+
+/** Max names per station line (pt / en / zh). */
+const STATION_PRINT_NAMES_MAX = 3;
+
+function stationPrintNameClean(raw: string | null | undefined): string {
+  // eslint-disable-next-line no-control-regex
+  return (raw ?? '').replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Sole expansion of station slip dish names (docs/product/station-slip-multilang-names.zh.md §5):
+ * ticked and non-empty, fixed order pt → en → zh. Legacy snapshot (no flags) or nothing left →
+ * the single `menuLocalizedName` name, same as before multilang.
+ */
+export function orderItemStationPrintNames(
+  item: LocalizedMenuNames & StationPrintFlags,
+  locale: PrintLocale,
+): string[] {
+  const legacy =
+    item.station_print_pt === undefined &&
+    item.station_print_en === undefined &&
+    item.station_print_zh === undefined;
+  const names: string[] = [];
+  if (!legacy) {
+    const candidates: Array<[boolean, string | null | undefined]> = [
+      [item.station_print_pt !== false, item.name_pt || item.name],
+      [item.station_print_en === true, item.name_en],
+      [item.station_print_zh === true, item.name_zh],
+    ];
+    for (const [ticked, raw] of candidates) {
+      const name = stationPrintNameClean(raw);
+      if (ticked && name) names.push(name);
+    }
+  }
+  if (names.length === 0) {
+    const fallback = stationPrintNameClean(menuLocalizedName(item, locale));
+    if (fallback) names.push(fallback);
+  }
+  return names.slice(0, STATION_PRINT_NAMES_MAX);
+}
+
+/**
+ * Sole builder of the dish-name fields on a `station_ticket` payload line — shared by
+ * order enqueue and kitchen prep/remake enqueue. `item_name` / `display_name` = first name
+ * (kept for agents that predate `print_names`).
+ */
+export function stationTicketLineNames(
+  item: Pick<OrderItem, 'item_code' | 'name_pt' | 'name' | 'name_en' | 'name_zh'> & StationPrintFlags,
+  locale: PrintLocale,
+): { item_code: string | null; item_name: string; display_name: string; print_names: string[] } {
+  const printNames = orderItemStationPrintNames(item, locale);
+  const first = printNames[0] ?? '';
+  const itemCode = item.item_code?.trim() || null;
+  return {
+    item_code: itemCode,
+    item_name: first,
+    display_name: formatStationSlipItemLabel({ itemCode, itemName: first }),
+    print_names: printNames,
+  };
+}
+
 export function orderItemStationSlipLabel(
   item: Pick<OrderItem, 'item_code' | 'name_pt' | 'name' | 'name_en' | 'name_zh'>,
   locale: PrintLocale,

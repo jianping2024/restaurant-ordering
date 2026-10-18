@@ -136,6 +136,9 @@ type ItemForm = {
   emoji: string;
   available: boolean;
   is_vegetarian: boolean;
+  station_print_pt: boolean;
+  station_print_en: boolean;
+  station_print_zh: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
   flavor_codes: string[];
@@ -158,6 +161,9 @@ const defaultItemForm: ItemForm = {
   emoji: '🍽️',
   available: true,
   is_vegetarian: false,
+  station_print_pt: true,
+  station_print_en: false,
+  station_print_zh: false,
   note_preset_group_ids: [],
   allergen_codes: [],
   flavor_codes: [],
@@ -597,6 +603,9 @@ export function MenuManager({
       emoji: item.emoji,
       available: item.available,
       is_vegetarian: item.is_vegetarian === true,
+      station_print_pt: item.station_print_pt !== false,
+      station_print_en: item.station_print_en === true,
+      station_print_zh: item.station_print_zh === true,
       note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
       flavor_codes: item.flavor_codes || [],
@@ -665,6 +674,9 @@ export function MenuManager({
       emoji: itemForm.emoji,
       available: itemForm.available,
       is_vegetarian: itemForm.is_vegetarian,
+      station_print_pt: itemForm.station_print_pt,
+      station_print_en: itemForm.station_print_en && !!itemForm.name_en.trim(),
+      station_print_zh: itemForm.station_print_zh && !!itemForm.name_zh.trim(),
       note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
       flavor_codes: itemForm.flavor_codes,
@@ -1702,10 +1714,34 @@ export function MenuManager({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label={t.ptNameReq} value={itemForm.name_pt} onChange={(e) => setItemForm((f) => ({ ...f, name_pt: e.target.value }))} placeholder="Bacalhau à Brás" />
-            <Input label={t.enName} value={itemForm.name_en} onChange={(e) => setItemForm((f) => ({ ...f, name_en: e.target.value }))} placeholder="Codfish à Brás" />
+            <div>
+              <Input label={t.ptNameReq} value={itemForm.name_pt} onChange={(e) => setItemForm((f) => ({ ...f, name_pt: e.target.value }))} placeholder="Bacalhau à Brás" />
+              <StationPrintCheckbox
+                label={t.stationPrintCheckbox}
+                checked={itemForm.station_print_pt && !!itemForm.name_pt.trim()}
+                disabled={!itemForm.name_pt.trim()}
+                onChange={(checked) => setItemForm((f) => ({ ...f, station_print_pt: checked }))}
+              />
+            </div>
+            <div>
+              <Input label={t.enName} value={itemForm.name_en} onChange={(e) => setItemForm((f) => ({ ...f, name_en: e.target.value }))} placeholder="Codfish à Brás" />
+              <StationPrintCheckbox
+                label={t.stationPrintCheckbox}
+                checked={itemForm.station_print_en && !!itemForm.name_en.trim()}
+                disabled={!itemForm.name_en.trim()}
+                onChange={(checked) => setItemForm((f) => ({ ...f, station_print_en: checked }))}
+              />
+            </div>
           </div>
-          <Input label={t.zhName} value={itemForm.name_zh} onChange={(e) => setItemForm((f) => ({ ...f, name_zh: e.target.value }))} placeholder="碎蛋鳕鱼" />
+          <div>
+            <Input label={t.zhName} value={itemForm.name_zh} onChange={(e) => setItemForm((f) => ({ ...f, name_zh: e.target.value }))} placeholder="碎蛋鳕鱼" />
+            <StationPrintCheckbox
+              label={t.stationPrintCheckbox}
+              checked={itemForm.station_print_zh && !!itemForm.name_zh.trim()}
+              disabled={!itemForm.name_zh.trim()}
+              onChange={(checked) => setItemForm((f) => ({ ...f, station_print_zh: checked }))}
+            />
+          </div>
           <Input label={t.ptDesc} value={itemForm.description_pt} onChange={(e) => setItemForm((f) => ({ ...f, description_pt: e.target.value }))} placeholder="简短描述..." />
           <Input label={t.enDesc} value={itemForm.description_en} onChange={(e) => setItemForm((f) => ({ ...f, description_en: e.target.value }))} placeholder="Short description..." />
           <Input label={t.zhDesc} value={itemForm.description_zh} onChange={(e) => setItemForm((f) => ({ ...f, description_zh: e.target.value }))} placeholder="中文描述..." />
@@ -1999,5 +2035,35 @@ export function MenuManager({
       </Modal>
 
     </div>
+  );
+}
+
+/** Station slip multilang: tick = this name prints on the station ticket. Empty name → disabled. */
+function StationPrintCheckbox({
+  label,
+  checked,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      className={`mt-1.5 inline-flex items-center gap-2 text-[13px] ${
+        disabled ? 'text-brand-text-muted/60 cursor-not-allowed' : 'text-brand-text-muted cursor-pointer'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+      />
+      {label}
+    </label>
   );
 }

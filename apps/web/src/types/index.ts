@@ -164,6 +164,12 @@ export interface MenuItem {
   flavor_codes?: string[];
   /** Owner-marked vegetarian; false/missing = not vegetarian. */
   is_vegetarian?: boolean;
+  /** Station slip prints name_pt (default true). docs/product/station-slip-multilang-names.zh.md */
+  station_print_pt?: boolean;
+  /** Station slip prints name_en (default false). */
+  station_print_en?: boolean;
+  /** Station slip prints name_zh (default false). */
+  station_print_zh?: boolean;
   available: boolean;
   sort_order: number;
   created_at: string;
@@ -212,6 +218,10 @@ export interface OrderItem {
   over_limit_unit_price?: number | null;
   /** Snapshot: root→leaf category item_code path at append time (print label prefix). */
   category_code_path?: string[];
+  /** Snapshot of menu_items.station_print_* at append time; missing = legacy single-name slip. */
+  station_print_pt?: boolean;
+  station_print_en?: boolean;
+  station_print_zh?: boolean;
   item_status?: OrderItemStatus; // 菜品级出餐状态
   batch_id?: string; // 同一餐次内的加单批次
   started_at?: string;

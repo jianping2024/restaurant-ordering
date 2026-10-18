@@ -317,6 +317,7 @@ export const MESSAGES_DE = {
     "ptDesc": "Portugiesische Beschreibung",
     "enDesc": "Englische Beschreibung",
     "zhDesc": "Chinesische Beschreibung",
+    "stationPrintCheckbox": "Auf Stationsbon drucken",
     "vegetarianLabel": "Vegetarisch",
     "vegetarianHint": "Wenn markiert, können Gäste filtern und das Badge sehen",
     "price": "Preis (€) *",

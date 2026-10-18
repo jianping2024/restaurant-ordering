@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { defaultPrintAgentCloudConfig, normalizePrintAgentCloudConfig } from '@/lib/print-agent-config';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
-import { getPrintAgentVersion } from '@/lib/print-agent-download';
+import { resolveRecommendedAgentVersion } from '@/lib/print-agent-download';
 
 export const runtime = 'nodejs';
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
       ? normalizePrintAgentCloudConfig(raw)
       : defaultPrintAgentCloudConfig();
 
-  const recommended = getPrintAgentVersion();
+  const recommended = await resolveRecommendedAgentVersion();
   return NextResponse.json({
     ...config,
     ...(recommended ? { recommended_agent_version: recommended } : {}),

@@ -543,17 +543,17 @@ export const MESSAGES = {
       downloadSubtitle:
         '安装包向导「附加任务」页可选：创建桌面快捷方式、登录 Windows 时自动运行（均默认不勾选）；免安装 zip 不含这些选项。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadUpgradeSteps:
-        '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（与仓库 VERSION 一致）。',
+        '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（Farvoo 开票助手 Fiscal Agent）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
       downloadZipAmd64: '免安装 zip（64 位）',
-      downloadAllReleases: '全部版本与 ARM64',
+      downloadAllReleases: '全部版本',
       downloadFallbackIntro:
         'GitHub 上最新已发布为 v{version}（与上方徽章版本不同，仅供临时安装）：',
       downloadFallbackSetup: '安装包 v{version}（64 位）',
       downloadFallbackZip: '免安装 zip v{version}（64 位）',
       downloadFallbackRelease: '查看 v{version} 发布页',
       downloadArm64Hint:
-        'Surface 等 ARM 电脑请在「全部版本」页下载 MesaPrintAgent-Setup-arm64.exe 或 arm64 zip。',
+        '当前推荐安装包为 64 位（amd64）。ARM 电脑请在「全部版本」页查看是否有对应包，或联系支持。',
       downloadSmartScreen:
         '安装包未做代码签名，Windows 可能提示「未知发布者」。请选择「更多信息」→「仍要运行」，或在文件属性中勾选「解除锁定」。可在 GitHub Release 页核对 SHA256SUMS。',
       pairingTitle: '配对 Windows 打印助手',
@@ -2269,17 +2269,17 @@ export const MESSAGES = {
       downloadSubtitle:
         'On the installer’s optional tasks step you can add a desktop shortcut and/or run at Windows sign-in (both unchecked by default). Portable zip has neither. Double-click the agent and complete pairing in the browser.',
       downloadUpgradeSteps:
-        'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended build (repo VERSION).',
+        'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended Farvoo Fiscal Agent build.',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
       downloadZipAmd64: 'Portable zip (64-bit)',
-      downloadAllReleases: 'All releases & ARM64',
+      downloadAllReleases: 'All releases',
       downloadFallbackIntro:
         'Latest published on GitHub is v{version} (differs from the badge above — temporary install only):',
       downloadFallbackSetup: 'Installer v{version} (64-bit)',
       downloadFallbackZip: 'Portable zip v{version} (64-bit)',
       downloadFallbackRelease: 'Release page v{version}',
       downloadArm64Hint:
-        'For ARM64 Windows PCs, open All releases and download MesaPrintAgent-Setup-arm64.exe or the arm64 zip.',
+        'Recommended installers are 64-bit (amd64). For ARM PCs, check All releases or contact support.',
       downloadSmartScreen:
         'Builds are not Authenticode-signed. If SmartScreen blocks the installer, choose More info → Run anyway, or Unblock in file Properties. Verify SHA256SUMS on the GitHub release page.',
       pairingTitle: 'Pair Windows print agent',
@@ -3560,17 +3560,17 @@ export const MESSAGES = {
       downloadSubtitle:
         'No passo de tarefas opcionais do instalador pode adicionar atalho no ambiente de trabalho e/ou executar ao iniciar sessao no Windows (ambos desmarcados por defeito). O zip portatil nao inclui estas opcoes. Duplo clique no agente e emparelhe no browser.',
       downloadUpgradeSteps:
-        'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados mostram se a versao esta atrasada.',
+        'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados comparam com a versao recomendada do Farvoo Fiscal Agent.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
       downloadZipAmd64: 'Zip portatil (64 bits)',
-      downloadAllReleases: 'Todas as versoes e ARM64',
+      downloadAllReleases: 'Todas as versoes',
       downloadFallbackIntro:
         'Ultima versao publicada no GitHub: v{version} (diferente da insignia acima — apenas instalacao temporaria):',
       downloadFallbackSetup: 'Instalador v{version} (64 bits)',
       downloadFallbackZip: 'Zip portatil v{version} (64 bits)',
       downloadFallbackRelease: 'Pagina do release v{version}',
       downloadArm64Hint:
-        'Em PCs Windows ARM64, abra Todas as versoes e descarregue MesaPrintAgent-Setup-arm64.exe ou o zip arm64.',
+        'O instalador recomendado e 64 bits (amd64). Em PCs ARM, veja Todas as versoes ou contacte o suporte.',
       downloadSmartScreen:
         'Sem assinatura Authenticode. Se o SmartScreen bloquear, escolha Mais informacoes → Executar mesmo assim, ou Desbloquear nas propriedades. Verifique SHA256SUMS no GitHub.',
       pairingTitle: 'Emparelhar agente Windows',

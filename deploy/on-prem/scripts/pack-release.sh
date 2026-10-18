@@ -47,9 +47,6 @@ rsync -a --delete --exclude node_modules "$ROOT/packages/shared/" "$STAGE/packag
 rsync -a --delete --exclude node_modules "$ROOT/packages/ui/" "$STAGE/packages/ui/"
 rsync -a --delete "$ROOT/supabase/migrations/" "$STAGE/supabase/migrations/"
 cp "$ROOT/package.json" "$ROOT/package-lock.json" "$STAGE/"
-# Web Dockerfile COPYs this for pinned print-agent download links.
-mkdir -p "$STAGE/apps/print-agent"
-cp "$ROOT/apps/print-agent/VERSION" "$STAGE/apps/print-agent/VERSION"
 
 # Build context is pack root (MESA_REPO_ROOT) — dockerignore must live here.
 cat >"$STAGE/.dockerignore" <<'EOF'
@@ -164,24 +161,9 @@ if grep -E '^[[:space:]]*ARG[[:space:]]+NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO=[^[:
   echo "ERROR: apps/web/Dockerfile must not default NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO (on-prem hides download panel)" >&2
   exit 1
 fi
-if ! grep -q 'apps/print-agent/VERSION' "$WEB_DOCKERFILE"; then
-  echo "ERROR: apps/web/Dockerfile must COPY apps/print-agent/VERSION (recommended agent version)" >&2
-  exit 1
-fi
-if [[ ! -s "$STAGE/apps/print-agent/VERSION" ]]; then
-  echo "ERROR: pack missing apps/print-agent/VERSION" >&2
-  exit 1
-fi
-# Gate: install/upgrade must place VERSION into MESA_HOME/current build context
-# (Dockerfile COPY fails otherwise → silent keep of old web image).
-UPGRADE_SH="$STAGE/deploy/on-prem/scripts/upgrade.sh"
-INSTALL_SH="$STAGE/deploy/on-prem/linux/install-mesa.sh"
-if ! grep -q 'apps/print-agent/VERSION' "$UPGRADE_SH"; then
-  echo "ERROR: upgrade.sh must sync apps/print-agent/VERSION into MESA_HOME/current" >&2
-  exit 1
-fi
-if ! grep -q 'apps/print-agent/VERSION' "$INSTALL_SH"; then
-  echo "ERROR: install-mesa.sh must copy apps/print-agent/VERSION into MESA_HOME/current" >&2
+# Recommended Fiscal Agent version is env pin or GitHub fiscal-agent-v* — not apps/print-agent/VERSION.
+if grep -q 'COPY apps/print-agent/VERSION' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must not COPY legacy apps/print-agent/VERSION for recommend/download" >&2
   exit 1
 fi
 # Gate: claim/check-in config must survive web rebuild (host license-state volume).

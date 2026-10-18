@@ -23,8 +23,8 @@ COPY package.json package-lock.json ./
 COPY apps/web apps/web
 COPY packages/shared packages/shared
 COPY packages/ui packages/ui
-# Pinned print-agent version for dashboard recommended-version badge (fs + bake).
-COPY apps/print-agent/VERSION apps/print-agent/VERSION
+# Recommended store agent = Fiscal Agent (farvoo-fatura). Optional pin:
+# NEXT_PUBLIC_PRINT_AGENT_VERSION; else runtime resolves latest fiscal-agent-v*.
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV DOCKER_BUILD=1
@@ -57,7 +57,6 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nod
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/print-agent/VERSION ./apps/print-agent/VERSION
 USER nextjs
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]

@@ -9,9 +9,9 @@ import { buttonClasses } from '@/components/ui/Button';
 type Props = {
   urls: PrintAgentDownloadUrls;
   version: string;
-  /** False when GitHub has no assets for print-agent-v{version} (avoid /latest downgrade). */
+  /** False when GitHub has no assets for fiscal-agent-v{version}. */
   releaseReady?: boolean;
-  /** Latest tag on GitHub with real installer files (may differ from VERSION). */
+  /** When env pin has no assets yet — newest published Fiscal Agent build. */
   publishedFallback?: PublishedPrintAgentFallback | null;
 };
 

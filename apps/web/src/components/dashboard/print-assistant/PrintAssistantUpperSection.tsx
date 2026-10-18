@@ -3,13 +3,13 @@ import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairing
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { PrintJobsQueuePanel } from '@/components/dashboard/PrintJobsQueuePanel';
 import { devicesNeedingRenewal } from '@/lib/print-agent-credential-expiry';
-import { getPrintAgentVersion } from '@/lib/print-agent-download';
+import { resolveRecommendedAgentVersion } from '@/lib/print-agent-download';
 import { loadPrintAssistantUpperData } from '@/lib/print-assistant-page-data';
 
 export async function PrintAssistantUpperSection({ restaurantId }: { restaurantId: string }) {
   const upper = await loadPrintAssistantUpperData(restaurantId);
   const expiringDevices = devicesNeedingRenewal(upper.devices);
-  const printAgentVersion = getPrintAgentVersion();
+  const recommendedVersion = await resolveRecommendedAgentVersion();
 
   return (
     <div className="space-y-6">
@@ -18,7 +18,7 @@ export async function PrintAssistantUpperSection({ restaurantId }: { restaurantI
       ) : null}
       <PrintAgentDevicesPanel
         initialDevices={upper.devices}
-        recommendedVersion={printAgentVersion || ''}
+        recommendedVersion={recommendedVersion}
       />
       <PrintJobsQueuePanel initialJobs={upper.recentJobs} />
       <PrintAgentPairingPanel initialPairings={upper.pairings} />

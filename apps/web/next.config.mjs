@@ -1,14 +1,7 @@
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const configDir = path.dirname(fileURLToPath(import.meta.url));
-let printAgentVersion = '';
-try {
-  printAgentVersion = fs.readFileSync(path.join(configDir, '../print-agent/VERSION'), 'utf8').trim();
-} catch {
-  /* optional — runtime read fallback in print-agent-download.ts */
-}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -19,9 +12,8 @@ const nextConfig = {
   // Standalone only for Docker image builds (`DOCKER_BUILD=1`). Local `next start` stays normal.
   ...(process.env.DOCKER_BUILD === '1' ? { output: 'standalone' } : {}),
   transpilePackages: ['@mesa/shared', '@mesa/ui'],
-  ...(printAgentVersion
-    ? { env: { NEXT_PUBLIC_PRINT_AGENT_VERSION: printAgentVersion } }
-    : {}),
+  // Recommended Fiscal Agent version: NEXT_PUBLIC_PRINT_AGENT_VERSION (optional pin) or
+  // runtime GitHub latest fiscal-agent-v* — never bake legacy apps/print-agent/VERSION.
   // Externalize @supabase/* on the server (avoids broken vendor-chunks paths with `@` in filenames).
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],

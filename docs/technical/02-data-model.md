@@ -107,6 +107,8 @@
 | station_print_en | BOOLEAN | 是 | false | 出品联是否打英语名 |
 | station_print_zh | BOOLEAN | 是 | false | 出品联是否打中文名 |
 
+下单时三列快照进 `orders.items[]` 同名字段（定稿 §4）；名为空的语种存 false。
+
 ### `print_stations`
 
 每店多行；`name_pt/en/zh` 展示名；`sort_order` 排序。类目/菜品通过 `print_station_id` 绑定出品路由。

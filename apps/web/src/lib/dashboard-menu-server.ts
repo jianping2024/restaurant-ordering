@@ -424,6 +424,9 @@ type MenuItemInput = {
   allergen_codes: string[];
   flavor_codes: string[];
   is_vegetarian: boolean;
+  station_print_pt: boolean;
+  station_print_en: boolean;
+  station_print_zh: boolean;
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
 };
@@ -491,6 +494,10 @@ function buildMenuItemPayload(
     allergen_codes: input.allergen_codes,
     flavor_codes: input.flavor_codes,
     is_vegetarian: input.is_vegetarian,
+    // A name that is empty can never be ticked (station-slip-multilang-names §7).
+    station_print_pt: input.station_print_pt,
+    station_print_en: input.station_print_en && !!input.name_en?.trim(),
+    station_print_zh: input.station_print_zh && !!input.name_zh?.trim(),
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
     per_person_qty_limit: input.per_person_qty_limit,
@@ -1102,6 +1109,9 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     allergen_codes: allergenCodes,
     flavor_codes: flavorCodes,
     is_vegetarian: raw.is_vegetarian === true,
+    station_print_pt: raw.station_print_pt !== false,
+    station_print_en: raw.station_print_en === true,
+    station_print_zh: raw.station_print_zh === true,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,
   };

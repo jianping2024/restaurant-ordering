@@ -54,6 +54,9 @@ type MenuItemRow = {
   item_code: string | null;
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
+  station_print_pt?: boolean | null;
+  station_print_en?: boolean | null;
+  station_print_zh?: boolean | null;
 };
 
 export type ParsedAppendCartLine = {
@@ -89,6 +92,9 @@ const FORBIDDEN_APPEND_LINE_KEYS = [
   'category_code_path',
   'per_person_qty_limit',
   'over_limit_unit_price',
+  'station_print_pt',
+  'station_print_en',
+  'station_print_zh',
 ] as const;
 
 function parseMenuItemId(row: Record<string, unknown>): string | null {
@@ -131,7 +137,7 @@ async function loadMenuItemsByIds(
     const { data, error } = await admin
       .from('menu_items')
       .select(
-        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price',
+        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price, station_print_pt, station_print_en, station_print_zh',
       )
       .eq('restaurant_id', restaurantId)
       .in('id', chunk);
@@ -259,6 +265,9 @@ function menuRowToOrderItem(
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
     item_code: menu.item_code?.trim() || null,
     category_code_path: categoryCodePathFromLeaf(menu.category_id, categories),
+    station_print_pt: menu.station_print_pt !== false,
+    station_print_en: menu.station_print_en === true,
+    station_print_zh: menu.station_print_zh === true,
     item_status: 'pending',
     batch_id: batchId,
     added_at: addedAt,

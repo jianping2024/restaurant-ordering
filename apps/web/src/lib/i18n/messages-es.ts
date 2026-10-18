@@ -317,6 +317,7 @@ export const MESSAGES_ES = {
     "ptDesc": "Descripción en portugués",
     "enDesc": "Descripción en inglés",
     "zhDesc": "Descripción en chino",
+    "stationPrintCheckbox": "Imprimir en el ticket de cocina",
     "vegetarianLabel": "Vegetariano",
     "vegetarianHint": "Si se marca, los clientes pueden filtrar y ver la etiqueta",
     "price": "Precio (€) *",

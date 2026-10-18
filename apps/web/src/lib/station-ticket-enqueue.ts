@@ -8,7 +8,7 @@ import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
   menuLocalizedName,
-  orderItemStationSlipLabel,
+  stationTicketLineNames,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
@@ -73,6 +73,8 @@ export type StationTicketJobPayload = {
     item_name: string;
     /** Legacy fallback for older print agents. */
     display_name: string;
+    /** Ordered dish names to print (pt → en → zh); no item_code. Agent prints one row each. */
+    print_names: string[];
     emoji: string;
     category_group_sort: number;
     category_group_header: string;
@@ -430,16 +432,12 @@ export async function enqueueStationTicketsForOrder(params: {
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {
         const group = categoryGroupForMenuItem(l.item.id);
-        const itemName = menuLocalizedName(l.item, locale);
-        const slipLabel = orderItemStationSlipLabel(l.item, locale);
         return {
           item_index: l.idx,
           menu_item_id: l.item.id,
           qty: l.item.qty,
           note: l.item.note,
-          item_code: l.item.item_code?.trim() || null,
-          item_name: itemName,
-          display_name: slipLabel,
+          ...stationTicketLineNames(l.item, locale),
           emoji: l.item.emoji || '🍽️',
           category_group_sort: group.sort,
           category_group_header: showCategoryGroup ? group.header : '',

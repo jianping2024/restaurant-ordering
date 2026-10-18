@@ -160,6 +160,9 @@ export type MenuItemMutationInput = {
   allergen_codes: string[];
   flavor_codes: string[];
   is_vegetarian?: boolean;
+  station_print_pt?: boolean;
+  station_print_en?: boolean;
+  station_print_zh?: boolean;
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;
 };

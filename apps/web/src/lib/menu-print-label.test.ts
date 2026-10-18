@@ -7,7 +7,9 @@ import {
   formatTopCategoryTicketHeader,
   menuLocalizedName,
   orderItemReceiptLineLabel,
+  orderItemStationPrintNames,
   orderItemStationSlipLabel,
+  stationTicketLineNames,
 } from './menu-print-label';
 
 const triItem: OrderItem = {
@@ -111,5 +113,52 @@ describe('formatMenuPrintDisplayName', () => {
       }),
       'A01-B02-007-Soup',
     );
+  });
+});
+
+describe('orderItemStationPrintNames', () => {
+  it('legacy snapshot (no flags) keeps the single print_locale name', () => {
+    assert.deepEqual(orderItemStationPrintNames(triItem, 'pt'), ['Água 500ml']);
+    assert.deepEqual(orderItemStationPrintNames(triItem, 'zh'), ['矿泉水 500ml']);
+  });
+
+  it('expands ticked names in fixed pt → en → zh order', () => {
+    const item = { ...triItem, station_print_pt: true, station_print_en: false, station_print_zh: true };
+    assert.deepEqual(orderItemStationPrintNames(item, 'zh'), ['Água 500ml', '矿泉水 500ml']);
+    const all = { ...triItem, station_print_pt: true, station_print_en: true, station_print_zh: true };
+    assert.deepEqual(orderItemStationPrintNames(all, 'pt'), ['Água 500ml', 'Water 500ml', '矿泉水 500ml']);
+  });
+
+  it('skips ticked but empty names', () => {
+    const item = { ...triItem, name_zh: '  ', station_print_pt: true, station_print_zh: true };
+    assert.deepEqual(orderItemStationPrintNames(item, 'pt'), ['Água 500ml']);
+  });
+
+  it('nothing ticked falls back to the print_locale name', () => {
+    const item = { ...triItem, station_print_pt: false, station_print_en: false, station_print_zh: false };
+    assert.deepEqual(orderItemStationPrintNames(item, 'pt'), ['Água 500ml']);
+  });
+
+  it('collapses control characters and inner newlines to one space', () => {
+    const item = { ...triItem, name_zh: '矿泉水\n500ml\t', station_print_pt: false, station_print_zh: true };
+    assert.deepEqual(orderItemStationPrintNames(item, 'pt'), ['矿泉水 500ml']);
+  });
+});
+
+describe('stationTicketLineNames', () => {
+  it('first name drives item_name / display_name; print_names has no code', () => {
+    const item = { ...triItem, station_print_pt: true, station_print_zh: true };
+    assert.deepEqual(stationTicketLineNames(item, 'pt'), {
+      item_code: '001',
+      item_name: 'Água 500ml',
+      display_name: '001-Água 500ml',
+      print_names: ['Água 500ml', '矿泉水 500ml'],
+    });
+  });
+
+  it('legacy line matches the pre-multilang label', () => {
+    const line = stationTicketLineNames(triItem, 'zh');
+    assert.equal(line.display_name, orderItemStationSlipLabel(triItem, 'zh'));
+    assert.deepEqual(line.print_names, ['矿泉水 500ml']);
   });
 });

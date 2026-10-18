@@ -34,7 +34,7 @@ Web 入队（service role）
 | 项 | 值 |
 |----|-----|
 | `print_jobs.type` | `station_ticket` |
-| 入队 | `lib/station-ticket-enqueue.ts` |
+| 入队 | `lib/station-ticket-enqueue.ts`（下单 / 重做 / 轮次）+ `lib/station-ticket-prep-enqueue.ts`（厨显备菜）；行菜名唯一 `stationTicketLineNames` |
 | 触发 | `orders/append` 成功后 `autoEnqueueStationTicketsAfterSubmit` |
 | 路由 | 菜品/分类 `print_station_id` → `print_stations` → 代理 `routing_snapshot` |
 | payload | 桌 `display_name`、档口名、`item_code`、有序 `print_names[]`（多语菜名）、数量、备注；兼容字段 `item_name` / `display_name`（第一名）；可选 `station_slip_options.show_category_group` + `category_group_header` |

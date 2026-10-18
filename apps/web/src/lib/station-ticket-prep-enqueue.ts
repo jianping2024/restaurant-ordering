@@ -8,8 +8,7 @@ import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { normalizePrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
-  menuLocalizedName,
-  orderItemStationSlipLabel,
+  stationTicketLineNames,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
@@ -275,16 +274,12 @@ export async function enqueueStationTicketsForPrepSelection(params: {
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: tableLines.map((l: PrepLine) => {
         const group = categoryGroupForMenuItem(l.item.id);
-        const itemName = menuLocalizedName(l.item, locale);
-        const slipLabel = orderItemStationSlipLabel(l.item, locale);
         return {
           item_index: l.itemIndex,
           menu_item_id: l.item.id,
           qty: l.item.qty,
           note: l.item.note,
-          item_code: l.item.item_code?.trim() || null,
-          item_name: itemName,
-          display_name: slipLabel,
+          ...stationTicketLineNames(l.item, locale),
           emoji: l.item.emoji || '🍽️',
           category_group_sort: group.sort,
           category_group_header: showCategoryGroup ? group.header : '',

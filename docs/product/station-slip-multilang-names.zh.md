@@ -3,7 +3,7 @@
 > **状态：定稿**  
 > **权威：是**（本需求产品与入队契约）  
 > **Agent 纸面契约：** farvoo-fatura `docs/station-slip-print-names.zh.md`  
-> **对应实现（待落地）：** Dashboard `MenuManager` + `menu_items` 三列 + 下单快照 + `station-ticket-enqueue` → `print_names`  
+> **对应实现：** Dashboard `MenuManager` + `menu_items` 三列 + 下单快照（`resolve-append-cart-items`）+ `stationTicketLineNames` → `print_names`  
 > **写作规范：** 与仓内 design-doc 习惯一致（一列一行、P0 拍板）
 
 ---
@@ -30,13 +30,13 @@
 
 | # | 定法 |
 |---|------|
-| 1 | **UI**：葡语名称 / 英语名称 / 中文名称 label 旁各一勾选；文案意涵「印上档口小票」。**葡语默认勾选**；英、中默认不勾 |
+| 1 | **UI**：葡语名称 / 英语名称 / 中文名称输入框下各一勾选；文案意涵「印上档口小票」。**葡语默认勾选**；英、中默认不勾。**名为空时不可勾** |
 | 2 | **存库**（`menu_items`）：见 §3。默认 `station_print_pt=true`，`station_print_en=false`，`station_print_zh=false` |
 | 3 | **展开规则**：勾选且对应 `name_*` trim 后非空 → 进入打印列表。勾选但名为空 → **跳过** |
 | 4 | **顺序固定**：葡 → 英 → 中（与编辑表单顺序一致；不可拖拽重排） |
-| 5 | **全不勾**：等同只打葡语（与默认一致）；禁止无名菜行 |
+| 5 | **全不勾**：回退 `menuLocalizedName(item, print_locale)` 单名（店默认葡语优先 → 即葡语）；禁止无名菜行 |
 | 6 | **纸面（每道菜）**：① 第一语言行：`{item_code}-{名}`（有码时）+ **Qty**；② 其余语言行：仅菜名（与 Items 同左边距，**无编号、无 Qty**）；③ `note` 非空才打备注（前缀仍跟店 `print_locale`：`备注: ` / `Note: ` / `Observação: `） |
-| 7 | **字号**：①②③ **全部 Font A / 固件汉字 1×2**（与现出品联菜单区 `writeBody1x2` 一致；编码路径跟 Agent 热敏定稿） |
+| 7 | **字号**：①②③ **全部 1×2**：葡语 Font A `GS !`，中文固件汉字 `FS &` + GBK + `FS !`（与现出品联菜单区 `writeBody1x2` 一致；编码见 farvoo-fatura `docs/fiscal-thermal-text-encoding.zh.md`） |
 | 8 | **`print_locale`**：票面固定栏（标题、Items/Qty、备注前缀）仍跟店 `print_locale`；**菜名列表由勾选决定**，不再被 `print_locale` 收成单语 |
 | 9 | **下单快照**：`orders.items[]`（或等价 order line JSON）写入时快照 `name_pt/en/zh` **与** 三个 `station_print_*`；出品联入队读快照（改菜单不影响已下单/重打） |
 | 10 | **入队 payload**：每行带有序 `print_names: string[]`（纯菜名，已 trim、已按勾选展开，**不含** `item_code`）。`item_code` / `qty` / `note` 仍独立字段。缺省或空数组 → Agent 回退现 `item_name` / `display_name` 单行（兼容旧 job） |
@@ -66,20 +66,26 @@
 | station_print_en | boolean | 同上 |
 | station_print_zh | boolean | 同上 |
 
-缺省（旧订单）：按 `true/false/false` 解释，行为与今日「只打葡/单语」兼容路径由入队用 `menuLocalizedName` 回退即可。
+缺省（旧订单，三字段都没有）：`print_names = [menuLocalizedName(item, print_locale)]`，与上线前单行完全一致。
 
 ---
 
 ## 5. 入队：展开 `print_names`
 
-**唯一入口：** `lib/station-ticket-enqueue.ts`（及共用 helper，建议放 `menu-print-label.ts`）。
+**唯一写法：** `menu-print-label.ts` 的 `stationTicketLineNames`（内部 `orderItemStationPrintNames`）。两个入队入口都只调它、不自己拼菜名：
+
+| 入口 | 触发 |
+|------|------|
+| `lib/station-ticket-enqueue.ts` | 下单自动出单、`station-tickets/auto`、重做（未开厨显）、寿司轮次 |
+| `lib/station-ticket-prep-enqueue.ts` | 厨显备菜 / 重做选行（按桌一张） |
 
 ```text
 names = []
 if station_print_pt && name_pt: append name_pt
 if station_print_en && name_en: append name_en
 if station_print_zh && name_zh: append name_zh
-if names empty: names = [葡语或 menuLocalizedName 回退]
+旧快照（三个 station_print_* 都缺省）或 names 为空: names = [menuLocalizedName(item, print_locale)]
+每个名：控制字符与内部换行压成一个空格；最多 3 项
 payload.line.print_names = names
 payload.line.item_code / qty / note 不变
 item_name / display_name：仍填「第一名」供旧 Agent / 调试（第一名 = names[0]；display_name = formatStationSlipItemLabel(code, names[0])）
@@ -133,10 +139,10 @@ Impresso por:restaurant
 
 | 项 | 定法 |
 |----|------|
-| 位置 | `MenuManager` 编辑/新建菜品：三个名称 `Input` 的 label 旁勾选 |
+| 位置 | `MenuManager` 编辑/新建菜品：三个名称 `Input` 下各一勾选（`StationPrintCheckbox`） |
 | 默认 | 新建：pt 勾、en/zh 不勾；编辑：读库 |
 | 提示 | 短文案：「勾选则印上档口小票」（三语 i18n） |
-| 校验 | 不因勾选强制填英/中；名空勾选保存仍允许（打印时跳过） |
+| 校验 | 名为空 → 勾选框禁用、显示为不勾；保存时名空的语种一律存 false（客户端与 `buildMenuItemPayload` 双重保证）。§2#3「勾选但名空 → 跳过」仍保留为入队兜底 |
 
 ---
 
@@ -147,6 +153,8 @@ Impresso por:restaurant
 - 有备注才出现备注行；备注与菜名均为 1×2  
 - 改菜单勾选不影响已入队/已下单快照重打  
 - 结账/预结菜名行为不变  
+- 长名换行：每个名字各自换行，续行不打 Qty  
+- 厨显备菜 / 重做出的单同样多语  
 
 ---
 
@@ -156,4 +164,4 @@ Impresso por:restaurant
 2. append 快照（§4）  
 3. `print_names` 入队（§5）  
 4. farvoo-fatura Agent 按契约出纸（见对端文档）  
-5. 单测：展开顺序、全不勾回退、Qty 仅首行  
+5. 单测：展开顺序、全不勾回退、旧快照回退、控制字符（`menu-print-label.test.ts`）；Qty 仅首行在 Agent 侧  

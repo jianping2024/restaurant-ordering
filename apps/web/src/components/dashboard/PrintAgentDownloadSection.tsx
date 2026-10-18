@@ -2,7 +2,6 @@ import { PrintAgentDownloadPanel } from '@/components/dashboard/PrintAgentDownlo
 import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import {
   getPrintAgentDownloadUrls,
-  getPrintAgentVersion,
   resolvePrintAgentDownloadStatus,
 } from '@/lib/print-agent-download';
 
@@ -27,8 +26,7 @@ export async function PrintAgentDownloadSection() {
   const urls = getPrintAgentDownloadUrls();
   if (!urls) return null;
 
-  const version = getPrintAgentVersion();
-  const { releaseReady, publishedFallback } = await resolvePrintAgentDownloadStatus();
+  const { version, releaseReady, publishedFallback } = await resolvePrintAgentDownloadStatus();
 
   return (
     <PrintAgentDownloadPanel

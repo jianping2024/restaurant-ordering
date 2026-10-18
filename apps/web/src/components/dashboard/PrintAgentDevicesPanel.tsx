@@ -13,6 +13,7 @@ import {
   parsePrintAgentNotificationMode,
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
+import { agentVersionOlderThan } from '@/lib/print-agent-version-compare';
 
 function deviceLabel(d: PrintAgentDeviceHeartbeatRow, fallback: string): string {
   const label = d.label?.trim();
@@ -133,9 +134,9 @@ export function PrintAgentDevicesPanel({
         {devices.map((d) => {
           const online = isPrintAgentDeviceOnline(d.last_seen, nowMs);
           const versionBehind =
-            recommendedVersion &&
-            d.agent_version &&
-            d.agent_version !== recommendedVersion;
+            Boolean(recommendedVersion) &&
+            Boolean(d.agent_version) &&
+            agentVersionOlderThan(d.agent_version!, recommendedVersion);
           const name = deviceLabel(d, t.devicesUnlabeled);
           return (
             <li

@@ -1,43 +1,34 @@
-import fs from 'fs';
-import path from 'path';
+/**
+ * Store cashier agent download + recommended version.
+ * Sole product line: Farvoo Fiscal Agent (farvoo-fatura `fiscal-agent-v*`).
+ * Legacy Mesa `print-agent-v*` / `apps/print-agent/VERSION` is not used here.
+ */
 
 /**
  * Stable GitHub Release asset basenames (CI must keep these names).
  * Dashboard links use /api/downloads/print-agent/* instead — those paths never change.
  */
 export const PRINT_AGENT_GITHUB_ASSETS = {
-  setupAmd64: 'MesaPrintAgent-Setup-amd64.exe',
-  portableAmd64: 'MesaPrintAgent-windows-amd64.zip',
-  setupArm64: 'MesaPrintAgent-Setup-arm64.exe',
-  portableArm64: 'MesaPrintAgent-windows-arm64.zip',
+  setupAmd64: 'FarvooFiscalAgent-Setup-amd64.exe',
+  portableAmd64: 'FarvooFiscalAgent-windows-amd64.zip',
 } as const;
 
-export type PrintAgentDownloadArtifact =
-  | 'setup-amd64'
-  | 'portable-amd64'
-  | 'setup-arm64'
-  | 'portable-arm64';
+export type PrintAgentDownloadArtifact = 'setup-amd64' | 'portable-amd64';
 
 const ARTIFACT_TO_FILE: Record<PrintAgentDownloadArtifact, string> = {
   'setup-amd64': PRINT_AGENT_GITHUB_ASSETS.setupAmd64,
   'portable-amd64': PRINT_AGENT_GITHUB_ASSETS.portableAmd64,
-  'setup-arm64': PRINT_AGENT_GITHUB_ASSETS.setupArm64,
-  'portable-arm64': PRINT_AGENT_GITHUB_ASSETS.portableArm64,
 };
 
 /** Permanent same-origin paths (href relative — do not prefix a guessed http origin). */
 export const PRINT_AGENT_DOWNLOAD_API_PATHS = {
   setupAmd64: '/api/downloads/print-agent/setup-amd64',
   portableAmd64: '/api/downloads/print-agent/portable-amd64',
-  setupArm64: '/api/downloads/print-agent/setup-arm64',
-  portableArm64: '/api/downloads/print-agent/portable-arm64',
 } as const;
 
 export type PrintAgentDownloadUrls = {
   setupAmd64: string;
-  setupArm64: string;
   zipAmd64: string;
-  zipArm64: string;
   releasesPage: string;
 };
 
@@ -47,6 +38,8 @@ export type PublishedPrintAgentFallback = {
   zipAmd64: string;
   releasesPage: string;
 };
+
+const RELEASE_TAG_PREFIX = 'fiscal-agent-v';
 
 export function isPrintAgentDownloadArtifact(s: string): s is PrintAgentDownloadArtifact {
   return s in ARTIFACT_TO_FILE;
@@ -58,27 +51,17 @@ export function getPrintAgentGithubRepo(): string | null {
   return repo;
 }
 
-/** Semver baked into CI builds (apps/print-agent/VERSION). Override via NEXT_PUBLIC_PRINT_AGENT_VERSION. */
+/**
+ * Optional build/env pin for the recommended Fiscal Agent semver.
+ * Empty → callers use {@link resolveRecommendedAgentVersion} (latest published release).
+ * Does **not** read legacy `apps/print-agent/VERSION`.
+ */
 export function getPrintAgentVersion(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_PRINT_AGENT_VERSION?.trim();
-  if (fromEnv) return fromEnv;
-  for (const rel of ['../../apps/print-agent/VERSION', 'apps/print-agent/VERSION'] as const) {
-    try {
-      return fs.readFileSync(path.resolve(process.cwd(), rel), 'utf8').trim();
-    } catch {
-      /* try next cwd layout */
-    }
-  }
-  return '';
+  return process.env.NEXT_PUBLIC_PRINT_AGENT_VERSION?.trim() ?? '';
 }
 
 function pinnedReleaseDownloadUrl(repo: string, version: string, filename: string): string {
-  return `https://github.com/${repo}/releases/download/print-agent-v${version}/${filename}`;
-}
-
-/** Latest GitHub “release” pointer — only when VERSION is unset (avoid silent downgrade). */
-function latestReleaseDownloadUrl(repo: string, filename: string): string {
-  return `https://github.com/${repo}/releases/latest/download/${filename}`;
+  return `https://github.com/${repo}/releases/download/${RELEASE_TAG_PREFIX}${version}/${filename}`;
 }
 
 /** Cached GitHub HEAD for dashboard release status (redirect API keeps no-store). */
@@ -100,7 +83,7 @@ async function githubAssetExists(
   }
 }
 
-/** Whether the pinned print-agent-v{version} asset exists on GitHub (not /latest). */
+/** Whether the pinned fiscal-agent-v{version} asset exists on GitHub. */
 export async function isPinnedPrintAgentReleaseAvailable(
   artifact: PrintAgentDownloadArtifact = 'setup-amd64',
 ): Promise<boolean> {
@@ -111,7 +94,10 @@ export async function isPinnedPrintAgentReleaseAvailable(
   return githubAssetExists(url, { revalidate: GITHUB_RELEASE_REVALIDATE_SEC });
 }
 
-/** Resolve download URL for the version in apps/print-agent/VERSION only — never silently use /latest. */
+/**
+ * Resolve download URL for the recommended Fiscal Agent build.
+ * Pinned env version when set; otherwise newest published `fiscal-agent-v*` with installer assets.
+ */
 export async function resolvePrintAgentGitHubDownloadUrl(
   artifact: PrintAgentDownloadArtifact,
 ): Promise<string | null> {
@@ -119,19 +105,19 @@ export async function resolvePrintAgentGitHubDownloadUrl(
   if (!repo) return null;
 
   const filename = ARTIFACT_TO_FILE[artifact];
-  const version = getPrintAgentVersion();
-  if (version) {
-    const pinned = pinnedReleaseDownloadUrl(repo, version, filename);
-    if (await githubAssetExists(pinned)) return pinned;
+  const pinned = getPrintAgentVersion();
+  if (pinned) {
+    const url = pinnedReleaseDownloadUrl(repo, pinned, filename);
+    if (await githubAssetExists(url)) return url;
     return null;
   }
 
-  const latest = latestReleaseDownloadUrl(repo, filename);
-  if (await githubAssetExists(latest)) return latest;
-  return null;
+  const latest = await findLatestPublishedPrintAgentRelease();
+  if (!latest) return null;
+  return artifact === 'setup-amd64' ? latest.setupAmd64 : latest.zipAmd64;
 }
 
-/** Newest print-agent-v* release on GitHub that actually has installer assets. */
+/** Newest fiscal-agent-v* release on GitHub that actually has installer assets. */
 export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedPrintAgentFallback | null> {
   const repo = getPrintAgentGithubRepo();
   if (!repo) return null;
@@ -146,8 +132,8 @@ export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedP
     const releases = (await res.json()) as Array<{ tag_name?: string }>;
     for (const rel of releases) {
       const tag = rel.tag_name?.trim() ?? '';
-      if (!tag.startsWith('print-agent-v')) continue;
-      const version = tag.slice('print-agent-v'.length);
+      if (!tag.startsWith(RELEASE_TAG_PREFIX)) continue;
+      const version = tag.slice(RELEASE_TAG_PREFIX.length);
       const setupUrl = pinnedReleaseDownloadUrl(repo, version, PRINT_AGENT_GITHUB_ASSETS.setupAmd64);
       if (
         !(await githubAssetExists(setupUrl, { revalidate: GITHUB_RELEASE_REVALIDATE_SEC }))
@@ -167,20 +153,38 @@ export async function findLatestPublishedPrintAgentRelease(): Promise<PublishedP
   return null;
 }
 
+/**
+ * Sole recommended store-agent version for devices list + runtime-config + download badge.
+ * Env pin when set; else latest published Fiscal Agent with installer assets.
+ */
+export async function resolveRecommendedAgentVersion(): Promise<string> {
+  const pinned = getPrintAgentVersion();
+  if (pinned) return pinned;
+  const latest = await findLatestPublishedPrintAgentRelease();
+  return latest?.version ?? '';
+}
+
 export type PrintAgentDownloadStatus = {
+  version: string;
   releaseReady: boolean;
+  /** When env pin is set but that tag has no assets yet — newest published build for temporary install. */
   publishedFallback: PublishedPrintAgentFallback | null;
 };
 
 /** GitHub release readiness for dashboard download panel (cached; does not block other page data). */
 async function resolvePrintAgentDownloadStatusInner(): Promise<PrintAgentDownloadStatus> {
-  const version = getPrintAgentVersion();
-  if (!version) {
-    return { releaseReady: true, publishedFallback: null };
+  const pinned = getPrintAgentVersion();
+  if (pinned) {
+    const releaseReady = await isPinnedPrintAgentReleaseAvailable('setup-amd64');
+    const publishedFallback = !releaseReady ? await findLatestPublishedPrintAgentRelease() : null;
+    return { version: pinned, releaseReady, publishedFallback };
   }
-  const releaseReady = await isPinnedPrintAgentReleaseAvailable('setup-amd64');
-  const publishedFallback = !releaseReady ? await findLatestPublishedPrintAgentRelease() : null;
-  return { releaseReady, publishedFallback };
+
+  const latest = await findLatestPublishedPrintAgentRelease();
+  if (!latest) {
+    return { version: '', releaseReady: false, publishedFallback: null };
+  }
+  return { version: latest.version, releaseReady: true, publishedFallback: null };
 }
 
 const GITHUB_STATUS_TIMEOUT_MS = 5000;
@@ -191,13 +195,13 @@ export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownl
       resolvePrintAgentDownloadStatusInner(),
       new Promise<PrintAgentDownloadStatus>((resolve) => {
         setTimeout(
-          () => resolve({ releaseReady: true, publishedFallback: null }),
+          () => resolve({ version: '', releaseReady: true, publishedFallback: null }),
           GITHUB_STATUS_TIMEOUT_MS,
         );
       }),
     ]);
   } catch {
-    return { releaseReady: true, publishedFallback: null };
+    return { version: '', releaseReady: true, publishedFallback: null };
   }
 }
 
@@ -213,14 +217,12 @@ export function getPrintAgentDownloadUrls(): PrintAgentDownloadUrls | null {
 
   const version = getPrintAgentVersion();
   const releasesPage = version
-    ? `https://github.com/${repo}/releases/tag/print-agent-v${version}`
+    ? `https://github.com/${repo}/releases/tag/${RELEASE_TAG_PREFIX}${version}`
     : `https://github.com/${repo}/releases`;
 
   return {
     setupAmd64: PRINT_AGENT_DOWNLOAD_API_PATHS.setupAmd64,
     zipAmd64: PRINT_AGENT_DOWNLOAD_API_PATHS.portableAmd64,
-    setupArm64: PRINT_AGENT_DOWNLOAD_API_PATHS.setupArm64,
-    zipArm64: PRINT_AGENT_DOWNLOAD_API_PATHS.portableArm64,
     releasesPage,
   };
 }

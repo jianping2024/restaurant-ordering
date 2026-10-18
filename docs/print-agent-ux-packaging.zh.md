@@ -169,9 +169,9 @@ flowchart LR
 
 **现状（已落地，v0.2.66+）**：
 
-- **Farvoo**：`GET /api/print-agent/runtime-config` 返回 `recommended_agent_version`（与仓库 `apps/print-agent/VERSION` / `NEXT_PUBLIC_PRINT_AGENT_VERSION` 一致）。
+- **Farvoo**：`GET /api/print-agent/runtime-config` 返回 `recommended_agent_version`（唯一：`resolveRecommendedAgentVersion` = 可选 `NEXT_PUBLIC_PRINT_AGENT_VERSION` 钉死，否则 GitHub 最新有安装包的 `fiscal-agent-v*`；**不再**读 `apps/print-agent/VERSION`）。
 - **代理**：启动拉 runtime-config 后，若本机版本 **低于** 推荐版，**每日最多一次** 托盘弹窗（`notify_version_windows.go`）；文案含退出托盘 → 安装新版本。
-- **Dashboard**：**已配对收银机** 对比 `agent_version` 与推荐版（`PrintAgentDevicesPanel`）；下载区 **`downloadUpgradeSteps`** 说明升级步骤。
+- **Dashboard**：**已配对收银机** 用同一推荐版，且仅当本机 **严格更旧**（`agentVersionOlderThan`）才提示升级；下载区指向 Farvoo Fiscal Agent 安装包。
 
 **可增强**：代理直连 GitHub 查最新 tag（不依赖 Farvoo 部署版本）；heartbeat 响应带回推荐版以便长跑进程复检。
 

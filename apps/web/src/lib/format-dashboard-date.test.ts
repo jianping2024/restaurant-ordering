@@ -3,10 +3,9 @@ import { describe, it } from 'node:test';
 import { formatOrderDateTime, formatOverviewDate, formatCollectedPaymentTime } from '@/lib/format-dashboard-date';
 
 describe('formatOverviewDate', () => {
-  it('formats zh overview with stable weekday spacing', () => {
+  it('formats zh overview as 年月日 with stable weekday spacing', () => {
     const label = formatOverviewDate('zh', new Date('2026-06-27T10:00:00.000Z'));
-    assert.match(label, /2026年/);
-    assert.match(label, /日\s/);
+    assert.match(label, /^2026年6月27日\s/);
   });
 
   it('formats en overview', () => {

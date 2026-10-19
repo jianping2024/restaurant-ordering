@@ -65,7 +65,7 @@ export function formatOverviewDate(lang: UILanguage, date = new Date()): string 
     const month = parts.find((p) => p.type === 'month')?.value ?? '';
     const day = parts.find((p) => p.type === 'day')?.value ?? '';
     const weekday = parts.find((p) => p.type === 'weekday')?.value ?? '';
-    return `${year}年${month}${day}日 ${weekday}`;
+    return `${year}年${month}月${day}日 ${weekday}`;
   }
   return new Intl.DateTimeFormat(locale, OVERVIEW_DATE_OPTS).format(date);
 }

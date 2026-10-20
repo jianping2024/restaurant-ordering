@@ -52,6 +52,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - /setup 认领成功后，平台下发 checkinCredential + leaseSecret，写入宿主机权威文件（升级保留）：
     $MESA_HOME/current/deploy/on-prem/license-state/platform.json
   （容器内 MESA_LICENSE_CONFIG_PATH=/mesa-license-state/platform.json）
+  目录须属 web 容器用户 nextjs（uid 1001）；安装/升级脚本会 chown。若见
+  config_persist_failed EACCES → sudo chown -R 1001:1001 …/license-state 后换新安装码再认领
 - 无该文件 → 签到失败且授权票据无法校验 → 停业（fail closed）；UI 提示前往 /setup 重配
 - 授权过期 → UI 提示联系平台续约
 - 安装/升级自检：

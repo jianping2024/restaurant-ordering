@@ -74,6 +74,9 @@ check_install() {
   ok "compose license-state mount + CONFIG_PATH"
 
   mkdir -p "$LICENSE_STATE_DIR"
+  # Match apps/web/Dockerfile USER nextjs (1001) so /setup can persist platform.json
+  chown -R 1001:1001 "$LICENSE_STATE_DIR" 2>/dev/null || true
+  chmod 775 "$LICENSE_STATE_DIR" 2>/dev/null || true
   ok "license-state dir ${LICENSE_STATE_DIR}"
 
   # Pack pre-configures only the Ops URL; credentials arrive at /setup claim.

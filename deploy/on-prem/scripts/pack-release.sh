@@ -213,6 +213,10 @@ if ! grep -q "exclude 'license-state'" "$INSTALL_SH"; then
   echo "ERROR: install-mesa.sh must preserve license-state across sync" >&2
   exit 1
 fi
+if ! grep -q 'chown -R 1001:1001' "$INSTALL_SH" || ! grep -q 'chown -R 1001:1001' "$UPGRADE_SH"; then
+  echo "ERROR: install-mesa.sh + upgrade.sh must chown license-state to web uid 1001 (nextjs)" >&2
+  exit 1
+fi
 VERIFY_SH="$STAGE/deploy/on-prem/scripts/verify-on-prem-ready.sh"
 if [[ ! -f "$VERIFY_SH" ]]; then
   echo "ERROR: pack must include scripts/verify-on-prem-ready.sh" >&2

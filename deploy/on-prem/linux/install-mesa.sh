@@ -137,6 +137,9 @@ if [[ -n "$LICENSE_STATE_BACKUP" ]]; then
   cp -a "$LICENSE_STATE_BACKUP/." "$LICENSE_STATE_DIR/"
   rm -rf "$LICENSE_STATE_BACKUP"
 fi
+# web 容器 USER nextjs (uid/gid 1001) 写 /mesa-license-state/platform.json；sudo 建目录默认 root → EACCES
+chown -R 1001:1001 "$LICENSE_STATE_DIR"
+chmod 775 "$LICENSE_STATE_DIR"
 
 # Persist DB/storage under MESA_HOME/data via bind mounts (symlinks into vendor volumes).
 link_vol() {

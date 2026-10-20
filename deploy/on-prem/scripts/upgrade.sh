@@ -210,6 +210,9 @@ if [[ -n "$LICENSE_STATE_BAK" ]]; then
   cp -a "${LICENSE_STATE_BAK}/." "${TARGET_ONPREM}/license-state/"
   rm -rf "$LICENSE_STATE_BAK"
 fi
+# web 容器 USER nextjs (uid/gid 1001) 写 /mesa-license-state/platform.json；sudo 建目录默认 root → EACCES
+chown -R 1001:1001 "${TARGET_ONPREM}/license-state"
+chmod 775 "${TARGET_ONPREM}/license-state"
 
 # After sync: new verify script is on target. Missing platform.json must NOT block upgrade
 # (recovery is /setup claim). Incomplete existing file still fails closed.

@@ -355,6 +355,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 | 清 `/home/remoteadmin` 后升级又全量 `npm ci` | home 不含 Docker 缓存；多半是**上次 `npm ci` 失败未成层**或 lock 变更 |
 | `npm warn deprecated` / purchased 文案 | 忽略；真失败看 `ETIMEDOUT` / `exit code` |
 | `/setup` 认领 `restaurants_plan_check` / `restaurant_insert_failed` | 旧包：约束已是 `basic\|pro` 但列默认仍是 `free`，认领未写 `plan`。升含 `20261020120000` + tip baseline（covered 齐、初装 pending=0）及认领写 `plan` 的包；Ops **重新签发安装码**（云端码已消耗）后再认领 |
+| `/setup` `config_persist_failed` / `EACCES` … `license-state/platform.json` | 宿主机 `license-state` 被 sudo 建成 root 属主，web（uid **1001**）写不进。`sudo chown -R 1001:1001 $MESA_HOME/current/deploy/on-prem/license-state`；新装/升级脚本已 chown。云端码若已消耗 → Ops 再发码 |
 
 ---
 

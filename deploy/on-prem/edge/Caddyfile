@@ -4,8 +4,31 @@
 #
 # IMPORTANT: use /auth/v1/* only — Next.js app routes live under /auth/login,
 # /auth/callback, etc. Broad /auth/* steals those and Kong returns 401 Basic.
+#
+# Access latency: JSON lines on stdout (docker logs). duration is milliseconds.
+# Health probes skipped. Query keys apikey/token/access_token redacted; Cookie/Authorization omitted.
+# Summarize: ./scripts/edge-access-summary.sh [--since 1h]
 
 :80 {
+	@health path /api/health/live /api/health/ready
+	log_skip @health
+
+	log {
+		output stdout
+		format filter {
+			wrap json {
+				duration_format ms
+			}
+			request>headers>Cookie delete
+			request>headers>Authorization delete
+			request>uri query {
+				delete apikey
+				delete access_token
+				delete token
+			}
+		}
+	}
+
 	@supabase path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/* /functions/v1/* /graphql/v1/*
 	handle @supabase {
 		reverse_proxy kong:8000

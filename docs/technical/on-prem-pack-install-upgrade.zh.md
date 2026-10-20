@@ -19,7 +19,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线且含 `print_jobs`；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` **不得**非空默认（on-prem 靠空值隐藏下载卡）；**不得**再 `COPY apps/print-agent/VERSION`（店内推荐版 = Fiscal Agent，env 钉死或 GitHub `fiscal-agent-v*`）。
+打包门禁（脚本会硬失败）：**`baseline_covered_migrations.txt` 必须覆盖仓库全部 `supabase/migrations/*.sql`（初装 pending=0）**——落后则先对本机 tip 绿库跑 `./deploy/on-prem/scripts/export-schema-baseline.sh`；`ensure_realtime_publication` 接线且含 `print_jobs`；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` **不得**非空默认（on-prem 靠空值隐藏下载卡）；**不得**再 `COPY apps/print-agent/VERSION`（店内推荐版 = Fiscal Agent，env 钉死或 GitHub `fiscal-agent-v*`）。
 
 产物：
 

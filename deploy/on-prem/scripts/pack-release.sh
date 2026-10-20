@@ -21,6 +21,33 @@ if [[ -f "$ONPREM/vendor/SUPABASE_DOCKER_VENDOR.md" ]]; then
 fi
 PRINT_AGENT_MIN="${MESA_PRINT_AGENT_MIN_VERSION:-}"
 
+# Gate: fresh install must not stack pending migrations.
+# baseline_covered_migrations.txt must list every supabase/migrations/*.sql
+# (re-export: ./deploy/on-prem/scripts/export-schema-baseline.sh on a tip green DB).
+COVERED_FILE="$ONPREM/schema/baseline_covered_migrations.txt"
+BASELINE_SQL="$ONPREM/schema/baseline_public.sql"
+MIG_DIR="$ROOT/supabase/migrations"
+if [[ ! -f "$COVERED_FILE" || ! -f "$BASELINE_SQL" ]]; then
+  echo "ERROR: missing $BASELINE_SQL or $COVERED_FILE" >&2
+  exit 1
+fi
+PENDING_TMP="$(mktemp)"
+comm -23 \
+  <(ls -1 "$MIG_DIR"/*.sql 2>/dev/null | xargs -n1 basename | sort) \
+  <(grep -vE '^\s*(#|$)' "$COVERED_FILE" | sed 's/[[:space:]]//g' | sort) \
+  >"$PENDING_TMP" || true
+PENDING_N="$(wc -l <"$PENDING_TMP" | tr -d ' ')"
+if [[ "$PENDING_N" != "0" ]]; then
+  echo "ERROR: on-prem baseline covered is behind supabase/migrations (${PENDING_N} pending)." >&2
+  echo "Fresh install must use tip baseline (pending=0). Re-export from a tip green DB:" >&2
+  echo "  ./deploy/on-prem/scripts/export-schema-baseline.sh" >&2
+  echo "Pending (up to 20):" >&2
+  head -20 "$PENDING_TMP" >&2
+  rm -f "$PENDING_TMP"
+  exit 1
+fi
+rm -f "$PENDING_TMP"
+
 rm -rf "$STAGE"
 mkdir -p "$STAGE/deploy" "$OUT_DIR"
 

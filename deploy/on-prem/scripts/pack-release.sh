@@ -168,6 +168,8 @@ if grep -q 'COPY apps/print-agent/VERSION' "$WEB_DOCKERFILE"; then
 fi
 # Gate: claim/check-in config must survive web rebuild (host license-state volume).
 COMPOSE_YAML="$STAGE/deploy/on-prem/compose.yaml"
+UPGRADE_SH="$STAGE/deploy/on-prem/scripts/upgrade.sh"
+INSTALL_SH="$STAGE/deploy/on-prem/linux/install-mesa.sh"
 if ! grep -q 'license-state:/mesa-license-state' "$COMPOSE_YAML"; then
   echo "ERROR: compose.yaml must bind-mount deploy/on-prem/license-state for durable check-in config" >&2
   exit 1

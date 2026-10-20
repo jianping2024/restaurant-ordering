@@ -1,0 +1,16 @@
+---
+description: On-prem store Tailscale/SSH inventory — pick host before scp/upgrade
+globs: docs/technical/on-prem-store-hosts.zh.md,deploy/on-prem/**
+alwaysApply: true
+---
+
+# On-prem store hosts
+
+**Canonical inventory:** [`docs/technical/on-prem-store-hosts.zh.md`](../../docs/technical/on-prem-store-hosts.zh.md).
+
+Before any store `scp` / SSH / upgrade staging:
+
+1. Read that table; select the store by name.
+2. If Will did not name the store → **ask** (do not default to Pirata).
+3. **Never** commit Linux/SSH/web passwords into the repo. Local secrets only in Agent personal store `on-prem-store-credentials.md`.
+4. Still do **not** run `sudo upgrade.sh` on the store unless Will explicitly asks in-thread.

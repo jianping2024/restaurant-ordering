@@ -6,7 +6,8 @@
 > 打包脚本：`deploy/on-prem/scripts/pack-release.sh`；升级：`deploy/on-prem/scripts/upgrade.sh`。  
 > 初装细节补充见包内 `README-UBUNTU.zh.txt`（源：`deploy/on-prem/linux/README-INSTALL.zh.txt`）。  
 > **技术工具清单：** [`local-perm-install-tools.zh.md`](./local-perm-install-tools.zh.md)。  
-> **安全基线（端口 / RLS / 密码 / 限流 IP · 新机勾选）：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) — **唯一**安全终态说明，勿在他处平行改写。
+> **安全基线（端口 / RLS / 密码 / 限流 IP · 新机勾选）：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) — **唯一**安全终态说明，勿在他处平行改写。  
+> **多店 Tailscale / SSH 目标（scp 前必查）：** [`on-prem-store-hosts.zh.md`](./on-prem-store-hosts.zh.md) — **唯一**店机连接表；勿默认某一店。
 
 ## 1. 开发机：打发行包（初装与升级用同一 zip）
 

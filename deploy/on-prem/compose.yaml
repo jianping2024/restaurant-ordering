@@ -30,6 +30,12 @@ services:
       kong:
         condition: service_started
     restart: unless-stopped
+    # Access JSON (duration_ms) on stdout — see edge/Caddyfile + scripts/edge-access-summary.sh
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
 
   web:
     build:

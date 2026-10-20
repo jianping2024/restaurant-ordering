@@ -125,7 +125,8 @@ Agent 安装包与发布流程在 `apps/print-agent` / GitHub Release，**不**�
 | 路径 | 说明 |
 |------|------|
 | `linux/install-mesa.sh` | Ubuntu / Debian 客户安装器 |
-| `edge/Caddyfile` | 同域网关：`/` → web，`/auth/v1|/rest/v1|/realtime/v1|…` → Kong（勿用宽 `/auth/*`） |
+| `edge/Caddyfile` | 同域网关：`/` → web，`/auth/v1|/rest/v1|/realtime/v1|…` → Kong（勿用宽 `/auth/*`）；JSON 访问耗时日志见 §2.5 |
+| `scripts/edge-access-summary.sh` | 从 edge docker logs 汇总 p50/p95/慢请求（店机排障） |
 | `compose.yaml` + `scripts/stack.sh` | Mode B |
 | `compose.mode-a.yaml` | Mode A |
 | `vendor/supabase-docker/` | 官方自托管 Compose |

@@ -4,6 +4,7 @@ import {
   canUsePremiumFeature,
   isProEffective,
   normalizePremiumKeys,
+  normalizeRestaurantPlan,
   proTrialValidUntil,
   PRO_TRIAL_DAYS,
 } from './premium-tier';
@@ -14,6 +15,15 @@ import {
 } from './license-calendar';
 
 describe('premium-tier', () => {
+  it('normalizeRestaurantPlan maps free/missing to basic and keeps pro', () => {
+    assert.equal(normalizeRestaurantPlan('pro'), 'pro');
+    assert.equal(normalizeRestaurantPlan('basic'), 'basic');
+    assert.equal(normalizeRestaurantPlan('free'), 'basic');
+    assert.equal(normalizeRestaurantPlan(null), 'basic');
+    assert.equal(normalizeRestaurantPlan(undefined), 'basic');
+    assert.equal(normalizeRestaurantPlan('other'), 'basic');
+  });
+
   it('proTrialValidUntil is Lisbon calendar day + PRO_TRIAL_DAYS end-of-day', () => {
     const from = new Date('2026-01-01T12:00:00.000Z');
     const startYmd = lisbonCalendarDateFromInstant(from);

@@ -97,6 +97,8 @@ export async function POST(req: Request) {
       buffetServiceMode: claimJson.buffetServiceMode,
       checkinCredential: claimJson.checkinCredential,
       licenseValidUntil: claimJson.licenseValidUntil ?? null,
+      plan: claimJson.plan,
+      proValidUntil: claimJson.proValidUntil,
       suspendedAt: claimJson.suspendedAt ?? null,
       suspensionReason: claimJson.suspensionReason ?? null,
       leaseToken: claimJson.leaseToken,

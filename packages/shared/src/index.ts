@@ -32,6 +32,7 @@ export {
   isPremiumKey,
   isProEffective,
   isRestaurantPlan,
+  normalizeRestaurantPlan,
   normalizePremiumKeys,
   premiumKeyRequiresPro,
   proTrialValidUntil,

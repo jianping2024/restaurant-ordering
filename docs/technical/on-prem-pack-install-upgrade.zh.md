@@ -353,6 +353,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 | 终端执行 `RUN --mount=… npm ci` | 那是 **Dockerfile** 行，改 `apps/web/Dockerfile` 后重新打包升级，不是店机 shell 命令 |
 | 清 `/home/remoteadmin` 后升级又全量 `npm ci` | home 不含 Docker 缓存；多半是**上次 `npm ci` 失败未成层**或 lock 变更 |
 | `npm warn deprecated` / purchased 文案 | 忽略；真失败看 `ETIMEDOUT` / `exit code` |
+| `/setup` 认领 `restaurants_plan_check` / `restaurant_insert_failed` | 旧包：约束已是 `basic\|pro` 但列默认仍是 `free`，认领未写 `plan`。升含 `20261020120000` + tip baseline（covered 齐、初装 pending=0）及认领写 `plan` 的包；Ops **重新签发安装码**（云端码已消耗）后再认领 |
 
 ---
 

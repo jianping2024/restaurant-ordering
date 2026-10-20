@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { menuItemsServedInSession } from '@/lib/menu-time-slot-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { sessionOrderedQtyForMenuItem } from '@/lib/sushi-buffet-limits';
 import { resolveRoundLineMealLimitApply } from '@/lib/table-order-round/round-meal-limit';
@@ -65,6 +66,15 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   }
   if (menu.price !== 0) {
     return NextResponse.json({ error: 'menu_item_not_free' }, { status: 400 });
+  }
+  const served = await menuItemsServedInSession({
+    admin: ctx.admin,
+    restaurantId: ctx.restaurant.restaurantId,
+    sessionOpenedAt: ctx.writeContext.session.opened_at,
+    items: [menu],
+  });
+  if (!served) {
+    return NextResponse.json({ error: 'menu_item_off_time_slot' }, { status: 400 });
   }
 
   const meal = resolveRoundLineMealLimitApply({

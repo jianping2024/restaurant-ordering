@@ -1,3 +1,4 @@
+import { isMenuItemServedInTimeSlot } from '@/lib/menu-time-slot';
 import type { MenuCategory, MenuItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -84,24 +85,20 @@ function itemsForCategoryScope(params: {
 /**
  * Sole customer menu category + item selection (classic + sushi).
  * Recommended dishes are a content rail, not a category.
+ * Time slot: only dishes served in `menuTimeSlotId` (see `lib/menu-time-slot`); a category
+ * whose dishes all belong to other slots is hidden (truly empty categories stay as before).
  */
 export function resolveCustomerMenuCatalogView(params: {
   menuCategories: readonly MenuCategory[];
   menuItems: readonly MenuItem[];
   recommendedItemIds: readonly string[];
+  menuTimeSlotId: string | null;
   activeTopId: string;
   activeSubpath: string;
 }): CustomerMenuCatalogView {
-  const realTopCategories = params.menuCategories
-    .filter((c) => !c.parent_id && c.active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const recommendedItems = visibleRecommendedMenuItems(
-    params.menuItems,
-    params.recommendedItemIds,
+  const servedItems = params.menuItems.filter((item) =>
+    isMenuItemServedInTimeSlot(item, params.menuTimeSlotId),
   );
-  const defaultTop = realTopCategories[0]?.id || '';
-  const knownTops = new Set<string>(realTopCategories.map((c) => c.id));
-  const currentTopId = knownTops.has(params.activeTopId) ? params.activeTopId : defaultTop;
 
   const childrenByParent = new Map<string, string[]>();
   params.menuCategories
@@ -113,8 +110,28 @@ export function resolveCustomerMenuCatalogView(params: {
       childrenByParent.set(parentId, list);
     });
 
+  const hasItemsIn = (items: readonly MenuItem[], categoryId: string) =>
+    itemsForCategoryScope({
+      menuItems: items,
+      childrenByParent,
+      currentTop: categoryId,
+      currentSubpath: '',
+    }).length > 0;
+  const shownInTimeSlot = (category: MenuCategory) =>
+    servedItems.length === params.menuItems.length ||
+    !hasItemsIn(params.menuItems, category.id) ||
+    hasItemsIn(servedItems, category.id);
+
+  const realTopCategories = params.menuCategories
+    .filter((c) => !c.parent_id && c.active && shownInTimeSlot(c))
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const recommendedItems = visibleRecommendedMenuItems(servedItems, params.recommendedItemIds);
+  const defaultTop = realTopCategories[0]?.id || '';
+  const knownTops = new Set<string>(realTopCategories.map((c) => c.id));
+  const currentTopId = knownTops.has(params.activeTopId) ? params.activeTopId : defaultTop;
+
   const subCategories = params.menuCategories
-    .filter((c) => c.parent_id === currentTopId && c.active)
+    .filter((c) => c.parent_id === currentTopId && c.active && shownInTimeSlot(c))
     .sort((a, b) => a.sort_order - b.sort_order);
   const currentSubpath = subCategories.some((c) => c.id === params.activeSubpath)
     ? params.activeSubpath
@@ -127,7 +144,7 @@ export function resolveCustomerMenuCatalogView(params: {
     subCategories,
     currentSubpath,
     currentItems: itemsForCategoryScope({
-      menuItems: params.menuItems,
+      menuItems: servedItems,
       childrenByParent,
       currentTop: currentTopId,
       currentSubpath,

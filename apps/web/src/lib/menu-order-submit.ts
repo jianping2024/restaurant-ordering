@@ -23,6 +23,7 @@ export type AppendOrderFailureCode =
   | 'invalid_client_request_id'
   | 'per_person_limit_exceeded'
   | 'limited_item_requires_headcount'
+  | 'menu_item_off_time_slot'
   | 'sushi_round_required'
   | 'submit_failed';
 
@@ -129,6 +130,8 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'per_person_limit_exceeded';
     case 'limited_item_requires_headcount':
       return 'limited_item_requires_headcount';
+    case 'menu_item_off_time_slot':
+      return 'menu_item_off_time_slot';
     case 'over_limit_price_missing':
       return 'submit_failed';
     case 'rate_limited':

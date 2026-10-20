@@ -69,6 +69,7 @@ export type TableOrderRoundErrorCode =
   | 'invalid_menu_item'
   | 'menu_item_not_free'
   | 'menu_item_unavailable'
+  | 'menu_item_off_time_slot'
   | 'finalize_not_ready'
   | 'append_failed'
   | 'round_not_pending_confirm';

@@ -61,6 +61,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuCategories: [mains, drinks, fish],
       menuItems: [bacalhau, frango, vinho],
       recommendedItemIds: [],
+      menuTimeSlotId: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -74,6 +75,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuCategories: [mains, drinks],
       menuItems: [frango, vinho, soldOut],
       recommendedItemIds: ['i-sold', 'i-vinho'],
+      menuTimeSlotId: null,
       activeTopId: 'Pratos',
       activeSubpath: '',
     });
@@ -88,6 +90,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuCategories: [mains],
       menuItems: [soldOut, frango],
       recommendedItemIds: ['i-sold'],
+      menuTimeSlotId: null,
       activeTopId: 'recommended',
       activeSubpath: '',
     });
@@ -100,12 +103,49 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuCategories: [mains, fish, drinks],
       menuItems: [bacalhau, frango, vinho],
       recommendedItemIds: ['i-vinho'],
+      menuTimeSlotId: null,
       activeTopId: 'c-mains',
       activeSubpath: 'c-fish',
     });
     assert.equal(view.currentTopId, 'c-mains');
     assert.equal(view.currentSubpath, 'c-fish');
     assert.deepEqual(view.currentItems.map((row) => row.id), ['i-bacalhau']);
+  });
+
+  it('time slot: hides other-slot dishes, recommended and categories emptied by the slot', () => {
+    const lunchSet = item({ id: 'i-lunch', category_id: 'c-fish', available: true, time_slot_id: 'lunch' });
+    const dinnerOnly = cat({ id: 'c-dinner', name_pt: 'Jantar', sort_order: 3 });
+    const dinnerDish = item({ id: 'i-dinner', category_id: 'c-dinner', available: true, time_slot_id: 'dinner' });
+    const empty = cat({ id: 'c-empty', name_pt: 'Vazio', sort_order: 4 });
+    const args = {
+      menuCategories: [mains, fish, drinks, dinnerOnly, empty],
+      menuItems: [lunchSet, frango, vinho, dinnerDish],
+      recommendedItemIds: ['i-dinner', 'i-lunch', 'i-vinho'],
+      activeTopId: 'c-mains',
+      activeSubpath: '',
+    };
+
+    const atLunch = resolveCustomerMenuCatalogView({ ...args, menuTimeSlotId: 'lunch' });
+    assert.deepEqual(atLunch.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks', 'c-empty']);
+    assert.deepEqual(atLunch.subCategories.map((c) => c.id), ['c-fish']);
+    assert.deepEqual(atLunch.recommendedItems.map((r) => r.id), ['i-lunch', 'i-vinho']);
+    assert.deepEqual(atLunch.currentItems.map((r) => r.id).sort(), ['i-frango', 'i-lunch']);
+
+    const atDinner = resolveCustomerMenuCatalogView({ ...args, menuTimeSlotId: 'dinner' });
+    assert.deepEqual(
+      atDinner.realTopCategories.map((c) => c.id),
+      ['c-mains', 'c-drinks', 'c-dinner', 'c-empty'],
+    );
+    assert.deepEqual(atDinner.subCategories.map((c) => c.id), []);
+    assert.deepEqual(atDinner.recommendedItems.map((r) => r.id), ['i-dinner', 'i-vinho']);
+    assert.deepEqual(atDinner.currentItems.map((r) => r.id), ['i-frango']);
+
+    const allDayOnly = resolveCustomerMenuCatalogView({
+      ...args,
+      activeTopId: 'c-dinner',
+      menuTimeSlotId: null,
+    });
+    assert.equal(allDayOnly.currentTopId, 'c-mains');
   });
 });
 
@@ -115,6 +155,7 @@ describe('customerMenuNavTopCategories', () => {
       menuCategories: [mains, drinks],
       menuItems: [vinho],
       recommendedItemIds: ['i-vinho'],
+      menuTimeSlotId: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -128,6 +169,7 @@ describe('customerMenuNavTopCategories', () => {
       menuCategories: [mains],
       menuItems: [frango],
       recommendedItemIds: [],
+      menuTimeSlotId: null,
       activeTopId: '',
       activeSubpath: '',
     });

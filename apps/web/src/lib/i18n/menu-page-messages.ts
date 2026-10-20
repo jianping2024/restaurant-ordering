@@ -43,6 +43,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   sushiLimitHint: string;
   perPersonLimitReached: string;
   limitedItemNeedsHeadcount: string;
+  /** Dish not served in this table's menu time slot (append / round write refused). */
+  menuItemOffTimeSlot: string;
   staffOverageConfirmTitle: string;
   staffOverageFirstCrossMessage: string;
   staffOverageMoreToast: string;
@@ -141,6 +143,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: 'Inclui {perPerson}/pessoa; extra €{price}/un. Pecao staff para ultrapassar.',
     perPersonLimitReached: 'Atingiu o limite incluido. Peca ao staff para adicionar (preco extra).',
     limitedItemNeedsHeadcount: 'Registe primeiro o numero de pessoas na mesa para pedir este prato.',
+    menuItemOffTimeSlot: 'Este prato não está disponível neste horário. Atualize o menu e tente de novo.',
     staffOverageConfirmTitle: 'Confirmar preco extra',
     staffOverageFirstCrossMessage:
       '"{name}" tera {qty} un. ao preco extra €{price}/un. no fecho da conta (subtotal €{subtotal}). Continuar?',
@@ -235,6 +238,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: 'Includes {perPerson}/person; overage €{price} each. Ask staff to order more.',
     perPersonLimitReached: 'Included limit reached. Ask staff to add more (overage price).',
     limitedItemNeedsHeadcount: 'Staff must set the table headcount before ordering this dish.',
+    menuItemOffTimeSlot: 'This dish is not served at this time. Refresh the menu and try again.',
     staffOverageConfirmTitle: 'Confirm overage price',
     staffOverageFirstCrossMessage:
       '"{name}" will include {qty} at overage €{price} each at checkout (subtotal €{subtotal}). Continue?',
@@ -329,6 +333,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: '含每人 {perPerson} 份；超出每份 €{price}。超额请找员工代点。',
     perPersonLimitReached: '已达免费额度。超额请找员工代点（按超额价）。',
     limitedItemNeedsHeadcount: '请先登记本桌人数后再点此限量菜。',
+    menuItemOffTimeSlot: '该菜品不在本时段供应，请刷新菜单后重试。',
     staffOverageConfirmTitle: '确认超额计价',
     staffOverageFirstCrossMessage:
       '「{name}」结账时将有 {qty} 份按超额价 €{price}/份计费（小计 €{subtotal}）。确认继续？',
@@ -430,6 +435,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       'Has alcanzado el límite incluido. Pide al personal que añada más (precio de extra).',
     limitedItemNeedsHeadcount:
       'El personal debe registrar el número de comensales antes de pedir este plato.',
+    menuItemOffTimeSlot: 'Este plato no se sirve en este horario. Actualiza el menú e inténtalo de nuevo.',
     staffOverageConfirmTitle: 'Confirmar precio de extra',
     staffOverageFirstCrossMessage:
       '«{name}» incluirá {qty} unidad(es) a €{price} cada una como extra al cerrar la cuenta (subtotal €{subtotal}). ¿Continuar?',
@@ -535,6 +541,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       'Limite incluse atteinte. Demandez au personnel d’en ajouter (prix supplément).',
     limitedItemNeedsHeadcount:
       'Le personnel doit saisir le nombre de couverts avant de commander ce plat.',
+    menuItemOffTimeSlot: 'Ce plat n’est pas servi à cette heure. Actualisez le menu et réessayez.',
     staffOverageConfirmTitle: 'Confirmer le prix supplément',
     staffOverageFirstCrossMessage:
       '« {name} » comptera {qty} pièce(s) au supplément de €{price} l’unité à l’encaissement (sous-total €{subtotal}). Continuer ?',
@@ -639,6 +646,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
       'Inklusivmenge erreicht. Für mehr bitte das Personal fragen (Aufpreis).',
     limitedItemNeedsHeadcount:
       'Das Personal muss zuerst die Personenzahl erfassen, bevor dieses Gericht bestellt wird.',
+    menuItemOffTimeSlot: 'Dieses Gericht wird zu dieser Zeit nicht angeboten. Menü aktualisieren und erneut versuchen.',
     staffOverageConfirmTitle: 'Aufpreis bestätigen',
     staffOverageFirstCrossMessage:
       '„{name}“ enthält bei der Abrechnung {qty} Stück zum Aufpreis von €{price} je Stück (Zwischensumme €{subtotal}). Fortfahren?',
@@ -719,14 +727,15 @@ export function formatStaffSubmitOverageMessage(
   return `${messages.staffOverageSubmitIntro}\n${body}`;
 }
 
-/** One toast copy path for sushi limit gate / append failures. */
+/** One toast copy path for sushi limit gate / append failures (incl. menu time slot refusal). */
 export function messageForSushiLimitError(
   error: string,
   messages: Pick<
     (typeof MENU_PAGE_MESSAGES)[Language],
-    'limitedItemNeedsHeadcount' | 'perPersonLimitReached' | 'submitFailed'
+    'limitedItemNeedsHeadcount' | 'perPersonLimitReached' | 'menuItemOffTimeSlot' | 'submitFailed'
   >,
 ): string {
+  if (error === 'menu_item_off_time_slot') return messages.menuItemOffTimeSlot;
   if (error === 'limited_item_requires_headcount') return messages.limitedItemNeedsHeadcount;
   if (error === 'per_person_limit_exceeded') return messages.perPersonLimitReached;
   return messages.submitFailed;

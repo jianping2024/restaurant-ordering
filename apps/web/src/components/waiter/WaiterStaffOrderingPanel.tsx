@@ -192,6 +192,7 @@ export function WaiterStaffOrderingPanel({
           menuItems={catalog.menuItems}
           menuCategories={catalog.menuCategories}
           recommendedItemIds={catalog.recommendedItemIds}
+          menuTimeSlots={catalog.menuTimeSlots}
           notePresetCatalog={catalog.notePresetCatalog ?? { groups: [] }}
           tableId={tableId}
           displayName={displayName}

@@ -16,6 +16,7 @@ import {
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -119,6 +120,8 @@ interface MenuManagerProps {
   canManagePrintStations?: boolean;
   /** Store feature menu_flavor_hints_enabled (default false). */
   flavorHintsEnabled?: boolean;
+  /** Slot choices for the dish form; empty → no time-slot field. */
+  menuTimeSlots: MenuTimeSlot[];
 }
 
 type ItemForm = {
@@ -144,6 +147,8 @@ type ItemForm = {
   flavor_codes: string[];
   per_person_qty_limit: string;
   over_limit_unit_price: string;
+  /** '' = all day. */
+  time_slot_id: string;
 };
 
 const defaultItemForm: ItemForm = {
@@ -169,6 +174,7 @@ const defaultItemForm: ItemForm = {
   flavor_codes: [],
   per_person_qty_limit: '',
   over_limit_unit_price: '',
+  time_slot_id: '',
 };
 
 type CategoryDraft = {
@@ -241,6 +247,7 @@ export function MenuManager({
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
   flavorHintsEnabled = false,
+  menuTimeSlots,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
@@ -613,6 +620,7 @@ export function MenuManager({
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
       over_limit_unit_price:
         item.over_limit_unit_price != null ? String(item.over_limit_unit_price) : '',
+      time_slot_id: item.time_slot_id ?? '',
     });
     setItemError('');
     resetImageUi();
@@ -688,6 +696,7 @@ export function MenuManager({
       over_limit_unit_price: itemForm.over_limit_unit_price.trim()
         ? Number(itemForm.over_limit_unit_price)
         : null,
+      time_slot_id: itemForm.time_slot_id || null,
     };
 
     try {
@@ -1495,9 +1504,16 @@ export function MenuManager({
                         `${t.listNameEn}: ${nameEn}`,
                         `${t.listNameZh}: ${nameZh}`,
                       ].join(' · ');
-                      const metaTitle = stationName
-                        ? `${t.itemType}: ${categoryLine} · ${t.effectiveStationPrefix}: ${stationName}`
-                        : `${t.itemType}: ${categoryLine}`;
+                      const timeSlotName = item.time_slot_id
+                        ? menuTimeSlots.find((slot) => slot.id === item.time_slot_id)?.name ?? null
+                        : null;
+                      const metaTitle = [
+                        `${t.itemType}: ${categoryLine}`,
+                        stationName ? `${t.effectiveStationPrefix}: ${stationName}` : null,
+                        timeSlotName ? `${t.itemTimeSlot}: ${timeSlotName}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ');
                       const dragDisabled = !canReorderDishes || dishReorderBusy;
 
                       return (
@@ -1560,6 +1576,15 @@ export function MenuManager({
                                           {t.effectiveStationPrefix}:
                                         </span>{' '}
                                         {stationName}
+                                      </>
+                                    ) : null}
+                                    {timeSlotName ? (
+                                      <>
+                                        <span className="mx-1 text-brand-border">·</span>
+                                        <span className="text-brand-text-muted/70">
+                                          {t.itemTimeSlot}:
+                                        </span>{' '}
+                                        {timeSlotName}
                                       </>
                                     ) : null}
                                   </p>
@@ -1839,6 +1864,30 @@ export function MenuManager({
               ))}
             </select>
           </div>
+
+          {menuTimeSlots.length > 0 ? (
+            <div>
+              <p className="text-sm text-brand-text-muted font-medium mb-1.5">{t.itemTimeSlot}</p>
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t.itemTimeSlot}>
+                {[{ id: '', name: t.itemTimeSlotAllDay }, ...menuTimeSlots].map((slot) => {
+                  const checked = itemForm.time_slot_id === slot.id;
+                  return (
+                    <button
+                      key={slot.id || 'all-day'}
+                      type="button"
+                      role="radio"
+                      aria-checked={checked}
+                      onClick={() => setItemForm((f) => ({ ...f, time_slot_id: slot.id }))}
+                      className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
+                    >
+                      {slot.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[12px] text-brand-text-muted mt-1">{t.itemTimeSlotHint}</p>
+            </div>
+          ) : null}
 
           <div>
             <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.itemPrintStation}</label>

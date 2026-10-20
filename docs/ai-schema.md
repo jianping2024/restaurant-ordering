@@ -35,7 +35,7 @@ menu_categories (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, parent_i
 
 menu_note_preset_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_en: text NOT NULL, name_pt: text NOT NULL, name_zh: text NOT NULL DEFAULT '', sort_order: integer, active: boolean, created_at: timestamptz)
 menu_note_presets (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, group_id: uuid FK -> menu_note_preset_groups.id, name_en: text NOT NULL, name_pt: text NOT NULL, name_zh: text NOT NULL DEFAULT '', sort_order: integer, active: boolean, created_at: timestamptz)
-menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, description_zh: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, is_vegetarian: boolean NOT NULL DEFAULT false, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_group_ids: text[] /* restaurant menu_note_preset_groups.id */, allergen_codes: text[] NOT NULL DEFAULT '{}', flavor_codes: text[] NOT NULL DEFAULT '{}' /* display-only; gated by menu_flavor_hints_enabled */, category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
+menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, description_zh: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, is_vegetarian: boolean NOT NULL DEFAULT false, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_group_ids: text[] /* restaurant menu_note_preset_groups.id */, allergen_codes: text[] NOT NULL DEFAULT '{}', flavor_codes: text[] NOT NULL DEFAULT '{}' /* display-only; gated by menu_flavor_hints_enabled */, category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable, time_slot_id: uuid nullable /* (restaurant_id, time_slot_id) FK -> buffet_time_slots(restaurant_id, id) ON DELETE SET NULL (time_slot_id); null = all day */)
 
 menu_recommended_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, menu_item_id: uuid FK -> menu_items.id ON DELETE CASCADE, sort_order: integer, created_at: timestamptz; UNIQUE(restaurant_id, menu_item_id); UNIQUE(restaurant_id, sort_order); same-restaurant trigger)
 
@@ -133,6 +133,7 @@ menu_categories.parent_id -> menu_categories.id
 menu_categories.print_station_id -> print_stations.id
 
 menu_items.restaurant_id -> restaurants.id  
+menu_items.(restaurant_id, time_slot_id) -> buffet_time_slots.(restaurant_id, id) ON DELETE SET NULL (time_slot_id)  
 menu_items.category_id -> menu_categories.id  
 menu_items.print_station_id -> print_stations.id
 
@@ -273,6 +274,7 @@ buffet_price_rules:
 buffet_time_slots:
 
 - buffet_time_slots_pkey: PK btree(id)
+- buffet_time_slots_restaurant_id_id_key: unique btree(restaurant_id, id)
 - idx_buffet_time_slots_restaurant: btree(restaurant_id)
 
 buffets:
@@ -310,6 +312,7 @@ menu_items:
 - idx_menu_items_note_preset_group_ids: gin(note_preset_group_ids)
 - idx_menu_items_allergen_codes: gin(allergen_codes)
 - idx_menu_items_flavor_codes: gin(flavor_codes)
+- idx_menu_items_time_slot: btree(time_slot_id) WHERE time_slot_id IS NOT NULL
 - idx_menu_items_print_station: btree(restaurant_id, print_station_id) WHERE print_station_id IS NOT NULL
 - idx_menu_items_restaurant: btree(restaurant_id)
 - menu_items_pkey: PK btree(id)
@@ -552,6 +555,7 @@ table_sessions:
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work. Each restaurant has one system `print_agent` staff account (created on ops restaurant create / claim ensure / backfill); claim may return Supabase Auth `access_token`/`refresh_token`/`anon_key` for Realtime; agentjwt remains for claim/status APIs. Owner staff UI/API hide and lock that account.
 - `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days?, default_receipt_station_id?, station_slip_show_category_group?, han_bitmap_font_px?, kitchen_ready_after_minutes? }` — writers merge owned slices onto the existing document (schedule/poll vs TTL+category vs receipt station vs kitchen ready-after). `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (功能管理). `kitchen_ready_after_minutes` integer **3–30** (default **10**) is edited only on 功能管理.
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Farvoo staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume). On-prem entitlement: `deployment_mode`, `license_valid_until`, `restaurant_installations`, lease fields; ops UI `/ops/licenses`; claim/check-in under `/api/platform/license/*` (install credential). Runtime gate remains `suspended_at` only (ADR-004).
+- Menu time slot: `menu_items.time_slot_id` (null = all day) shares `buffet_time_slots`; a table session orders in the slot nearest its `opened_at` (`lib/menu-time-slot`, same distance ladder as `resolve_buffet_prices`).
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
 - Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.

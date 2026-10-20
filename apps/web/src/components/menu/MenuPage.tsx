@@ -9,6 +9,7 @@ import {
 } from '@/lib/customer-menu-catalog-client-cache';
 import { reconcileGuestOrderingNoticeOnEntry } from '@/lib/guest-ordering-notice-client';
 import type { GuestOrderingNotice } from '@/lib/guest-ordering-notice';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import type { CartItem, MenuCategory, MenuItem } from '@/types';
@@ -22,6 +23,8 @@ import {
   parseSushiRoundSettingsFromRestaurantRow,
   shouldRenderSushiRoundMenuPage,
 } from '@/lib/table-order-round/settings';
+
+const EMPTY_MENU_TIME_SLOTS: MenuTimeSlot[] = [];
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
@@ -107,6 +110,7 @@ export function MenuPage({
   const menuCategories = catalog?.menuCategories ?? [];
   const recommendedItemIds = catalog?.recommendedItemIds ?? [];
   const notePresetCatalog = catalog?.notePresetCatalog ?? { groups: [] };
+  const menuTimeSlots = catalog?.menuTimeSlots ?? EMPTY_MENU_TIME_SLOTS;
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
   if (
@@ -123,6 +127,7 @@ export function MenuPage({
         menuItems={menuItems}
         menuCategories={menuCategories}
         recommendedItemIds={recommendedItemIds}
+        menuTimeSlots={menuTimeSlots}
         notePresetCatalog={notePresetCatalog}
         catalogReady={catalogReady}
         tableId={tableId}
@@ -140,6 +145,7 @@ export function MenuPage({
       menuItems={menuItems}
       menuCategories={menuCategories}
       recommendedItemIds={recommendedItemIds}
+      menuTimeSlots={menuTimeSlots}
       notePresetCatalog={notePresetCatalog}
       catalogReady={catalogReady}
       tableId={tableId}

@@ -56,6 +56,7 @@ export function CustomerStorefrontMenuPreview({
         menuItems: catalog.menuItems,
         menuCategories: catalog.menuCategories,
         recommendedItemIds: catalog.recommendedItemIds,
+        menuTimeSlotId: null,
         activeTopId: activeTop,
         activeSubpath,
       }),

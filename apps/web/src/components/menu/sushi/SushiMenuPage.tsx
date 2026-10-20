@@ -31,6 +31,8 @@ import {
   customerMenuNavTopCategories,
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
+import { useSessionMenuTimeSlotId } from '@/lib/use-session-menu-time-slot';
 import {
   EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
   filterMenuItemsByDietaryPrefs,
@@ -128,6 +130,8 @@ type Props = {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
+  /** Slot windows from the catalog (`menu_items.time_slot_id`). */
+  menuTimeSlots: MenuTimeSlot[];
   notePresetCatalog?: import('@/lib/menu-note-presets').MenuNotePresetCatalog;
   catalogReady?: boolean;
   tableId: string;
@@ -143,6 +147,7 @@ export function SushiMenuPage({
   menuItems,
   menuCategories,
   recommendedItemIds = [],
+  menuTimeSlots,
   notePresetCatalog = { groups: [] },
   catalogReady = true,
   tableId,
@@ -200,6 +205,7 @@ export function SushiMenuPage({
     isDemo,
     resumeScope: orderedOpen ? 'full' : 'gate',
   });
+  const menuTimeSlotId = useSessionMenuTimeSlotId(menuTimeSlots, activeSession?.opened_at);
 
   const refreshOrderedFromRealtime = useCallback(() => {
     void refreshSessionContext('full');
@@ -299,10 +305,18 @@ export function SushiMenuPage({
         menuCategories,
         menuItems: filteredMenuItems,
         recommendedItemIds,
+        menuTimeSlotId,
         activeTopId: activeTopCategory,
         activeSubpath,
       }),
-    [menuCategories, filteredMenuItems, recommendedItemIds, activeTopCategory, activeSubpath],
+    [
+      menuCategories,
+      filteredMenuItems,
+      recommendedItemIds,
+      menuTimeSlotId,
+      activeTopCategory,
+      activeSubpath,
+    ],
   );
   const currentTop = catalogView.currentTopId;
   const subCategories = catalogView.subCategories;
@@ -673,6 +687,7 @@ export function SushiMenuPage({
           if (
             result.error === 'per_person_limit_exceeded' ||
             result.error === 'limited_item_requires_headcount' ||
+            result.error === 'menu_item_off_time_slot' ||
             result.error === 'over_limit_price_missing'
           ) {
             showToast(messageForSushiLimitError(result.error, t), 'info');
@@ -760,7 +775,8 @@ export function SushiMenuPage({
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (
           failure.code === 'per_person_limit_exceeded' ||
-          failure.code === 'limited_item_requires_headcount'
+          failure.code === 'limited_item_requires_headcount' ||
+          failure.code === 'menu_item_off_time_slot'
         ) {
           showToast(messageForSushiLimitError(failure.code, t), 'info');
         } else if (failure.code === 'rate_limited') showToast(t.submitRateLimited, 'error');
@@ -849,6 +865,7 @@ export function SushiMenuPage({
           if (
             result.error === 'per_person_limit_exceeded' ||
             result.error === 'limited_item_requires_headcount' ||
+            result.error === 'menu_item_off_time_slot' ||
             result.error === 'over_limit_price_missing'
           ) {
             showToast(messageForSushiLimitError(result.error, t), 'info');

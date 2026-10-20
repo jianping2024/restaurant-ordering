@@ -1,5 +1,6 @@
 import type { MenuCategory, MenuItem } from '@/types';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 
 export type CustomerMenuCatalog = {
   menuItems: MenuItem[];
@@ -8,6 +9,8 @@ export type CustomerMenuCatalog = {
   recommendedItemIds: string[];
   /** Active note-preset groups/items for guest cart chips. */
   notePresetCatalog: MenuNotePresetCatalog;
+  /** Slot windows for `menu_items.time_slot_id`. */
+  menuTimeSlots: MenuTimeSlot[];
 };
 
 /** Full catalog payload from GET menu-catalog (version + body). */
@@ -23,8 +26,8 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-/** v5: menu image display URLs are root-relative `/storage/...` (no LAN host sticky). */
-const CACHE_SCHEMA_VERSION = 5;
+/** v6: catalog carries `menuTimeSlots` (dish time slots). */
+const CACHE_SCHEMA_VERSION = 6;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -71,6 +74,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (!parsed.catalog?.menuItems || !parsed.catalog?.menuCategories) return null;
     if (!Array.isArray(parsed.catalog.recommendedItemIds)) return null;
     if (!isMenuNotePresetCatalog(parsed.catalog.notePresetCatalog)) return null;
+    if (!Array.isArray(parsed.catalog.menuTimeSlots)) return null;
     return parsed;
   } catch {
     return null;
@@ -173,7 +177,8 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     !Array.isArray(row.menuItems) ||
     !Array.isArray(row.menuCategories) ||
     !Array.isArray(row.recommendedItemIds) ||
-    !isMenuNotePresetCatalog(row.notePresetCatalog)
+    !isMenuNotePresetCatalog(row.notePresetCatalog) ||
+    !Array.isArray(row.menuTimeSlots)
   ) {
     throw new Error('menu_catalog_invalid_body');
   }
@@ -186,6 +191,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     menuCategories: row.menuCategories as MenuCategory[],
     recommendedItemIds: row.recommendedItemIds as string[],
     notePresetCatalog: row.notePresetCatalog,
+    menuTimeSlots: row.menuTimeSlots as MenuTimeSlot[],
   };
 }
 
@@ -245,6 +251,7 @@ export function ensureCustomerMenuCatalog(params: {
         menuCategories: body.menuCategories,
         recommendedItemIds: body.recommendedItemIds,
         notePresetCatalog: body.notePresetCatalog,
+        menuTimeSlots: body.menuTimeSlots,
       });
     })
     .finally(() => {

@@ -164,6 +164,8 @@ export interface MenuItem {
   flavor_codes?: string[];
   /** Owner-marked vegetarian; false/missing = not vegetarian. */
   is_vegetarian?: boolean;
+  /** Menu time slot (`buffet_time_slots.id`); null/missing = served all day. */
+  time_slot_id?: string | null;
   /** Station slip prints name_pt (default true). docs/product/station-slip-multilang-names.zh.md */
   station_print_pt?: boolean;
   /** Station slip prints name_en (default false). */

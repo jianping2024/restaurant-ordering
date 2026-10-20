@@ -22,9 +22,18 @@ function mockAdminForAppend(
   categoryRows: Array<Record<string, unknown>> = [
     { id: CAT_RE, parent_id: null, item_code: 'RE' },
   ],
+  slotRows: Array<Record<string, unknown>> = [],
 ): SupabaseClient {
   return {
     from(table: string) {
+      if (table === 'buffet_time_slots') {
+        const chain = {
+          select: () => chain,
+          eq: () => chain,
+          order: async () => ({ data: slotRows, error: null }),
+        };
+        return chain;
+      }
       if (table === 'menu_items') {
         const chain = {
           select: () => chain,
@@ -54,6 +63,12 @@ function mockAdminForAppend(
 
 const MENU_A = 'e098534a-71c5-46f2-b6e4-5fc466519288';
 const MENU_B = 'a1b2c3d4-e5f6-4789-a012-3456789abcde';
+/** Tuesday 14:50 Lisbon. */
+const OPENED_AT_LUNCH = '2026-10-20T13:50:00.000Z';
+const SLOT_ROWS = [
+  { id: 'slot-lunch', name: '午市', start_time: '12:00:00', end_time: '15:00:00', weekdays: [0, 1, 2, 3, 4, 5, 6], sort_order: 0 },
+  { id: 'slot-dinner', name: '夜市', start_time: '19:00:00', end_time: '23:00:00', weekdays: [0, 1, 2, 3, 4, 5, 6], sort_order: 1 },
+];
 
 describe('parseAppendCartRawItems', () => {
   it('accepts menu_item_id rows', () => {
@@ -188,6 +203,7 @@ describe('resolveAppendCartItems', () => {
       ]),
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 2 }],
+      sessionOpenedAt: OPENED_AT_LUNCH,
       batchId: 'batch-test',
       addedAt: '2026-05-29T12:00:00.000Z',
     });
@@ -206,6 +222,7 @@ describe('resolveAppendCartItems', () => {
       admin: mockAdminForAppend([]),
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
+      sessionOpenedAt: OPENED_AT_LUNCH,
     });
     assert.equal(r.ok, false);
     if (r.ok) return;
@@ -227,10 +244,47 @@ describe('resolveAppendCartItems', () => {
       ]),
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
+      sessionOpenedAt: OPENED_AT_LUNCH,
     });
     assert.equal(r.ok, false);
     if (r.ok) return;
     assert.equal(r.error, 'menu_item_unavailable');
+  });
+
+  it('time slot: session opened at lunch accepts lunch + all-day dishes, rejects dinner dishes', async () => {
+    const rows = [
+      { id: MENU_A, category_id: CAT_RE, name_pt: 'Lunch set', price: 9, emoji: null, available: true, time_slot_id: 'slot-lunch' },
+      { id: MENU_B, category_id: CAT_RE, name_pt: 'Dinner set', price: 19, emoji: null, available: true, time_slot_id: 'slot-dinner' },
+    ];
+    const ok = await resolveAppendCartItems({
+      admin: mockAdminForAppend(rows, undefined, SLOT_ROWS),
+      restaurantId: RESTAURANT_ID,
+      rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
+      sessionOpenedAt: OPENED_AT_LUNCH,
+    });
+    assert.equal(ok.ok, true);
+
+    const rejected = await resolveAppendCartItems({
+      admin: mockAdminForAppend(rows, undefined, SLOT_ROWS),
+      restaurantId: RESTAURANT_ID,
+      rawItems: [
+        { menu_item_id: MENU_A, qty: 1 },
+        { menu_item_id: MENU_B, qty: 1 },
+      ],
+      sessionOpenedAt: OPENED_AT_LUNCH,
+    });
+    assert.equal(rejected.ok, false);
+    if (rejected.ok) return;
+    assert.equal(rejected.error, 'menu_item_off_time_slot');
+
+    // Same dinner dish into a session opened at 18:30 (early dinner) → accepted.
+    const early = await resolveAppendCartItems({
+      admin: mockAdminForAppend(rows, undefined, SLOT_ROWS),
+      restaurantId: RESTAURANT_ID,
+      rawItems: [{ menu_item_id: MENU_B, qty: 1 }],
+      sessionOpenedAt: '2026-10-20T17:30:00.000Z',
+    });
+    assert.equal(early.ok, true);
   });
 
   it('resolves carts larger than one menu_items .in chunk', async () => {
@@ -251,6 +305,7 @@ describe('resolveAppendCartItems', () => {
       admin: mockAdminForAppend(menuRows),
       restaurantId: RESTAURANT_ID,
       rawItems,
+      sessionOpenedAt: OPENED_AT_LUNCH,
       batchId: 'batch-chunk',
       addedAt: '2026-10-02T12:00:00.000Z',
     });

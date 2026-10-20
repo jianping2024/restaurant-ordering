@@ -65,6 +65,21 @@ function uniqueViolation(error: { code?: string } | null): boolean {
   return error?.code === '23505';
 }
 
+/** Insert/update failure of a menu item row → stable API error. */
+function menuItemWriteError(
+  error: { code?: string; message: string } | null,
+  fallback: 'insert_failed' | 'update_failed',
+): MenuMutationError {
+  if (uniqueViolation(error)) {
+    return { error: 'item_code_duplicate', message: error?.message, status: 409 };
+  }
+  // Composite FK (restaurant_id, time_slot_id): slot missing or another restaurant's.
+  if (error?.code === '23503' && error.message.includes('menu_items_time_slot_fkey')) {
+    return { error: 'time_slot_not_found', message: error.message, status: 400 };
+  }
+  return { error: fallback, message: error?.message, status: 500 };
+}
+
 function categoryDepth(categoryId: string, categories: MenuCategory[]): number {
   const row = categories.find((c) => c.id === categoryId);
   if (!row?.parent_id) return 1;
@@ -429,6 +444,8 @@ type MenuItemInput = {
   station_print_zh: boolean;
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
+  /** Null = all day. Same-restaurant check is the composite FK. */
+  time_slot_id: string | null;
 };
 
 function validateMenuItemInput(
@@ -502,6 +519,7 @@ function buildMenuItemPayload(
     item_code: normalizedCode,
     per_person_qty_limit: input.per_person_qty_limit,
     over_limit_unit_price: input.over_limit_unit_price,
+    time_slot_id: input.time_slot_id,
   };
 }
 
@@ -549,13 +567,7 @@ export async function createMenuItem(
     .select()
     .single();
 
-  if (error) {
-    return {
-      error: uniqueViolation(error) ? 'item_code_duplicate' : 'insert_failed',
-      message: error.message,
-      status: uniqueViolation(error) ? 409 : 500,
-    };
-  }
+  if (error) return menuItemWriteError(error, 'insert_failed');
 
   await invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
@@ -677,13 +689,7 @@ export async function updateMenuItem(
     .select()
     .single();
 
-  if (error) {
-    return {
-      error: uniqueViolation(error) ? 'item_code_duplicate' : 'update_failed',
-      message: error.message,
-      status: uniqueViolation(error) ? 409 : 500,
-    };
-  }
+  if (error) return menuItemWriteError(error, 'update_failed');
 
   await invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
@@ -1083,6 +1089,12 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     return { error: 'invalid_flavor_codes', status: 400 };
   }
 
+  let timeSlotId: string | null = null;
+  if (raw.time_slot_id != null && raw.time_slot_id !== '') {
+    timeSlotId = typeof raw.time_slot_id === 'string' ? parseTableIdParam(raw.time_slot_id) : null;
+    if (!timeSlotId) return { error: 'invalid_time_slot_id', status: 400 };
+  }
+
   const limits = normalizeMenuItemLimitFields({
     per_person_qty_limit: raw.per_person_qty_limit,
     over_limit_unit_price: raw.over_limit_unit_price,
@@ -1114,6 +1126,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     station_print_zh: raw.station_print_zh === true,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,
+    time_slot_id: timeSlotId,
   };
 }
 

@@ -1,6 +1,8 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
 import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
+import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { can } from '@/lib/permissions/can';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
@@ -15,6 +17,8 @@ export type DashboardMenu =
       recommendedItemIds: string[];
       notePresetGroups: MenuNotePresetGroup[];
       notePresets: MenuNotePreset[];
+      /** Slot choices for the dish form (`menu_items.time_slot_id`). */
+      menuTimeSlots: MenuTimeSlot[];
       canManagePrintStations: boolean;
       /** Store flag menu_flavor_hints_enabled (default false). */
       flavorHintsEnabled: boolean;
@@ -40,6 +44,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     { data: recommended, error: recommendedError },
     noteDictionary,
     { data: restaurantFlags },
+    menuTimeSlots,
   ] = await Promise.all([
     ctx.admin
       .from('menu_items')
@@ -66,6 +71,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
       .order('sort_order'),
     listMenuNotePresetDictionary(ctx.admin, ctx.restaurantId),
     ctx.admin.from('restaurants').select('feature_flags').eq('id', ctx.restaurantId).maybeSingle(),
+    loadMenuTimeSlots(ctx.admin, ctx.restaurantId),
   ]);
 
   if (itemsError) {
@@ -92,6 +98,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
     notePresetGroups: noteDictionary.groups,
     notePresets: noteDictionary.presets,
+    menuTimeSlots,
     canManagePrintStations,
     flavorHintsEnabled: isRestaurantFeatureEnabled(
       restaurantFlags?.feature_flags,

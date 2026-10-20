@@ -697,6 +697,7 @@ export async function finalizeRound(params: {
       admin,
       restaurantId,
       rawItems,
+      sessionOpenedAt: writeContext.context.session.opened_at,
       buffetServiceMode: params.buffetServiceMode ?? 'sushi',
       staffAssisted: false,
       sessionOrders: writeContext.context.sessionOrders,
@@ -855,12 +856,13 @@ export async function loadMenuItemForRoundLine(
       available: boolean;
       per_person_qty_limit: number | null;
       over_limit_unit_price: number | null;
+      time_slot_id: string | null;
     }
   | { ok: false; error: 'menu_item_not_found' | 'menu_items_query_failed' }
 > {
   const { data, error } = await admin
     .from('menu_items')
-    .select('id, price, available, per_person_qty_limit, over_limit_unit_price')
+    .select('id, price, available, per_person_qty_limit, over_limit_unit_price, time_slot_id')
     .eq('restaurant_id', restaurantId)
     .eq('id', menuItemId)
     .maybeSingle();
@@ -878,5 +880,6 @@ export async function loadMenuItemForRoundLine(
     available: data.available === true,
     per_person_qty_limit: perPersonQtyLimit,
     over_limit_unit_price: overLimitUnitPrice,
+    time_slot_id: typeof data.time_slot_id === 'string' ? data.time_slot_id : null,
   };
 }

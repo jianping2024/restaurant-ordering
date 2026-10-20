@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { menuItemsServedInSession } from '@/lib/menu-time-slot-server';
 import {
   categoryCodePathFromLeaf,
   type MenuCategoryForPrint,
@@ -27,6 +28,7 @@ export type ResolveAppendCartError =
   | 'invalid_items'
   | 'menu_item_not_found'
   | 'menu_item_unavailable'
+  | 'menu_item_off_time_slot'
   | SushiLimitError;
 
 export type ResolveAppendCartSuccess = {
@@ -57,6 +59,7 @@ type MenuItemRow = {
   station_print_pt?: boolean | null;
   station_print_en?: boolean | null;
   station_print_zh?: boolean | null;
+  time_slot_id: string | null;
 };
 
 export type ParsedAppendCartLine = {
@@ -137,7 +140,7 @@ async function loadMenuItemsByIds(
     const { data, error } = await admin
       .from('menu_items')
       .select(
-        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price, station_print_pt, station_print_en, station_print_zh',
+        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price, station_print_pt, station_print_en, station_print_zh, time_slot_id',
       )
       .eq('restaurant_id', restaurantId)
       .in('id', chunk);
@@ -283,6 +286,8 @@ export async function resolveAppendCartItems(params: {
   admin: SupabaseClient;
   restaurantId: string;
   rawItems: unknown;
+  /** Session the lines go into — its `opened_at` fixes the menu time slot. */
+  sessionOpenedAt: string;
   batchId?: string;
   addedAt?: string;
   /** When omitted, limits are not applied (classic behavior). */
@@ -353,6 +358,16 @@ export async function resolveAppendCartItems(params: {
       menuRowToOrderItem(menu, line.qty, line.note, batchId, addedAt, categories, limitRule),
     );
     batchQtyByItem.set(line.menuItemId, alreadyInBatch + line.qty);
+  }
+
+  const served = await menuItemsServedInSession({
+    admin: params.admin,
+    restaurantId: params.restaurantId,
+    sessionOpenedAt: params.sessionOpenedAt,
+    items: data,
+  });
+  if (!served) {
+    return { ok: false, error: 'menu_item_off_time_slot' };
   }
 
   return { ok: true, items, batchId };

@@ -55,6 +55,7 @@ export type MenuItemErrorLabels = {
   invalidPerPersonLimit?: string;
   invalidOverLimitPrice?: string;
   limitRequiresOveragePrice?: string;
+  errTimeSlotNotFound: string;
 };
 
 export function mapMenuCategoryApiError(
@@ -113,6 +114,9 @@ export function mapMenuItemApiError(
       return labels.invalidOverLimitPrice || labels.validPrice;
     case 'limit_requires_overage_price':
       return labels.limitRequiresOveragePrice || labels.saveFail;
+    case 'time_slot_not_found':
+    case 'invalid_time_slot_id':
+      return labels.errTimeSlotNotFound;
     default:
       return message || labels.saveFail;
   }
@@ -165,6 +169,8 @@ export type MenuItemMutationInput = {
   station_print_zh?: boolean;
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;
+  /** Null = all day. Always sent so an edit can clear a slot. */
+  time_slot_id: string | null;
 };
 
 export type PrintStationInput = {

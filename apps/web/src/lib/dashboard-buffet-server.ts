@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
 import type { MutationError } from '@/lib/dashboard-api-shared';
+import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import {
   DEFAULT_BUFFET_VAT_RATE,
   isAllowedMenuVatRate,
@@ -209,6 +210,7 @@ export async function createBuffetTimeSlot(
     sort_order: input.sort_order,
   });
   if (error) return { error: 'insert_failed', message: error.message, status: 500 };
+  await invalidateCustomerMenuCatalog(restaurantId);
 
   const slotsRes = await loadSlotsSlice(admin, restaurantId);
   if ('error' in slotsRes) return slotsRes;
@@ -229,6 +231,8 @@ export async function deleteBuffetTimeSlot(
     .eq('id', id)
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
+  // FK sets those dishes' time_slot_id to null (all day) — guest catalog must reload.
+  await invalidateCustomerMenuCatalog(restaurantId);
 
   return mergeSlices([
     await loadSlotsSlice(admin, restaurantId),
@@ -251,6 +255,7 @@ export async function updateBuffetTimeSlot(
     .eq('id', id)
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
+  await invalidateCustomerMenuCatalog(restaurantId);
 
   const slotsRes = await loadSlotsSlice(admin, restaurantId);
   if ('error' in slotsRes) return slotsRes;

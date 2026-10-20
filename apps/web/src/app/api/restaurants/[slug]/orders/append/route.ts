@@ -187,6 +187,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       admin,
       restaurantId: rid,
       rawItems: body.items,
+      sessionOpenedAt: context.session.opened_at,
       buffetServiceMode: restaurant.buffetServiceMode,
       staffAssisted: waiterFlow,
       sessionOrders: context.sessionOrders,

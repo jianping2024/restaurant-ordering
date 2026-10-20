@@ -31,6 +31,8 @@ import {
   customerMenuNavTopCategories,
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
+import { useSessionMenuTimeSlotId } from '@/lib/use-session-menu-time-slot';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
@@ -154,6 +156,8 @@ interface Props {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
+  /** Slot windows from the catalog (`menu_items.time_slot_id`). */
+  menuTimeSlots: MenuTimeSlot[];
   notePresetCatalog?: MenuNotePresetCatalog;
   /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
   catalogReady?: boolean;
@@ -176,6 +180,7 @@ export function MenuOrderingController({
   menuItems,
   menuCategories,
   recommendedItemIds = [],
+  menuTimeSlots,
   notePresetCatalog = { groups: [] },
   catalogReady = true,
   tableId,
@@ -245,6 +250,7 @@ export function MenuOrderingController({
     // Guest: full while ordered drawer open; otherwise gate.
     resumeScope: orderedOpen || !!staffAssisted ? 'full' : 'gate',
   });
+  const menuTimeSlotId = useSessionMenuTimeSlotId(menuTimeSlots, activeSession?.opened_at);
 
   const refreshOrderedFromRealtime = useCallback(() => {
     void refreshSessionContext('full');
@@ -299,10 +305,18 @@ export function MenuOrderingController({
         menuCategories,
         menuItems,
         recommendedItemIds,
+        menuTimeSlotId,
         activeTopId: activeTopCategory,
         activeSubpath,
       }),
-    [menuCategories, menuItems, recommendedItemIds, activeTopCategory, activeSubpath],
+    [
+      menuCategories,
+      menuItems,
+      recommendedItemIds,
+      menuTimeSlotId,
+      activeTopCategory,
+      activeSubpath,
+    ],
   );
   const currentTop = catalogView.currentTopId;
   const subCategories = catalogView.subCategories;
@@ -651,7 +665,8 @@ export function MenuOrderingController({
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (
           failure.code === 'per_person_limit_exceeded' ||
-          failure.code === 'limited_item_requires_headcount'
+          failure.code === 'limited_item_requires_headcount' ||
+          failure.code === 'menu_item_off_time_slot'
         ) {
           showToast(messageForSushiLimitError(failure.code, t), 'info');
         }

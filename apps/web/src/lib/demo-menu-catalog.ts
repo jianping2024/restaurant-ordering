@@ -60,5 +60,6 @@ export function getDemoMenuCatalog(): CustomerMenuCatalog {
         },
       ],
     },
+    menuTimeSlots: [],
   };
 }

@@ -7,6 +7,8 @@ import {
   type MenuNotePresetCatalog,
 } from '@/lib/menu-note-presets';
 import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
+import type { MenuTimeSlot } from '@/lib/menu-time-slot';
+import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
 
 export function customerMenuCatalogTag(restaurantId: string): string {
   return `customer-menu-catalog:${restaurantId}`;
@@ -50,6 +52,8 @@ export type CustomerMenuCatalogRows = {
   menuCategories: MenuCategory[];
   recommendedItemIds: string[];
   notePresetCatalog: MenuNotePresetCatalog;
+  /** Slot windows for `menu_items.time_slot_id` (guest filters per table session). */
+  menuTimeSlots: MenuTimeSlot[];
 };
 
 async function loadCustomerMenuCatalogUncached(
@@ -61,6 +65,7 @@ async function loadCustomerMenuCatalogUncached(
     { data: menuCategories },
     { data: recommended },
     noteDictionary,
+    menuTimeSlots,
   ] = await Promise.all([
     admin
       .from('menu_items')
@@ -80,6 +85,7 @@ async function loadCustomerMenuCatalogUncached(
       .eq('restaurant_id', restaurantId)
       .order('sort_order'),
     listMenuNotePresetDictionary(admin, restaurantId),
+    loadMenuTimeSlots(admin, restaurantId),
   ]);
 
   if ('error' in noteDictionary) {
@@ -94,6 +100,7 @@ async function loadCustomerMenuCatalogUncached(
       noteDictionary.groups,
       noteDictionary.presets,
     ),
+    menuTimeSlots,
   };
 }
 

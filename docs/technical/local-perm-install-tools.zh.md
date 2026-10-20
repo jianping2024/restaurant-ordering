@@ -59,7 +59,7 @@ Ubuntu 自带的简单主机防火墙：决定「谁可以连进这台机的哪�
 
 | 工具 | 何时需要 |
 |------|----------|
-| **cloudflared** | 要公网 HTTPS 扫码（指到本机 `:80`） |
+| **cloudflared** | 初装必装包；公网扫码指本机 `:80`。面板建本店 Tunnel 后用 `setup-cloudflared-tunnel.sh --token … --origin https://…` 绑 connector |
 | **tunnel-health**（随包） | 检测/记录 Tunnel 闪断；日志 `/opt/mesa/logs/tunnel/`；timer 每 5 分钟 |
 | **restic** | 本机日备后加密上传 S3/R2 等（配 `MESA_HOME/config/backup.env`） |
 | **jq** / **python3** | 少数 vendor/回滚辅助；非营业硬依赖 |
@@ -98,7 +98,7 @@ Ubuntu 自带的简单主机防火墙：决定「谁可以连进这台机的哪�
 - [ ] curl / openssl / unzip；建议 rsync、ca-certificates  
 - [ ] Tailscale + openssh-server（+ ufw）  
 - [ ] stamped zip → `install-ubuntu.sh`  
-- [ ] 公网扫码 → cloudflared + Auth 白名单  
+- [ ] 公网扫码 → 本店 Tunnel + `setup-cloudflared-tunnel.sh`（token/origin）+ Auth 白名单  
 - [ ] 日备上云 → restic + `backup.env`  
 - [ ] 另机 Print Agent + 打印机；Agent 填局域网 IP  
 

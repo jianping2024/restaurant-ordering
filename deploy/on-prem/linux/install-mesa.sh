@@ -3,6 +3,7 @@
 # Usage:
 #   sudo ./install-mesa.sh [--mesa-home /opt/mesa] [--skip-pull] [--skip-autostart] [--build-web]
 # Run from the unpacked pack (or from deploy/on-prem/linux/).
+# Always apt-installs cloudflared (connector token / Public Hostname still done on the store after).
 set -euo pipefail
 
 MESA_HOME_DEFAULT="/opt/mesa"
@@ -21,6 +22,10 @@ Options:
   --skip-autostart    Do not install systemd unit
   --build-web         Force docker compose --build for web
   -h, --help          Show help
+
+After install, bind this store's Tunnel:
+  sudo \$MESA_HOME/current/deploy/on-prem/scripts/setup-cloudflared-tunnel.sh \\
+    --token '<Zero Trust token>' --origin https://店.farvoo.com
 EOF
 }
 
@@ -60,6 +65,11 @@ PACK_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 command -v docker >/dev/null 2>&1 || die "未找到 docker。请先安装 Docker Engine + Compose 插件（Ubuntu 官方文档）。"
 docker info >/dev/null 2>&1 || die "无法连接 Docker daemon。请确认 docker 服务已启动，且当前用户可访问。"
 docker compose version >/dev/null 2>&1 || die "需要 Docker Compose v2 插件（docker compose）。"
+
+# cloudflared binary is required. Connector token / Public Hostname: after install (setup-cloudflared-tunnel.sh).
+SETUP_TUNNEL_SH="$SOURCE_ONPREM/scripts/setup-cloudflared-tunnel.sh"
+[[ -f "$SETUP_TUNNEL_SH" ]] || die "缺少 scripts/setup-cloudflared-tunnel.sh（发行包不完整）"
+bash "$SETUP_TUNNEL_SH" --install-package-only || die "cloudflared 安装失败（公网 Tunnel 依赖）"
 
 MESA_HOME="$(cd / && mkdir -p "$MESA_HOME" && cd "$MESA_HOME" && pwd)"
 log "MESA_HOME=$MESA_HOME"
@@ -321,5 +331,6 @@ log "  栈目录: $DEST_ONPREM"
 log "  启停:  $MESA_HOME/bin/mesa-stack up|down|ps|logs"
 log "  认领后必跑: cd $DEST_ONPREM && sudo ./scripts/verify-on-prem-ready.sh post-claim"
 log "  打印:  另装 Windows MesaPrintAgent，服务器地址填 $WEB_URL"
-log "  Cloudflare Tunnel → 本机 edge :${MESA_EDGE_PORT:-80}；店内断网仍用局域网打开同一套路径。"
+log "  Tunnel 绑店: sudo $DEST_ONPREM/scripts/setup-cloudflared-tunnel.sh --token … --origin https://店.farvoo.com"
+log "    （cloudflared 已装；面板先建本店 Tunnel + Hostname → http://127.0.0.1:80）"
 log ""

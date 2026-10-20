@@ -230,6 +230,15 @@ if ! grep -q 'verify-on-prem-ready.sh upgrade' "$UPGRADE_SH"; then
   echo "ERROR: upgrade.sh must run verify-on-prem-ready.sh upgrade" >&2
   exit 1
 fi
+TUNNEL_SETUP_SH="$STAGE/deploy/on-prem/scripts/setup-cloudflared-tunnel.sh"
+if [[ ! -f "$TUNNEL_SETUP_SH" ]]; then
+  echo "ERROR: pack must include scripts/setup-cloudflared-tunnel.sh" >&2
+  exit 1
+fi
+if ! grep -q 'setup-cloudflared-tunnel.sh' "$INSTALL_SH" || ! grep -q -- '--install-package-only' "$INSTALL_SH"; then
+  echo "ERROR: install-mesa.sh must install cloudflared via setup-cloudflared-tunnel.sh --install-package-only" >&2
+  exit 1
+fi
 # Gate: web build identity must be MESA_WEB_VERSION (getWebAppBuildInfo) — not package.json.
 if ! grep -q 'MESA_WEB_VERSION' "$WEB_DOCKERFILE"; then
   echo "ERROR: apps/web/Dockerfile must bake MESA_WEB_VERSION (web build identity)" >&2

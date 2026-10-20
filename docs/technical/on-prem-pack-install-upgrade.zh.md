@@ -60,6 +60,7 @@ chmod +x install-ubuntu.sh
 sudo ./install-ubuntu.sh
 # 或：sudo ./install-ubuntu.sh --mesa-home /opt/mesa
 # 首次若需当场编 web：加 --build-web
+# 初装会 apt 安装 cloudflared（不写 token）
 ```
 
 装完后：
@@ -68,7 +69,7 @@ sudo ./install-ubuntu.sh
 2. 云 Ops 安装码 + 店主密码认领 → 跳转 `/auth/login`
 3. 局域网正式入口：`http://<店内IP>/`（如 `http://192.168.0.141/`）
 4. Print Agent「服务器地址」：按 **§2.2**（局域网 edge origin，勿 `localhost` / `:3000`）
-5. 若启用公网 Tunnel / HTTPS：按 **§2.1**（Auth 白名单）+ **§2.4**（http→https 清单）
+5. **公网 Tunnel（必做）：** Cloudflare 为本店建 Tunnel + Hostname → `http://127.0.0.1:80`，再 `setup-cloudflared-tunnel.sh --token … --origin https://店.farvoo.com`（§2.1 白名单 + §2.4）
 6. **安全基线验收：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) §5（Kong 仅 loopback、正式入口无 `:3000`/`:8000`、密码策略、勿对公网暴露库口）
 
 **内置超管（prem only，店主影子）：** 安装脚本会 `POST /api/setup/ensure-prem-builtin-admin`。登录名 `admin`，默认密码 `centos(123)`。不改 `owner_id`、不进员工列表；认领前不可登录，认领后与店主同一套身份（`loadOwnerRestaurantForUser`）。
@@ -181,6 +182,18 @@ WHERE pubname='supabase_realtime' ORDER BY 1;
 ### 2.4 局域网仍是 HTTP，公网改 HTTPS（Tunnel）要做的事
 
 店内 edge 继续 `http://<店内IP>/`；公网用 Cloudflare Tunnel 到 `https://你的域`。**不是**整机装证书，而是加一条公网 https 入口。
+
+**一家店一条 Tunnel**（connector 装在该店机）。初装已 apt 装好 `cloudflared`。Cloudflare 面板先 Create Tunnel + Public Hostname（Service = `http://127.0.0.1:80`），再在店机绑 token（勿把多店 hostname 挂在同一条仅连着 A 店的 Tunnel 上）。
+
+```bash
+cd /opt/mesa/current/deploy/on-prem
+sudo MESA_HOME=/opt/mesa ./scripts/setup-cloudflared-tunnel.sh \
+  --token '<Zero Trust 复制的 connector token>' \
+  --origin https://grandefortuna.farvoo.com
+# 脚本会：service install → unit 加 --protocol http2 →
+#   追加 ADDITIONAL_REDIRECT_URLS → force-recreate auth
+# （包已装过则可加 --skip-apt）
+```
 
 #### Cloudflare / cloudflared（必做）
 

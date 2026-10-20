@@ -8,6 +8,9 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 装机时建议有外网（首次拉镜像）
 - 远程运维强烈建议：Tailscale + openssh-server（运维通道；不是顾客入口）
 - 公网扫码：Cloudflare Tunnel（cloudflared）指到本机 :80；与 Tailscale 分工
+  初装必装 cloudflared 包。一家店一条 Tunnel；面板建好后店机绑 token：
+    sudo MESA_HOME=/opt/mesa ./scripts/setup-cloudflared-tunnel.sh \
+      --token '<connector token>' --origin https://店.farvoo.com
 - 打印：另需一台可跑 Windows MesaPrintAgent 的电脑（打印不进 Docker）
 
 二、安装目录（MESA_HOME）
@@ -41,7 +44,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
    - 仅 ADDITIONAL_REDIRECT_URLS 即可；MESA_TUNNEL_ORIGIN 可选（bootstrap 时设可自动并入）
    - 改完：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth
    - 店内断网仍用局域网 IP；DNS 未配好也可先写白名单
-8. 可选：Cloudflare Tunnel 指到本机 :80（公网入口）；白名单见上一步
+8. Cloudflare Tunnel（必做）：面板为本店 Create Tunnel + Hostname→:80，再跑
+   setup-cloudflared-tunnel.sh --token … --origin https://店.farvoo.com（白名单见上一步）
 9. 看板不实时：见文档 §2.3（publication；升级包会跑 ensure）
 
 四、连云 Ops 授权

@@ -265,6 +265,33 @@ systemctl list-timers mesa-tunnel-health.timer
 
 **为何容易坑：** 外网 https，Tunnel→Caddy 常仍报 `X-Forwarded-Proto=http`；再叠加 QUIC 丢 WebSocket 升级头。Mode B claim 优先 Agent 的 `https://` `api_base`；cloudflared 用 **http2**。
 
+### 2.5 Edge 访问耗时（顾客/员工「卡不卡」）
+
+**唯一入口**是 Caddy `:80`（局域网与 `*.farvoo.com` Tunnel 都进这里）。访问日志在 **`mesa-on-prem-edge-1` stdout**（JSON，`duration` 单位 **毫秒**）；健康检查 `/api/health/live|ready` 不记；`apikey` / `token` / Cookie / Authorization 已脱敏或去掉。Docker 日志环：**每文件 20MB × 5**（与 web 同级，防撑盘）。
+
+**不改业务代码**；只多写访问行。店内量级下对延迟可忽略。
+
+```bash
+# 最近 1 小时分位数 + 按路径 p95 + 慢请求（默认 ≥1000ms）
+/opt/mesa/current/deploy/on-prem/scripts/edge-access-summary.sh
+
+# 晚饭窗口 / 更严阈值
+/opt/mesa/current/deploy/on-prem/scripts/edge-access-summary.sh --since 3h --slow-ms 500
+
+# 原始行（可选）
+docker logs --since 30m mesa-on-prem-edge-1 2>&1 | grep '"duration"' | tail
+```
+
+**怎么读：**
+
+| 现象 | 含义 |
+|------|------|
+| 摘要里 p95 已很高（如 >1000ms） | 店内上游（Web/Kong/库）或入口处理慢——先查路径 Top |
+| 本机摘要很快，手机仍卡 | 更像手机网 / Cloudflare 路上；对比 `curl -w '%{time_total}\n' -o /dev/null -sS https://店.farvoo.com/…` |
+| 无 duration 行 | 包未含新 `Caddyfile`，或 edge 未 recreate——升级后需 edge 载入新配置 |
+
+升级含本改动的包后，若只换了 `Caddyfile`：`cd /opt/mesa/current/deploy/on-prem && sudo -E ./scripts/stack.sh up -d --force-recreate edge`（或走完整 `upgrade.sh`）。
+
 ---
 
 ## 3. 目标机：升级（已有 `/opt/mesa`）

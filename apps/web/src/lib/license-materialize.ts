@@ -6,6 +6,7 @@ import {
   ensurePrintAgentStaff,
   isRestaurantSuspended,
   normalizeBuffetServiceMode,
+  normalizeRestaurantPlan,
   type DeploymentMode,
 } from '@mesa/shared';
 import {
@@ -184,7 +185,7 @@ export async function syncOnPremLicenseFromPlatform(
         license_lease_until: json.lease.lease_until,
         license_lease_token: json.leaseToken,
         buffet_service_mode: normalizeBuffetServiceMode(json.buffetServiceMode),
-        ...(typeof json.plan === 'string' ? { plan: json.plan } : {}),
+        plan: normalizeRestaurantPlan(json.plan),
         ...(json.proValidUntil !== undefined ? { pro_valid_until: json.proValidUntil } : {}),
       })
       .eq('id', restaurantId);
@@ -269,7 +270,8 @@ export async function applyOnPremClaim(
     license_lease_token: snap.leaseToken,
     suspended_at: snap.suspendedAt,
     suspension_reason: snap.suspensionReason,
-    ...(typeof snap.plan === 'string' ? { plan: snap.plan } : {}),
+    // Always stamp plan — never rely on column DEFAULT (stale 'free' broke /setup claim).
+    plan: normalizeRestaurantPlan(snap.plan),
     ...(snap.proValidUntil !== undefined ? { pro_valid_until: snap.proValidUntil } : {}),
   };
 

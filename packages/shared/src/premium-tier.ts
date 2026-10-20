@@ -18,6 +18,16 @@ export function isRestaurantPlan(value: string | null | undefined): value is Res
   return value === 'basic' || value === 'pro';
 }
 
+/**
+ * Persist-safe plan for restaurants.plan (CHECK basic|pro).
+ * Legacy `free` → basic; missing/invalid → basic.
+ */
+export function normalizeRestaurantPlan(value: string | null | undefined): RestaurantPlan {
+  if (value === 'pro') return 'pro';
+  if (value === 'basic' || value === 'free') return 'basic';
+  return 'basic';
+}
+
 export function isPremiumKey(value: string): value is PremiumKey {
   return (PREMIUM_KEYS as readonly string[]).includes(value);
 }

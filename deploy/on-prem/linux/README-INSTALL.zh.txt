@@ -47,6 +47,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 四、连云 Ops 授权
 - 先在云 Ops 登记「本地」门店并签发安装码
 - 安装包只预置 MESA_PLATFORM_LICENSE_URL（bootstrap 写入 .env）
+- /setup 认领会写入 plan（basic|pro）；发行 baseline 须含 plan DEFAULT basic（covered 对齐 tip）
+  （若旧包报 restaurants_plan_check：升含该迁移 + tip baseline 的包，Ops 发新安装码再认领）
 - /setup 认领成功后，平台下发 checkinCredential + leaseSecret，写入宿主机权威文件（升级保留）：
     $MESA_HOME/current/deploy/on-prem/license-state/platform.json
   （容器内 MESA_LICENSE_CONFIG_PATH=/mesa-license-state/platform.json）

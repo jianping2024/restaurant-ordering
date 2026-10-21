@@ -281,6 +281,8 @@ cmd_hook_commit() {
   # Any `git … commit` segment (incl. `git -C dir commit`, `cd x && git commit`).
   grep -qE '(^|[;&|[:space:]])git[[:space:]][^;&|]*\bcommit([[:space:]]|$)' <<<"$command" || exit 0
   rebind_root_from_command "$command"
+  # Foreign repo (e.g. farvoo-fatura): no Mesa gate markers — do not block.
+  [[ -f "$ROOT/scripts/agent-gates/gate.sh" ]] || exit 0
   # Conflict-resolution commit of a merge: content was gated on its branch.
   [[ -f "$(git rev-parse --git-path MERGE_HEAD)" ]] && exit 0
   [[ -n "$(changed_product_files)" ]] || exit 0

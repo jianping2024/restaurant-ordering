@@ -13,11 +13,13 @@
 #   gate.sh scan     validate scan.md, record scan marker
 #   gate.sh check    scoped lint + typecheck → commit gate
 #   gate.sh build    scoped production build → optional helper (pack/on-prem; not push)
-#   gate.sh uat      validate uat.md, record UAT marker
+#   gate.sh uat           validate uat.md (## 测试项 + ## 证据), record UAT marker
+#   gate.sh uat-evidence  run a command, append exit=N line under ## 证据
 #   gate.sh status
-#   gate.sh hook-browser | hook-commit | hook-push   (stdin: PreToolUse JSON)
+#   gate.sh hook-browser | hook-commit | hook-push   (stdin: PreToolUse / Cursor shell JSON)
 #
-# Block contract (Claude + Codex): exit 2 + reason on stderr.
+# Block contract (Claude + Codex + Cursor): exit 2 + reason on stderr.
+# Cursor also uses .cursor/hooks.json → beforeShellExecution (same scripts).
 set -euo pipefail
 
 ROOT="$(git -C "${CLAUDE_PROJECT_DIR:-$PWD}" rev-parse --show-toplevel)"
@@ -166,16 +168,77 @@ cmd_build() {
   echo "构建标记已记录（web=${web} ops=${ops}）— 供 pack/on-prem；不是 commit/push 门禁"
 }
 
+# Extract ## 证据 … until next ## heading (or EOF).
+uat_evidence_section() {
+  local report="$1"
+  awk '
+    /^## 证据/ { on=1; next }
+    /^## / && on { exit }
+    on { print }
+  ' "$report"
+}
+
+# Machine evidence: at least one exit=0 from an allowed runner; no non-zero exits in ## 证据.
+validate_uat_evidence() {
+  local report="$1" files evidence
+  grep -qF '## 证据' "$report" || die "实测报告缺少「## 证据」（禁止只写叙述 pass；用 gate.sh uat-evidence 记录命令退出码）"
+  evidence="$(uat_evidence_section "$report")"
+  [[ -n "$(echo "$evidence" | sed '/^[[:space:]]*$/d')" ]] || die "「## 证据」为空。先跑：bash scripts/agent-gates/gate.sh uat-evidence -- <命令>"
+  if echo "$evidence" | grep -qiE 'exit[[:space:]]*=[[:space:]]*([1-9][0-9]*)'; then
+    die "「## 证据」里有非零 exit=，修好并重测后再记录。"
+  fi
+  echo "$evidence" | grep -qiE 'exit[[:space:]]*=[[:space:]]*0' || die "「## 证据」没有任何 exit=0。用 gate.sh uat-evidence 跑命令并写入。"
+  files="$(changed_product_files)"
+  if echo "$files" | grep -qE '^(apps/web|apps/ops|packages)/'; then
+    echo "$evidence" | grep -qF 'mesa-local-uat' || die "web/ops/packages 改动：证据须含 mesa-local-uat（gate.sh uat-evidence -- node scripts/mesa-local-uat.mjs …）"
+  fi
+  if echo "$files" | grep -qE '^apps/print-agent/' && ! echo "$files" | grep -qE '^(apps/web|apps/ops|packages)/'; then
+    echo "$evidence" | grep -qiE 'go vet|go test|mesa-print-smoke' || die "仅 print-agent 改动：证据须含 go vet / go test / mesa-print-smoke 之一"
+  fi
+}
+
+cmd_uat_evidence() {
+  local report="$GATE_DIR/uat.md" cmd_line ec=0 ts
+  mkdir -p "$GATE_DIR"
+  # Usage: gate.sh uat-evidence -- <command...>
+  if [[ "${1:-}" == "--" ]]; then shift; fi
+  (($# >= 1)) || die "usage: gate.sh uat-evidence -- <command...>"
+  cmd_line="$*"
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  set +e
+  "$@"
+  ec=$?
+  set -e
+  if [[ ! -f "$report" ]]; then
+    cat >"$report" <<EOF
+# UAT
+
+## 测试项
+
+（先写测试项，再记证据）
+
+## 证据
+
+EOF
+  elif ! grep -qF '## 证据' "$report"; then
+    printf '\n## 证据\n\n' >>"$report"
+  fi
+  printf -- '- %s `%s` exit=%s\n' "$ts" "$cmd_line" "$ec" >>"$report"
+  echo "已追加证据：exit=$ec ← $cmd_line"
+  return "$ec"
+}
+
 cmd_uat() {
   local report="$GATE_DIR/uat.md" fp
   fp="$(fingerprint)"
   marker_ok scan "$fp" || die "当前代码还没通过清冗余（gate.sh scan），实测结果不算数。"
-  [[ -f "$report" ]] || die "缺少实测报告：${report}（需含「## 测试项」，逐项写 pass）"
+  [[ -f "$report" ]] || die "缺少实测报告：${report}（需含「## 测试项」+「## 证据」，逐项写 pass；证据用 gate.sh uat-evidence）"
   grep -qF '## 测试项' "$report" || die "实测报告缺少「## 测试项」"
   grep -qiE '\bpass\b|通过' "$report" || die "实测报告没有任何通过项"
   if grep -qiE '\bfail\b|未通过' "$report"; then
     die "实测报告里有失败项，修好并重测后再记录。"
   fi
+  validate_uat_evidence "$report"
   record uat "$fp"
   echo "实测标记已记录"
 }
@@ -197,10 +260,16 @@ block() {
   exit 2
 }
 
+# Claude/Codex: .tool_input.command；Cursor beforeShellExecution: .command
+hook_command_from_stdin() {
+  local input="$1"
+  jq -r '.tool_input.command // .command // ""' <<<"$input" 2>/dev/null || true
+}
+
 cmd_hook_browser() {
   local input command
   input="$(cat)"
-  command="$(jq -r '.tool_input.command // ""' <<<"$input" 2>/dev/null || true)"
+  command="$(hook_command_from_stdin "$input")"
   [[ -n "$command" ]] && rebind_root_from_command "$command"
   # Only uncommitted product WIP blocks browser. Committed-on-branch (clean tree) may retest.
   [[ -n "$(wip_product_files)" ]] || exit 0
@@ -211,7 +280,7 @@ cmd_hook_browser() {
 cmd_hook_commit() {
   local input command fp missing=()
   input="$(cat)"
-  command="$(jq -r '.tool_input.command // ""' <<<"$input")"
+  command="$(hook_command_from_stdin "$input")"
   # Any `git … commit` segment (incl. `git -C dir commit`, `cd x && git commit`).
   grep -qE '(^|[;&|[:space:]])git[[:space:]][^;&|]*\bcommit([[:space:]]|$)' <<<"$command" || exit 0
   rebind_root_from_command "$command"
@@ -229,7 +298,7 @@ cmd_hook_commit() {
 cmd_hook_push() {
   local input command
   input="$(cat)"
-  command="$(jq -r '.tool_input.command // ""' <<<"$input")"
+  command="$(hook_command_from_stdin "$input")"
   # Remote `git push` only — not `git stash push` / `git stash push -u`.
   grep -qE 'git[[:space:]]+stash' <<<"$command" && exit 0
   grep -qE '(^|[;&|[:space:]])git[[:space:]]([^;&|]*[[:space:]])?push([[:space:]]|$)' <<<"$command" || exit 0
@@ -245,9 +314,10 @@ case "${1:-}" in
   check) cmd_check ;;
   build) cmd_build ;;
   uat) cmd_uat ;;
+  uat-evidence) shift; cmd_uat_evidence "$@" ;;
   status) cmd_status ;;
   hook-browser) cmd_hook_browser ;;
   hook-commit) cmd_hook_commit ;;
   hook-push) cmd_hook_push ;;
-  *) die "usage: gate.sh scan|check|build|uat|status|fingerprint|hook-browser|hook-commit|hook-push" ;;
+  *) die "usage: gate.sh scan|check|build|uat|uat-evidence|status|fingerprint|hook-browser|hook-commit|hook-push" ;;
 esac

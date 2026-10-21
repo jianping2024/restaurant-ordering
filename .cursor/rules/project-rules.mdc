@@ -13,7 +13,7 @@ alwaysApply: true
 4. [`redundancy-cleanup-before-uat.mdc`](./redundancy-cleanup-before-uat.mdc) — after implement, **before UAT**: clear confirmed redundancy on the task surface
 5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
 6. [`business-scenario-testing.mdc`](./business-scenario-testing.mdc) — 编码后中文业务场景报告 + 多角色/顺序/并发/恢复粒度；落盘 `docs/test-scenarios/`（与 UAT 叠加，不替代 API/UI 断言）
-7. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex 共用 `gate.sh`）
+7. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex/Cursor 共用 `gate.sh`；Cursor 强制 hook = `.cursor/hooks.json`）
 8. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
 9. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main; land 遇旁路 dirty WIP 禁止强切 `main` / restore / park（见 `feature-branch-before-code.mdc`）
 10. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
@@ -55,6 +55,7 @@ No third root “强制规则” markdown. Product truth under `docs/`.
 | Historical plans | `docs/*-plan.md`, `docs/*.zh.md` |
 | Cleanup phases | `docs/optimization.md` (one phase at a time; confirm before next) |
 | 编码后业务场景测试报告 | `docs/test-scenarios/`（`YYYY-MM-DD-<功能>.md`；标准见 `business-scenario-testing.mdc`） |
+| Agent sole 按域索引 | `docs/agent-sole-index.zh.md`（改某域前只读该域；勿把 sole 细则堆回 `AGENTS.md`） |
 
 Before non-trivial edits: read matching rows only — not a whole-repo scan. Prefer `docs/ai-schema.md` over browsing all migrations.
 

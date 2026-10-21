@@ -20,3 +20,5 @@ This file is a Cursor always-on mirror — **do not invent a second policy here.
 3. Print-agent → Docker `go vet`（`go test` / 交叉编译留给 pack/tag，不挡日常 push）
 
 Report commands + pass before commit. Waive only if Will says so in-thread.
+
+**Cursor 强制：** 项目 `.cursor/hooks.json` → `beforeShellExecution` 调用同一 `gate.sh hook-commit`（与 Claude/Codex 对称）。无产品树改动时 hook 放行；有 `apps|packages|supabase` 改动时须 scan + uat（含 `## 证据`）+ check 标记与指纹一致。

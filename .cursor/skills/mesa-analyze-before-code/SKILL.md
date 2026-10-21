@@ -72,7 +72,7 @@ Under **问题根因**: only state what evidence supports (code path, DB/API row
 
 ### Retrospective
 
-User-caught redundancy or the same mistake twice → update one line in `AGENTS.md` or this skill in the same change set.
+User-caught redundancy or the same mistake twice → update **one line** in the matching domain of `docs/agent-sole-index.zh.md` (or this skill) — **not** a long paragraph back into `AGENTS.md`. Before editing a product domain, read only that domain’s section of the sole index.
 
 ## Verification
 

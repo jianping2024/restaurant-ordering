@@ -54,7 +54,8 @@ Default stack (do not substitute “lint only” or raw curl when this skill app
 3. **Cleanup** — reverse writes via product APIs (`close-session`, void/cancel as appropriate).
 4. **Print smoke (when print in scope):** `node scripts/mesa-print-smoke.mjs` then full e2e only if agent/`npm run print` is up.
 5. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc`.
-6. **业务场景报告**（功能改动必做）— 中文《本次改动业务场景测试报告》落盘 `docs/test-scenarios/YYYY-MM-DD-<功能>.md`，聊天交付同结构；场景须可复现（角色/终端/顺序/状态/数据验证）。完整标准：`.cursor/rules/business-scenario-testing.mdc`。笼统「正常/异常/边界」清单不算过关。
+6. **机器证据（硬）** — 写 `.mesa-agent-gates/<branch>/uat.md` 时须有 `## 测试项` **和** `## 证据`。用 `bash scripts/agent-gates/gate.sh uat-evidence -- node scripts/mesa-local-uat.mjs …` 追加 `exit=0` 行；禁止只写叙述 pass。`gate.sh uat` 校验证据（见 `scripts/agent-gates/README.md`）。
+7. **业务场景报告**（功能改动必做）— 中文《本次改动业务场景测试报告》落盘 `docs/test-scenarios/YYYY-MM-DD-<功能>.md`，聊天交付同结构；场景须可复现（角色/终端/顺序/状态/数据验证）。完整标准：`.cursor/rules/business-scenario-testing.mdc`。笼统「正常/异常/边界」清单不算过关。
 
 ### Realtime / dual-tab recipe (do not skip)
 

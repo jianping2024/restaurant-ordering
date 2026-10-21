@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/mesa-gate-shell.sh",
+        "matcher": "git",
+        "failClosed": true,
+        "timeout": 30
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": ".cursor/hooks/mesa-gate-browser.sh",
+        "matcher": "chrome-devtools|cursor-ide-browser|ide-browser",
+        "failClosed": true,
+        "timeout": 30
+      }
+    ]
+  }
+}

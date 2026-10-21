@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DxwYIU6SP0MsxBFbqYF24YqU2oWxXIf4cESTaGqMzRrnNq6PwPwMUmN834kyEwJ
+\restrict VBpwvkmyHt0sFsZLKaHBvih8Juw4M8enB0EmNwYdC7rKi5QqMw0imJ78bxurLvC
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -5699,6 +5699,7 @@ CREATE TABLE public.menu_items (
     station_print_pt boolean DEFAULT true NOT NULL,
     station_print_en boolean DEFAULT false NOT NULL,
     station_print_zh boolean DEFAULT false NOT NULL,
+    time_slot_id uuid,
     CONSTRAINT menu_items_item_code_max_len_10 CHECK ((char_length(btrim((item_code)::text)) <= 10)),
     CONSTRAINT menu_items_item_code_not_blank CHECK ((btrim((item_code)::text) <> ''::text)),
     CONSTRAINT menu_items_limit_requires_overage_price CHECK ((((per_person_qty_limit IS NULL) AND (over_limit_unit_price IS NULL)) OR ((per_person_qty_limit IS NOT NULL) AND (over_limit_unit_price IS NOT NULL)))),
@@ -5769,6 +5770,13 @@ COMMENT ON COLUMN public.menu_items.description_zh IS 'Optional Chinese dish des
 --
 
 COMMENT ON COLUMN public.menu_items.flavor_codes IS 'Display-only flavor hint codes (spice_mild|medium|extra, numb_*, sour, sweet, sweet_sour, light, heavy, umami, aroma_*). Empty = none shown. Gated by menu_flavor_hints_enabled.';
+
+
+--
+-- Name: COLUMN menu_items.time_slot_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.time_slot_id IS 'Menu time slot (buffet_time_slots). Null = all day. Guest menu + append use the slot nearest to the table session opened_at (lib/menu-time-slot).';
 
 
 --
@@ -6840,6 +6848,14 @@ ALTER TABLE ONLY public.buffet_time_slots
 
 
 --
+-- Name: buffet_time_slots buffet_time_slots_restaurant_id_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.buffet_time_slots
+    ADD CONSTRAINT buffet_time_slots_restaurant_id_id_key UNIQUE (restaurant_id, id);
+
+
+--
 -- Name: buffets buffets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7478,6 +7494,13 @@ CREATE INDEX idx_menu_items_print_station ON public.menu_items USING btree (rest
 --
 
 CREATE INDEX idx_menu_items_restaurant ON public.menu_items USING btree (restaurant_id);
+
+
+--
+-- Name: idx_menu_items_time_slot; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_menu_items_time_slot ON public.menu_items USING btree (time_slot_id) WHERE (time_slot_id IS NOT NULL);
 
 
 --
@@ -8447,6 +8470,14 @@ ALTER TABLE ONLY public.menu_items
 
 ALTER TABLE ONLY public.menu_items
     ADD CONSTRAINT menu_items_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_items menu_items_time_slot_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_items
+    ADD CONSTRAINT menu_items_time_slot_fkey FOREIGN KEY (restaurant_id, time_slot_id) REFERENCES public.buffet_time_slots(restaurant_id, id) ON DELETE SET NULL (time_slot_id);
 
 
 --
@@ -10110,5 +10141,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DxwYIU6SP0MsxBFbqYF24YqU2oWxXIf4cESTaGqMzRrnNq6PwPwMUmN834kyEwJ
+\unrestrict VBpwvkmyHt0sFsZLKaHBvih8Juw4M8enB0EmNwYdC7rKi5QqMw0imJ78bxurLvC
 

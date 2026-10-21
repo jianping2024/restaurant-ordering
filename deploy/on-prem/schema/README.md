@@ -13,7 +13,10 @@ Regenerate after schema-changing migrations land on a green DB **before packing*
 That rewrite sets `baseline_covered_migrations.txt` to **every** `supabase/migrations/*.sql` so fresh install **pending=0**.  
 `pack-release.sh` **fail-closed** if any migration file is missing from covered (forces tip re-export; do not ship old baseline + long pending).
 
-`apply-migrations.sh`: baseline → mark covered → pending incrementals (ideally none on fresh pack) → **`ensure_realtime_publication.sql` every run**.
+`apply-migrations.sh`:
+
+- **Fresh install** (no `__baseline_public__`): load tip baseline dump → **then** mark covered (dump already has that schema) → pending (ideally 0) → **`ensure_realtime_publication.sql`**.
+- **Live upgrade** (`MESA_MIGRATE_INCREMENTAL_ONLY=1`, or re-run when marker already present): **do not** stamp covered. Only run migration files missing from `mesa_schema_migrations`, then ensure realtime. Stamping covered on upgrade skips SQL and left Pirata without `station_print_*` / `time_slot_id` while the ledger claimed applied (2026-10-21).
 
 Publication membership is **not** in the public dump; covered migrations skip the initial
 `ALTER PUBLICATION`. Do not remove the ensure step or the `pack-release.sh` gate.

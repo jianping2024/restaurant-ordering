@@ -321,6 +321,8 @@ sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 
 脚本顺序：备份 → stage → 同步（保留 `.env`）→ 增量 migration + **Realtime ensure（§2.3）** → rebuild web → health → `current.json`。
 
+**活库升级迁移规则（硬）：** `MESA_MIGRATE_INCREMENTAL_ONLY=1` 时 **只**对 `mesa_schema_migrations` 里还没有的 `supabase/migrations/*.sql` 执行 SQL 再记账。**禁止**在升级路径把 `baseline_covered_migrations.txt` 整表戳进账本（那只会记账不跑 SQL；2026-10-21 Pirata：`station_print_*` / `time_slot_id` 账本已写、列不存在）。`baseline_covered` 仅在**初装**刚载入 tip `baseline_public.sql` 之后用于 pending=0。
+
 成功标志：终端 `Upgrade OK → …`；且：
 
 ```bash

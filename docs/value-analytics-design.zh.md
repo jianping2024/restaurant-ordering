@@ -26,7 +26,7 @@
 ### 1.3 已锁定产品决策
 
 1. **营业额**：采用 **bill_splits 实收（方案 A）**，含折扣后金额；无 paid split 时回退 `orders.total_amount` 之和。
-2. **统计单元**：**已收款关台的 `table_session`**，归属日以 `closed_at` 的 Lisbon 自然日为准。
+2. **统计单元**：**已收款关台的 `table_session`**，归属日以 `opened_at`（开桌）的 Lisbon 自然日为准。
 3. **备货参考**：永远最近 7 天，与页面 `range` 解耦。
 
 ---
@@ -182,7 +182,7 @@ function sessionRevenue(orders: Order[], splits: BillSplit[]): number {
 **按日聚合**：
 
 ```ts
-const bucket = sessionDateKey(session.closed_at); // Lisbon YYYY-MM-DD
+const bucket = sessionRevenueDateKey(session); // Lisbon YYYY-MM-DD from opened_at
 dailyRevenue[bucket] = (dailyRevenue[bucket] || 0) + sessionRevenue;
 ```
 
@@ -750,12 +750,12 @@ function localizedItemName(row: TopItemDto, lang: UILanguage): string {
 
 | 场景 | 处理 |
 |------|------|
-| 合并/转台后关台 | 金额/人头归属 **最终 session** 的 `closed_at` 日 |
+| 合并/转台后关台 | 金额/人头归属 **最终 session** 的 `opened_at`（开桌）日 |
 | 一单多 `paid` bill_split（异常重复） | `sessionRevenue` 对所有 paid split 的 paid rows 求和；单测覆盖 |
 | 折扣后实收 | 已含在 `result[].amount`（confirm payment 写入） |
 | 纯饮料无 buffet | 客流为 0；菜品 Top 仍正常 |
 | session 无 `closed_at` | 查询已过滤；防御性 skip |
-| 凌晨 00:30 关台 | `closed_at` UTC → Lisbon 日切 |
+| 跨日关台 | 归属开桌日 `opened_at` UTC → Lisbon 日切 |
 | `items` JSON 缺 `kind` | 视为 `menu`（`OrderItem` 缺省规则） |
 | 同名不同 id 菜品 | 按 `item.id` 分开统计 |
 | 超大 JSON items | 与现网订单一致；V1 不做截断 |
@@ -829,4 +829,4 @@ node --import tsx --test apps/web/src/lib/analytics/analytics.service.test.ts
 
 ## 11. 总结
 
-增值分析 V1 以 **`table_sessions.closed_at` + qualifying 过滤** 为统计主轴，营业额走 **bill_splits 实收**，客流走 **`aggregateBuffetForOrders`**，菜品走 **JSONB 内存聚合 + menu_items 补分类**。前后端通过 **单一聚合 API** 通信，权限与异常操作页同级别的 **owner 三板斧**。实现时优先落地 **可单测的纯函数层**，再接 Supabase repository 与 recharts 展示。
+增值分析以 **`table_sessions.opened_at`（开桌日）+ qualifying 过滤** 为统计主轴，营业额走 **bill_splits 实收**，客流走 **`aggregateBuffetForOrders`**，菜品走 **JSONB 内存聚合 + menu_items 补分类**。前后端通过 **单一聚合 API** 通信，权限与异常操作页同级别的 **owner 三板斧**。实现时优先落地 **可单测的纯函数层**，再接 Supabase repository 与 recharts 展示。

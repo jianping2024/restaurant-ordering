@@ -8,7 +8,7 @@ import type {
   CustomerTrendPoint,
   RevenueTrendPoint,
 } from '@/lib/analytics/analytics.types';
-import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
+import { sessionRevenueDateKey } from '@/lib/analytics/session-revenue-date';
 import { sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
 import type { BillSplit } from '@/types';
 
@@ -23,10 +23,10 @@ export function buildRevenueTrend(
   for (const key of dateKeys) daily.set(key, 0);
 
   for (const session of sessions) {
-    if (!session.closed_at) continue;
+    if (!session.opened_at) continue;
     if (forcedClosedSessionIds.has(session.id)) continue;
 
-    const bucket = sessionDateKeyFromIso(session.closed_at);
+    const bucket = sessionRevenueDateKey(session);
     const orders = ordersBySession.get(session.id) || [];
     const splits = splitsBySession.get(session.id) || [];
     const revenue = sessionRevenue(
@@ -54,8 +54,8 @@ export function buildCustomerTrend(
   }
 
   for (const session of sessions) {
-    if (!session.closed_at) continue;
-    const bucket = sessionDateKeyFromIso(session.closed_at);
+    if (!session.opened_at) continue;
+    const bucket = sessionRevenueDateKey(session);
     const orders = ordersBySession.get(session.id) || [];
     const { adults, children } = sessionGuestCounts(orders);
     adultsByDay.set(bucket, (adultsByDay.get(bucket) || 0) + adults);

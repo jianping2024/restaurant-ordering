@@ -399,7 +399,7 @@ sole month|quarter|year period + paginated list from `menu-item-consumption`; ne
 
 ### Dashboard today amount card
 
-settled gold + muted uncollected (`gold/40`) with 已收/未收 labels; hide `+`/未收 when uncollected is 0; uncollected only via `liveSessionUncollectedAmount` — never parallel floor `sessionTotal` sum, never flatten to one same-weight gold string.
+settled gold + muted uncollected (`gold/40`) with 已收/未收 labels; hide `+`/未收 when uncollected is 0; uncollected only via `liveSessionUncollectedAmount` — never parallel floor `sessionTotal` sum, never flatten to one same-weight gold string. **已收 / 今日桌数 / 今日客人** 归属日 sole `sessionRevenueDateKey` = Lisbon `opened_at`（与增值分析同口径；禁止再按 `closed_at` 分桶）。
 
 ### 历史订单列表
 

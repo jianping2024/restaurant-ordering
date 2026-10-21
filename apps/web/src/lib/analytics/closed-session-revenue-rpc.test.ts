@@ -8,7 +8,14 @@ describe('loadClosedSessionRevenueBundleRpc', () => {
       rpc: async () => ({
         data: {
           ok: true,
-          sessions: [{ id: 's1', closed_at: '2026-07-26T20:00:00.000Z', closed_reason: 'owner_closed' }],
+          sessions: [
+            {
+              id: 's1',
+              opened_at: '2026-07-26T18:00:00.000Z',
+              closed_at: '2026-07-26T20:00:00.000Z',
+              closed_reason: 'owner_closed',
+            },
+          ],
           orders: [{ id: 'o1', session_id: 's1', status: 'done', total_amount: 10 }],
           splits: [
             {

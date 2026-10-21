@@ -175,7 +175,7 @@ API 建议返回：`{ error: 'forbidden', message: '当前账号无权访问增�
 
 ### 7.3 营业额（实收金额）
 
-**按 session 归属日**：以 `table_sessions.closed_at` 落入的 **Lisbon 自然日** 汇总。
+**按 session 归属日**：以 `table_sessions.opened_at`（开桌）落入的 **Lisbon 自然日** 汇总。
 
 **金额来源（二选一，实现前需产品确认，推荐 A）**：
 
@@ -196,7 +196,7 @@ V1 **推荐方案 A**；若 session 无 bill_split 但有收款（边缘场景�
 
 ### 7.4 客流
 
-**按 session 归属日**（同 `closed_at` Lisbon 日）。
+**按 session 归属日**（同 `opened_at` Lisbon 开桌日）。
 
 对每个 qualifying session：
 
@@ -444,7 +444,7 @@ V1 需 **新增一个图表库**（推荐 `recharts`，与 React 18 兼容）或
 |---|------|------|
 | 1 | **测试订单**无字段 | V1 不排除；若未来有 `is_test` 再过滤 |
 | 2 | 未收款关台后订单历史仍可见 | 营业额以 `total_amount>0` / paid split 过滤，与「订单历史」列表口径可能不同 — **产品已知差异** |
-| 3 | 合并/转台 session | 人头与金额归属 **最终 closed 的 session** 的 `closed_at` 日 |
+| 3 | 合并/转台 session | 人头与金额归属 **最终 closed 的 session** 的 `opened_at`（开桌）日 |
 | 4 | 跨日营业（凌晨关台） | 一律 `Europe/Lisbon` 切日，与 overview 一致 |
 | 5 | 已删除 `menu_items` | Top 仍显示订单快照名称；category 缺失显示 `—` |
 | 6 | 权限模块重构进行中（`role-permissions-architecture.zh.md`） | V1 仍用 `loadOwner*Context`；后续可挂 `permissionKey: analytics.view` |

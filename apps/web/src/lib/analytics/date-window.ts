@@ -26,7 +26,7 @@ export type TodayLisbonWindow = {
   endExclusiveUtc: string;
 };
 
-/** Lisbon calendar day for dashboard “today” KPIs (orders created_at, closed_at revenue). */
+/** Lisbon calendar day for dashboard “today” KPIs (revenue by opened_at). */
 export function resolveTodayLisbonWindow(now: Date = new Date()): TodayLisbonWindow {
   const today = calendarDateInTimezone(now);
   return {

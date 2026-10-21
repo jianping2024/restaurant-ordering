@@ -559,7 +559,7 @@
 
 ### 验收标准
 
-- 仅统计 qualifying closed session；归属日 = Lisbon `closed_at`
+- 仅统计 qualifying closed session；归属日 = Lisbon `opened_at`（开桌日）
 - 历史读 `analytics_daily_restaurant_stats`（无营业不写行）；当天现算；懒轧账仅近 7 天有关台日
 - 菜品销量唯一读 `analytics_daily_menu_item_consumption`（全天全菜；与日经营表同次轧账）+ 当日现算；grain 仅 month|quarter|year（真自然周期窗，从最早日统计起可选）；`sort` 正反序绝对名次列表分页
 - 客户端按粒度缓存 overview；周/月/季/年从首个有数周期起展示

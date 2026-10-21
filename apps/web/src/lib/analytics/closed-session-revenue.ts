@@ -19,7 +19,7 @@ import {
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
 import { isQualifyingSession, sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
 import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
-import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
+import { sessionRevenueDateKey } from '@/lib/analytics/session-revenue-date';
 import { isOperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
 import type { BillSplit } from '@/types';
 
@@ -180,8 +180,9 @@ export async function loadClosedSessionRevenueBundle(
 }
 
 /**
- * Sole filter for “today tables / today guests”: qualifying · not forced · Lisbon dateKey ·
- * sessionRevenue > 0. Count and guest sum must both iterate this list.
+ * Sole filter for “today tables / today guests”: qualifying · not forced · Lisbon dateKey
+ * (opened_at via {@link sessionRevenueDateKey}) · sessionRevenue > 0.
+ * Count and guest sum must both iterate this list.
  */
 export function todayRevenueSessionIds(
   bundle: ClosedSessionRevenueBundle,
@@ -195,7 +196,7 @@ export function todayRevenueSessionIds(
   const ids: string[] = [];
   for (const session of qualifying) {
     if (bundle.forcedClosedSessionIds.has(session.id)) continue;
-    if (!session.closed_at || sessionDateKeyFromIso(session.closed_at) !== dateKey) continue;
+    if (!session.opened_at || sessionRevenueDateKey(session) !== dateKey) continue;
 
     const orders = bundle.ordersBySession.get(session.id) || [];
     const splits = bundle.splitsBySession.get(session.id) || [];

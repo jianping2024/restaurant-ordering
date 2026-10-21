@@ -323,7 +323,7 @@
 ### 已有功能
 
 - 出品联：加菜后 `station_ticket` 自动入队
-- 开台小票（可选）：冷开台成功入队 `receipt_variant=open_table`（`open_table_receipt_print`）；改人数不重打
+- 开台小票（可选）：冷开台成功入队 `receipt_variant=open_table`（`open_table_receipt_print`）；只印大人/小孩人数（无份数、无应付）；改人数不重打；不影响档口出品联
 - 账单类：`order_receipt`、`pre_bill` 入队（受 `bill_receipt_print` 门控）
 - 打印代理：配对码、claim JWT、轮询 `pending-jobs`、TCP/WinSpool 打印
 - Dashboard：打印助手、设备列表、吊销、档口映射、重试失败任务

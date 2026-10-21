@@ -419,3 +419,76 @@ func TestBuildOrderReceiptPrintsChangeWhenTenderExceedsDue(t *testing.T) {
 		t.Fatalf("expected change line, got %q", s)
 	}
 }
+
+func TestBuildOpenTableReceiptHeadcountOnly(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"locale":          "en",
+		"display_name":    "A-08",
+		"receipt_variant": "open_table",
+		"adult_count":     6,
+		"child_count":     2,
+		"order_time":      "2026-10-21 12:00",
+		"print_time":      "2026-10-21 12:01",
+		"lines":           []map[string]any{},
+	})
+	s := string(escposFromJob(printJob{Type: "order_receipt", Payload: payload}))
+	for _, want := range []string{
+		"Open table",
+		"Adults:6",
+		"Children:2",
+		"Table No.:A-08",
+	} {
+		if !strings.Contains(s, want) {
+			t.Fatalf("missing %q in open_table output: %q", want, s)
+		}
+	}
+	for _, forbid := range []string{
+		"Amount Due",
+		"Fee Details",
+		"Items",
+		"Qty",
+		"开台",
+		"1x",
+	} {
+		if strings.Contains(s, forbid) {
+			t.Fatalf("open_table must not contain %q; got %q", forbid, s)
+		}
+	}
+}
+
+func TestBuildOpenTableReceiptZhHeadcount(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"locale":          "zh",
+		"display_name":    "08",
+		"receipt_variant": "open_table",
+		"adult_count":     8,
+		"child_count":     0,
+		"lines":           []map[string]any{},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	// zh uses bitmap for Han; assert ASCII-side counts and absence of amount/qty chrome.
+	s := string(raw)
+	if strings.Contains(s, "Amount Due") || strings.Contains(s, "应付") {
+		t.Fatalf("open_table zh must not print amount due: %q", s)
+	}
+	if bytes.Contains(raw, []byte("Qty")) || bytes.Contains(raw, []byte("数量")) {
+		t.Fatalf("open_table zh must not print qty column: %q", s)
+	}
+}
+
+func TestStationTicketUnchangedByOpenTablePath(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"locale":       "en",
+		"display_name": "T1",
+		"lines": []map[string]any{
+			{"item_index": 1, "display_name": "Salmon", "qty": 2},
+		},
+	})
+	s := string(escposFromJob(printJob{Type: "station_ticket", Payload: payload}))
+	if !strings.Contains(s, "Salmon") {
+		t.Fatalf("station ticket missing item: %q", s)
+	}
+	if strings.Contains(s, "Adults:") || strings.Contains(s, "Open table") {
+		t.Fatalf("station ticket must not use open_table chrome: %q", s)
+	}
+}

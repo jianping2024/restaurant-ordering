@@ -39,8 +39,11 @@ type ticketLabels struct {
 	guestOrder     string
 	receipt        string
 	preBill        string
+	openTable      string // open_table receipt title only
 	tableNo        string
 	guest          string
+	adults         string // open_table headcount
+	children       string // open_table headcount
 	items          string
 	qty            string
 	originalPrice  string
@@ -67,8 +70,11 @@ func labelsFor(locale string) ticketLabels {
 			guestOrder:     "出菜单",
 			receipt:        "收据",
 			preBill:        "预结单",
+			openTable:      "开台",
 			tableNo:        "桌号",
 			guest:          "人数",
+			adults:         "大人",
+			children:       "小孩",
 			items:          "菜品",
 			qty:            "数量",
 			originalPrice:  "原价",
@@ -92,8 +98,11 @@ func labelsFor(locale string) ticketLabels {
 			guestOrder:     "Guest Order",
 			receipt:        "Receipt",
 			preBill:        "Pre-Bill",
+			openTable:      "Open table",
 			tableNo:        "Table No.",
 			guest:          "Guest",
+			adults:         "Adults",
+			children:       "Children",
 			items:          "Items",
 			qty:            "Qty",
 			originalPrice:  "Pri",
@@ -117,8 +126,11 @@ func labelsFor(locale string) ticketLabels {
 			guestOrder:     "Pedido",
 			receipt:        "Recibo",
 			preBill:        "Pré-conta",
+			openTable:      "Abrir mesa",
 			tableNo:        "Mesa n.º",
 			guest:          "Conv.",
+			adults:         "Adultos",
+			children:       "Crianças",
 			items:          "Artigos",
 			qty:            "Qtd",
 			originalPrice:  "Preço",
@@ -170,6 +182,8 @@ type jobPayload struct {
 	TableDisplayName     string              `json:"display_name"`
 	TableID              string              `json:"table_id"`
 	GuestCount           int                 `json:"guest_count"`
+	AdultCount           int                 `json:"adult_count"` // open_table sole headcount
+	ChildCount           int                 `json:"child_count"` // open_table sole headcount
 	StationDisplayNamePt string              `json:"station_display_name_pt"`
 	StationDisplayNameEn string              `json:"station_display_name_en"`
 	StationDisplayNameZh string              `json:"station_display_name_zh"`
@@ -184,7 +198,7 @@ type jobPayload struct {
 	OrderedBy            string              `json:"ordered_by"`
 	OrderTime            string              `json:"order_time"`
 	PrintTime            string              `json:"print_time"`
-	// pre_bill | checkout_bill | split_payment | final (empty → final on order_receipt)
+	// pre_bill | checkout_bill | split_payment | final | open_table (empty → final on order_receipt)
 	ReceiptVariant string `json:"receipt_variant"`
 	PayerName      string `json:"payer_name"`
 }
@@ -1000,14 +1014,77 @@ func escposFromJob(job printJob) []byte {
 		if variant == "" {
 			variant = "final"
 		}
+		ticketLab := printTicketLabels(p.Locale)
+		if variant == "open_table" {
+			return buildOpenTableReceipt(p, ticketLab)
+		}
 		withPayment := variant == "final" || variant == "split_payment"
-		return buildOrderReceipt(p, printTicketLabels(p.Locale), withPayment, variant)
+		return buildOrderReceipt(p, ticketLab, withPayment, variant)
 	case "pre_bill":
 		p.ReceiptVariant = "pre_bill"
 		return buildOrderReceipt(p, printTicketLabels(p.Locale), false, "pre_bill")
 	default:
 		return buildStationTicket(p)
 	}
+}
+
+// buildOpenTableReceipt — cold-open headcount notice only (adult/child).
+// No Items/Qty columns, no amount due. Does not share buildStationTicket.
+func buildOpenTableReceipt(p jobPayload, lab ticketLabels) []byte {
+	w := newEscposForReceiptTicket(p)
+	title := strings.TrimSpace(lab.openTable)
+	if title == "" {
+		title = "Open table"
+	}
+	w.writeTicketMasthead(title)
+
+	adults := p.AdultCount
+	if adults < 0 {
+		adults = 0
+	}
+	children := p.ChildCount
+	if children < 0 {
+		children = 0
+	}
+	adultLabel := strings.TrimSpace(lab.adults)
+	if adultLabel == "" {
+		adultLabel = "Adults"
+	}
+	childLabel := strings.TrimSpace(lab.children)
+	if childLabel == "" {
+		childLabel = "Children"
+	}
+	meta := []string{
+		fmt.Sprintf("%s:%d", adultLabel, adults),
+		fmt.Sprintf("%s:%d", childLabel, children),
+	}
+	w.writeTableContext(p, lab, true, meta...)
+	w.separator('-')
+
+	orderedByVal := strings.TrimSpace(p.OrderedBy)
+	if orderedByVal == "" {
+		orderedByVal = lab.printedByVal
+	}
+	orderAt := strings.TrimSpace(p.OrderTime)
+	if orderAt == "" {
+		orderAt = nowLocal()
+	}
+	printAt := strings.TrimSpace(p.PrintTime)
+	if printAt == "" {
+		printAt = nowLocal()
+	}
+	w.writeBody1x1()
+	w.align(0)
+	w.text(fmt.Sprintf("%s:%s", lab.orderedBy, orderedByVal))
+	w.lf()
+	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
+	w.lf()
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, ticketBrandingWord(w.printLocale)))
+	w.lf()
+	w.text(fmt.Sprintf("%s:%s", lab.printTime, printAt))
+	w.lf()
+
+	return w.finish(true)
 }
 
 // buildStationTicket — internal station slip; fixed chrome follows print_locale (zh vs en).

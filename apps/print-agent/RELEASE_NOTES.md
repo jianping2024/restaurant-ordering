@@ -4,6 +4,13 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.84
+
+**开台小票：只印大人/小孩人数（无份数、无应付）**
+
+- `receipt_variant=open_table` 走唯一 `buildOpenTableReceipt`：桌号 + 大人/小孩人数；不印数量列、不印应付。
+- 档口出品联仍走 `buildStationTicket`，与开台票分路。
+
 ## 0.3.83
 
 **Realtime 断网回落：本批打完后整进程重启再试推送；控制台/状态字色统一**

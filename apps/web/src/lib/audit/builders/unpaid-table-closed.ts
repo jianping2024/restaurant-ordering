@@ -36,6 +36,8 @@ export const unpaidTableClosedDefinition: AuditEventDefinition<UnpaidTableClosed
         hasUnpaidSplit: context.hasUnpaidSplit,
       },
       afterData: {
+        tableName: context.tableName,
+        sessionId: context.sessionId,
         sessionStatus: 'closed',
         tableStatus: 'closed',
         amountImpact: gap,

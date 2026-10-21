@@ -77,6 +77,15 @@ describe('formatOperationLogDetail', () => {
     };
     assert.equal(operationLogTableLabel(transfer), 'A1→B2');
 
+    const forceClose: OperationLogRow = {
+      ...transfer,
+      action_type: AUDIT_EVENT.UNPAID_TABLE_CLOSED,
+      before_data: { gap: 12.5 },
+      after_data: { tableName: 'A5', amountImpact: 12.5, sessionStatus: 'closed' },
+    };
+    assert.equal(operationLogTableLabel(forceClose), 'A5');
+    assert.match(formatOperationLogDetail('zh', forceClose), /12\.50/);
+
     const open: OperationLogRow = {
       ...transfer,
       action_type: AUDIT_EVENT.SESSION_OPENED,

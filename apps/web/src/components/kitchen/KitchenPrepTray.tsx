@@ -33,7 +33,7 @@ type Props = {
 };
 
 /**
- * Sole kitchen prep tray: every row the cook selected (either view), grouped by dish with
+ * Sole kitchen prep tray: every row the cook selected (either view), grouped by dish + note with
  * the big photo, selected portions and table chips (longest wait first). Owns the sole prep button.
  */
 export function KitchenPrepTray({
@@ -52,11 +52,11 @@ export function KitchenPrepTray({
   const summary = summarizePrepTray(cards);
   const allKeys = cards.flatMap((c) => c.chips.map((chip) => chip.key));
 
-  const toggleExpanded = (menuItemId: string) =>
+  const toggleExpanded = (cardKey: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(menuItemId)) next.delete(menuItemId);
-      else next.add(menuItemId);
+      if (next.has(cardKey)) next.delete(cardKey);
+      else next.add(cardKey);
       return next;
     });
 
@@ -96,13 +96,13 @@ export function KitchenPrepTray({
             {cards.map((card) => {
               const thumb = thumbFor(card);
               const keys = card.chips.map((chip) => chip.key);
-              const open = expanded.has(card.menuItemId);
+              const open = expanded.has(card.cardKey);
               const shown = open ? card.chips : card.chips.slice(0, TRAY_CHIPS_COLLAPSED);
               const hidden = card.chips.length - shown.length;
               const allSelected = card.selectedCount === card.chips.length;
               return (
                 <section
-                  key={card.menuItemId}
+                  key={card.cardKey}
                   className="flex gap-3 rounded-xl border border-brand-border bg-brand-card p-3"
                 >
                   <KitchenDishThumbButton
@@ -116,6 +116,11 @@ export function KitchenPrepTray({
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span className="min-w-0 truncate text-2xl font-medium text-brand-text">
                         {card.name}
+                        {card.note ? (
+                          <span className="ml-2 text-xl font-normal text-amber-800/90">
+                            · {card.note}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="shrink-0 text-2xl font-semibold tabular-nums text-brand-gold">
                         {t.portionBadge.replace('{n}', String(card.selectedQty))}
@@ -170,7 +175,7 @@ export function KitchenPrepTray({
                         <button
                           type="button"
                           className={`${CHIP_BASE_CLASS} border-brand-border text-brand-text-muted`}
-                          onClick={() => toggleExpanded(card.menuItemId)}
+                          onClick={() => toggleExpanded(card.cardKey)}
                         >
                           {t.trayMoreTables.replace('{n}', String(hidden))}
                         </button>
@@ -178,7 +183,7 @@ export function KitchenPrepTray({
                         <button
                           type="button"
                           className={`${CHIP_BASE_CLASS} border-brand-border text-brand-text-muted`}
-                          onClick={() => toggleExpanded(card.menuItemId)}
+                          onClick={() => toggleExpanded(card.cardKey)}
                         >
                           {t.trayLessTables}
                         </button>

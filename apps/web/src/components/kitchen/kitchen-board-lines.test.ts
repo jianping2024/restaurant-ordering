@@ -26,11 +26,13 @@ function stubLine(partial: {
   menuItemId: string;
   qty: number;
   name?: string;
+  note?: string;
 }): KitchenBoardLine {
   const item = {
     id: partial.menuItemId,
     name: partial.name || 'Dish',
     qty: partial.qty,
+    ...(partial.note !== undefined ? { note: partial.note } : {}),
   } as OrderItem;
   const order = {
     id: `o-${partial.key}`,
@@ -323,6 +325,7 @@ describe('prep tray', () => {
     assert.equal(m1.chips.length, 2);
     assert.equal(m1.selectedCount, 1);
     assert.equal(m1.selectedQty, 4);
+    assert.equal(m1.note, '');
     assert.deepEqual(summarizePrepTray(cards), { dishCount: 2, portions: 5, tableCount: 2 });
     assert.equal(buildPrepTrayCards(lines, state([]), NOW).length, 0);
   });
@@ -332,6 +335,48 @@ describe('prep tray', () => {
     const [m1] = buildPrepTrayCards([a, b, d], state(['a', 'b', 'd']), NOW);
     assert.equal(m1!.selectedCount, 3);
     assert.equal(m1!.selectedTableCount, 2);
+  });
+
+  it('splits same dish when notes differ (incl. noted vs blank)', () => {
+    const noted = stubLine({
+      key: 'n1',
+      tableId: 't1',
+      tableDisplay: 'A-01',
+      menuItemId: 'm902',
+      qty: 3,
+      name: '902 Café Cheio',
+      note: '三分糖',
+    });
+    const blank = stubLine({
+      key: 'n2',
+      tableId: 't1',
+      tableDisplay: 'A-01',
+      menuItemId: 'm902',
+      qty: 1,
+      name: '902 Café Cheio',
+    });
+    const otherNote = stubLine({
+      key: 'n3',
+      tableId: 't2',
+      tableDisplay: 'A-02',
+      menuItemId: 'm902',
+      qty: 2,
+      name: '902 Café Cheio',
+      note: ' 三分糖 ',
+    });
+    const cards = buildPrepTrayCards(
+      [noted, blank, otherNote],
+      state(['n1', 'n2', 'n3']),
+      NOW,
+    );
+    assert.equal(cards.length, 2);
+    const withNote = cards.find((x) => x.note === '三分糖')!;
+    const noNote = cards.find((x) => x.note === '')!;
+    assert.equal(withNote.selectedQty, 5);
+    assert.equal(withNote.chips.length, 2);
+    assert.equal(noNote.selectedQty, 1);
+    assert.equal(noNote.chips.length, 1);
+    assert.notEqual(withNote.cardKey, noNote.cardKey);
   });
 
   it('chip tap toggles selected <-> skipped; left re-check wins via selected', () => {

@@ -80,6 +80,8 @@ export type AnalyticsDateWindow = {
 
 export type ClosedSessionRow = {
   id: string;
+  /** Sole Lisbon business-day attribution for revenue / guests / table count. */
+  opened_at: string;
   closed_at: string;
   /** Used to exclude operational / force / nightly closes from revenue. */
   closed_reason?: string | null;

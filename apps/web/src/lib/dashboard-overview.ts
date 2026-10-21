@@ -124,8 +124,8 @@ export type DashboardFeedbackInsights = {
 
 export type DashboardTodayKpis = {
   /**
-   * Qualifying closed sessions with revenue on Lisbon today — same set as todayRevenue
-   * (`revenueSessionCount` from the closed-session revenue bundle).
+   * Qualifying closed sessions opened on Lisbon today — same set as todayRevenue
+   * (`revenueSessionCount` from the closed-session revenue bundle; day = opened_at).
    */
   todayTableCount: number;
   todayRevenue: number;
@@ -284,7 +284,7 @@ export function computeDiningFloorKpis(
   };
 }
 
-/** Today tables + guests + revenue share Lisbon-day closed_at qualifying set. */
+/** Today tables + guests + revenue share Lisbon-day opened_at qualifying set. */
 export function computeTodayKpis(
   revenue: {
     todayRevenue: number;

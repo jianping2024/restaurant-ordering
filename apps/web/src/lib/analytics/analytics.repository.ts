@@ -5,7 +5,7 @@ import {
   type ClosedSessionRow,
   type MenuCategoryRow,
 } from '@/lib/analytics/analytics.types';
-import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
+import { sessionRevenueDateKey } from '@/lib/analytics/session-revenue-date';
 import type { BillSplit, OrderItem, OrderStatus } from '@/types';
 
 const SESSION_ID_CHUNK = 100;
@@ -77,9 +77,10 @@ async function paginateClosedSessionsInWindow<T>(
         .eq('restaurant_id', restaurantId)
         .eq('status', 'closed')
         .not('closed_at', 'is', null)
-        .gte('closed_at', startUtc)
-        .lt('closed_at', endExclusiveUtc)
-        .order('closed_at', { ascending: true });
+        .not('opened_at', 'is', null)
+        .gte('opened_at', startUtc)
+        .lt('opened_at', endExclusiveUtc)
+        .order('opened_at', { ascending: true });
       if (options?.orderById) {
         query = query.order('id', { ascending: true });
       }
@@ -126,7 +127,7 @@ export async function fetchClosedSessionsInWindow(
     restaurantId,
     startUtc,
     endExclusiveUtc,
-    'id, closed_at, closed_reason, settled_payable_amount',
+    'id, opened_at, closed_at, closed_reason, settled_payable_amount',
     { orderById: true },
   );
   if (!result.ok) return result;
@@ -134,8 +135,9 @@ export async function fetchClosedSessionsInWindow(
 }
 
 /**
- * Lisbon business dates that have at least one closed session in the UTC window.
+ * Lisbon business dates that have at least one closed session opened in the UTC window.
  * Hard rule: seal loops must iterate these dates only — never empty calendar days.
+ * Business day = opened_at (sole {@link sessionRevenueDateKey}).
  */
 export async function fetchDistinctClosedBusinessDates(
   admin: SupabaseClient,
@@ -143,19 +145,19 @@ export async function fetchDistinctClosedBusinessDates(
   startUtc: string,
   endExclusiveUtc: string,
 ): Promise<{ ok: true; dates: string[] } | AnalyticsQueryError> {
-  const result = await paginateClosedSessionsInWindow<{ closed_at: string | null }>(
+  const result = await paginateClosedSessionsInWindow<{ opened_at: string | null }>(
     admin,
     restaurantId,
     startUtc,
     endExclusiveUtc,
-    'closed_at',
+    'opened_at',
   );
   if (!result.ok) return result;
 
   const dates = new Set<string>();
   for (const row of result.rows) {
-    if (!row.closed_at) continue;
-    dates.add(sessionDateKeyFromIso(row.closed_at));
+    if (!row.opened_at) continue;
+    dates.add(sessionRevenueDateKey({ opened_at: row.opened_at }));
   }
   return { ok: true, dates: Array.from(dates).sort() };
 }

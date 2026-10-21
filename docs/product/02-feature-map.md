@@ -400,7 +400,7 @@
 
 - 增值分析页 `/dashboard/value-analytics`（需 `dashboard.value_analytics.view`：餐厅 `owner_id` 与店主员工预设默认有）
 - 按日（近 30 天）/ 按周 / 按月 / 按季：营业额与客流趋势（日经营表 + 当日现算；懒轧账仅回看近 7 天有关台日）
-- 口径：qualifying 关台 `table_sessions`，归属日按 Lisbon `closed_at`；无营业日不写日表
+- 口径：qualifying 关台 `table_sessions`，归属日按 Lisbon `opened_at`（开桌日）；无营业日不写日表
 
 ### 业务边界
 

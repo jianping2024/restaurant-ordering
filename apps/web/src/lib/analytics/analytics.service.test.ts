@@ -306,7 +306,13 @@ describe('buildRevenueTrend', () => {
     const dateKeys = ['2026-06-24', '2026-06-25', '2026-06-26'];
     const trend = buildRevenueTrend(
       dateKeys,
-      [{ id: 'sess1', closed_at: '2026-06-25T22:00:00.000Z' }],
+      [
+        {
+          id: 'sess1',
+          opened_at: '2026-06-25T12:00:00.000Z',
+          closed_at: '2026-06-25T22:00:00.000Z',
+        },
+      ],
       new Map([
         [
           'sess1',

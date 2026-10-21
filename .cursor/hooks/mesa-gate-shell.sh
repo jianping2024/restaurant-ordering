@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Cursor beforeShellExecution → same gate.sh hook-commit / hook-push as Claude/Codex.
-# stdin: Cursor JSON ({"command":"..."}) or Claude shape ({"tool_input":{"command":"..."}}).
-# Block: exit 2 + deny JSON (failClosed in hooks.json).
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 GATE="$ROOT/scripts/agent-gates/gate.sh"
 input="$(cat)"
+
+# Old/detached trees without gate.sh: fail open (avoid Cursor failClosed lockout).
+if [[ ! -f "$GATE" ]]; then
+  echo '{"permission":"allow"}'
+  exit 0
+fi
 
 norm="$(jq -c '
   if (.tool_input.command // null) != null then .
@@ -26,7 +30,6 @@ run_hook() {
     exit 2
   fi
   if [[ "$ec" -ne 0 ]]; then
-    # Unexpected hook failure: fail closed (hooks.json failClosed).
     jq -n --arg m "gate.sh $name failed (exit $ec): $err" \
       '{permission:"deny",user_message:$m,agent_message:$m}'
     exit 2

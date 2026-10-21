@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Cursor beforeMCPExecution for browser MCP → same gate.sh hook-browser (清冗余 before browser UAT).
+# Cursor beforeMCPExecution for browser MCP → gate.sh hook-browser.
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 GATE="$ROOT/scripts/agent-gates/gate.sh"
 input="$(cat)"
 
-# Browser MCP has no shell command; invent empty command so hook-browser only checks WIP+scan.
+if [[ ! -f "$GATE" ]]; then
+  echo '{"permission":"allow"}'
+  exit 0
+fi
+
 norm="$(jq -c '{tool_input: {command: (.command // "")}}' <<<"$input")"
 
 set +e

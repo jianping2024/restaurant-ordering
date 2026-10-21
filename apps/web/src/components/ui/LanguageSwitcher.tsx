@@ -10,6 +10,7 @@ import {
 } from '@/lib/i18n';
 import { appearanceChromeButtonClass, appearanceChromeGlyphClass } from '@/lib/appearance-chrome';
 import { GlobeIcon } from '@/components/ui/appearance-icons';
+import { personalSettingsDropdownRowClass } from '@/lib/dashboard-top-nav';
 
 function OptionRows({
   lang,
@@ -58,28 +59,26 @@ function OptionRows({
 }
 
 type Props = {
-  /** Personal settings row: show current language name beside the globe button. */
-  showCurrentLanguage?: boolean;
   /**
-   * `icon`: standalone globe (landing, personal settings).
+   * `icon`: standalone globe (landing).
    * `segment`: globe + short code inside AppearanceChromeGroup (customer header, auth).
+   * `settings-row`: personal-settings menu — whole row opens the same language list.
    */
-  layout?: 'icon' | 'segment';
+  layout?: 'icon' | 'segment' | 'settings-row';
 };
 
 /**
  * Sole UI language control: landing, auth, customer ordering header, personal settings.
  */
-export function LanguageSwitcherIconChrome({
-  showCurrentLanguage = false,
-  layout = 'icon',
-}: Props) {
+export function LanguageSwitcherIconChrome({ layout = 'icon' }: Props) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const current = uiLanguageOption(lang);
-  const listLabel = getMessages(lang).nav.languageSettings;
+  const nav = getMessages(lang).nav;
+  const listLabel = nav.languageSettings;
+  const glyphClass = appearanceChromeGlyphClass(layout === 'settings-row' ? 'icon' : layout);
 
   useEffect(() => {
     if (!open) return;
@@ -103,13 +102,48 @@ export function LanguageSwitcherIconChrome({
     setOpen(false);
   };
 
+  const listbox = open ? (
+    <div
+      role="listbox"
+      aria-label={listLabel}
+      className="absolute top-full right-0 z-[60] mt-1.5 max-h-56 min-w-[10rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+    >
+      <OptionRows lang={lang} onSelect={selectLang} />
+    </div>
+  ) : null;
+
+  if (layout === 'settings-row') {
+    return (
+      <div ref={rootRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className={`${personalSettingsDropdownRowClass()} hover:bg-brand-border/50`}
+          title={current.nativeName}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={listLabel}
+        >
+          <span className="min-w-0 truncate">{nav.language}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="max-w-[5.5rem] truncate text-sm text-brand-text-muted sm:max-w-[7rem]">
+              {current.nativeName}
+            </span>
+            <span
+              aria-hidden
+              className={`${appearanceChromeButtonClass('icon')} pointer-events-none`}
+            >
+              <GlobeIcon className={glyphClass} />
+            </span>
+          </span>
+        </button>
+        {listbox}
+      </div>
+    );
+  }
+
   return (
     <div ref={rootRef} className="relative flex items-center gap-2">
-      {showCurrentLanguage ? (
-        <span className="max-w-[5.5rem] truncate text-sm text-brand-text-muted sm:max-w-[7rem]">
-          {current.nativeName}
-        </span>
-      ) : null}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -119,18 +153,10 @@ export function LanguageSwitcherIconChrome({
         aria-haspopup="listbox"
         aria-label={current.nativeName}
       >
-        <GlobeIcon className={appearanceChromeGlyphClass(layout)} />
+        <GlobeIcon className={glyphClass} />
         {layout === 'segment' ? <span aria-hidden>{current.shortLabel}</span> : null}
       </button>
-      {open ? (
-        <div
-          role="listbox"
-          aria-label={listLabel}
-          className="absolute top-full right-0 z-[60] mt-1.5 max-h-56 min-w-[10rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
-        >
-          <OptionRows lang={lang} onSelect={selectLang} />
-        </div>
-      ) : null}
+      {listbox}
     </div>
   );
 }

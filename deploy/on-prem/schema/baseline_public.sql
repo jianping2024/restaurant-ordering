@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict VBpwvkmyHt0sFsZLKaHBvih8Juw4M8enB0EmNwYdC7rKi5QqMw0imJ78bxurLvC
+\restrict BivN53WqDmaksDQFhDgHN1a1aGljc2L7zLSotIjylfzltgDkk7bWgSrB9gcqjgf
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1409,61 +1409,64 @@ CREATE FUNCTION public.dashboard_overview_revenue_bundle(p_restaurant_id uuid, p
     LANGUAGE plpgsql STABLE
     SET search_path TO 'public'
     AS $$
-declare
+DECLARE
   v_session_count integer;
   v_sessions jsonb;
   v_orders jsonb;
   v_splits jsonb;
   v_unpaid jsonb;
-begin
-  select count(*)::integer
-    into v_session_count
-    from public.table_sessions ts
-   where ts.restaurant_id = p_restaurant_id
-     and ts.status = 'closed'
-     and ts.closed_at is not null
-     and ts.closed_at >= p_start_utc
-     and ts.closed_at < p_end_exclusive_utc;
+BEGIN
+  SELECT count(*)::integer
+    INTO v_session_count
+    FROM public.table_sessions ts
+   WHERE ts.restaurant_id = p_restaurant_id
+     AND ts.status = 'closed'
+     AND ts.closed_at IS NOT NULL
+     AND ts.opened_at IS NOT NULL
+     AND ts.opened_at >= p_start_utc
+     AND ts.opened_at < p_end_exclusive_utc;
 
-  if v_session_count > greatest(coalesce(p_max_sessions, 2000), 1) then
-    return jsonb_build_object(
+  IF v_session_count > greatest(coalesce(p_max_sessions, 2000), 1) THEN
+    RETURN jsonb_build_object(
       'ok', false,
       'code', 'query_limit_exceeded',
       'session_count', v_session_count
     );
-  end if;
+  END IF;
 
-  select coalesce(
+  SELECT coalesce(
     jsonb_agg(
       jsonb_build_object(
         'id', ts.id,
+        'opened_at', ts.opened_at,
         'closed_at', ts.closed_at,
         'closed_reason', ts.closed_reason,
         'settled_payable_amount', ts.settled_payable_amount
       )
-      order by ts.closed_at
+      ORDER BY ts.opened_at
     ),
     '[]'::jsonb
   )
-    into v_sessions
-    from public.table_sessions ts
-   where ts.restaurant_id = p_restaurant_id
-     and ts.status = 'closed'
-     and ts.closed_at is not null
-     and ts.closed_at >= p_start_utc
-     and ts.closed_at < p_end_exclusive_utc;
+    INTO v_sessions
+    FROM public.table_sessions ts
+   WHERE ts.restaurant_id = p_restaurant_id
+     AND ts.status = 'closed'
+     AND ts.closed_at IS NOT NULL
+     AND ts.opened_at IS NOT NULL
+     AND ts.opened_at >= p_start_utc
+     AND ts.opened_at < p_end_exclusive_utc;
 
-  if v_session_count = 0 then
-    return jsonb_build_object(
+  IF v_session_count = 0 THEN
+    RETURN jsonb_build_object(
       'ok', true,
       'sessions', '[]'::jsonb,
       'orders', '[]'::jsonb,
       'splits', '[]'::jsonb,
       'unpaid_session_ids', '[]'::jsonb
     );
-  end if;
+  END IF;
 
-  select coalesce(
+  SELECT coalesce(
     jsonb_agg(
       jsonb_build_object(
         'id', o.id,
@@ -1474,20 +1477,21 @@ begin
     ),
     '[]'::jsonb
   )
-    into v_orders
-    from public.orders o
-   where o.restaurant_id = p_restaurant_id
-     and o.session_id in (
-       select ts.id
-         from public.table_sessions ts
-        where ts.restaurant_id = p_restaurant_id
-          and ts.status = 'closed'
-          and ts.closed_at is not null
-          and ts.closed_at >= p_start_utc
-          and ts.closed_at < p_end_exclusive_utc
+    INTO v_orders
+    FROM public.orders o
+   WHERE o.restaurant_id = p_restaurant_id
+     AND o.session_id IN (
+       SELECT ts.id
+         FROM public.table_sessions ts
+        WHERE ts.restaurant_id = p_restaurant_id
+          AND ts.status = 'closed'
+          AND ts.closed_at IS NOT NULL
+          AND ts.opened_at IS NOT NULL
+          AND ts.opened_at >= p_start_utc
+          AND ts.opened_at < p_end_exclusive_utc
      );
 
-  select coalesce(
+  SELECT coalesce(
     jsonb_agg(
       jsonb_build_object(
         'id', bs.id,
@@ -1500,42 +1504,44 @@ begin
     ),
     '[]'::jsonb
   )
-    into v_splits
-    from public.bill_splits bs
-   where bs.restaurant_id = p_restaurant_id
-     and bs.session_id in (
-       select ts.id
-         from public.table_sessions ts
-        where ts.restaurant_id = p_restaurant_id
-          and ts.status = 'closed'
-          and ts.closed_at is not null
-          and ts.closed_at >= p_start_utc
-          and ts.closed_at < p_end_exclusive_utc
+    INTO v_splits
+    FROM public.bill_splits bs
+   WHERE bs.restaurant_id = p_restaurant_id
+     AND bs.session_id IN (
+       SELECT ts.id
+         FROM public.table_sessions ts
+        WHERE ts.restaurant_id = p_restaurant_id
+          AND ts.status = 'closed'
+          AND ts.closed_at IS NOT NULL
+          AND ts.opened_at IS NOT NULL
+          AND ts.opened_at >= p_start_utc
+          AND ts.opened_at < p_end_exclusive_utc
      );
 
-  select coalesce(jsonb_agg(distinct ao.session_id), '[]'::jsonb)
-    into v_unpaid
-    from public.abnormal_operations ao
-   where ao.restaurant_id = p_restaurant_id
-     and ao.type = 'UNPAID_TABLE_CLOSED'
-     and ao.session_id in (
-       select ts.id
-         from public.table_sessions ts
-        where ts.restaurant_id = p_restaurant_id
-          and ts.status = 'closed'
-          and ts.closed_at is not null
-          and ts.closed_at >= p_start_utc
-          and ts.closed_at < p_end_exclusive_utc
+  SELECT coalesce(jsonb_agg(DISTINCT ao.session_id), '[]'::jsonb)
+    INTO v_unpaid
+    FROM public.abnormal_operations ao
+   WHERE ao.restaurant_id = p_restaurant_id
+     AND ao.type = 'UNPAID_TABLE_CLOSED'
+     AND ao.session_id IN (
+       SELECT ts.id
+         FROM public.table_sessions ts
+        WHERE ts.restaurant_id = p_restaurant_id
+          AND ts.status = 'closed'
+          AND ts.closed_at IS NOT NULL
+          AND ts.opened_at IS NOT NULL
+          AND ts.opened_at >= p_start_utc
+          AND ts.opened_at < p_end_exclusive_utc
      );
 
-  return jsonb_build_object(
+  RETURN jsonb_build_object(
     'ok', true,
     'sessions', v_sessions,
     'orders', v_orders,
     'splits', v_splits,
     'unpaid_session_ids', v_unpaid
   );
-end;
+END;
 $$;
 
 
@@ -7798,6 +7804,13 @@ CREATE INDEX idx_table_sessions_restaurant_closed_at ON public.table_sessions US
 
 
 --
+-- Name: idx_table_sessions_restaurant_opened_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_table_sessions_restaurant_opened_at ON public.table_sessions USING btree (restaurant_id, opened_at DESC) WHERE ((status = 'closed'::text) AND (opened_at IS NOT NULL));
+
+
+--
 -- Name: idx_table_sessions_restaurant_table_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -10141,5 +10154,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict VBpwvkmyHt0sFsZLKaHBvih8Juw4M8enB0EmNwYdC7rKi5QqMw0imJ78bxurLvC
+\unrestrict BivN53WqDmaksDQFhDgHN1a1aGljc2L7zLSotIjylfzltgDkk7bWgSrB9gcqjgf
 

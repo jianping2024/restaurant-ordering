@@ -11,6 +11,7 @@ When packing, upgrading packs, or touching on-prem web build:
 1. **Ship the fix in the artifact**, not only in docs. If §3.1 / handoff names a Dockerfile or migrate ensure, it must already be in the tree **before** `pack-release.sh`.
 2. `pack-release.sh` hard-fails without:
    - **Tip baseline / covered = all migrations** (`baseline_covered_migrations.txt` lists every `supabase/migrations/*.sql` → fresh-install **pending=0**). If pending>0: run `./deploy/on-prem/scripts/export-schema-baseline.sh` on a tip green DB, then pack. Do **not** ship “old baseline + long pending stack” as the install path.
+   - **Live upgrade must not stamp covered:** `apply-migrations.sh` with `MESA_MIGRATE_INCREMENTAL_ONLY=1` only runs ledger-missing `*.sql` — never `sync_covered_from_file` (that skips SQL; Pirata 2026-10-21). Covered stamp only right after a fresh tip baseline dump.
    - `schema/ensure_realtime_publication.sql` + `apply-migrations` call
    - `apps/web/Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci`
    - `apps/web/Dockerfile`: do **not** default `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` to a repo (empty ARG) so on-prem hides the download card via `getPrintAgentDownloadUrls()===null`; do **not** `COPY apps/print-agent/VERSION` (recommended agent = Fiscal Agent via env pin or GitHub `fiscal-agent-v*`)

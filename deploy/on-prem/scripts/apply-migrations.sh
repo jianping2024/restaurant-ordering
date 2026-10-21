@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 # Apply Mesa schema to Mode B Postgres (single orchestration, two-channel psql).
 #
-# Fresh install:
+# Fresh install (no __baseline_public__ marker):
 #   1) ensure_ledger
-#   2) apply_baseline_if_needed  (DROP public + baseline_public.sql + marker)
-#   3) sync_covered_from_file
-#   4) apply_pending_sql_files   (disk *.sql minus ledger; usually 0)
+#   2) DROP public + baseline_public.sql + marker
+#   3) sync_covered_from_file   — ONLY here: dump already includes tip schema, so
+#      covered filenames are stamped without re-running SQL (fresh pending=0)
+#   4) apply_pending_sql_files  (disk *.sql minus ledger; usually 0 at tip)
 #   5) ensure_realtime_publication (every run; baseline omits pub membership)
 #
-# Re-run / upgrade (MESA_MIGRATE_INCREMENTAL_ONLY=1):
-#   skip DROP; require marker; then steps 3–5.
+# Live upgrade / re-run (marker present, or MESA_MIGRATE_INCREMENTAL_ONLY=1):
+#   NEVER sync_covered_from_file. That only INSERT-stamps covered rows and would
+#   skip real SQL on stores whose live schema never got those migrations
+#   (Pirata 2026-10-21: station_print / time_slot marked applied, columns missing).
+#   Only apply_pending_sql_files (ledger miss → run file → stamp) + ensure realtime.
 #
 # Pending is a bash path array from glob + sql_scalar checks — never from psql stdout.
 set -euo pipefail
@@ -128,6 +132,10 @@ SQL
   fi
   echo "Baseline marker OK."
 
+  # Tip dump already has schema for every covered file — stamp ledger so pending=0.
+  # Live upgrades must never call this (would skip real SQL).
+  sync_covered_from_file
+
   if [[ "$(sql_scalar "SELECT CASE WHEN to_regclass('storage.buckets') IS NULL THEN 0 ELSE 1 END")" == "1" ]]; then
     sql_exec <<'SQL'
 INSERT INTO storage.buckets (id, name, public)
@@ -139,7 +147,9 @@ SQL
   fi
 }
 
-# --- step 3 ---
+# --- step 3 (fresh baseline only) ---
+# Stamp covered migration filenames after a tip baseline dump was just loaded.
+# Must not run on live upgrades — see header.
 sync_covered_from_file() {
   ensure_ledger
   local sql_tmp base
@@ -229,20 +239,21 @@ ensure_realtime_publication() {
 ensure_ledger
 
 if [[ "${MESA_MIGRATE_INCREMENTAL_ONLY:-}" == "1" ]]; then
-  echo "MESA_MIGRATE_INCREMENTAL_ONLY=1 — skipping baseline DROP."
+  echo "MESA_MIGRATE_INCREMENTAL_ONLY=1 — skipping baseline DROP; not stamping covered (live upgrade)."
   if ! has_baseline_marker; then
     echo "Refusing incremental-only migrate: baseline marker __baseline_public__ missing." >&2
     exit 1
   fi
-  sync_covered_from_file
   apply_pending_sql_files
   ensure_realtime_publication
   echo "Next: ./scripts/stack.sh up --build web"
   exit 0
 fi
 
+# Fresh path: apply_baseline_if_needed stamps covered only when it just loaded the dump.
+# If marker already present (accidental full re-run on a live store), skip sync_covered
+# and only apply ledger-missing files — same rule as upgrade.
 apply_baseline_if_needed
-sync_covered_from_file
 apply_pending_sql_files
 ensure_realtime_publication
 echo "Next: ./scripts/stack.sh up --build web"

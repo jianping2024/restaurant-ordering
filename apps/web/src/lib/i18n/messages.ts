@@ -898,7 +898,7 @@ export const MESSAGES = {
       billReceiptPrintDesc: '开启后，呼叫结账时会自动打印预账单，分单结账与整桌结账时会自动打印分单小票与最终账单。关闭则跳过这些自动打印（厨房单不受影响）；后台「打印账单」手动补打不受影响。',
       openTableReceiptPrint: '开台打印小票',
       openTableReceiptPrintDesc:
-        '开启后，服务员确认开台成功时自动打一张开台小票（版式同档口出品联，一行合计金额，打在收银默认打印机）。关闭则不开台票；改人数不重打。默认关闭。',
+        '开启后，服务员确认开台成功时自动打一张开台小票（只印大人/小孩人数，不印份数和应付，打在收银默认打印机；不影响档口出品联）。关闭则不开台票；改人数不重打。默认关闭。',
       billSyncToFiscal: '打印发票',
       billSyncToFiscalDesc:
         '开启后：确认收款时可填写买家税号与名称；收款后自动或询问开具发票（挂单并自动开票，不关台），已收款记录与历史订单可打印、补打发票。关闭则不显示这些入口，且开票接口拒绝。分单与开票在打票机本机。与「快速关台」互斥：打开本项会关掉快速关台。',
@@ -2447,7 +2447,7 @@ export const MESSAGES = {
       billReceiptPrintDesc: 'When enabled, call-for-bill auto-prints a pre-bill; split and full checkout auto-print split receipts and the final bill. When disabled, those automatic jobs are skipped (kitchen tickets are unaffected); manual Print bill in checkout still works.',
       openTableReceiptPrint: 'Print on open table',
       openTableReceiptPrintDesc:
-        'When enabled, confirming open table auto-prints one open-table slip (station-slip layout, one line with total amount, default receipt printer). When disabled, no open-table slip; changing guest count does not reprint. Default off.',
+        'When enabled, confirming open table auto-prints one open-table slip (adult/child headcount only — no portion qty, no amount due; default receipt printer; kitchen station tickets unchanged). When disabled, no open-table slip; changing guest count does not reprint. Default off.',
       billSyncToFiscal: 'Print invoice',
       billSyncToFiscalDesc:
         'When enabled: collection asks for the buyer NIF/name and, after collection, the invoice is issued automatically or on request (hang-queue + auto_issue, table is not closed); collected payments and order history can print or reprint it. When disabled: these entries are hidden and the invoice API rejects requests. Split/invoicing stay on the fiscal agent. Mutually exclusive with Quick table close — enabling this turns Quick table close off.',
@@ -3743,7 +3743,7 @@ export const MESSAGES = {
       billReceiptPrintDesc: 'Ativo: pedir conta imprime pre-conta automaticamente; checkout dividido ou total imprime taloes por pessoa e conta final. Desativado: salta essas impressoes automaticas (taloes de cozinha nao sao afetados); Imprimir conta manual no checkout continua disponivel.',
       openTableReceiptPrint: 'Imprimir ao abrir mesa',
       openTableReceiptPrintDesc:
-        'Ativo: ao confirmar abrir mesa imprime um talão de abertura (layout de talão de estação, uma linha com o total, impressora de recibos por defeito). Desativado: sem talão; alterar pessoas não reimprime. Predefinição: desligado.',
+        'Ativo: ao confirmar abrir mesa imprime um talão de abertura (só adultos/crianças — sem quantidade, sem valor a pagar; impressora de recibos; talões de estação não mudam). Desativado: sem talão; alterar pessoas não reimprime. Predefinição: desligado.',
       billSyncToFiscal: 'Imprimir fatura',
       billSyncToFiscalDesc:
         'Ativo: ao cobrar pede o NIF/nome do cliente e, depois da cobranca, emite a fatura automaticamente ou pergunta (fila auto_issue, sem fechar a mesa); nos pagamentos cobrados e no historico pode imprimir ou reimprimir. Desativado: entradas ocultas e a API rejeita. Divisao/fatura no agente. Exclusivo com Fecho rapido — ativar isto desliga o fecho rapido.',

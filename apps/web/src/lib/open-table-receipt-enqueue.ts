@@ -1,17 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
-import {
-  billableLineAmount,
-  buildPaperBillableSessionItems,
-} from '@/lib/billable-session-lines';
-import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
+import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
+import { normalizePrintLocale } from '@/lib/i18n';
 import { hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
-import {
-  formatStationTicketOrderTime,
-  guestCountFromTableOrders,
-} from '@/lib/table-guest-count';
+import { formatStationTicketOrderTime } from '@/lib/table-guest-count';
 import { loadOrdersForReceiptPrint } from '@/lib/order-receipt-enqueue';
 
 /** Sole print job kind for cold-open table slip (payload receipt_variant). */
@@ -20,18 +14,6 @@ export const OPEN_TABLE_RECEIPT_VARIANT = 'open_table' as const;
 /** Sole idempotency key for one open-table slip per session. */
 export function openTableReceiptIdempotencyKey(sessionId: string): string {
   return `session_open:${sessionId}`;
-}
-
-/** Sole on-paper line title for open-table slip (print_locale). */
-export function openTableReceiptLineLabel(locale: PrintLocale): string {
-  switch (locale) {
-    case 'zh':
-      return '开台';
-    case 'en':
-      return 'Open table';
-    default:
-      return 'Abrir mesa';
-  }
 }
 
 export type EnqueueOpenTableReceiptResult =
@@ -61,7 +43,8 @@ async function findOpenTableReceiptJobId(
 
 /**
  * Sole enqueue for cold-open table slip — gated by open_table_receipt_print.
- * Station-slip layout on Agent; routes to default receipt printer.
+ * Headcount notice only (adult/child); no portion qty, no amount due.
+ * Routes to default receipt printer — not station_ticket.
  */
 export async function enqueueOpenTableReceiptPrint(params: {
   admin: SupabaseClient;
@@ -108,9 +91,10 @@ export async function enqueueOpenTableReceiptPrint(params: {
   }
 
   const orderRows = orders as Order[];
-  const paperItems = buildPaperBillableSessionItems(orderRows);
-  const amountDue = paperItems.reduce((sum, row) => sum + billableLineAmount(row), 0);
-  const guestCount = guestCountFromTableOrders(orderRows);
+  const headcount = aggregateBuffetHeadcountForOrders(orderRows) ?? {
+    adults: 0,
+    children: 0,
+  };
   const locale = normalizePrintLocale(restaurantRow?.print_locale ?? null);
   const hanBitmapFontPx = hanBitmapFontPxFromConfig(restaurantRow?.print_agent_config);
   const printerId = await resolveReceiptPrinterId(admin, restaurantId, undefined, locale);
@@ -127,19 +111,11 @@ export async function enqueueOpenTableReceiptPrint(params: {
     receipt_variant: OPEN_TABLE_RECEIPT_VARIANT,
     table_id: tableId,
     display_name: tableDisplayName,
-    ...(guestCount > 0 ? { guest_count: guestCount } : {}),
+    adult_count: headcount.adults,
+    child_count: headcount.children,
     ...(orderTime ? { order_time: orderTime } : {}),
     print_time: printTime,
-    subtotal: amountDue,
-    amount_due: amountDue,
-    lines: [
-      {
-        item_index: 1,
-        display_name: openTableReceiptLineLabel(locale),
-        qty: 1,
-        unit_price: amountDue,
-      },
-    ],
+    lines: [] as Array<never>,
     ordered_by: 'Customer/Merchant',
   };
 

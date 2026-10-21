@@ -760,7 +760,7 @@ export const MESSAGES_DE = {
     "billReceiptPrint": "Rechnungen drucken",
     "billReceiptPrintDesc": "Wenn aktiviert, wird bei einer Rechnungsanforderung automatisch eine Zwischenrechnung gedruckt; bei Teil- und Gesamtabrechnung werden Teilbelege und die Endrechnung automatisch gedruckt. Wenn deaktiviert, entfallen diese automatischen Aufträge (Küchenbons sind nicht betroffen); der manuelle Rechnungsdruck in der Abrechnung funktioniert weiterhin.",
     "openTableReceiptPrint": "Bei Tischöffnung drucken",
-    "openTableReceiptPrintDesc": "Aktiv: Nach Bestätigung der Tischöffnung wird ein Öffnungsbon gedruckt (Stationsbon-Layout, eine Zeile mit Gesamtbetrag, Standard-Bondrucker). Inaktiv: kein Bon; Personenänderung druckt nicht erneut. Standard aus.",
+    "openTableReceiptPrintDesc": "Aktiv: Nach Bestätigung der Tischöffnung wird ein Öffnungsbon gedruckt (nur Erwachsene/Kinder — keine Menge, kein Betrag; Bondrucker; Stationsbons unverändert). Inaktiv: kein Bon; Personenänderung druckt nicht erneut. Standard aus.",
     "stationSlipShowCategoryGroup": "Kategoriegruppen auf Küchenbons",
     "stationSlipShowCategoryGroupDesc": "Wenn aktiviert, drucken die Bons der Gästebestellungen bei einem Wechsel der obersten Speisekartengruppe eine zentrierte Zeile mit der Kategorie in Klammern (z. B. (Bebidas/ Drinks2)). Wenn deaktiviert, werden nur die Zeilen mit Gerichtcode und Namen gedruckt.",
     "hanBitmapFontPx": "Chinesische Bitmap-Schriftgröße",

@@ -148,3 +148,4 @@
 20261020120000_restaurants_plan_default_basic.sql
 20261021120000_menu_items_time_slot.sql
 20261021203714_dashboard_revenue_by_opened_at.sql
+20261021230000_round_line_drop_legacy_unique.sql

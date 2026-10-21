@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict BivN53WqDmaksDQFhDgHN1a1aGljc2L7zLSotIjylfzltgDkk7bWgSrB9gcqjgf
+\restrict ydWKnxCOdTTm5Ghx4ebPa3doefjcSAqVEdl8ttzcrqAm0cT2sFctDJG7JYtm7cV
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -7182,14 +7182,6 @@ ALTER TABLE ONLY public.table_order_round_lines
 
 
 --
--- Name: table_order_round_lines table_order_round_lines_round_id_menu_item_id_guest_client__key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.table_order_round_lines
-    ADD CONSTRAINT table_order_round_lines_round_id_menu_item_id_guest_client__key UNIQUE (round_id, menu_item_id, guest_client_id);
-
-
---
 -- Name: table_order_rounds table_order_rounds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -10154,5 +10146,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict BivN53WqDmaksDQFhDgHN1a1aGljc2L7zLSotIjylfzltgDkk7bWgSrB9gcqjgf
+\unrestrict ydWKnxCOdTTm5Ghx4ebPa3doefjcSAqVEdl8ttzcrqAm0cT2sFctDJG7JYtm7cV
 

@@ -152,9 +152,9 @@
 
 ## 备餐区（大屏窗格内）
 
-- **唯一容器**：`KitchenPrepTray`（`KitchenStationPane` 内）。按桌 / 按菜两个视图共用同一份 `selected`（订单行键）；勾选的**可备行**（`pending`）按菜聚成卡片进入备餐区，与视图无关。
+- **唯一容器**：`KitchenPrepTray`（`KitchenStationPane` 内）。按桌 / 按菜两个视图共用同一份 `selected`（订单行键）；勾选的**可备行**（`pending`）按 **菜 + 备注**（`lineNoteKey` trim；空 = 无备注）聚成卡片进入备餐区，与视图无关。同菜同备注可叠；有备注 vs 无备注、或备注文本不同 → **必须拆卡**（sole `prepTrayCardKey` / `buildPrepTrayCards`）。
 - **三态（每行一个）**：未选（不在区内）· 已选（左侧亮、实心金芯片）· 已跳过（`skipped`：仅在备餐区点灭，虚线芯片留卡内，左侧不亮）。`selected` 与 `skipped` 同时含某键时以已选为准；左侧重新勾选 = 回已选；左侧取消勾选 = 直接移出（不是跳过）。纯函数：`buildPrepTrayCards` / `toggleTrayChip` / `setTrayKeysSelected` / `removeTrayKeys`（`kitchen-board-lines.ts`）。
-- **卡片**：菜大图（`MenuItemListThumb` size 160，**不随菜多缩小**；点开只读详情）· 菜名 · 已选份数 · 已选桌数 · 最久等待 · `已选 n/m` · 全选/清空（清空 = 全跳过）· 移出 ✕（整菜离区）。桌号芯片按等待降序；超过约 24 个折叠为「+N 桌」，可展开/收起；一桌 `×N` 整行备，**不**拆份。
+- **卡片**：菜大图（`MenuItemListThumb` size 160，**不随菜多缩小**；点开只读详情）· 菜名[+备注，有则琥珀展示] · 已选份数 · 已选桌数 · 最久等待 · `已选 n/m` · 全选/清空（清空 = 全跳过）· 移出 ✕（该卡离区）。桌号芯片按等待降序；超过约 24 个折叠为「+N 桌」，可展开/收起；一桌 `×N` 整行备，**不**拆份。React key / 展开态 sole `card.cardKey`（禁止再绑 `menuItemId`）。
 - **区头/区尾固定、卡片区独立滚动**；区头「清空全部」带确认。「备餐」唯一按钮在区尾：一次提交所有「已选」行；成功后已选行与跳过行一并离区。空选点备餐仅提示，不置灰。
 - **布局（唯一）**：窗格宽 ≥56rem（容器宽，非视口）左列表 45% | 右备餐区 55%；更窄时备餐区叠在列表下方（最高半屏，无行时隐藏）。
 - **本屏本机**：`selected`/`skipped` 存 `localStorage`（`mesa:kitchen-prep-tray:{stationId}`），刷新保留；**不跨屏同步**。行离开看板后自动从本地选择剔除；备餐区里的行被他屏备餐/撤单（不再是待备餐）时同样剔除并弹一次提示 `trayDroppedByOthers`，本屏自己提交触发的刷新不弹。**不重复备餐由服务端保证**：`applyKitchenPrep` 只收 `pending` 行（否则 409 `item_not_pending`）+ 写库按 `updated_at` 乐观锁（同瞬间多请求只有一个成功，其余 409 `conflict`）；本屏提交遇 409 提示「数据已更新，请重试」并刷新看板。

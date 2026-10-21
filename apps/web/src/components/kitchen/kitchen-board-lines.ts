@@ -48,6 +48,11 @@ export function lineNoteKey(item: OrderItem): string {
   return (item.note || '').trim();
 }
 
+/** Sole prep-tray card identity: same dish + same trimmed note stack; different notes split. */
+export function prepTrayCardKey(menuItemId: string, note: string): string {
+  return `${menuItemId}\0${note}`;
+}
+
 export function lineOrderedAtMs(order: Order, item: OrderItem): number {
   const raw = item.added_at || order.created_at;
   const ms = new Date(raw).getTime();
@@ -284,8 +289,12 @@ export type PrepTrayChip = {
 };
 
 export type PrepTrayCard = {
+  /** Stable React / expand key: menuItemId + note (see prepTrayCardKey). */
+  cardKey: string;
   menuItemId: string;
   name: string;
+  /** Trimmed line note; empty = no note. Same note stacks; different notes split cards. */
+  note: string;
   /** First line of the dish — thumb / detail source. */
   seedLine: KitchenBoardLine;
   /** Longest wait first. */
@@ -297,22 +306,26 @@ export type PrepTrayCard = {
   longestWaitMin: number;
 };
 
-/** Sole tray grouping: one card per dish, chips = tray lines sorted by wait desc. */
+/** Sole tray grouping: one card per dish + trimmed note; chips = tray lines sorted by wait desc. */
 export function buildPrepTrayCards(
   lines: readonly KitchenBoardLine[],
   state: { selected: ReadonlySet<string>; skipped: ReadonlySet<string> },
   nowMs: number,
 ): PrepTrayCard[] {
-  const byDish = new Map<string, PrepTrayCard>();
+  const byCard = new Map<string, PrepTrayCard>();
   for (const line of lines) {
     if (!line.prepEligible) continue;
     const selected = state.selected.has(line.key);
     if (!selected && !state.skipped.has(line.key)) continue;
-    let card = byDish.get(line.menuItemId);
+    const note = lineNoteKey(line.item);
+    const cardKey = prepTrayCardKey(line.menuItemId, note);
+    let card = byCard.get(cardKey);
     if (!card) {
       card = {
+        cardKey,
         menuItemId: line.menuItemId,
         name: line.displayName,
+        note,
         seedLine: line,
         chips: [],
         selectedCount: 0,
@@ -320,7 +333,7 @@ export function buildPrepTrayCards(
         selectedQty: 0,
         longestWaitMin: 0,
       };
-      byDish.set(line.menuItemId, card);
+      byCard.set(cardKey, card);
     }
     const qty = Number(line.item.qty) || 0;
     const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
@@ -338,7 +351,7 @@ export function buildPrepTrayCards(
     }
     card.longestWaitMin = Math.max(card.longestWaitMin, waitMin);
   }
-  const cards = Array.from(byDish.values());
+  const cards = Array.from(byCard.values());
   for (const card of cards) {
     card.selectedTableCount = new Set(
       card.chips.filter((chip) => chip.selected).map((chip) => chip.tableId),
@@ -348,7 +361,10 @@ export function buildPrepTrayCards(
     );
   }
   return cards.sort(
-    (a, b) => b.longestWaitMin - a.longestWaitMin || a.name.localeCompare(b.name),
+    (a, b) =>
+      b.longestWaitMin - a.longestWaitMin ||
+      a.name.localeCompare(b.name) ||
+      a.note.localeCompare(b.note),
   );
 }
 

@@ -383,6 +383,10 @@ sole expanded panel `KITCHEN_READY_RAIL_*` + `groupBottomRailByStatus` + `kitche
 
 sole thumb `MenuItemListThumb` (56 on board) + catalog map `menu_catalog_by_id` via `kitchen-board-menu-catalog`/`resolveKitchenBoardDishCatalogEntry`; sole modal `KitchenMenuItemDetailModal` (frozen at open; confirm close) — never customer detail sheet, never a second board image map or inline kitchen `Image`.
 
+### Kitchen prep tray card key
+
+sole `prepTrayCardKey` / `buildPrepTrayCards` = dish + trimmed note (`lineNoteKey`); React key/expand sole `card.cardKey`. Same dish + different/blank notes must not stack; never regroup tray cards by `menuItemId` alone.
+
 ## 后台看板 / 列表 / 分析
 
 ### Dashboard list pagination

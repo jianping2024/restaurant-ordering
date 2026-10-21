@@ -18,7 +18,7 @@ Do not broaden the task unless the user asks.
 
 ## Stack
 
-- Next.js 14 App Router, React 18, TypeScript strict, Tailwind; Supabase (Auth/DB/RLS); Go 1.22 print-agent; Vercel; CI Node 20 + **npm** (`package-lock.json`; no yarn/pnpm/bun unless asked).
+- Next.js 14 App Router, React 18, TypeScript strict, Tailwind; Supabase (Auth/DB/RLS); Fiscal/print Agent in **farvoo-fatura**; Vercel; CI Node 20 + **npm** (`package-lock.json`; no yarn/pnpm/bun unless asked).
 - Go only via Docker — do not ask the user to install Go locally.
 
 ## Commands
@@ -33,23 +33,16 @@ Do not broaden the task unless the user asks.
 | Typecheck | `npm run typecheck`（或 `typecheck:web` / `typecheck:ops`） |
 | Build web / ops | `npm run build` / `npm run build:ops`（**push** 门禁，不是 commit） |
 | Agent gates | `bash scripts/agent-gates/gate.sh scan\|uat\|check\|build\|status` |
-| Print-agent helpers | `npm run print` / `printstop` / `printlog` |
 | Migrations | `supabase db push` (after `supabase link`) |
 
-Print-agent (from repo root; never bare local `go test`/`vet`/`build`):
-
-```bash
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go test ./...
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go vet ./...
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOARCH=amd64 golang:1.22 go build -o /dev/null .
-```
+Print / Fiscal Agent：源码与发布在 **farvoo-fatura**（`fiscal-agent-v*`），不在本仓。
 
 ## Layout
 
 - `apps/web` — tenant product (`@/*` → `src/*`)
 - `apps/ops` — platform ops
 - `packages/shared` — `@mesa/shared`
-- `apps/print-agent` — Go agent
+- Print / Fiscal Agent — **farvoo-fatura** repo（本仓不再含 `apps/print-agent`）
 - `supabase/migrations` — append only; do not edit applied history
 - `docs/` — product/design/technical truth
 
@@ -92,7 +85,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 - **Commit gate (hard):** before any product `git commit`: scoped **lint + typecheck** must **pass** — `npm run lint -w @mesa/web|@mesa/ops` + `npm run typecheck -w @mesa/web|@mesa/ops` (or `gate.sh check`). Do **not** require `npm run build` at commit time. `next dev` / UAT ≠ lint/typecheck.
 - **Push gate:** production **build paused** before `git push`（太慢）— do **not** require `gate.sh build` / `next build` to push. Commit gate already covers lint+typecheck.
 - **On-prem zip/upgrade:** if that commit changes web build inputs, `npm run build -w @mesa/web` must pass **before** `pack-release.sh` (store Docker is where typecheck actually fails — see `.cursor/rules/on-prem-pack.mdc`).
-- Print-agent: commit → Docker `go vet`；`go test` / Windows cross-build before pack/tag when agent code changes — not a daily push hook.
+- Fiscal Agent：变更与 tag 在 farvoo-fatura 仓；本仓不跑 Go agent 门禁。
 - Migration/RLS: verify tenant isolation; not only happy paths. No broad web unit suite — add targeted tests when justified. Fix narrow failures; do not loop full-project builds on every commit.
 - **清冗余 before UAT (hard):** after implement, **before** starting product UAT: scan this task’s surface for dead exports / parallel live forms / forward-only wrappers and remove confirmed finds — see `.cursor/rules/redundancy-cleanup-before-uat.mdc`. Do not start UAT with known redundancy left “以后再清”.
 - **UAT machine evidence (hard):** `uat.md` needs `## 测试项` + `## 证据`; append via `gate.sh uat-evidence -- <cmd>` (`exit=0`); narrative-only pass is rejected. Web/ops/packages → evidence must include `mesa-local-uat`.

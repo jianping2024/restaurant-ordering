@@ -351,7 +351,7 @@
 | Web API | `apps/web/src/app/api/print-agent/*`、`order-receipt/print/route.ts`、`station-tickets/auto/route.ts` |
 | Lib | `apps/web/src/lib/order-receipt-enqueue.ts`、`station-ticket-enqueue.ts`、`print-agent-*` |
 | UI | `PrintAgentPairingPanel`、`PrintAgentDevicesPanel`、`PrintStationsManager`、`ReceiptBillPrinterPanel` |
-| 代理 | `apps/print-agent/`（`escpos.go`、`poll.go`、`job_route.go` 等） |
+| 代理 | **farvoo-fatura** Fiscal Agent（本仓仅入队 / claim API） |
 | 共享 | `packages/shared/src/print-agent-*.ts` |
 
 ---

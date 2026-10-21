@@ -59,7 +59,7 @@ bash scripts/agent-gates/gate.sh status
 
 - 至少一行 `exit=0`；任一非零 `exit=` → 拒
 - 改动含 `apps/web` / `apps/ops` / `packages` → 证据须含 `mesa-local-uat`
-- **仅** `apps/print-agent` → 证据须含 `go vet` / `go test` / `mesa-print-smoke` 之一
+- Print/Fiscal Agent 改动在 **farvoo-fatura** 仓验证；本仓无 `apps/print-agent`
 
 ## 钩子（强制执行同一脚本）
 

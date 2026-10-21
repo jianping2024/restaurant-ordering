@@ -25,7 +25,7 @@ Web 入队（service role）
 
 - **主路径**：`print_jobs` + 本地代理  
 - **兜底**：无代理时 Dashboard `TablesManager` 等 `window.print()` HTML  
-- **三处实现**：`apps/web` 入队、`packages/shared` JWT/吊销、`apps/print-agent` 出纸
+- **三处实现**：`apps/web` 入队、`packages/shared` JWT/吊销、**farvoo-fatura** Fiscal Agent 出纸
 
 ---
 
@@ -55,7 +55,7 @@ Web 入队（service role）
 | `order_receipt` | `split_payment` | 单人收款小票 |
 | `order_receipt` | `final` | 整桌收讫小票 |
 | `order_receipt` | `checkout_bill` | **手动**「打印账单」 |
-| `order_receipt` | `open_table` | **自动**开台小票（功能开关 `open_table_receipt_print`；冷开台成功入队；版式同档口、一行金额；收银默认机；出纸：farvoo-fatura） |
+| `order_receipt` | `open_table` | **自动**开台小票（功能开关 `open_table_receipt_print`；冷开台成功入队；payload `adult_count`/`child_count`，无份数无应付；收银默认机；**出纸：farvoo-fatura Fiscal Agent**） |
 | `order_receipt` | （连接测试） | 向导/试打 |
 
 #### 业务三类 vs 技术四种 `receipt_variant`
@@ -89,12 +89,12 @@ Web 入队（service role）
 
 `restaurants.feature_flags.open_table_receipt_print`（默认 **关**）：
 
-- **开启**：冷开台成功后由 `scheduleOpenTableReceiptPrint` 入队 `order_receipt` / `open_table`（幂等 `session_open:{sessionId}`）  
+- **开启**：冷开台成功后由 `scheduleOpenTableReceiptPrint` 入队 `order_receipt` / `open_table`（幂等 `session_open:{sessionId}`）；只带大人/小孩人数。纸面由 **farvoo-fatura** `buildOpenTableSlip` 打印（无份数、无应付）  
 - **关闭**：跳过开台小票；与 `bill_receipt_print` 独立
 
 ### 3.3 纸面语言
 
-`restaurants.print_locale`（默认 `pt`）；编码见 `apps/print-agent/escpos*.go`。
+`restaurants.print_locale`（默认 `pt`）；编码见 farvoo-fatura `apps/fiscal-agent/escpos*.go`。
 
 ---
 
@@ -184,9 +184,9 @@ Web 入队（service role）
 | 功能门控 | `apps/web/src/lib/restaurant-features.ts` |
 | Web API | `apps/web/src/app/api/print-agent/*` |
 | JWT | `packages/shared/src/print-agent-jwt.ts` |
-| 代理运行时 | `apps/print-agent/agent_run.go`、`processor.go`、`job_queue.go` |
-| ESC/POS | `apps/print-agent/escpos.go`、`escpos_encoding.go` |
-| 发布 | `docs/ci-and-release.zh.md`、`apps/print-agent/VERSION` |
+| 代理运行时 | **farvoo-fatura** `apps/fiscal-agent/` |
+| ESC/POS | **farvoo-fatura** `apps/fiscal-agent/escpos.go` |
+| 发布 | farvoo-fatura `fiscal-agent-v*` |
 
 ---
 

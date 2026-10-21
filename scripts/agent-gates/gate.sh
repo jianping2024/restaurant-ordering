@@ -192,9 +192,6 @@ validate_uat_evidence() {
   if echo "$files" | grep -qE '^(apps/web|apps/ops|packages)/'; then
     echo "$evidence" | grep -qF 'mesa-local-uat' || die "web/ops/packages 改动：证据须含 mesa-local-uat（gate.sh uat-evidence -- node scripts/mesa-local-uat.mjs …）"
   fi
-  if echo "$files" | grep -qE '^apps/print-agent/' && ! echo "$files" | grep -qE '^(apps/web|apps/ops|packages)/'; then
-    echo "$evidence" | grep -qiE 'go vet|go test|mesa-print-smoke' || die "仅 print-agent 改动：证据须含 go vet / go test / mesa-print-smoke 之一"
-  fi
 }
 
 cmd_uat_evidence() {

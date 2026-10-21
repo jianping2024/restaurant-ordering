@@ -2,9 +2,9 @@
 # Vercel Ignored Build Step for @mesa/web (mesa-web project).
 # ignoreCommand runs with cwd = apps/web when Root Directory is apps/web.
 # Exit 0 → skip; exit 1 → build.
-# Skips when only apps/ops/, apps/print-agent/, or docs-only paths changed.
+# Skips when only apps/ops/ or docs-only paths changed.
 # Recommended Fiscal Agent version is resolved at runtime (GitHub fiscal-agent-v*)
-# or via NEXT_PUBLIC_PRINT_AGENT_VERSION — not apps/print-agent/VERSION.
+# or via NEXT_PUBLIC_PRINT_AGENT_VERSION (farvoo-fatura releases).
 
 set -euo pipefail
 
@@ -25,7 +25,7 @@ fi
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   case "$f" in
-    apps/ops/*|apps/print-agent/*) ;;
+    apps/ops/*) ;;
     docs/*) ;;
     *)
       echo "vercel-ignore-web: relevant change: $f → building"

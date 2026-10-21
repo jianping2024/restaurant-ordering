@@ -273,7 +273,7 @@ Mesa 安装验证 / 客户安装
    sudo ./install-ubuntu.sh
    （默认装到 /opt/mesa；详见 README-UBUNTU.zh.txt）
 3. 浏览器打开：http://<店内IP>/setup（edge :80；本机可用 http://127.0.0.1/setup）
-4. 打印：另机安装 Windows MesaPrintAgent（apps/print-agent 发行包），
+4. 打印：另机安装 Windows Farvoo Fiscal Agent（farvoo-fatura `fiscal-agent-v*`），
    服务器地址填 http://<店内局域网IP>（edge，勿 :3000、勿 localhost）
 
 【已作废】

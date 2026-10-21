@@ -41,10 +41,7 @@ export function PersonalSettingsPanel({ notifyMode }: Props) {
           </div>
         </div>
       ) : null}
-      <div className={rowClass}>
-        <span className="min-w-0 truncate">{t.language}</span>
-        <LanguageSwitcherIconChrome showCurrentLanguage />
-      </div>
+      <LanguageSwitcherIconChrome layout="settings-row" />
       <div className={rowClass}>
         <span className="min-w-0 truncate">{t.darkMode}</span>
         <ThemeToggle />

@@ -55,7 +55,7 @@ Web 入队（service role）
 | `order_receipt` | `split_payment` | 单人收款小票 |
 | `order_receipt` | `final` | 整桌收讫小票 |
 | `order_receipt` | `checkout_bill` | **手动**「打印账单」 |
-| `order_receipt` | `open_table` | **自动**开台小票（功能开关 `open_table_receipt_print`；冷开台成功入队；**只印大人/小孩人数**，不印份数、不印应付；与档口 `station_ticket` 分路；收银默认机） |
+| `order_receipt` | `open_table` | **自动**开台小票（功能开关 `open_table_receipt_print`；冷开台成功入队；版式同档口、一行金额；收银默认机；出纸：farvoo-fatura） |
 | `order_receipt` | （连接测试） | 向导/试打 |
 
 #### 业务三类 vs 技术四种 `receipt_variant`
@@ -89,8 +89,8 @@ Web 入队（service role）
 
 `restaurants.feature_flags.open_table_receipt_print`（默认 **关**）：
 
-- **开启**：冷开台成功后由 `scheduleOpenTableReceiptPrint` 入队 `order_receipt` / `open_table`（幂等 `session_open:{sessionId}`）；payload 带 `adult_count` / `child_count`；Agent `buildOpenTableReceipt` 只印人数（无数量列、无应付）。**不**走 `buildStationTicket`  
-- **关闭**：跳过开台小票；与 `bill_receipt_print` 独立；档口出品联不受影响
+- **开启**：冷开台成功后由 `scheduleOpenTableReceiptPrint` 入队 `order_receipt` / `open_table`（幂等 `session_open:{sessionId}`）  
+- **关闭**：跳过开台小票；与 `bill_receipt_print` 独立
 
 ### 3.3 纸面语言
 

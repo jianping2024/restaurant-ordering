@@ -333,7 +333,7 @@ sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameFor
 
 ### 开台确认
 
-idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck.
+idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck. Floor buffet adult/child sole UI `BuffetGuestCounter` −/n/+ only (no typed qty / no `onQtyChange` on that counter).
 
 ### 楼面跨端
 

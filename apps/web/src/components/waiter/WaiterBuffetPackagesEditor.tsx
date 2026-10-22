@@ -92,7 +92,6 @@ export function WaiterBuffetPackagesEditor({
                 label={t.buffetAdults}
                 qty={counts.adults}
                 disabled={disabled}
-                onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
                 onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
                 onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
               />
@@ -101,7 +100,6 @@ export function WaiterBuffetPackagesEditor({
                 label={t.buffetChildren}
                 qty={counts.children}
                 disabled={disabled}
-                onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
                 onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
                 onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}
               />
@@ -141,7 +139,6 @@ export function WaiterBuffetPackagesEditor({
               label={t.buffetAdults}
               qty={counts.adults}
               disabled={disabled}
-              onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
               onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
               onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
             />
@@ -149,7 +146,6 @@ export function WaiterBuffetPackagesEditor({
               label={t.buffetChildren}
               qty={counts.children}
               disabled={disabled}
-              onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
               onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
               onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}
             />

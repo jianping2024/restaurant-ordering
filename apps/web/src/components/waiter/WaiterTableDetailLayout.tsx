@@ -81,10 +81,10 @@ type BuffetPanelProps = {
   } | null;
 };
 
+/** Floor buffet headcount: − / n / + only (no typed qty). */
 export function BuffetGuestCounter({
   label,
   qty,
-  onQtyChange,
   onDecrement,
   onIncrement,
   layout = 'detail',
@@ -92,7 +92,6 @@ export function BuffetGuestCounter({
 }: {
   label: string;
   qty: number;
-  onQtyChange: (value: number) => void;
   onDecrement: () => void;
   onIncrement: () => void;
   layout?: 'detail' | 'sheet';
@@ -108,8 +107,6 @@ export function BuffetGuestCounter({
       <span className={waiterFloorType.guestLabel}>{label}</span>
       <CartQtyStepper
         qty={qty}
-        onQtyChange={onQtyChange}
-        qtyInputAriaLabel={label}
         onDecrement={onDecrement}
         onIncrement={onIncrement}
         disabled={disabled}

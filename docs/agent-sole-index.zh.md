@@ -377,7 +377,7 @@ sole `react-swipeable-list` `Type.ANDROID` on `SwipeableListItem` (`LeadingActio
 
 ### Kitchen board ready-rail chrome
 
-sole expanded panel `KITCHEN_READY_RAIL_*` + `groupBottomRailByStatus` + `kitchenRowSurfaceClass`/`readyRailZoneTitle` (group heads = `statusCooking`/`statusReady`); never paint bottom-rail rows with workbench `bg-brand-card` as the undifferentiated surface, never a second zone-title vocabulary beside `readyRailZoneTitle`.
+sole expanded panel `KITCHEN_READY_RAIL_*` + `groupBottomRailByStatus` + `kitchenRowSurfaceClass`/`readyRailZoneTitle` (group heads = `statusCooking`/`statusReady`); open/close sole footer toggle via `railOpenStations`/`setRailOpen` — prep success (`runPrep`) never auto-opens; never paint bottom-rail rows with workbench `bg-brand-card` as the undifferentiated surface, never a second zone-title vocabulary beside `readyRailZoneTitle`.
 
 ### Kitchen board dish thumb/detail
 

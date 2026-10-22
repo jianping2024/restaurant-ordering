@@ -146,8 +146,8 @@ export function useKitchenPrepTrays(input: {
 
   /**
    * Sole prep runner (pane tray button, row swipe, shared tray). Posts station batches one after
-   * another; each success clears its lines and opens that station's ready rail. Returns the
-   * station ids whose prep failed (their selection stays in the tray).
+   * another; each success clears its lines (ready rail stays as the footer toggle left it —
+   * never auto-open). Returns the station ids whose prep failed (their selection stays in the tray).
    */
   const runPrep = useCallback(
     async (
@@ -176,7 +176,6 @@ export function useKitchenPrepTrays(input: {
             selected: withoutKeys(prev.selected, keys),
             skipped: source === 'tray' ? new Set() : withoutKeys(prev.skipped, keys),
           }));
-          setRailOpen(batch.stationId, true);
         }
         if (failed.length < batches.length) showToast(t.prepSuccess, 'success');
       } finally {
@@ -184,7 +183,7 @@ export function useKitchenPrepTrays(input: {
       }
       return failed;
     },
-    [postPrep, setRailOpen, t, updateTray],
+    [postPrep, t, updateTray],
   );
 
   return useMemo(

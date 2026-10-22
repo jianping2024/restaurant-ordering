@@ -40,15 +40,7 @@ export default async function KitchenPage({ params }: Props) {
     ]);
     feature_flags = (flagsRow?.feature_flags as Record<string, unknown> | null) ?? null;
     if (Array.isArray(listed)) {
-      screens = listed.map((s) => ({
-        id: s.id,
-        restaurant_id: s.restaurant_id,
-        name: s.name,
-        sort_order: s.sort_order,
-        created_at: s.created_at,
-        updated_at: s.updated_at,
-        station_ids: s.station_ids,
-      }));
+      screens = listed;
     }
   } catch {
     feature_flags = null;

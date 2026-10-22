@@ -249,6 +249,8 @@ export interface KitchenScreen {
   created_at: string;
   updated_at?: string;
   station_ids: string[];
+  /** One prep tray for all stations on this screen (effective only with ≥2 stations). */
+  shared_prep_tray: boolean;
 }
 
 /**

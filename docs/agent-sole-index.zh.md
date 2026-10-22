@@ -383,9 +383,13 @@ sole expanded panel `KITCHEN_READY_RAIL_*` + `groupBottomRailByStatus` + `kitche
 
 sole thumb `MenuItemListThumb` (56 on board) + catalog map `menu_catalog_by_id` via `kitchen-board-menu-catalog`/`resolveKitchenBoardDishCatalogEntry`; sole modal `KitchenMenuItemDetailModal` (frozen at open; confirm close) — never customer detail sheet, never a second board image map or inline kitchen `Image`.
 
+### Kitchen shared prep tray
+
+sole flag `kitchen_screens.shared_prep_tray` (settings modal switch, shown with ≥2 stations); sole state `useKitchenPrepTrays` on the screen (panes and shared tray are views); shared prep sole `collectStationPrepBatches` → existing per-station prep API sequentially (same order spans stations; `updated_at` guard); narrow pane/tray two-line rows by container query (`mesa-kitchen-pane` ≤26rem, `mesa-kitchen-tray` ≤36rem), never by the shared flag; one `KitchenMenuItemDetailModal` per screen. Never keep a second per-pane tray state, a station colour palette, or a multi-station prep body.
+
 ### Kitchen prep tray card key
 
-sole `prepTrayCardKey` / `buildPrepTrayCards` = dish + trimmed note (`lineNoteKey`); React key/expand sole `card.cardKey`. Same dish + different/blank notes must not stack; never regroup tray cards by `menuItemId` alone.
+sole `prepTrayCardKey` / `buildPrepTrayCards` = dish + trimmed note (`lineNoteKey`); React key sole `card.cardKey` (cards never mix stations — shared tray groups them per station `sections`), expand key = station id + `card.cardKey`. Same dish + different/blank notes must not stack; never regroup tray cards by `menuItemId` alone.
 
 ## 后台看板 / 列表 / 分析
 

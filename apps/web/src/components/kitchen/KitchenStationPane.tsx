@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
   LeadingActions,
   SwipeAction,
@@ -8,17 +8,15 @@ import {
   Type,
 } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
-import type { Order, OrderItemStatus } from '@/types';
+import type { OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { showToast } from '@/components/ui/Toast';
 import { KitchenDishThumbButton } from '@/components/kitchen/KitchenDishThumbButton';
-import { KitchenMenuItemDetailModal } from '@/components/kitchen/KitchenMenuItemDetailModal';
 import { KitchenPrepTray } from '@/components/kitchen/KitchenPrepTray';
 import {
   aggregateLinesByDish,
   buildPrepTrayCards,
-  collectStationBoardLines,
   groupBottomRailByStatus,
   groupLinesByTable,
   groupSelectionFrac,
@@ -40,12 +38,11 @@ import {
   type PrepTrayState,
 } from '@/components/kitchen/kitchen-board-lines';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
+import type { KitchenPrepSource } from '@/components/kitchen/use-kitchen-prep-trays';
 import {
-  resolveKitchenBoardDishCatalogEntry,
+  resolveKitchenBoardDishThumb,
   type KitchenBoardMenuCatalogById,
-  type KitchenBoardMenuCatalogEntry,
 } from '@/lib/kitchen-board-menu-catalog';
-import { loadPrepTrayStored, savePrepTrayStored } from '@/lib/kitchen-prep-tray-storage';
 import type { UILanguage } from '@/lib/i18n';
 
 /**
@@ -69,21 +66,27 @@ type PaneView = 'table' | 'dish';
 type LineLayout = 'workbench-table' | 'workbench-dish-l2' | 'ready';
 
 type Props = {
-  stationId: string;
   stationName: string;
-  orders: Order[];
-  readyAfterMinutes: number;
+  /** This station's board lines (`collectStationBoardLines`, computed once by the screen). */
+  lines: KitchenBoardLine[];
   nowMs: number;
   lang: UILanguage;
-  /** Sole board catalog map for thumbs + detail (may be empty; order fallback then). */
+  /** Sole board catalog map for thumbs (may be empty; order fallback then). */
   menuCatalogById: KitchenBoardMenuCatalogById;
-  flavorHintsEnabled: boolean;
   maximized: boolean;
   canMaximize: boolean;
   onToggleMaximize: () => void;
-  /** Returns true when prep API/demo succeeded. */
-  onPrep: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
-  prepBusy: boolean;
+  /** This station's slice of the screen's sole prep tray state (`useKitchenPrepTrays`). */
+  tray: PrepTrayState;
+  onTrayChange: (fn: (prev: PrepTrayState) => PrepTrayState) => void;
+  /** False when the screen shows one shared prep tray instead (list-only pane). */
+  showTray: boolean;
+  /** Screen-wide prep in-flight keys (row spinner + this station's prep lock). */
+  prepInFlightKeys: ReadonlySet<string>;
+  onRunPrep: (lines: KitchenBoardLine[], source: KitchenPrepSource) => Promise<unknown>;
+  bottomRailOpen: boolean;
+  onBottomRailOpenChange: (open: boolean) => void;
+  onOpenDishDetail: (menuItemId: string, orderItem: KitchenBoardLine['item']) => void;
   /** Returns true when print API/demo succeeded. */
   onPrint: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
   printBusy: boolean;
@@ -208,8 +211,9 @@ function KitchenGroupHeader({
         <span className="w-full truncate text-2xl font-medium leading-tight text-brand-text">
           {title}
         </span>
-        <span className="w-full text-base leading-tight text-brand-text-muted">
-          {countLabel} · {t.portionBadge.replace('{n}', String(summary.qty))} ·{' '}
+        <span className="mesa-kitchen-group-summary w-full text-base leading-tight text-brand-text-muted">
+          <span className="mesa-kitchen-group-count">{countLabel} · </span>
+          {t.portionBadge.replace('{n}', String(summary.qty))} ·{' '}
           <span
             className={hot ? 'font-semibold text-red-700' : undefined}
             suppressHydrationWarning
@@ -348,14 +352,14 @@ function KitchenBoardLineRow({
   let title: ReactNode;
   if (layout === 'workbench-table') {
     title = (
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
         {line.displayName}
         {noteEl}
       </span>
     );
   } else if (layout === 'ready') {
     title = (
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
+      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
         {line.displayName}
         {noteEl}
         <span className="ml-2 text-xl font-normal text-slate-500">
@@ -367,7 +371,7 @@ function KitchenBoardLineRow({
   } else {
     // By-dish L2: table display is the row title (dish name already on L1).
     title = (
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
         {formatKitchenTableTitle(t, line.tableDisplay)}
         {noteEl}
       </span>
@@ -420,92 +424,79 @@ function KitchenBoardLineRow({
             onOpen={onOpenDetail}
           />
         )}
-        {title}
-        <span
-          className={`shrink-0 text-xl font-semibold tabular-nums ${
-            layout === 'ready' ? 'text-amber-900/70' : 'text-brand-gold'
-          }`}
-        >
-          × {Number(line.item.qty) || 0}
-        </span>
-        <span
-          className={`shrink-0 text-lg tabular-nums ${
-            layout === 'ready'
-              ? 'text-slate-500'
-              : isKitchenWaitHot(waitMin)
-                ? 'font-semibold text-red-700'
-                : 'text-brand-text-muted'
-          }`}
-          suppressHydrationWarning
-        >
-          {t.waitMinutes.replace('{n}', String(waitMin))}
-        </span>
-        {prepInFlight ? (
+        <div className="mesa-kitchen-row-main">
+          {title}
           <span
-            className="inline-flex shrink-0 items-center gap-2 text-lg font-medium text-brand-gold"
-            aria-label={t.prepBusy}
+            className={`shrink-0 text-xl font-semibold tabular-nums ${
+              layout === 'ready' ? 'text-amber-900/70' : 'text-brand-gold'
+            }`}
           >
-            <Spinner className="h-5 w-5" />
-            <span>{t.prepBusy}</span>
+            × {Number(line.item.qty) || 0}
           </span>
-        ) : layout === 'ready' ? (
           <span
-            className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
+            className={`shrink-0 text-lg tabular-nums ${
+              layout === 'ready'
+                ? 'text-slate-500'
+                : isKitchenWaitHot(waitMin)
+                  ? 'font-semibold text-red-700'
+                  : 'text-brand-text-muted'
+            }`}
+            suppressHydrationWarning
           >
-            {statusLabel(line.effectiveStatus, t)}
+            {t.waitMinutes.replace('{n}', String(waitMin))}
           </span>
-        ) : null}
+          {prepInFlight ? (
+            <span
+              className="inline-flex shrink-0 items-center gap-2 text-lg font-medium text-brand-gold"
+              aria-label={t.prepBusy}
+            >
+              <Spinner className="h-5 w-5" />
+              <span>{t.prepBusy}</span>
+            </span>
+          ) : layout === 'ready' ? (
+            <span
+              className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
+            >
+              {statusLabel(line.effectiveStatus, t)}
+            </span>
+          ) : null}
+        </div>
       </div>
     </SwipeableListItem>
   );
 }
 
 export function KitchenStationPane({
-  stationId,
   stationName,
-  orders,
-  readyAfterMinutes,
+  lines: allLines,
   nowMs,
   lang,
   menuCatalogById,
-  flavorHintsEnabled,
   maximized,
   canMaximize,
   onToggleMaximize,
-  onPrep,
-  prepBusy,
+  tray,
+  onTrayChange,
+  showTray,
+  prepInFlightKeys,
+  onRunPrep,
+  bottomRailOpen,
+  onBottomRailOpenChange,
+  onOpenDishDetail,
   onPrint,
   printBusy,
 }: Props) {
   const t = KITCHEN_SCREEN_TEXT[lang];
   const [view, setView] = useState<PaneView>('table');
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
-  /** Prep tray rows tapped off inside the tray (dashed chip); `selected` wins if a key is in both. */
-  const [skipped, setSkipped] = useState<Set<string>>(() => new Set());
-  const [trayLoaded, setTrayLoaded] = useState(false);
+  const { selected, skipped } = tray;
   /** Sole by-dish L1 expand key (`menuItemId`); null = all dish groups collapsed. */
   const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
-  const [bottomRailOpen, setBottomRailOpen] = useState(false);
-  /**
-   * Sole prep in-flight line keys for this pane (swipe one key; footer multi-prep = selected prep keys).
-   * Non-empty ⇒ row spinner + block further prep/swipe; footer Button loading reads the same set.
-   */
-  const [prepInFlightKeys, setPrepInFlightKeys] = useState<Set<string>>(() => new Set());
-  /** Frozen at open so Realtime board churn cannot empty the modal mid-view. */
-  const [detailEntry, setDetailEntry] = useState<KitchenBoardMenuCatalogEntry | null>(null);
 
-  const allLines = useMemo(
-    () =>
-      collectStationBoardLines({
-        orders,
-        printStationId: stationId,
-        nowMs,
-        readyAfterMinutes,
-        lang,
-      }),
-    [orders, stationId, nowMs, readyAfterMinutes, lang],
-  );
+  const setSelected = (fn: (prev: Set<string>) => Set<string>) =>
+    onTrayChange((prev) => ({ selected: fn(prev.selected), skipped: prev.skipped }));
+  const setSkipped = (fn: (prev: Set<string>) => Set<string>) =>
+    onTrayChange((prev) => ({ selected: prev.selected, skipped: fn(prev.skipped) }));
 
   const { workbench, bottomRail } = useMemo(() => partitionStationLines(allLines), [allLines]);
   const { cooking: railCooking, ready: railReady } = useMemo(
@@ -520,9 +511,11 @@ export function KitchenStationPane({
     () => allLines.filter((l) => selected.has(l.key) && l.printEligible).length,
     [allLines, selected],
   );
-  const prepInFlight = prepInFlightKeys.size > 0;
-  /** Station prep lock: parent board busy ∪ local in-flight keys (sole gate for prep UI). */
-  const prepLocked = prepBusy || prepInFlight;
+  /** Station prep lock: any of this station's lines in the board's sole prep in-flight set. */
+  const prepLocked = useMemo(
+    () => allLines.some((l) => prepInFlightKeys.has(l.key)),
+    [allLines, prepInFlightKeys],
+  );
 
   /** Left-list edits own the row outright: it is either selected or out of the tray (never skipped). */
   const dropSkipped = (keys: readonly string[]) => {
@@ -550,63 +543,10 @@ export function KitchenStationPane({
     dropSkipped(lines.map((l) => l.key));
   };
 
-  const applyTray = (fn: (prev: PrepTrayState) => PrepTrayState) => {
-    const next = fn({ selected, skipped });
-    setSelected(next.selected);
-    setSkipped(next.skipped);
-  };
-
   const trayCards = useMemo(
     () => buildPrepTrayCards(workbench, { selected, skipped }, nowMs),
     [workbench, selected, skipped, nowMs],
   );
-
-  useEffect(() => {
-    const stored = loadPrepTrayStored(stationId);
-    if (stored) {
-      setSelected(new Set(stored.selected));
-      setSkipped(new Set(stored.skipped));
-    }
-    setTrayLoaded(true);
-  }, [stationId]);
-
-  useEffect(() => {
-    if (!trayLoaded) return;
-    const printKeys = new Set(allLines.filter((l) => l.printEligible).map((l) => l.key));
-    savePrepTrayStored(stationId, {
-      selected: Array.from(selected).filter((k) => !printKeys.has(k)),
-      skipped: Array.from(skipped),
-    });
-  }, [trayLoaded, stationId, selected, skipped, allLines]);
-
-  /**
-   * Local selection hygiene: rows that vanished from the board drop out silently; tray rows that were
-   * pending a moment ago and are no longer (prepped / cancelled on another screen) drop out with one toast.
-   * Skipped while our own prep is in flight (its own refresh would look like "someone else").
-   */
-  const prevPrepKeysRef = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    if (!trayLoaded) return;
-    const prepKeys = new Set(allLines.filter((l) => l.prepEligible).map((l) => l.key));
-    const prevPrepKeys = prevPrepKeysRef.current;
-    prevPrepKeysRef.current = prepKeys;
-    if (allLines.length === 0 || prepInFlight) return;
-    const live = new Set(allLines.map((l) => l.key));
-    const trayKeys = Array.from(selected).concat(Array.from(skipped));
-    const takenElsewhere = new Set(
-      trayKeys.filter((k) => prevPrepKeys.has(k) && !prepKeys.has(k)),
-    );
-    const drop = (k: string) => takenElsewhere.has(k) || !live.has(k);
-    const retain = (prev: Set<string>) => {
-      const kept = Array.from(prev).filter((k) => !drop(k));
-      return kept.length === prev.size ? prev : new Set(kept);
-    };
-    setSelected(retain);
-    setSkipped(retain);
-    if (takenElsewhere.size > 0) {
-      showToast(t.trayDroppedByOthers.replace('{n}', String(takenElsewhere.size)), 'info');
-    }
-  }, [trayLoaded, allLines, prepInFlight, selected, skipped, t]);
 
   const toggleTableCollapsed = (tableId: string) => {
     setCollapsedTables((prev) => {
@@ -619,45 +559,21 @@ export function KitchenStationPane({
 
   /** Collapse clears print-only selection so workbench reopen does not keep a stale print set. */
   const toggleBottomRail = () => {
-    setBottomRailOpen((open) => {
-      if (open) {
-        setSelected((prev) => {
-          const next = new Set(prev);
-          for (const l of allLines) {
-            if (l.printEligible && next.has(l.key)) next.delete(l.key);
-          }
-          return next;
-        });
-      }
-      return !open;
-    });
+    if (bottomRailOpen) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const l of allLines) {
+          if (l.printEligible && next.has(l.key)) next.delete(l.key);
+        }
+        return next;
+      });
+    }
+    onBottomRailOpenChange(!bottomRailOpen);
   };
 
-  const handlePrep = async () => {
+  const handlePrep = () => {
     const prepLines = allLines.filter((l) => selected.has(l.key) && l.prepEligible);
-    const selections = prepLines.map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
-    if (selections.length === 0) {
-      showToast(t.selectLines, 'info');
-      return;
-    }
-    setPrepInFlightKeys(new Set(prepLines.map((l) => l.key)));
-    try {
-      const ok = await onPrep(selections);
-      if (ok) {
-        showToast(t.prepSuccess, 'success');
-        setSelected((prev) => {
-          const next = new Set(prev);
-          for (const l of allLines) {
-            if (l.prepEligible && next.has(l.key)) next.delete(l.key);
-          }
-          return next;
-        });
-        setSkipped(new Set());
-        setBottomRailOpen(true);
-      }
-    } finally {
-      setPrepInFlightKeys(new Set());
-    }
+    void onRunPrep(prepLines, 'tray');
   };
 
   const handlePrint = async () => {
@@ -678,48 +594,18 @@ export function KitchenStationPane({
     }
   };
 
-  const handleSwipePrep = async (line: KitchenBoardLine) => {
+  const handleSwipePrep = (line: KitchenBoardLine) => {
     if (!line.prepEligible || prepLocked || printBusy) return;
-    setPrepInFlightKeys(new Set([line.key]));
-    try {
-      const ok = await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
-      if (ok) {
-        showToast(t.prepSuccess, 'success');
-        setSelected((prev) => {
-          const next = new Set(prev);
-          next.delete(line.key);
-          return next;
-        });
-        dropSkipped([line.key]);
-        setBottomRailOpen(true);
-      }
-    } finally {
-      setPrepInFlightKeys(new Set());
-    }
+    void onRunPrep([line], 'swipe');
   };
 
-  const openDishDetail = useCallback(
-    (menuItemId: string, orderItem: KitchenBoardLine['item']) => {
-      setDetailEntry(
-        resolveKitchenBoardDishCatalogEntry({
-          menuItemId,
-          catalogById: menuCatalogById,
-          orderItem,
-        }),
-      );
-    },
-    [menuCatalogById],
-  );
-
   const thumbForLine = useCallback(
-    (line: KitchenBoardLine) => {
-      const entry = resolveKitchenBoardDishCatalogEntry({
+    (line: KitchenBoardLine) =>
+      resolveKitchenBoardDishThumb({
         menuItemId: line.menuItemId,
         catalogById: menuCatalogById,
         orderItem: line.item,
-      });
-      return { imageUrl: entry.image_url, emoji: entry.emoji || line.item.emoji || '' };
-    },
+      }),
     [menuCatalogById],
   );
 
@@ -738,9 +624,9 @@ export function KitchenStationPane({
         prepInFlight={prepInFlightKeys.has(line.key)}
         thumbImageUrl={thumb.imageUrl}
         thumbEmoji={thumb.emoji}
-        onOpenDetail={() => openDishDetail(line.menuItemId, line.item)}
+        onOpenDetail={() => onOpenDishDetail(line.menuItemId, line.item)}
         onToggle={() => toggleLine(line)}
-        onSwipePrep={() => void handleSwipePrep(line)}
+        onSwipePrep={() => handleSwipePrep(line)}
       />
     );
   };
@@ -767,7 +653,7 @@ export function KitchenStationPane({
       </header>
 
       <div className="mesa-kitchen-pane-host">
-      <div className="mesa-kitchen-pane-split">
+      <div className="mesa-kitchen-pane-split" data-tray-shared={showTray ? undefined : ''}>
       <div className="mesa-kitchen-pane-list flex flex-col">
         <div className="shrink-0 border-b border-brand-border/70 px-3 py-2">
           <div className="flex w-fit overflow-hidden rounded-lg border border-brand-border text-lg">
@@ -833,7 +719,7 @@ export function KitchenStationPane({
                       imageUrl={thumb.imageUrl}
                       emoji={thumb.emoji}
                       ariaLabel={t.dishThumbOpenDetail}
-                      onOpen={() => openDishDetail(dish.menuItemId, seedLine.item)}
+                      onOpen={() => onOpenDishDetail(dish.menuItemId, seedLine.item)}
                     />
                   }
                   t={t}
@@ -849,24 +735,26 @@ export function KitchenStationPane({
         )}
         </div>
       </div>
-      <div
-        className="mesa-kitchen-pane-tray min-h-0 flex-col overflow-hidden border-brand-border"
-        data-empty={trayCards.length === 0 ? '' : undefined}
-      >
-        <KitchenPrepTray
-          cards={trayCards}
-          t={t}
-          prepLocked={prepLocked}
-          thumbFor={(card: PrepTrayCard) => thumbForLine(card.seedLine)}
-          onOpenDetail={(card: PrepTrayCard) =>
-            openDishDetail(card.menuItemId, card.seedLine.item)
-          }
-          onToggleChip={(key) => applyTray((prev) => toggleTrayChip(key, prev))}
-          onSetCard={(keys, on) => applyTray((prev) => setTrayKeysSelected(keys, on, prev))}
-          onRemoveKeys={(keys) => applyTray((prev) => removeTrayKeys(keys, prev))}
-          onPrep={() => void handlePrep()}
-        />
-      </div>
+      {showTray ? (
+        <div
+          className="mesa-kitchen-pane-tray min-h-0 flex-col overflow-hidden border-brand-border"
+          data-empty={trayCards.length === 0 ? '' : undefined}
+        >
+          <KitchenPrepTray
+            sections={[{ stationId: '', title: null, cards: trayCards }]}
+            t={t}
+            prepLocked={prepLocked}
+            thumbFor={(card: PrepTrayCard) => thumbForLine(card.seedLine)}
+            onOpenDetail={(card: PrepTrayCard) =>
+              onOpenDishDetail(card.menuItemId, card.seedLine.item)
+            }
+            onToggleChip={(key) => onTrayChange((prev) => toggleTrayChip(key, prev))}
+            onSetCard={(keys, on) => onTrayChange((prev) => setTrayKeysSelected(keys, on, prev))}
+            onRemoveKeys={(keys) => onTrayChange((prev) => removeTrayKeys(keys, prev))}
+            onPrep={handlePrep}
+          />
+        </div>
+      ) : null}
       </div>
       </div>
 
@@ -933,21 +821,6 @@ export function KitchenStationPane({
           ) : null}
         </div>
       </footer>
-
-      <KitchenMenuItemDetailModal
-        open={detailEntry != null}
-        entry={detailEntry}
-        lang={lang}
-        flavorHintsEnabled={flavorHintsEnabled}
-        labels={{
-          detailConfirm: t.detailConfirm,
-          detailDescriptionEmpty: t.detailDescriptionEmpty,
-          detailAllergensTitle: t.detailAllergensTitle,
-          detailAllergensUnmarked: t.detailAllergensUnmarked,
-          detailVegetarianBadge: t.detailVegetarianBadge,
-        }}
-        onClose={() => setDetailEntry(null)}
-      />
     </section>
   );
 }

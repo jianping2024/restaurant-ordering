@@ -631,3 +631,126 @@ body {
     display: flex;
   }
 }
+
+/* Shared prep tray on the screen: the pane is list-only at every width. */
+.mesa-kitchen-pane-split[data-tray-shared] {
+  display: flex;
+}
+
+/*
+ * Narrow pane (one row of 4 stations beside the shared tray): dish name gets its own line
+ * (≤2 lines), qty + wait drop under it; group summary loses the distinct-count part.
+ */
+.mesa-kitchen-row-main {
+  display: flex;
+  flex: 1 1 0%;
+  min-width: 0;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+@container mesa-kitchen-pane (max-width: 26rem) {
+  .mesa-kitchen-row-main {
+    flex-wrap: wrap;
+    row-gap: 0.125rem;
+  }
+
+  .mesa-kitchen-row-title {
+    flex-basis: 100%;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
+  .mesa-kitchen-group-count {
+    display: none;
+  }
+
+  .mesa-kitchen-group-summary {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Sole kitchen screen layout when the screen shares one prep tray (track screen width, not viewport).
+ * Narrow: station panes (≤2 per row) on top, shared tray below at 45% height (hidden when empty).
+ * ≥72rem: every station in one row | shared tray column (36%; 30% with 4 stations).
+ */
+.mesa-kitchen-board {
+  container-type: inline-size;
+  container-name: mesa-kitchen-board;
+  display: flex;
+  flex: 1 1 0%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.mesa-kitchen-board-shared {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  min-width: 0;
+}
+
+.mesa-kitchen-board-panes {
+  display: grid;
+  flex: 1 1 0%;
+  gap: 0.5rem;
+  grid-template-columns: repeat(var(--mesa-kitchen-pane-cols-narrow, 2), minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+}
+
+.mesa-kitchen-board-tray {
+  display: flex;
+  flex: 0 0 45%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgb(var(--color-brand-border));
+  border-top: 3px solid rgb(var(--color-brand-gold));
+  border-radius: 0.75rem;
+}
+
+/* Narrow: like the per-pane tray, an empty shared tray gives its height back to the lists. */
+.mesa-kitchen-board-tray[data-empty] {
+  display: none;
+}
+
+@container mesa-kitchen-board (min-width: 72rem) {
+  .mesa-kitchen-board-tray[data-empty] {
+    display: flex;
+  }
+
+  .mesa-kitchen-board-shared {
+    flex-direction: row;
+  }
+
+  .mesa-kitchen-board-panes {
+    grid-template-columns: repeat(var(--mesa-kitchen-pane-cols, 2), minmax(0, 1fr));
+  }
+
+  .mesa-kitchen-board-tray {
+    flex-basis: var(--mesa-kitchen-tray-width, 36%);
+    border-top: 1px solid rgb(var(--color-brand-border));
+    border-left: 3px solid rgb(var(--color-brand-gold));
+  }
+}
+
+/* Prep tray card: narrow tray puts name·note on line 1, portions/tables/wait on line 2. */
+.mesa-kitchen-tray {
+  container-type: inline-size;
+  container-name: mesa-kitchen-tray;
+}
+
+@container mesa-kitchen-tray (max-width: 36rem) {
+  .mesa-kitchen-tray-card-name {
+    flex-basis: 100%;
+  }
+}

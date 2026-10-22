@@ -55,7 +55,7 @@ fiscal_signing_installations (id: uuid PK, restaurant_id: uuid FK -> restaurants
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz, kitchen_enabled: boolean NOT NULL default false)
 
-kitchen_screens (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, sort_order: integer, created_at: timestamptz, updated_at: timestamptz)
+kitchen_screens (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, sort_order: integer, shared_prep_tray: boolean default false [one prep tray for all stations on the screen; prep still posts per station], created_at: timestamptz, updated_at: timestamptz)
 
 kitchen_screen_stations (screen_id: uuid PK FK -> kitchen_screens.id, print_station_id: uuid PK FK -> print_stations.id, sort_order: integer; max 4 stations per screen via trigger)
 

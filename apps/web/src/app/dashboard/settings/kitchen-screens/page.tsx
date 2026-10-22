@@ -25,15 +25,7 @@ export default async function KitchenScreensSettingsPage() {
         .order('sort_order', { ascending: true }),
     ]);
     if (Array.isArray(listed)) {
-      screens = listed.map((s) => ({
-        id: s.id,
-        restaurant_id: s.restaurant_id,
-        name: s.name,
-        sort_order: s.sort_order,
-        created_at: s.created_at,
-        updated_at: s.updated_at,
-        station_ids: s.station_ids,
-      }));
+      screens = listed;
     }
     kitchenStations = (stationRows || []) as PrintStation[];
   } catch {

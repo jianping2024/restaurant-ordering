@@ -64,6 +64,10 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: string;
     trayRemoveDish: string;
     trayClearAll: string;
+    /** Shared tray footer: «将按档口出 {n} 张单» (one prep ticket per station). */
+    trayStationTickets: string;
+    /** Shared tray partial failure: stations whose prep failed stay in the tray. */
+    prepFailedStations: string;
     trayClearAllTitle: string;
     trayClearAllMessage: string;
     trayMoreTables: string;
@@ -126,6 +130,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: '清空',
     trayRemoveDish: '移出',
     trayClearAll: '清空全部',
+    trayStationTickets: '将按档口出 {n} 张单',
+    prepFailedStations: '以下档口备餐失败，已留在备餐区：{names}',
     trayClearAllTitle: '清空备餐区',
     trayClearAllMessage: '所有勾选将取消，菜品仍留在列表中。',
     trayMoreTables: '+{n} 桌 展开',
@@ -186,6 +192,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: 'Clear',
     trayRemoveDish: 'Remove',
     trayClearAll: 'Clear all',
+    trayStationTickets: 'Prints {n} tickets (one per station)',
+    prepFailedStations: 'Prep failed for {names} — kept in the tray',
     trayClearAllTitle: 'Clear prep tray?',
     trayClearAllMessage: 'All selections will be cleared; dishes stay in the list.',
     trayMoreTables: '+{n} tables',
@@ -246,6 +254,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: 'Limpar',
     trayRemoveDish: 'Remover',
     trayClearAll: 'Limpar tudo',
+    trayStationTickets: 'Imprime {n} taloes (um por estacao)',
+    prepFailedStations: 'Falha ao preparar {names} — mantido na area',
     trayClearAllTitle: 'Limpar área de preparo?',
     trayClearAllMessage: 'Todas as seleções serão limpas; os pratos continuam na lista.',
     trayMoreTables: '+{n} mesas',
@@ -306,6 +316,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: 'Limpiar',
     trayRemoveDish: 'Quitar',
     trayClearAll: 'Limpiar todo',
+    trayStationTickets: 'Imprime {n} tiques (uno por estacion)',
+    prepFailedStations: 'Error al preparar {names} — se mantiene en la bandeja',
     trayClearAllTitle: '¿Limpiar zona de preparación?',
     trayClearAllMessage: 'Se quitarán todas las selecciones; los platos siguen en la lista.',
     trayMoreTables: '+{n} mesas',
@@ -366,6 +378,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: 'Vider',
     trayRemoveDish: 'Retirer',
     trayClearAll: 'Tout vider',
+    trayStationTickets: 'Imprime {n} tickets (un par poste)',
+    prepFailedStations: 'Echec preparation {names} — conserve dans le plateau',
     trayClearAllTitle: 'Vider la zone de préparation ?',
     trayClearAllMessage: 'Toutes les sélections seront effacées ; les plats restent dans la liste.',
     trayMoreTables: '+{n} tables',
@@ -426,6 +440,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayClear: 'Leeren',
     trayRemoveDish: 'Entfernen',
     trayClearAll: 'Alle leeren',
+    trayStationTickets: 'Druckt {n} Bons (einer pro Station)',
+    prepFailedStations: 'Vorbereitung fehlgeschlagen: {names} — bleibt im Tablett',
     trayClearAllTitle: 'Zubereitung leeren?',
     trayClearAllMessage: 'Alle Auswahlen werden gelöscht; die Gerichte bleiben in der Liste.',
     trayMoreTables: '+{n} Tische',

@@ -134,6 +134,16 @@ export function resolveKitchenBoardDishCatalogEntry(input: {
   };
 }
 
+/** Sole kitchen dish thumb source (rows, group headers, prep tray): catalog photo/emoji, else order emoji. */
+export function resolveKitchenBoardDishThumb(input: {
+  menuItemId: string;
+  catalogById: KitchenBoardMenuCatalogById;
+  orderItem: OrderItemFallback;
+}): { imageUrl: string | null; emoji: string } {
+  const entry = resolveKitchenBoardDishCatalogEntry(input);
+  return { imageUrl: entry.image_url, emoji: entry.emoji || input.orderItem.emoji || '' };
+}
+
 /** Build catalog map from full MenuItem-like rows (demo / tests). */
 export function kitchenBoardMenuCatalogFromMenuItems(
   items: Array<{

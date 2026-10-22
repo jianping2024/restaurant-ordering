@@ -39,6 +39,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
   const [editing, setEditing] = useState<KitchenScreen | null>(null);
   const [name, setName] = useState('');
   const [stationIds, setStationIds] = useState<string[]>([]);
+  const [sharedPrepTray, setSharedPrepTray] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KitchenScreen | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -51,6 +52,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     setEditing(null);
     setName('');
     setStationIds([]);
+    setSharedPrepTray(false);
     setError('');
     setModalOpen(true);
   };
@@ -59,6 +61,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     setEditing(screen);
     setName(screen.name);
     setStationIds([...screen.station_ids]);
+    setSharedPrepTray(screen.shared_prep_tray);
     setError('');
     setModalOpen(true);
   };
@@ -82,12 +85,15 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     }
     setSaving(true);
     setError('');
+    // Sharing only means something with ≥2 stations; a single-station screen stores off.
+    const shared_prep_tray = stationIds.length > 1 && sharedPrepTray;
     try {
       if (editing) {
         const result = await apiJson<{ screen: KitchenScreen }>('PATCH', {
           screen_id: editing.id,
           name: name.trim(),
           station_ids: stationIds,
+          shared_prep_tray,
         });
         if (!result.ok) throw new Error(result.error);
         setScreens((prev) =>
@@ -97,6 +103,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
         const result = await apiJson<{ screen: KitchenScreen }>('POST', {
           name: name.trim(),
           station_ids: stationIds,
+          shared_prep_tray,
         });
         if (!result.ok) throw new Error(result.error);
         setScreens((prev) => [...prev, result.data.screen]);
@@ -107,7 +114,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     } finally {
       setSaving(false);
     }
-  }, [editing, name, stationIds, t]);
+  }, [editing, name, stationIds, sharedPrepTray, t]);
 
   const runDelete = async () => {
     if (!deleteTarget) return;
@@ -162,6 +169,9 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
                 <p className="font-medium text-brand-text">{screen.name}</p>
                 <p className="text-[12px] text-brand-text-muted mt-0.5">
                   {screen.station_ids.map(stationLabel).join(' · ') || t.noStations}
+                  {screen.shared_prep_tray && screen.station_ids.length > 1
+                    ? ` · ${t.sharedPrepTrayLabel}`
+                    : ''}
                 </p>
               </div>
               <button
@@ -227,6 +237,30 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
               })}
             </div>
           </div>
+          {stationIds.length > 1 ? (
+            <div className="flex items-start justify-between gap-3 border-t border-brand-border/70 pt-4">
+              <div className="min-w-0">
+                <p className="text-sm text-brand-text">{t.sharedPrepTrayLabel}</p>
+                <p className="mt-0.5 text-[12px] text-brand-text-muted">{t.sharedPrepTrayHint}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={sharedPrepTray}
+                aria-label={t.sharedPrepTrayLabel}
+                onClick={() => setSharedPrepTray((v) => !v)}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  sharedPrepTray ? 'bg-brand-gold' : 'bg-brand-border'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    sharedPrepTray ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          ) : null}
           {error ? <p className="mesa-alert-danger text-sm px-4 py-2">{error}</p> : null}
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
             <Button onClick={() => void save()} loading={saving} className="flex-1">

@@ -3,6 +3,8 @@ import { describe, it } from 'node:test';
 import {
   aggregateLinesByDish,
   buildPrepTrayCards,
+  collectStationPrepBatches,
+  groupLineKeysByStation,
   removeTrayKeys,
   setTrayKeysSelected,
   summarizePrepTray,
@@ -408,5 +410,43 @@ describe('prep tray', () => {
     const [card] = buildPrepTrayCards([fresh, old], state(['a', 'b']), NOW);
     assert.deepEqual(card.chips.map((x) => x.key), ['b', 'a']);
     assert.equal(card.longestWaitMin, 30);
+  });
+});
+
+describe('shared prep tray routing', () => {
+  const a1 = { ...stubLine({ key: 'o1:0', tableId: 't1', tableDisplay: 'A1', menuItemId: 'm1', qty: 1 }) };
+  const a2 = { ...stubLine({ key: 'o1:1', tableId: 't1', tableDisplay: 'A1', menuItemId: 'm2', qty: 2 }) };
+  const b1 = { ...stubLine({ key: 'o1:2', tableId: 't1', tableDisplay: 'A1', menuItemId: 'm3', qty: 1 }) };
+  const linesByStation = new Map([
+    ['sA', [a1, a2]],
+    ['sB', [b1]],
+    ['sC', []],
+  ]);
+
+  it('splits selected prep lines per station in screen order, dropping empty stations', () => {
+    const batches = collectStationPrepBatches(['sB', 'sA', 'sC'], linesByStation, {
+      sA: { selected: new Set(['o1:1']), skipped: new Set(['o1:0']) },
+      sB: { selected: new Set(['o1:2']), skipped: new Set() },
+    });
+    assert.deepEqual(
+      batches.map((b) => [b.stationId, b.lines.map((l) => l.key)]),
+      [
+        ['sB', ['o1:2']],
+        ['sA', ['o1:1']],
+      ],
+    );
+  });
+
+  it('ignores non-prep-eligible selections (ready-rail print picks)', () => {
+    const printOnly = { ...a1, prepEligible: false, printEligible: true };
+    const batches = collectStationPrepBatches(['sA'], new Map([['sA', [printOnly]]]), {
+      sA: { selected: new Set(['o1:0']), skipped: new Set() },
+    });
+    assert.deepEqual(batches, []);
+  });
+
+  it('routes keys to their owning station and drops unknown keys', () => {
+    const grouped = groupLineKeysByStation(['o1:2', 'o1:0', 'gone:9', 'o1:1'], linesByStation);
+    assert.deepEqual(Object.fromEntries(grouped), { sB: ['o1:2'], sA: ['o1:0', 'o1:1'] });
   });
 });

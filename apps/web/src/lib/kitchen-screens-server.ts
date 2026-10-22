@@ -18,6 +18,7 @@ export type KitchenScreenRow = {
   created_at: string;
   updated_at: string;
   station_ids: string[];
+  shared_prep_tray: boolean;
 };
 
 type ScreenStationJoin = {
@@ -95,6 +96,13 @@ function parseStationIds(raw: unknown): string[] | KitchenScreenMutationError {
   return ids;
 }
 
+/** Optional layout flag: absent = unchanged (update) / false (create). */
+function parseSharedPrepTray(raw: unknown): boolean | undefined | KitchenScreenMutationError {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== 'boolean') return { error: 'invalid_shared_prep_tray', status: 400 };
+  return raw;
+}
+
 async function replaceScreenStations(
   admin: SupabaseClient,
   screenId: string,
@@ -137,6 +145,7 @@ function mapScreenRow(
     sort_order: number;
     created_at: string;
     updated_at: string;
+    shared_prep_tray?: boolean | null;
     kitchen_screen_stations?: ScreenStationJoin[] | null;
   },
 ): KitchenScreenRow {
@@ -151,6 +160,7 @@ function mapScreenRow(
     created_at: row.created_at,
     updated_at: row.updated_at,
     station_ids: joins.map((j) => j.print_station_id),
+    shared_prep_tray: row.shared_prep_tray === true,
   };
 }
 
@@ -161,7 +171,7 @@ export async function listKitchenScreens(
   const { data, error } = await admin
     .from('kitchen_screens')
     .select(
-      'id, restaurant_id, name, sort_order, created_at, updated_at, kitchen_screen_stations(print_station_id, sort_order)',
+      'id, restaurant_id, name, sort_order, shared_prep_tray, created_at, updated_at, kitchen_screen_stations(print_station_id, sort_order)',
     )
     .eq('restaurant_id', restaurantId)
     .order('sort_order', { ascending: true })
@@ -179,7 +189,7 @@ export async function listKitchenScreens(
 export async function createKitchenScreen(
   admin: SupabaseClient,
   restaurantId: string,
-  input: { name: string; station_ids: unknown },
+  input: { name: string; station_ids: unknown; shared_prep_tray?: unknown },
 ): Promise<{ screen: KitchenScreenRow } | KitchenScreenMutationError> {
   const name = typeof input.name === 'string' ? input.name.trim() : '';
   if (!name) {
@@ -188,6 +198,9 @@ export async function createKitchenScreen(
 
   const stationIds = parseStationIds(input.station_ids);
   if (!Array.isArray(stationIds)) return stationIds;
+
+  const sharedPrepTray = parseSharedPrepTray(input.shared_prep_tray);
+  if (typeof sharedPrepTray !== 'boolean' && sharedPrepTray !== undefined) return sharedPrepTray;
 
   const valid = await validateKitchenEnabledStationIds(admin, restaurantId, stationIds);
   if (valid !== true) return valid;
@@ -208,8 +221,9 @@ export async function createKitchenScreen(
       restaurant_id: restaurantId,
       name,
       sort_order: sortOrder,
+      shared_prep_tray: sharedPrepTray ?? false,
     })
-    .select('id, restaurant_id, name, sort_order, created_at, updated_at')
+    .select('id, restaurant_id, name, sort_order, shared_prep_tray, created_at, updated_at')
     .single();
 
   if (insErr || !screen) {
@@ -237,7 +251,7 @@ export async function updateKitchenScreen(
   admin: SupabaseClient,
   restaurantId: string,
   screenIdRaw: string,
-  input: { name?: string; station_ids?: unknown },
+  input: { name?: string; station_ids?: unknown; shared_prep_tray?: unknown },
 ): Promise<{ screen: KitchenScreenRow } | KitchenScreenMutationError> {
   const screenId = parseTableIdParam(screenIdRaw);
   if (!screenId) {
@@ -258,13 +272,16 @@ export async function updateKitchenScreen(
     return { error: 'screen_not_found', status: 404 };
   }
 
-  const patch: { name?: string; updated_at?: string } = {};
+  const patch: { name?: string; shared_prep_tray?: boolean; updated_at?: string } = {};
   if (input.name !== undefined) {
     if (typeof input.name !== 'string' || !input.name.trim()) {
       return { error: 'name_required', status: 400 };
     }
     patch.name = input.name.trim();
   }
+  const sharedPrepTray = parseSharedPrepTray(input.shared_prep_tray);
+  if (typeof sharedPrepTray === 'boolean') patch.shared_prep_tray = sharedPrepTray;
+  else if (sharedPrepTray !== undefined) return sharedPrepTray;
 
   let stationIds: string[] | undefined;
   if (input.station_ids !== undefined) {

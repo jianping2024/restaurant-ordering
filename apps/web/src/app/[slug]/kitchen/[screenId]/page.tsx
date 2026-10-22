@@ -54,17 +54,7 @@ export default async function KitchenScreenPage({ params }: Props) {
 
     if (Array.isArray(listed)) {
       const found = listed.find((s) => s.id === screenId);
-      if (found) {
-        screen = {
-          id: found.id,
-          restaurant_id: found.restaurant_id,
-          name: found.name,
-          sort_order: found.sort_order,
-          created_at: found.created_at,
-          updated_at: found.updated_at,
-          station_ids: found.station_ids,
-        };
-      }
+      if (found) screen = found;
     }
 
     if (!screen) notFound();

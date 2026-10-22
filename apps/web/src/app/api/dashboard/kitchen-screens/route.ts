@@ -85,6 +85,7 @@ export async function POST(req: Request) {
   const result = await createKitchenScreen(ctx.admin, ctx.restaurantId, {
     name: typeof body.name === 'string' ? body.name : '',
     station_ids: body.station_ids,
+    shared_prep_tray: body.shared_prep_tray,
   });
   if ('error' in result) return dashboardApiError(result);
   return NextResponse.json({ screen: result.screen }, { status: 201 });
@@ -106,6 +107,7 @@ export async function PATCH(req: Request) {
   const result = await updateKitchenScreen(ctx.admin, ctx.restaurantId, body.screen_id, {
     name: typeof body.name === 'string' ? body.name : undefined,
     station_ids: body.station_ids,
+    shared_prep_tray: body.shared_prep_tray,
   });
   if ('error' in result) return dashboardApiError(result);
   return NextResponse.json({ screen: result.screen });

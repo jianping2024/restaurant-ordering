@@ -430,3 +430,46 @@ export function removeTrayKeys(keys: readonly string[], prev: PrepTrayState): Pr
   }
   return { selected, skipped };
 }
+
+export const EMPTY_PREP_TRAY: PrepTrayState = { selected: new Set(), skipped: new Set() };
+
+/**
+ * Sole per-station prep split: selected prep-eligible lines of each station, in screen station
+ * order (empty stations dropped). The prep API is one station per call — callers post these
+ * one after another (same order can span stations; its `updated_at` guard forbids parallel posts).
+ */
+export function collectStationPrepBatches(
+  stationIds: readonly string[],
+  linesByStation: ReadonlyMap<string, readonly KitchenBoardLine[]>,
+  trays: Readonly<Record<string, PrepTrayState>>,
+): Array<{ stationId: string; lines: KitchenBoardLine[] }> {
+  const batches: Array<{ stationId: string; lines: KitchenBoardLine[] }> = [];
+  for (const stationId of stationIds) {
+    const selected = (trays[stationId] ?? EMPTY_PREP_TRAY).selected;
+    const lines = (linesByStation.get(stationId) ?? []).filter(
+      (l) => l.prepEligible && selected.has(l.key),
+    );
+    if (lines.length > 0) batches.push({ stationId, lines });
+  }
+  return batches;
+}
+
+/** Line keys (`orderId:itemIndex`) grouped by owning station — a line belongs to one station only. */
+export function groupLineKeysByStation(
+  keys: readonly string[],
+  linesByStation: ReadonlyMap<string, readonly KitchenBoardLine[]>,
+): Map<string, string[]> {
+  const stationByKey = new Map<string, string>();
+  linesByStation.forEach((lines, stationId) => {
+    for (const l of lines) stationByKey.set(l.key, stationId);
+  });
+  const out = new Map<string, string[]>();
+  for (const key of keys) {
+    const stationId = stationByKey.get(key);
+    if (!stationId) continue;
+    const list = out.get(stationId) ?? [];
+    list.push(key);
+    out.set(stationId, list);
+  }
+  return out;
+}

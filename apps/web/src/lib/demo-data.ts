@@ -44,6 +44,7 @@ export const DEMO_KITCHEN_SCREEN: KitchenScreen = {
   sort_order: 0,
   created_at: DEMO_TS,
   station_ids: [DEMO_KITCHEN_STATION_HOT, DEMO_KITCHEN_STATION_GRILL],
+  shared_prep_tray: false,
 };
 
 function demoTableId(n: number): string {

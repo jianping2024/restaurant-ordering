@@ -1138,6 +1138,7 @@ function WaiterTableDetailInner({
                 showAmounts={floorCaps.canViewTableDetailAmounts}
                 sessionAmount={orderedItemsSessionAmount}
                 preBillPrint={orderedItemsPreBillPrint}
+                buffetTitle={selectedCard.buffetOrderedTitle}
                 lines={selectedCard.orderLines}
                 formatChargeableHint={(qty, unitPrice) =>
                   formatChargeableShareHint(lang, qty, unitPrice)

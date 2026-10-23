@@ -10,6 +10,7 @@ import {
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import {
+  activeBuffetLineByBuffetId,
   aggregateBuffetHeadcountForOrders,
   listActiveBuffetLineSummaries,
   type BuffetGuestHeadcount,
@@ -36,14 +37,11 @@ export type WaiterOrderLine = {
   catalogKey: string;
   orderId: string;
   itemIdx: number;
-  /** Menu item code prefix (`018`); null for buffet / missing code. */
+  /** Menu item code prefix (`018`); null when missing. */
   itemCode: string | null;
-  /** Dish/buffet name (no item code — code is `itemCode`). */
+  /** Dish name only (no item code — code is `itemCode`). Buffet headcount is not a list line. */
   label: string;
-  /**
-   * Menu line unit price from order `item.price` (shown after name).
-   * Null for buffet base rows (adult/child rates are not a single unit).
-   */
+  /** Menu line unit price from order `item.price` (shown after name). */
   unitPrice: number | null;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
   statusLabel: string | null;
@@ -62,13 +60,31 @@ export type WaiterOrderLine = {
 export interface WaiterTableCardData {
   tableId: string;
   displayName: string;
+  /** Dish rows only — buffet headcount lives in `buffetOrderedTitle`. */
   orderLines: WaiterOrderLine[];
   hasBuffet: boolean;
   buffetHeadcount: BuffetGuestHeadcount | null;
+  /**
+   * Sole buffet package label(s) for ordered-items title (`Buffet livre · A2`).
+   * Null when no active buffet_base.
+   */
+  buffetOrderedTitle: string | null;
   sessionTotal: number;
   /** Non-buffet billable total for ordered-items money chrome (饮食). */
   mealsTotal: number;
   updatedAt: string;
+}
+
+/** Sole title suffix for active buffet packages on waiter detail ordered list. */
+export function formatWaiterOrderedBuffetTitle(
+  orders: Order[],
+  lang: UILanguage,
+): string | null {
+  const lines = Array.from(activeBuffetLineByBuffetId(orders).values());
+  if (lines.length === 0) return null;
+  return lines
+    .map((item) => formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }))
+    .join(' · ');
 }
 
 type MenuLineActionTarget = Pick<
@@ -229,65 +245,48 @@ export function buildWaiterTableCard(
   const lang = options.lang ?? DEFAULT_UI_LANG;
   const kitchenEnabledStationIds = options.kitchenEnabledStationIds ?? [];
 
-  const orderLines: WaiterOrderLine[] = catalog.map((row) => {
-    const { key, item } = row;
-    if (isBuffetBaseItem(item)) {
+  const orderLines: WaiterOrderLine[] = catalog
+    .filter((row) => !isBuffetBaseItem(row.item))
+    .map((row) => {
+      const { key, item } = row;
+      const action = resolveMenuLineActionTarget(
+        catalogOrders,
+        key,
+        capabilities,
+        serveEnabled,
+        readyAfterMinutes,
+        nowMs,
+        kitchenEnabledStationIds,
+      );
+      const share = chargeableFieldsFromBillableRow(row);
+      const statusOrder =
+        action.orderId !== '' ? orders.find((order) => order.id === action.orderId) : undefined;
+      const statusItem =
+        statusOrder && action.itemIdx >= 0
+          ? statusOrder.items?.[action.itemIdx] ?? item
+          : item;
+      const statusLabel = resolveKitchenItemProgressLabel({
+        lang,
+        item: statusItem,
+        orderStatus: statusOrder?.status ?? 'pending',
+        nowMs,
+        readyAfterMinutes,
+        printStationId: statusItem.print_station_id,
+        kitchenEnabledStationIds,
+      });
+
       return {
         catalogKey: row.key,
-        orderId: '',
-        itemIdx: -1,
-        itemCode: null,
-        label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
-        unitPrice: null,
-        statusLabel: null,
-        quantityLabel: null,
-        canDecrement: false,
-        canServe: false,
-        serveOrderId: null,
-        serveItemIdx: null,
-        chargeableQty: null,
-        chargeableUnitPrice: null,
+        ...action,
+        itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
+        label: resolveMenuItemLocalizedName(item, lang),
+        unitPrice: Number.isFinite(Number(item.price)) ? Number(item.price) : null,
+        statusLabel,
+        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+        chargeableQty: share.chargeableQty ?? null,
+        chargeableUnitPrice: share.chargeableUnitPrice ?? null,
       };
-    }
-
-    const action = resolveMenuLineActionTarget(
-      catalogOrders,
-      key,
-      capabilities,
-      serveEnabled,
-      readyAfterMinutes,
-      nowMs,
-      kitchenEnabledStationIds,
-    );
-    const share = chargeableFieldsFromBillableRow(row);
-    const statusOrder =
-      action.orderId !== '' ? orders.find((order) => order.id === action.orderId) : undefined;
-    const statusItem =
-      statusOrder && action.itemIdx >= 0
-        ? statusOrder.items?.[action.itemIdx] ?? item
-        : item;
-    const statusLabel = resolveKitchenItemProgressLabel({
-      lang,
-      item: statusItem,
-      orderStatus: statusOrder?.status ?? 'pending',
-      nowMs,
-      readyAfterMinutes,
-      printStationId: statusItem.print_station_id,
-      kitchenEnabledStationIds,
     });
-
-    return {
-      catalogKey: row.key,
-      ...action,
-      itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-      label: resolveMenuItemLocalizedName(item, lang),
-      unitPrice: Number.isFinite(Number(item.price)) ? Number(item.price) : null,
-      statusLabel,
-      quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-      chargeableQty: share.chargeableQty ?? null,
-      chargeableUnitPrice: share.chargeableUnitPrice ?? null,
-    };
-  });
 
   return {
     tableId,
@@ -295,6 +294,7 @@ export function buildWaiterTableCard(
     orderLines,
     hasBuffet: buffetSummaries.length > 0,
     buffetHeadcount: aggregateBuffetHeadcountForOrders(orders),
+    buffetOrderedTitle: formatWaiterOrderedBuffetTitle(orders, lang),
     sessionTotal: sumBillableSessionTotal(orders),
     mealsTotal: sumBillableNonBuffetTotal(orders),
     updatedAt: latestOrderTimestamp(orders),

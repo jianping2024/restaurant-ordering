@@ -648,6 +648,8 @@ type OrderedItemsProps = {
     disabled?: boolean;
     onPrint: () => void;
   } | null;
+  /** Active buffet package label(s) after the section title; null when none. */
+  buffetTitle: string | null;
   lines: WaiterOrderLine[];
   /** Optional: format chargeable qty hint; null/omit hides the hint. */
   formatChargeableHint?: (qty: number, unitPrice: number) => string;
@@ -666,6 +668,7 @@ export function WaiterTableOrderedItemsPanel({
   showAmounts,
   sessionAmount,
   preBillPrint,
+  buffetTitle,
   lines,
   formatChargeableHint,
   isCheckoutPending,
@@ -677,7 +680,7 @@ export function WaiterTableOrderedItemsPanel({
   onServe,
   serveLabel,
 }: OrderedItemsProps) {
-  if (lines.length === 0) return null;
+  if (lines.length === 0 && !buffetTitle) return null;
 
   const lineActionsLocked = isCheckoutPending || sessionBusy;
   const amountChrome = showAmounts ? sessionAmount : null;
@@ -711,6 +714,14 @@ export function WaiterTableOrderedItemsPanel({
         <div className={waiterDetailLayout.orderedItemsTitleRow}>
           <WaiterClocheIcon className={`${buttonIcon.md} shrink-0 text-brand-gold`} />
           <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
+          {buffetTitle ? (
+            <p className={waiterDetailLayout.orderedItemsBuffetTitle}>
+              <span className="text-brand-text-muted" aria-hidden="true">
+                ·{' '}
+              </span>
+              {buffetTitle}
+            </p>
+          ) : null}
         </div>
         {lines.map((line) => {
           const share = chargeableShareOf({

@@ -80,8 +80,10 @@ export const waiterDetailLayout = {
    * Opaque card bg so list rows never show through while scrolling.
    */
   orderedItemsMoneyChrome: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex flex-col items-center gap-1.5 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2`,
-  orderedItemsTitleRow: 'flex shrink-0 items-center gap-2',
-  orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
+  orderedItemsTitleRow: 'flex min-w-0 shrink-0 items-center gap-2',
+  orderedItemsTitle: `${waiterFloorType.listBody} shrink-0 whitespace-nowrap`,
+  /** Buffet package after「已点菜品」; sole `buffetOrderedTitle` (not a list row). */
+  orderedItemsBuffetTitle: `${waiterFloorType.listBody} min-w-0 truncate text-brand-text-muted`,
   orderedItemsMoneyLine:
     'w-full text-center text-lg font-semibold text-brand-gold-dark tabular-nums sm:w-auto sm:text-right',
   orderedItemsPreBillAction: 'shrink-0 whitespace-nowrap',

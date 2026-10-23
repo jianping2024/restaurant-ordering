@@ -83,6 +83,8 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.match(waiterDetailLayout.orderedItemsTitleRow, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /whitespace-nowrap/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsBuffetTitle, /truncate/);
+  assert.match(waiterDetailLayout.orderedItemsBuffetTitle, /text-brand-text-muted/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /text-center/);
@@ -173,6 +175,8 @@ test('ordered-items panel splits money chrome from list title (one representatio
   assert.doesNotMatch(panel, /orderedItemsTotal/);
   assert.match(panel, /waiterDetailLayout\.sectionBody/);
   assert.match(panel, /waiterDetailLayout\.orderedItemsTitle/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemsBuffetTitle/);
+  assert.match(panel, /buffetTitle/);
   assert.doesNotMatch(panel, /orderedItemsHeader\b/);
   assert.doesNotMatch(panel, /orderedItemsHeaderActions/);
   assert.doesNotMatch(panel, /flex-col-reverse/);

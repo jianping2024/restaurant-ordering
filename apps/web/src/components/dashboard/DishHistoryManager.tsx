@@ -145,16 +145,18 @@ export function DishHistoryManager({ restaurantSlug, tables }: Props) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="sm:w-[min(100%,18rem)] sm:shrink-0 min-w-0">
-          <label className="mb-1.5 block text-sm font-medium text-brand-text">{t.tableFilterLabel}</label>
-          <DashboardTableMultiSelect
-            tables={tables}
-            value={selectedTables}
-            onChange={onTablesChange}
-            tableWord={t.table}
-            placeholder={t.filterTable}
-            noOptionsMessage={t.empty}
-            ariaLabel={t.tableFilterLabel}
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-brand-text-muted">{t.tableFilterLabel}</label>
+            <DashboardTableMultiSelect
+              tables={tables}
+              value={selectedTables}
+              onChange={onTablesChange}
+              tableWord={t.table}
+              placeholder={t.filterTable}
+              noOptionsMessage={t.empty}
+              ariaLabel={t.tableFilterLabel}
+            />
+          </div>
         </div>
         <div className="flex-1 min-w-0">
           <Input

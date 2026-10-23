@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ydWKnxCOdTTm5Ghx4ebPa3doefjcSAqVEdl8ttzcrqAm0cT2sFctDJG7JYtm7cV
+\restrict KZTgP8p3h6aUy9VU0ibp68if8Vwrs9WnnJGuoFoe3nK3X0LIhZt0eJa276O7xGY
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -5640,8 +5640,16 @@ CREATE TABLE public.kitchen_screens (
     name text NOT NULL,
     sort_order integer DEFAULT 0 NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    shared_prep_tray boolean DEFAULT false NOT NULL
 );
+
+
+--
+-- Name: COLUMN kitchen_screens.shared_prep_tray; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.kitchen_screens.shared_prep_tray IS 'When true: the kitchen screen shows one prep tray for all its stations; prep still posts per station.';
 
 
 --
@@ -10146,5 +10154,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ydWKnxCOdTTm5Ghx4ebPa3doefjcSAqVEdl8ttzcrqAm0cT2sFctDJG7JYtm7cV
+\unrestrict KZTgP8p3h6aUy9VU0ibp68if8Vwrs9WnnJGuoFoe3nK3X0LIhZt0eJa276O7xGY
 

@@ -1,6 +1,10 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import {
+  DashboardTableMultiSelect,
+  type DashboardTableOption,
+} from '@/components/dashboard/DashboardTableMultiSelect';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
@@ -9,19 +13,21 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { DishHistoryListResult, DishHistoryRow } from '@/lib/dish-history-server';
 import { type ListPageSize } from '@/lib/paginate-list';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 type Props = {
   restaurantSlug: string;
+  tables: RestaurantTableRow[];
 };
 
-type Filters = { q: string };
+type Filters = { q: string; tableIds: string[] };
 
-export function DishHistoryManager({ restaurantSlug }: Props) {
+export function DishHistoryManager({ restaurantSlug, tables }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).dishHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [qDraft, setQDraft] = useState('');
+  const [selectedTables, setSelectedTables] = useState<DashboardTableOption[]>([]);
   const [error, setError] = useState('');
   const [remakeTarget, setRemakeTarget] = useState<DishHistoryRow | null>(null);
   const [remakeQty, setRemakeQty] = useState(1);
@@ -44,6 +50,9 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         window.location.origin,
       );
       if (filters.q.trim()) url.searchParams.set('q', filters.q.trim());
+      if (filters.tableIds.length > 0) {
+        url.searchParams.set('table_ids', filters.tableIds.join(','));
+      }
       url.searchParams.set('page', String(page));
       url.searchParams.set('page_size', String(pageSize));
       url.searchParams.set('lang', lang);
@@ -65,7 +74,8 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
   );
 
   const {
-    replaceDraftFilters,
+    draftFilters,
+    patchDraftFilters,
     query,
     data,
     loading,
@@ -73,16 +83,17 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
     setPageSize,
     refresh,
   } = useDashboardListQuery<Filters, DishHistoryListResult>({
-    initialFilters: { q: '' },
-    debounceMs: 0,
+    initialFilters: { q: '', tableIds: [] },
     fetchList,
     onFetchError: () => setError(t.loadFail),
     onSuccess: () => setError(''),
   });
 
-  const search = () => {
-    replaceDraftFilters({ q: qDraft.trim() });
+  const onTablesChange = (next: DashboardTableOption[]) => {
+    setSelectedTables(next);
+    patchDraftFilters({ tableIds: next.map((item) => item.value) });
   };
+
   const openRemake = (row: DishHistoryRow) => {
     setRemakeTarget(row);
     setRemakeQty(Math.max(1, Math.floor(row.qty) || 1));
@@ -133,20 +144,26 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1 min-w-0">
-          <Input
-            label={t.searchLabel}
-            value={qDraft}
-            onChange={(e) => setQDraft(e.target.value)}
-            placeholder={t.searchPlaceholder}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') search();
-            }}
+        <div className="sm:w-[min(100%,18rem)] sm:shrink-0 min-w-0">
+          <label className="mb-1.5 block text-sm font-medium text-brand-text">{t.tableFilterLabel}</label>
+          <DashboardTableMultiSelect
+            tables={tables}
+            value={selectedTables}
+            onChange={onTablesChange}
+            tableWord={t.table}
+            placeholder={t.filterTable}
+            noOptionsMessage={t.empty}
+            ariaLabel={t.tableFilterLabel}
           />
         </div>
-        <Button type="button" onClick={search} loading={loading} className="sm:mb-0.5">
-          {t.search}
-        </Button>
+        <div className="flex-1 min-w-0">
+          <Input
+            label={t.dishSearchLabel}
+            value={draftFilters.q}
+            onChange={(e) => patchDraftFilters({ q: e.target.value })}
+            placeholder={t.searchPlaceholder}
+          />
+        </div>
       </div>
 
       {error ? <p className="mesa-alert-danger text-sm px-4 py-2">{error}</p> : null}

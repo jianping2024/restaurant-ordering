@@ -12,7 +12,7 @@ import {
 } from '@/lib/paginate-list';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { generateAppendBatchId } from '@/lib/resolve-append-cart-items';
-import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseCommaSeparatedTableIds, parseTableIdParam } from '@/lib/restaurant-tables';
 import {
   enqueueStationTicketsForOrder,
   type RestaurantEnqueueRow,
@@ -49,6 +49,7 @@ const ORDERS_FETCH_PAGE = 1000;
 
 type DishHistoryOrderRow = {
   id: string;
+  table_id: string | null;
   display_name: string | null;
   items: OrderItem[] | null;
   session_id: string | null;
@@ -90,6 +91,7 @@ export async function listDishHistory(params: {
   admin: SupabaseClient;
   restaurantId: string;
   q: string | null;
+  tableIdsRaw: string | null;
   pageRaw: string | null;
   pageSizeRaw: string | null;
   lang: UILanguage;
@@ -99,13 +101,14 @@ export async function listDishHistory(params: {
 > {
   const page = parseListPage(params.pageRaw);
   const pageSize = parseListPageSizeParam(params.pageSizeRaw);
+  const tableIdFilter = new Set(parseCommaSeparatedTableIds(params.tableIdsRaw));
   const { startUtc, endExclusiveUtc } = resolveTodayLisbonWindow();
 
   const orderRows: DishHistoryOrderRow[] = [];
   for (let from = 0; ; from += ORDERS_FETCH_PAGE) {
     const { data, error: oErr } = await params.admin
       .from('orders')
-      .select('id, display_name, items, session_id, created_at, status')
+      .select('id, table_id, display_name, items, session_id, created_at, status')
       .eq('restaurant_id', params.restaurantId)
       .gte('created_at', startUtc)
       .lt('created_at', endExclusiveUtc)
@@ -138,6 +141,10 @@ export async function listDishHistory(params: {
   const flat: FlatLine[] = [];
 
   for (const order of orderRows) {
+    if (tableIdFilter.size > 0) {
+      const orderTableId = parseTableIdParam(order.table_id ?? '');
+      if (!orderTableId || !tableIdFilter.has(orderTableId)) continue;
+    }
     const items = order.items || [];
     const sessionOpen = Boolean(order.session_id && openSessionIds.has(order.session_id));
     for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {

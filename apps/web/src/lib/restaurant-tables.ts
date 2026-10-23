@@ -78,6 +78,20 @@ export function parseTableIdParam(raw: unknown): string | null {
   return UUID_RE.test(t) ? t : null;
 }
 
+/** Comma-separated table UUID query param → unique valid ids (invalid tokens dropped). */
+export function parseCommaSeparatedTableIds(raw: string | null | undefined): string[] {
+  if (!raw?.trim()) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const part of raw.split(',')) {
+    const id = parseTableIdParam(part);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
 export function formatDefaultTableDisplayName(index1Based: number): string {
   const n = Math.max(1, Math.floor(index1Based));
   return `A-${String(n).padStart(2, '0')}`;

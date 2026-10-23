@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
-import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow, normalizeTableSeatCount, DEFAULT_TABLE_SEAT_MIN, DEFAULT_TABLE_SEAT_MAX } from '@/lib/restaurant-tables';
+import { loadActiveRestaurantTableRows } from '@/lib/load-active-restaurant-tables';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export type OrderHistoryDashboardContext =
   | {
@@ -24,29 +25,14 @@ export async function loadOrderHistoryDashboardContext(): Promise<OrderHistoryDa
     return { error: 'restaurant_not_found', status: 404 };
   }
 
-  const { data, error } = await ctx.admin
-    .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
-    .eq('restaurant_id', ctx.restaurantId)
-    .is('deleted_at', null);
-
-  if (error) {
-    return { error: 'tables_query_failed', status: 500 };
+  const tablesResult = await loadActiveRestaurantTableRows(ctx.admin, ctx.restaurantId);
+  if (!tablesResult.ok) {
+    return { error: tablesResult.error, status: 500 };
   }
-
-  const tables = sortRestaurantTables((data || []) as RestaurantTable[]).map(
-    ({ id, display_name, sort_order, seat_min, seat_max }) => ({
-      id,
-      display_name,
-      sort_order,
-      seat_min: normalizeTableSeatCount(seat_min, DEFAULT_TABLE_SEAT_MIN),
-      seat_max: normalizeTableSeatCount(seat_max, DEFAULT_TABLE_SEAT_MAX),
-    }),
-  );
 
   return {
     admin: ctx.admin,
     restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string },
-    tables,
+    tables: tablesResult.tables,
   };
 }

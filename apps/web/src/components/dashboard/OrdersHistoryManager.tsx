@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import Select from 'react-select';
-import type { MultiValue, StylesConfig } from 'react-select';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import { useOrderHistoryFeed } from '@/lib/use-order-history-feed';
@@ -17,6 +15,10 @@ import {
   OrderHistoryLifecycleSteps,
   OrderHistoryOutcomeBadge,
 } from '@/components/dashboard/OrderHistoryLifecycleSteps';
+import {
+  DashboardTableMultiSelect,
+  type DashboardTableOption,
+} from '@/components/dashboard/DashboardTableMultiSelect';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import {
   useStaffCheckoutBillPrint,
@@ -41,11 +43,6 @@ interface Props {
   restaurantSlug: string;
   billSyncToFiscal?: boolean;
   capabilities?: CapabilitiesPayload;
-}
-
-interface TableOption {
-  value: string;
-  label: string;
 }
 
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
@@ -98,66 +95,8 @@ export function OrdersHistoryManager({
     pageSize: LIST_DEFAULT_PAGE_SIZE,
   });
 
-  const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
+  const [selectedTables, setSelectedTables] = useState<DashboardTableOption[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
-
-  const tableOptions = useMemo<TableOption[]>(
-    () =>
-      tables.map((row) => ({
-        value: row.id,
-        label: `${i18n.table} ${row.display_name}`,
-      })),
-    [i18n.table, tables],
-  );
-
-  const selectStyles = useMemo<StylesConfig<TableOption, true>>(
-    () => ({
-      control: (base, state) => ({
-        ...base,
-        minHeight: 40,
-        backgroundColor: 'rgb(var(--color-brand-bg))',
-        borderColor: 'rgb(var(--color-brand-border))',
-        boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.4)' : 'none',
-        '&:hover': { borderColor: 'rgb(var(--color-brand-border))' },
-      }),
-      placeholder: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))', fontSize: 14 }),
-      menu: (base) => ({
-        ...base,
-        backgroundColor: 'rgb(var(--color-brand-card))',
-        border: '1px solid rgb(var(--color-brand-border))',
-        zIndex: 9999,
-      }),
-      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-      menuList: (base) => ({ ...base, paddingTop: 4, paddingBottom: 4 }),
-      option: (base, state) => ({
-        ...base,
-        fontSize: 14,
-        color: state.isFocused || state.isSelected ? 'rgb(var(--color-brand-text))' : 'rgb(var(--color-brand-text-muted))',
-        backgroundColor: state.isSelected
-          ? 'rgba(212, 175, 55, 0.18)'
-          : state.isFocused
-            ? 'rgba(255, 255, 255, 0.06)'
-            : 'transparent',
-      }),
-      multiValue: (base) => ({
-        ...base,
-        backgroundColor: 'rgba(212, 175, 55, 0.16)',
-        border: '1px solid rgba(212, 175, 55, 0.28)',
-      }),
-      multiValueLabel: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))', fontSize: 13 }),
-      multiValueRemove: (base) => ({
-        ...base,
-        color: 'rgb(var(--color-brand-text-muted))',
-        ':hover': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgb(var(--color-brand-text))' },
-      }),
-      input: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))' }),
-      singleValue: (base) => ({ ...base, color: 'rgb(var(--color-brand-text))' }),
-      indicatorSeparator: (base) => ({ ...base, backgroundColor: 'rgb(var(--color-brand-border))' }),
-      dropdownIndicator: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))' }),
-      clearIndicator: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))' }),
-    }),
-    [],
-  );
 
   useEffect(() => {
     const tableIds = selectedTables.map((item) => item.value);
@@ -284,20 +223,14 @@ export function OrdersHistoryManager({
   return (
     <div>
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4">
-        <Select<TableOption, true>
-          isMulti
-          options={tableOptions}
+        <DashboardTableMultiSelect
+          tables={tables}
           value={selectedTables}
-          onChange={(value: MultiValue<TableOption>) => setSelectedTables([...value])}
-          menuPortalTarget={typeof window !== 'undefined' ? window.document.body : null}
-          menuPosition="fixed"
+          onChange={setSelectedTables}
+          tableWord={i18n.table}
           placeholder={i18n.filterTable}
-          styles={selectStyles}
-          className="w-full text-base"
+          noOptionsMessage={i18n.empty}
           classNamePrefix="orders-table-select"
-          noOptionsMessage={() => i18n.empty}
-          isClearable
-          closeMenuOnSelect
         />
       </div>
 

@@ -30,6 +30,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     admin,
     restaurantId: ctx.restaurant_id,
     q: url.searchParams.get('q'),
+    tableIdsRaw: url.searchParams.get('table_ids'),
     pageRaw: url.searchParams.get('page'),
     pageSizeRaw: url.searchParams.get('page_size'),
     lang: isUILanguage(langRaw) ? langRaw : DEFAULT_UI_LANG,

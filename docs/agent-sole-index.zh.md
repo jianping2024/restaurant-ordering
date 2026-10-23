@@ -415,7 +415,7 @@ settled gold + muted uncollected (`gold/40`) with 已收/未收 labels; hide `+`
 
 ### 当日菜品检索
 
-唯一列表是里斯本当天 + `{ items, page, pageSize, total }` + 本店 `open`/`billing` 会话 Set 标 `session_open`；禁止 `.in('id', sessionIds)`（Kong `URI too long`）、cursor/`loadMore`、20/50/100 平行档位。
+唯一列表是里斯本当天 + `{ items, page, pageSize, total }` + 本店 `open`/`billing` 会话 Set 标 `session_open`；禁止 `.in('id', sessionIds)`（Kong `URI too long`）、cursor/`loadMore`、20/50/100 平行档位。桌号筛选唯一 `DashboardTableMultiSelect` + `table_ids`（桌 `id`，全店桌位；与历史订单同控件）；菜名/编号 `q` 与桌号均走 `useDashboardListQuery` 防抖实时查，禁止平行搜索按钮或第二套桌号下拉。
 
 ### 后台管理员（`owner_id`）capabilities
 

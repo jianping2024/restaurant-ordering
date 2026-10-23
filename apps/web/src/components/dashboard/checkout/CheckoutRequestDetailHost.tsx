@@ -59,6 +59,7 @@ import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProv
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import { mintBrowserUuid } from '@/lib/browser-uuid';
+import { voidTakeawayChargeInOrders } from '@/lib/checkout-takeaway';
 import {
   requestAddCheckoutTakeaway,
   requestRemoveCheckoutTakeaway,
@@ -494,7 +495,15 @@ export function CheckoutRequestDetailHost({
   const removeTakeaway = useCallback(
     async (lineId: string) => {
       if (removingTakeawayLineId) return;
+      const priorOrders = sessionOrders;
+      const optimistic = voidTakeawayChargeInOrders(priorOrders, lineId);
+      if (!optimistic) {
+        showToast(t.takeawayRemoveFailed, 'error');
+        return;
+      }
+      // Instant list update; lock collect / resume / discount until DELETE + bill refresh finish.
       setRemovingTakeawayLineId(lineId);
+      setSessionOrders(optimistic);
       try {
         const result = await requestRemoveCheckoutTakeaway({
           slug: restaurantSlug,
@@ -502,6 +511,7 @@ export function CheckoutRequestDetailHost({
           lineId,
         });
         if (!result.ok) {
+          setSessionOrders(priorOrders);
           showToast(
             result.error === 'claimed_by_ticket' ? t.takeawayRemoveClaimed : t.takeawayRemoveFailed,
             'error',
@@ -513,7 +523,14 @@ export function CheckoutRequestDetailHost({
         setRemovingTakeawayLineId(null);
       }
     },
-    [refreshBillAfterTakeaway, removingTakeawayLineId, request.id, restaurantSlug, t],
+    [
+      refreshBillAfterTakeaway,
+      removingTakeawayLineId,
+      request.id,
+      restaurantSlug,
+      sessionOrders,
+      t,
+    ],
   );
 
   const confirmHeadcountAdjust = useCallback(
@@ -803,7 +820,9 @@ export function CheckoutRequestDetailHost({
   const detailLocked =
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
-    discountApplying;
+    discountApplying ||
+    takeawayBusy ||
+    removingTakeawayLineId != null;
 
   return (
     <>

@@ -13,6 +13,7 @@ import {
   parseTakeawayQty,
   parseTakeawayVatRatePatch,
   resolveTakeawayVatRate,
+  voidTakeawayChargeInOrders,
 } from './checkout-takeaway';
 import { countSubmittedDishPortions } from './order-list-display';
 import { distinctMenuItemIdsFromOrders } from './menu-item-code';
@@ -180,6 +181,18 @@ describe('takeaway line classification', () => {
     if (!removed.ok) return;
     assert.equal(removed.outcome, 'voided');
     assert.equal(sumBillableSessionTotal([orderWith(removed.nextItems)]), 0);
+  });
+
+  it('voidTakeawayChargeInOrders drops the line from billable display', () => {
+    const orders = [orderWith([beer, takeaway(33, 'opt'), takeaway(55, 'keep')])];
+    const next = voidTakeawayChargeInOrders(orders, 'takeaway:opt');
+    assert.ok(next);
+    assert.equal(sumBillableSessionTotal(next!), 4.5 + 55);
+    const ids = checkoutLinesFromOrders(next!, 'zh')
+      .map((r) => r.takeawayLineId)
+      .filter(Boolean);
+    assert.deepEqual(ids, ['takeaway:keep']);
+    assert.equal(voidTakeawayChargeInOrders(orders, 'takeaway:missing'), null);
   });
 
   it('VAT comes from the restaurant take-away rate', () => {

@@ -217,6 +217,7 @@ function WaiterTableDetailInner({
     end: endDetailSessionBusy,
   } = useWaiterDetailSessionBusy();
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
+  const [clearHeadcountConfirmOpen, setClearHeadcountConfirmOpen] = useState(false);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
   const [servingKey, setServingKey] = useState<string | null>(null);
   const [orderingOpen, setOrderingOpen] = useState(false);
@@ -261,6 +262,7 @@ function WaiterTableDetailInner({
   const {
     guestSnapshot,
     setBuffetGuestCount,
+    resetDraftToAligned,
     resolvedByBuffetId,
     priceLoading: buffetPriceLoading,
   } = useWaiterTableBuffetForm({
@@ -290,6 +292,7 @@ function WaiterTableDetailInner({
     setItemCodeByMenuId({});
     setOrderingOpen(false);
     setCartDraft([]);
+    setClearHeadcountConfirmOpen(false);
   }, [tableId, endDetailSessionBusy]);
 
   useEffect(() => {
@@ -839,7 +842,11 @@ function WaiterTableDetailInner({
     quickTableClose,
   });
 
-  const { submitting: buffetSubmitting, submit: submitBuffetOpen } = useWaiterBuffetOpenMutation({
+  const {
+    submitting: buffetSubmitting,
+    submit: submitBuffetOpen,
+    scheduleAutosave: scheduleBuffetAutosave,
+  } = useWaiterBuffetOpenMutation({
     lang,
     restaurantSlug: restaurant.slug,
     tableId,
@@ -849,6 +856,7 @@ function WaiterTableDetailInner({
     hasOpenSession,
     editorReady: buffetEditorReady,
     autosave: detailActions.showBuffetPanel && hasOpenSession && !detailSessionBusy,
+    onZeroHeadcountHeld: () => setClearHeadcountConfirmOpen(true),
     onSuccess: applyModel,
     onStaleConflict: () => {
       void refresh();
@@ -1061,6 +1069,7 @@ function WaiterTableDetailInner({
                   whenDetailActionsArmed(() => {
                     if (detailSessionBusy) return;
                     setBuffetGuestCount(buffetId, which, value);
+                    scheduleBuffetAutosave();
                   });
                 }}
                 resolvedByBuffetId={resolvedByBuffetId}
@@ -1237,6 +1246,25 @@ function WaiterTableDetailInner({
               confirmDisabled={!sourceTable || !targetTable || detailSessionBusy}
             />
           </Modal>
+          <ConfirmModal
+            open={clearHeadcountConfirmOpen}
+            onClose={() => {
+              if (buffetSubmitting) return;
+              setClearHeadcountConfirmOpen(false);
+              resetDraftToAligned();
+            }}
+            title={t.buffetClearHeadcountTitle}
+            message={t.buffetClearHeadcountMessage}
+            confirmLabel={t.buffetClearHeadcountConfirm}
+            cancelLabel={t.buffetClearHeadcountKeep}
+            variant="danger"
+            confirming={buffetSubmitting}
+            onConfirm={async () => {
+              const outcome = await submitBuffetOpen();
+              setClearHeadcountConfirmOpen(false);
+              if (outcome.kind !== 'success') resetDraftToAligned();
+            }}
+          />
           {isDemo ? (
             <ConfirmModal
               open={demoCloseConfirmTableId != null}

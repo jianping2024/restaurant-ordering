@@ -56,6 +56,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: '成人 €{adultPrice}/人 · 儿童 €{childPrice}/人',
     buffetEstimatedTotal: '预计合计：€{total}',
     buffetConfirm: '确认开台',
+    buffetClearHeadcountTitle: '人数改为 0？',
+    buffetClearHeadcountMessage:
+      '该桌自助餐人数将清零，人头费会从账单中移除。确定吗？',
+    buffetClearHeadcountConfirm: '改为 0',
+    buffetClearHeadcountKeep: '保留原人数',
     buffetHeadcountBelowPaidFloor:
       '已有收款锁定，不能把自助餐人数降到低于已付客人已分配的人数。',
     buffetNoRule: '当前时段无匹配价格，请在后台配置规则。',
@@ -195,6 +200,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adult €{adultPrice}/person · Child €{childPrice}/person',
     buffetEstimatedTotal: 'Estimated total: €{total}',
     buffetConfirm: 'Confirm open table',
+    buffetClearHeadcountTitle: 'Set headcount to 0?',
+    buffetClearHeadcountMessage:
+      'This table\'s buffet headcount will be cleared and the cover charge removed from the bill. Continue?',
+    buffetClearHeadcountConfirm: 'Set to 0',
+    buffetClearHeadcountKeep: 'Keep headcount',
     buffetHeadcountBelowPaidFloor:
       'Collections started — buffet headcount cannot drop below paid guests’ allocated seats.',
     buffetNoRule: 'No matching price for this time slot. Configure rules in dashboard.',
@@ -335,6 +345,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/pessoa · Crianca €{childPrice}/pessoa',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar abertura',
+    buffetClearHeadcountTitle: 'Pôr 0 pessoas?',
+    buffetClearHeadcountMessage:
+      'O número de pessoas do buffet desta mesa fica a 0 e o valor por pessoa sai da conta. Continuar?',
+    buffetClearHeadcountConfirm: 'Pôr a 0',
+    buffetClearHeadcountKeep: 'Manter pessoas',
     buffetHeadcountBelowPaidFloor:
       'Ja houve cobranca — nao pode baixar o buffet abaixo dos lugares ja atribuidos aos pagos.',
     buffetNoRule: 'Sem preco para este horario. Configure no painel.',
@@ -476,6 +491,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/persona · Niño €{childPrice}/persona',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar apertura',
+    buffetClearHeadcountTitle: '¿Poner 0 comensales?',
+    buffetClearHeadcountMessage:
+      'Los comensales del buffet de esta mesa quedarán en 0 y el precio por persona saldrá de la cuenta. ¿Continuar?',
+    buffetClearHeadcountConfirm: 'Poner a 0',
+    buffetClearHeadcountKeep: 'Mantener comensales',
     buffetHeadcountBelowPaidFloor:
       'Ya hay cobros registrados: no puedes bajar los comensales del bufé por debajo de las plazas ya pagadas.',
     buffetNoRule: 'No hay precio para esta franja horaria. Configura las reglas en el panel.',
@@ -625,6 +645,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulte €{adultPrice}/pers. · Enfant €{childPrice}/pers.',
     buffetEstimatedTotal: 'Total estimé : €{total}',
     buffetConfirm: 'Confirmer l’ouverture',
+    buffetClearHeadcountTitle: 'Mettre 0 couvert ?',
+    buffetClearHeadcountMessage:
+      'Le nombre de couverts buffet de cette table passera à 0 et le prix par personne sera retiré de l’addition. Continuer ?',
+    buffetClearHeadcountConfirm: 'Mettre à 0',
+    buffetClearHeadcountKeep: 'Garder les couverts',
     buffetHeadcountBelowPaidFloor:
       'Des encaissements ont eu lieu — le nombre de couverts buffet ne peut pas descendre sous les places déjà payées.',
     buffetNoRule: 'Aucun tarif pour ce créneau. Configurez les règles dans le tableau de bord.',
@@ -774,6 +799,11 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Erwachsene €{adultPrice}/Person · Kinder €{childPrice}/Person',
     buffetEstimatedTotal: 'Voraussichtliche Summe: €{total}',
     buffetConfirm: 'Öffnen bestätigen',
+    buffetClearHeadcountTitle: 'Personenzahl auf 0 setzen?',
+    buffetClearHeadcountMessage:
+      'Die Buffet-Personenzahl dieses Tisches wird auf 0 gesetzt und der Personenpreis von der Rechnung entfernt. Fortfahren?',
+    buffetClearHeadcountConfirm: 'Auf 0 setzen',
+    buffetClearHeadcountKeep: 'Personenzahl behalten',
     buffetHeadcountBelowPaidFloor:
       'Es wurde bereits kassiert — die Buffet-Personenzahl darf nicht unter die bereits bezahlten Plätze fallen.',
     buffetNoRule: 'Für diesen Zeitraum gibt es keinen Preis. Regeln im Dashboard einrichten.',

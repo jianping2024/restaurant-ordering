@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { Order } from '@/types';
 import {
   buildBuffetBaseLine,
+  buffetDraftClearsHeadcount,
   buffetFormAlignKey,
   buffetSnapshotFromOrders,
   buffetSnapshotKey,
@@ -179,6 +180,7 @@ describe('deriveBuffetFormSnapshot / align', () => {
       {
         mode: 'occupied',
         snapshot: { [buffetA.id]: { adults: 2, children: 0 } },
+        activeBuffetIds: [buffetA.id, buffetB.id],
       },
     );
   });
@@ -193,7 +195,43 @@ describe('deriveBuffetFormSnapshot / align', () => {
     });
     assert.equal(buffetSnapshotKey({ [buffetA.id]: { adults: 2, children: 0 } }), 'buffet-a:2:0');
     assert.ok(buffetFormAlignKey('t1', 's1', occupied).includes('occupied'));
+    const occupiedNoPackages = resolveBuffetFormAlignState({
+      detailLoaded: true,
+      hasOpenSession: true,
+      orders: [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])],
+      activeBuffetIds: [],
+      defaultBuffetId: null,
+    });
+    // Packages arriving later must realign the draft (else it stays {} → submits 0).
+    assert.notEqual(
+      buffetFormAlignKey('t1', 's1', occupiedNoPackages),
+      buffetFormAlignKey('t1', 's1', occupied),
+    );
     assert.equal(buffetSnapshotsEqual({ a: { adults: 1, children: 0 } }, { a: { adults: 1, children: 0 } }), true);
+  });
+});
+
+describe('buffetDraftClearsHeadcount', () => {
+  const orders = [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])];
+
+  it('flags an all-zero draft on a table with guests', () => {
+    assert.equal(
+      buffetDraftClearsHeadcount(orders, { [buffetA.id]: { adults: 0, children: 0 } }, [buffetA.id]),
+      true,
+    );
+    // Missing package entry submits as 0 too.
+    assert.equal(buffetDraftClearsHeadcount(orders, {}, [buffetA.id]), true);
+  });
+
+  it('allows non-zero drafts and tables without guests', () => {
+    assert.equal(
+      buffetDraftClearsHeadcount(orders, { [buffetA.id]: { adults: 1, children: 0 } }, [buffetA.id]),
+      false,
+    );
+    assert.equal(
+      buffetDraftClearsHeadcount([], { [buffetA.id]: { adults: 0, children: 0 } }, [buffetA.id]),
+      false,
+    );
   });
 });
 

@@ -10,13 +10,13 @@ import {
   postWaiterBuffetOpenAndCommit,
 } from '@/lib/waiter-buffet-open-submit';
 import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
-import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
+import { buffetDraftClearsHeadcount, type BuffetGuestSnapshot } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
 
-/** Occupied-table headcount: debounce stepper changes into one intent=save POST. */
-export const BUFFET_GUEST_AUTOSAVE_DEBOUNCE_MS = 400;
+/** Occupied-table headcount: debounce −/+ taps into one intent=save POST. */
+const BUFFET_GUEST_AUTOSAVE_DEBOUNCE_MS = 400;
 
 export type WaiterBuffetOpenMutationResult =
   | { kind: 'success'; model: WaiterTablePageModel }
@@ -37,10 +37,15 @@ type Params = {
   hasOpenSession: boolean;
   editorReady: boolean;
   /**
-   * Occupied table: persist draft headcount after debounce.
+   * Occupied table: `scheduleAutosave` (called only from a −/+ tap) persists after debounce.
    * Cold open / board sheet: false — only explicit submit.
    */
   autosave?: boolean;
+  /**
+   * Autosave held because the edit would clear an occupied table's headcount to 0.
+   * Caller confirms (`submit`) or discards the edit.
+   */
+  onZeroHeadcountHeld?: () => void;
   onSuccess?: (model: WaiterTablePageModel) => void;
   onStaleConflict?: () => void | Promise<void>;
 };
@@ -59,6 +64,7 @@ export function useWaiterBuffetOpenMutation({
   hasOpenSession,
   editorReady,
   autosave = false,
+  onZeroHeadcountHeld,
   onSuccess,
   onStaleConflict,
 }: Params) {
@@ -70,6 +76,8 @@ export function useWaiterBuffetOpenMutation({
   const activeBuffetIdsRef = useRef(activeBuffetIds);
   const hasOpenSessionRef = useRef(hasOpenSession);
   const editorReadyRef = useRef(editorReady);
+  const autosaveRef = useRef(autosave);
+  const onZeroHeadcountHeldRef = useRef(onZeroHeadcountHeld);
   const onSuccessRef = useRef(onSuccess);
   const onStaleConflictRef = useRef(onStaleConflict);
   const inFlightRef = useRef(false);
@@ -80,6 +88,8 @@ export function useWaiterBuffetOpenMutation({
   activeBuffetIdsRef.current = activeBuffetIds;
   hasOpenSessionRef.current = hasOpenSession;
   editorReadyRef.current = editorReady;
+  autosaveRef.current = autosave;
+  onZeroHeadcountHeldRef.current = onZeroHeadcountHeld;
   onSuccessRef.current = onSuccess;
   onStaleConflictRef.current = onStaleConflict;
 
@@ -157,13 +167,42 @@ export function useWaiterBuffetOpenMutation({
     [persist],
   );
 
-  useEffect(() => {
-    if (!autosave) return;
-    const timer = window.setTimeout(() => {
+  const autosaveTimerRef = useRef<number | null>(null);
+  const cancelAutosave = useCallback(() => {
+    if (autosaveTimerRef.current == null) return;
+    window.clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = null;
+  }, []);
+
+  /**
+   * Sole autosave trigger — call only from a user −/+ tap. Loads, refreshes and
+   * Realtime realigns never save (they can briefly paint a draft that lags orders).
+   */
+  const scheduleAutosave = useCallback(() => {
+    if (!autosaveRef.current) return;
+    cancelAutosave();
+    autosaveTimerRef.current = window.setTimeout(() => {
+      autosaveTimerRef.current = null;
+      if (!autosaveRef.current) return;
+      if (
+        buffetDraftClearsHeadcount(
+          ordersRef.current,
+          guestSnapshotRef.current,
+          activeBuffetIdsRef.current,
+        )
+      ) {
+        onZeroHeadcountHeldRef.current?.();
+        return;
+      }
       void persist('silent');
     }, BUFFET_GUEST_AUTOSAVE_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [autosave, guestSnapshot, persist]);
+  }, [cancelAutosave, persist]);
 
-  return { submitting, submit };
+  // A pending tap belongs to this table only; drop it on table switch / unmount / autosave off.
+  useEffect(() => cancelAutosave, [cancelAutosave, tableId]);
+  useEffect(() => {
+    if (!autosave) cancelAutosave();
+  }, [autosave, cancelAutosave]);
+
+  return { submitting, submit, scheduleAutosave };
 }

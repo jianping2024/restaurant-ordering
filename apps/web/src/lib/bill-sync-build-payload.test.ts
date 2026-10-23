@@ -187,6 +187,45 @@ describe('buildBillSyncJobPayload', () => {
     assert.equal(jacky?.lines[0]?.qty, '1.00');
   });
 
+  it('builds by_item per-person splits when persons carry party_id', () => {
+    const key = menuLineKey();
+    const anaParty = '44444444-4444-4444-8444-444444444444';
+    const brunoParty = '55555555-5555-4555-8555-555555555555';
+    const persons: SplitPerson[] = [
+      {
+        name: 'Ana',
+        party_id: anaParty,
+        item_shares: [{ key, qty_num: 1, qty_den: 1, party_id: anaParty }],
+      },
+      {
+        name: 'Bruno',
+        party_id: brunoParty,
+        item_shares: [{ key, qty_num: 1, qty_den: 1, party_id: brunoParty }],
+      },
+    ];
+    const built = buildBillSyncJobPayload({
+      requestId: '66666666-6666-4666-8666-666666666666',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'by_item',
+      persons,
+      orders,
+      itemCodeByMenuId: { [MENU_ID]: '006' },
+      vatRates: { byMenuId: { [MENU_ID]: 23 }, byBuffetId: {}, takeaway: null },
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.splits?.length, 2);
+    const [ana, bruno] = built.payload.splits ?? [];
+    assert.equal(ana?.name, 'Ana');
+    assert.equal(bruno?.name, 'Bruno');
+    assert.equal(ana?.scope_id, billSyncByItemScopeId(BILL_SPLIT_ID, 'Ana', anaParty));
+    assert.equal(bruno?.scope_id, billSyncByItemScopeId(BILL_SPLIT_ID, 'Bruno', brunoParty));
+    assert.equal(ana?.gross_total, '2.25');
+    assert.equal(bruno?.gross_total, '2.25');
+    assert.equal(ana?.lines[0]?.qty, '1.00');
+  });
+
   it('splits adult/child buffet codes so by_item sync does not item_code_conflict', () => {
     const buffetId = '6b5606fc-29c7-4656-b428-8dd6b314306f';
     const aguaId = '6b8dd8ee-03aa-426f-9c9b-5fe0d30ceb54';

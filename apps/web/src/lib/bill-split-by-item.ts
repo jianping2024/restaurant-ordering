@@ -1095,7 +1095,7 @@ export function consumersForLineFromPersons(
   spec: ByItemLineSpec,
 ): ByItemConsumerShare[] {
   const explicit: ByItemConsumerShare[] = [];
-  const legacyNames: string[] = [];
+  const legacyAssignees: { name: string; partyId?: string }[] = [];
 
   for (const person of persons) {
     const shares = person.item_shares?.filter((row) => row.key === lineKey) ?? [];
@@ -1105,8 +1105,10 @@ export function consumersForLineFromPersons(
           share.guest_type === 'adult' || share.guest_type === 'child'
             ? share.guest_type
             : undefined;
+        const partyId = parseOptionalPartyId(person.party_id ?? share.party_id);
         explicit.push({
           name: person.name,
+          ...(partyId ? { partyId } : {}),
           qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
           ...(parseOptionalUnitDen(share.qty_unit_den)
             ? { unitDen: parseOptionalUnitDen(share.qty_unit_den) }
@@ -1117,18 +1119,20 @@ export function consumersForLineFromPersons(
       continue;
     }
     if ((person.items || []).includes(lineKey)) {
-      legacyNames.push(person.name);
+      const partyId = parseOptionalPartyId(person.party_id);
+      legacyAssignees.push({ name: person.name, ...(partyId ? { partyId } : {}) });
     }
   }
 
   if (explicit.length > 0) return explicit;
-  if (legacyNames.length === 0) return [];
+  if (legacyAssignees.length === 0) return [];
 
   const lineQty = spec.mode === 'menu' ? spec.lineQty : 1;
   const qty = lineQtyRational(lineQty);
-  return legacyNames.map((name) => ({
+  return legacyAssignees.map(({ name, partyId }) => ({
     name,
-    qty: normalizeRational({ num: qty.num, den: qty.den * legacyNames.length }),
+    ...(partyId ? { partyId } : {}),
+    qty: normalizeRational({ num: qty.num, den: qty.den * legacyAssignees.length }),
   }));
 }
 

@@ -3,7 +3,9 @@
  * Sole line shape: `OrderItem` kind `takeaway` built by {@link buildTakeawayChargeItem}.
  * Fiscal: fixed item_code {@link TAKEAWAY_ITEM_CODE}, `open_price` (one product, many prices).
  */
-import type { OrderItem } from '@/types';
+import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
+import { isTakeawayChargeItem } from '@/lib/order-items';
+import type { Order, OrderItem } from '@/types';
 
 /** Fixed line name (screen, receipt, fiscal invoice — never editable). */
 export const TAKEAWAY_LINE_NAME = 'TAKE AWAY (PAGA À PARTE).';
@@ -104,4 +106,25 @@ export function buildTakeawayChargeItem(input: {
     batch_id: input.batchId,
     added_at: input.addedAt,
   };
+}
+
+/**
+ * Sole local void of one take-away charge in session orders (same as trash →
+ * {@link applyOrderItemDecrement}). Used for instant list update before DELETE settles.
+ * Missing / not voidable → null (caller keeps prior orders).
+ */
+export function voidTakeawayChargeInOrders(orders: Order[], lineId: string): Order[] | null {
+  const id = lineId.trim();
+  if (!id.startsWith(TAKEAWAY_ID_PREFIX)) return null;
+
+  for (let orderIndex = 0; orderIndex < orders.length; orderIndex++) {
+    const order = orders[orderIndex]!;
+    const items = order.items ?? [];
+    const itemIndex = items.findIndex((item) => item.id === id && isTakeawayChargeItem(item));
+    if (itemIndex < 0) continue;
+    const result = applyOrderItemDecrement(items, itemIndex, order.status);
+    if (!result.ok) return null;
+    return orders.map((row, i) => (i === orderIndex ? { ...row, items: result.nextItems } : row));
+  }
+  return null;
 }

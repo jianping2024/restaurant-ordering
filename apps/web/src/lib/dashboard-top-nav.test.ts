@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import {
+  buttonPressReliefSoftClass,
+  buttonPressReliefStrongClass,
+} from '@/components/ui/button-press-relief';
+import {
   DASHBOARD_TOP_NAV_ORDER,
   STAFF_TOP_BAR_COLLAPSED_NAV_MQ,
   buildDashboardTopNavItems,
@@ -128,15 +132,24 @@ describe('topNavDesktopScrollNavClassName', () => {
 });
 
 describe('topNavDesktopLinkClass / topNavMenuRowClass', () => {
-  it('marks active desktop links with brand-ink + gold underline; idle is muted', () => {
+  it('renders desktop links as raised chips: active = ink face + strong relief; idle = paper + soft relief', () => {
     const active = topNavDesktopLinkClass(true);
     const idle = topNavDesktopLinkClass(false);
-    assert.match(active, /text-brand-ink/);
-    assert.match(active, /decoration-brand-gold/);
-    assert.match(active, /font-medium/);
-    assert.doesNotMatch(active, /text-brand-text[^-]/);
+    assert.ok(active.includes(buttonPressReliefStrongClass));
+    assert.match(active, /bg-brand-ink/);
+    assert.match(active, /text-brand-on-ink/);
+    assert.ok(idle.includes(buttonPressReliefSoftClass));
     assert.match(idle, /text-brand-text-muted/);
     assert.match(idle, /hover:text-brand-ink/);
+    for (const cls of [active, idle]) {
+      assert.match(cls, /rounded-lg/);
+      assert.doesNotMatch(cls, /underline/);
+    }
+  });
+
+  it('press tokens fire on <a> links (not gated by :enabled)', () => {
+    assert.match(buttonPressReliefSoftClass, /\[&:not\(:disabled\)\]:active:translate-y/);
+    assert.doesNotMatch(buttonPressReliefSoftClass, /enabled:active/);
   });
 
   it('marks active mobile rows with brand-ink; idle is muted', () => {

@@ -104,8 +104,9 @@ function NavDesktopLinks({
   prefetch,
   onNavigate,
 }: NavContext) {
+  // py-2: room for the chip relief shadow + press travel; the x-scroll strip clips y.
   return (
-    <div className="flex min-w-max items-center gap-3 px-0.5">
+    <div className="flex min-w-max items-center gap-2 px-0.5 py-2">
       {items.map((item) => {
         const { active, label, badge } = resolveNavItemDisplay(
           item,

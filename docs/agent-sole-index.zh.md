@@ -371,6 +371,10 @@ sole mutex `useWaiterDetailSessionBusy` (kind discriminant); CallCheckout/Settle
 
 sole `sortBillableSessionItemsForWaiterDetail` (buffet headcount first, then on-paper, then €0; within each band latest catalog time desc).
 
+### Waiter detail ordered row
+
+sole `WaiterTableOrderedItemsPanel` + `waiterDetailLayout` receipt grid: code `5ch` (as stored, no zero-pad) · name+leader `1fr` · mid auto (`€`/`unitPrice` + status + qty + serve/minus) · balance `1fr` (mid near center); never a parallel `orderedItemIdentity` or far-right-only qty column.
+
 ### Kitchen board row swipe prep
 
 sole `react-swipeable-list` `Type.ANDROID` on `SwipeableListItem` (`LeadingActions`/`SwipeAction`, `destructive={false}`); sole cue `KITCHEN_SWIPE_PREP_CUE_CLASS` (`bg-brand-gold`+`text-brand-on-gold`, fill reveal, no `min-w` > maxSwipe); sole in-flight `prepInFlightKeys` + sole `Spinner` on those rows (footer prep loading same set; never optimistic status, never footer-only busy); never DIY `dragX`/`finishRowGesture`/Pointer capture beside it, never gold+`brand-ink` cue.

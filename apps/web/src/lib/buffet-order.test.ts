@@ -22,6 +22,9 @@ import {
   listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
+  resolvedBuffetPriceFromLockedLine,
+  resolvedBuffetPricesFromOrders,
+  mergeBuffetPricesPreferLocked,
   snapshotFromBuffetEntries,
   upsertBuffetLineOntoOrderItems,
   aggregateBuffetHeadcountForOrders,
@@ -311,5 +314,44 @@ describe('computeBuffetSubtotal / resolveBuffetOpenPricePreview', () => {
       childPrice: 10,
       subtotal: 90,
     });
+  });
+});
+
+describe('resolvedBuffetPriceFromLockedLine / mergeBuffetPricesPreferLocked', () => {
+  it('reads open-time unit prices from a zero-headcount buffet_base line', () => {
+    const line = buffetLine(buffetA, 0, 0, '2026-01-01T12:00:00.000Z');
+    assert.deepEqual(resolvedBuffetPriceFromLockedLine(line), {
+      adult_price: 20,
+      child_price: 10,
+      rule_id: 'rule-1',
+      time_slot_id: null,
+    });
+  });
+
+  it('prefers locked open-time prices over a different live RPC row', () => {
+    const orders = [orderWithItems([buffetLine(buffetA, 0, 0, '2026-01-01T12:00:00.000Z')])];
+    const live = {
+      [buffetA.id]: {
+        adult_price: 99,
+        child_price: 88,
+        rule_id: 'live-rule',
+        time_slot_id: 'live-slot',
+      },
+    };
+    assert.deepEqual(mergeBuffetPricesPreferLocked(live, orders)[buffetA.id], {
+      adult_price: 20,
+      child_price: 10,
+      rule_id: 'rule-1',
+      time_slot_id: null,
+    });
+    assert.deepEqual(resolvedBuffetPricesFromOrders(orders)[buffetA.id]?.adult_price, 20);
+  });
+
+  it('returns null when unit prices are missing on the line', () => {
+    const line = buffetLine(buffetA, 1, 0, '2026-01-01T12:00:00.000Z');
+    const rest = {
+      price_rule_id: line.price_rule_id,
+    };
+    assert.equal(resolvedBuffetPriceFromLockedLine(rest), null);
   });
 });

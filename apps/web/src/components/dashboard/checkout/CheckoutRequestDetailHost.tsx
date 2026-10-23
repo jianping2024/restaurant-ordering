@@ -43,7 +43,7 @@ import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/componen
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
-import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked, type BuffetGuestSnapshot } from '@/lib/buffet-order';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { shouldPromptCheckoutZeroHeadcount } from '@/lib/checkout-zero-headcount-prompt';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
@@ -916,7 +916,10 @@ export function CheckoutRequestDetailHost({
         open={headcountAdjustOpen}
         lang={lang}
         activeBuffets={activeBuffets}
-        buffetPricesByBuffetId={tableBuffetModel?.buffetPricesByBuffetId ?? {}}
+        buffetPricesByBuffetId={mergeBuffetPricesPreferLocked(
+          tableBuffetModel?.buffetPricesByBuffetId ?? {},
+          sessionOrders,
+        )}
         sessionOrders={sessionOrders}
         busy={headcountAdjustBusy}
         labels={{

@@ -160,9 +160,8 @@ describe('buildWaiterTableCard', () => {
         updated_at: '2026-01-01T00:00:00.000Z',
       },
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
-    assert.equal(card.orderLines.length, 1);
-    assert.equal(card.orderLines[0]?.label, 'Buffet livre · A2-C1');
-    assert.equal(card.orderLines[0]?.unitPrice, null);
+    assert.equal(card.orderLines.length, 0);
+    assert.equal(card.buffetOrderedTitle, 'Buffet livre · A2-C1');
     assert.equal(card.sessionTotal, 55.9);
     assert.equal(card.mealsTotal, 0);
   });
@@ -214,9 +213,9 @@ describe('buildWaiterTableCard', () => {
     );
     assert.equal(card.sessionTotal, 595.35);
     assert.equal(card.mealsTotal, 300);
-    const buffetLine = card.orderLines.find((l) => l.label.startsWith('Buffet'));
+    assert.equal(card.buffetOrderedTitle, 'Buffet livre · A10');
+    assert.equal(card.orderLines.find((l) => l.label.startsWith('Buffet')), undefined);
     const mealLine = card.orderLines.find((l) => l.label === 'Água');
-    assert.equal(buffetLine?.unitPrice, null);
     assert.equal(mealLine?.unitPrice, 150);
   });
 

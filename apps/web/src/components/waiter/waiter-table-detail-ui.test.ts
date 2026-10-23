@@ -83,6 +83,8 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.match(waiterDetailLayout.orderedItemsTitleRow, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /whitespace-nowrap/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsBuffetTitle, /truncate/);
+  assert.match(waiterDetailLayout.orderedItemsBuffetTitle, /text-brand-text-muted/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemsMoneyLine, /text-center/);
@@ -93,17 +95,22 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
 
-test('ordered-item row is a left cluster (identity —gap-8— qty/actions; label not flex-1)', () => {
-  assert.match(waiterDetailLayout.orderedItemRow, /flex/);
-  assert.match(waiterDetailLayout.orderedItemRow, /gap-8/);
+test('ordered-item row is receipt midline grid (code · name+dots · mid · balance)', () => {
+  assert.match(waiterDetailLayout.orderedItemRow, /grid/);
+  assert.match(waiterDetailLayout.orderedItemRow, /grid-cols-\[5ch_minmax\(0,1fr\)_auto_minmax\(0,1fr\)\]/);
   assert.match(waiterDetailLayout.orderedItemRow, /items-center/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /justify-between/);
-  assert.match(waiterDetailLayout.orderedItemIdentity, /flex/);
-  assert.match(waiterDetailLayout.orderedItemIdentity, /min-w-0/);
-  assert.match(waiterDetailLayout.orderedItemCode, /shrink-0/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /gap-8/);
+  assert.match(waiterDetailLayout.orderedItemCode, /w-\[5ch\]/);
   assert.match(waiterDetailLayout.orderedItemCode, /tabular-nums/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemCode, /min-w-\[2rem\]/);
+  assert.match(waiterDetailLayout.orderedItemNameLeader, /col-start-2/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /flex-1/);
   assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
+  assert.match(waiterDetailLayout.orderedItemLeader, /flex-1/);
+  assert.match(waiterDetailLayout.orderedItemLeader, /border-dotted/);
+  assert.match(waiterDetailLayout.orderedItemMid, /col-start-3/);
+  assert.match(waiterDetailLayout.orderedItemBalance, /col-start-4/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /text-brand-gold/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /tabular-nums/);
@@ -112,41 +119,42 @@ test('ordered-item row is a left cluster (identity —gap-8— qty/actions; labe
   assert.match(waiterDetailLayout.orderedItemQty, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemActions, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemActions, /gap-2/);
-  assert.equal(
-    'orderedItemTextCol' in waiterDetailLayout,
-    false,
-    'retired text-col — identity cluster is the sole name/status wrapper',
-  );
+  assert.equal('orderedItemIdentity' in waiterDetailLayout, false);
+  assert.equal('orderedItemTextCol' in waiterDetailLayout, false);
 });
 
-test('ordered-items panel: status in identity cluster; qty with actions (one left-cluster shape)', async () => {
+test('ordered-items panel: mid cluster after name+leader (price · status · qty · actions)', async () => {
   const { readFile } = await import('node:fs/promises');
   const { fileURLToPath } = await import('node:url');
   const { dirname, join } = await import('node:path');
   const here = dirname(fileURLToPath(import.meta.url));
   const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
   const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
-  assert.match(panel, /waiterDetailLayout\.orderedItemIdentity/);
+  assert.doesNotMatch(panel, /orderedItemIdentity/);
   assert.match(panel, /waiterDetailLayout\.orderedItemCode/);
   assert.match(panel, /line\.itemCode/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemNameLeader/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemLeader/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemMid/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemBalance/);
   assert.match(panel, /waiterDetailLayout\.orderedItemUnitPrice/);
   assert.match(panel, /line\.unitPrice/);
   assert.match(panel, /waiterDetailLayout\.orderedItemStatus/);
   assert.match(panel, /waiterDetailLayout\.orderedItemLabel/);
   assert.match(panel, /waiterDetailLayout\.orderedItemQty/);
   assert.doesNotMatch(panel, /orderedItemTextCol/);
-  // sole unit display: field + class — not baked into label
   assert.doesNotMatch(panel, /label.*€|€.*label/);
-  // status lives inside identity, not as a muted second line
   assert.doesNotMatch(
     panel,
     /statusLabel[\s\S]{0,120}orderedItemChargeableHint/,
   );
-  // qty is grouped with actions (after identity), not a flex-1 spacer sibling
-  const identityIdx = panel.indexOf('orderedItemIdentity');
+  const nameLeaderIdx = panel.indexOf('orderedItemNameLeader');
+  const midIdx = panel.indexOf('orderedItemMid');
+  const priceIdx = panel.indexOf('orderedItemUnitPrice');
   const statusIdx = panel.indexOf('orderedItemStatus');
   const qtyIdx = panel.indexOf('orderedItemQty');
-  assert.ok(identityIdx >= 0 && statusIdx > identityIdx && qtyIdx > statusIdx);
+  assert.ok(nameLeaderIdx >= 0 && midIdx > nameLeaderIdx);
+  assert.ok(priceIdx > midIdx && statusIdx > priceIdx && qtyIdx > statusIdx);
 });
 
 test('ordered-items panel splits money chrome from list title (one representation)', async () => {
@@ -167,6 +175,8 @@ test('ordered-items panel splits money chrome from list title (one representatio
   assert.doesNotMatch(panel, /orderedItemsTotal/);
   assert.match(panel, /waiterDetailLayout\.sectionBody/);
   assert.match(panel, /waiterDetailLayout\.orderedItemsTitle/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemsBuffetTitle/);
+  assert.match(panel, /buffetTitle/);
   assert.doesNotMatch(panel, /orderedItemsHeader\b/);
   assert.doesNotMatch(panel, /orderedItemsHeaderActions/);
   assert.doesNotMatch(panel, /flex-col-reverse/);

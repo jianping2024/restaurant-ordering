@@ -80,24 +80,29 @@ export const waiterDetailLayout = {
    * Opaque card bg so list rows never show through while scrolling.
    */
   orderedItemsMoneyChrome: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex flex-col items-center gap-1.5 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2`,
-  orderedItemsTitleRow: 'flex shrink-0 items-center gap-2',
-  orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
+  orderedItemsTitleRow: 'flex min-w-0 shrink-0 items-center gap-2',
+  orderedItemsTitle: `${waiterFloorType.listBody} shrink-0 whitespace-nowrap`,
+  /** Buffet package after「已点菜品」; sole `buffetOrderedTitle` (not a list row). */
+  orderedItemsBuffetTitle: `${waiterFloorType.listBody} min-w-0 truncate text-brand-text-muted`,
   orderedItemsMoneyLine:
     'w-full text-center text-lg font-semibold text-brand-gold-dark tabular-nums sm:w-auto sm:text-right',
   orderedItemsPreBillAction: 'shrink-0 whitespace-nowrap',
   /**
-   * One dish = one horizontal left-cluster row (unique shape):
-   * [code · name · unit € · status] —gap-8— [qty · serve/minus].
-   * Name, code, and qty share `waiterFloorType.listBody` (text-lg); code keeps gold color.
+   * One dish = one horizontal receipt row (unique shape):
+   * grid [code 5ch | name+dots 1fr | mid auto | balance 1fr] so mid sits near screen center.
+   * Code is fixed `w-[5ch]` (display as stored, no zero-pad); name truncates; leader fills to mid.
    * Unit price is sole `orderedItemUnitPrice` from `WaiterOrderLine.unitPrice` (not in label).
-   * Status follows unit price (not the far-right qty). Label is not flex-1 —
-   * restores original name↔qty breath; wide viewports may leave empty space on the right.
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
    */
-  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
-  orderedItemIdentity: 'flex min-w-0 items-center gap-2.5',
-  orderedItemCode: `shrink-0 min-w-[2rem] text-left ${waiterFloorType.listCode}`,
+  orderedItemRow:
+    'grid max-w-full min-w-0 grid-cols-[5ch_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1.5',
+  orderedItemCode: `col-start-1 w-[5ch] text-left ${waiterFloorType.listCode}`,
+  orderedItemNameLeader: 'col-start-2 flex min-w-0 items-baseline gap-1.5',
   orderedItemLabel: waiterFloorType.listBodyTruncate,
+  orderedItemLeader:
+    'min-w-[0.75rem] flex-1 translate-y-[-0.35em] border-b border-dotted border-brand-border/70',
+  orderedItemMid: 'col-start-3 flex shrink-0 items-center gap-2',
+  orderedItemBalance: 'col-start-4 min-w-0',
   orderedItemUnitPrice:
     'shrink-0 text-lg font-semibold tabular-nums text-brand-gold leading-snug',
   orderedItemStatus:

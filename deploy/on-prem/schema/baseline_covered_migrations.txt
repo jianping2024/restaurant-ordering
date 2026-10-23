@@ -149,3 +149,4 @@
 20261021120000_menu_items_time_slot.sql
 20261021203714_dashboard_revenue_by_opened_at.sql
 20261021230000_round_line_drop_legacy_unique.sql
+20261022120000_kitchen_screens_shared_prep_tray.sql

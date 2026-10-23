@@ -1,4 +1,8 @@
 import { STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS } from '@/lib/waiter-staff-sticky-chrome';
+import {
+  buttonPressReliefSoftClass,
+  buttonPressReliefStrongClass,
+} from '@/components/ui/button-press-relief';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -92,11 +96,16 @@ export function personalSettingsDropdownActionRowClass(): string {
   return 'flex min-h-11 w-full items-center gap-2 border-b border-brand-border/70 px-3 py-2.5 text-sm transition-colors';
 }
 
-/** Desktop horizontal nav — FARVOO: idle ink-soft muted vs active brand-ink + gold rule. */
+/**
+ * Desktop horizontal nav — raised chips with the sole press-relief tokens (same feel as
+ * table-detail `Button`s): idle paper chip + soft relief; current page = ink face + strong relief.
+ */
 export function topNavDesktopLinkClass(active: boolean): string {
+  const base =
+    'inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-all duration-150 select-none outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/30';
   return active
-    ? 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-ink underline decoration-brand-gold underline-offset-4'
-    : 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-ink';
+    ? `${base} border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light ${buttonPressReliefStrongClass}`
+    : `${base} border-brand-border bg-brand-bg text-brand-text-muted hover:border-brand-ink/30 hover:text-brand-ink ${buttonPressReliefSoftClass}`;
 }
 
 /**

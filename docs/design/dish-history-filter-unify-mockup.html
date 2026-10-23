@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>当日菜品检索 · 筛选条统一设计稿</title>
+<style>
+  :root {
+    --bg: #f7f4ed;
+    --card: #fffcf7;
+    --border: #e4d9c8;
+    --ink: #2b2620;
+    --muted: #8a8377;
+    --gold: #d4af37;
+    --gold-soft: rgba(212, 175, 55, 0.16);
+    --gold-border: rgba(212, 175, 55, 0.28);
+    --navy: #1e2a44;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Jost", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+    background: #e8e2d6;
+    color: var(--ink);
+    padding: 36px 40px 48px;
+    width: 1180px;
+  }
+  h1 { font-size: 22px; margin: 0 0 6px; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 28px; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .frame {
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 22px 24px 26px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--navy);
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-bottom: 14px;
+  }
+  .badge.ok { background: #2f5d3a; }
+  .badge span {
+    background: var(--gold);
+    color: var(--ink);
+    border-radius: 999px;
+    width: 18px;
+    height: 18px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 11px;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 500;
+    color: #5c5348;
+    margin: 0 0 18px;
+    letter-spacing: 0.02em;
+  }
+  .row { display: flex; gap: 14px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .field.table { width: 220px; flex-shrink: 0; }
+  .field.dish { flex: 1; }
+  .lbl { font-size: 14px; font-weight: 500; }
+  .lbl.dark { color: var(--ink); }
+  .lbl.muted { color: var(--muted); }
+
+  /* —— 现状：不协调 —— */
+  .ctrl-old-select {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 4px 8px;
+    background: var(--bg);
+    border: 1px solid #cfc6b8;
+    border-radius: 4px;
+    gap: 6px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gold-soft);
+    border: 1px solid var(--gold-border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .chip .x { color: var(--muted); font-size: 12px; margin-left: 2px; }
+  .ctrl-old-select .sp { flex: 1; }
+  .ctrl-old-select .icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    border-left: 1px solid var(--border);
+    padding-left: 8px;
+    font-size: 12px;
+  }
+  .ctrl-old-input {
+    height: 44px;
+    padding: 0 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #b0a89c;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* —— 统一后 —— */
+  .ctrl-new {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    gap: 6px;
+  }
+  .ctrl-new .chip {
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  .ctrl-new .sp { flex: 1; }
+  .ctrl-new .icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    border-left: 1px solid var(--border);
+    padding-left: 8px;
+    font-size: 12px;
+  }
+  .ctrl-new.input {
+    padding: 0 16px;
+    color: #b0a89c;
+    font-size: 15px;
+  }
+  .ctrl-new.focus {
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.45);
+    border-color: rgba(212, 175, 55, 0.55);
+  }
+
+  .notes {
+    margin-top: 22px;
+    grid-column: 1 / -1;
+    background: #fff9ec;
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #5b5044;
+  }
+  .notes strong { color: var(--ink); }
+  .notes ul { margin: 8px 0 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+  <h1>当日菜品检索 · 筛选条统一</h1>
+  <p class="sub">对照稿：左为现状（截图还原），右为推荐终态。控件能力不变，只统一「表单控件皮」。</p>
+
+  <div class="grid">
+    <section class="frame">
+      <div class="badge"><span>1</span> 现状 · 不协调</div>
+      <h2 class="page-title">当日菜品检索</h2>
+      <div class="row">
+        <div class="field table">
+          <div class="lbl dark">桌号</div>
+          <div class="ctrl-old-select">
+            <span class="chip">桌 A-01<span class="x">×</span></span>
+            <span class="sp"></span>
+            <span class="icons">× ▾</span>
+          </div>
+        </div>
+        <div class="field dish">
+          <div class="lbl muted">菜名或编号</div>
+          <div class="ctrl-old-input">菜名或编号</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="frame">
+      <div class="badge ok"><span>✓</span> 统一后 · 推荐</div>
+      <h2 class="page-title">当日菜品检索</h2>
+      <div class="row">
+        <div class="field table">
+          <div class="lbl muted">桌号</div>
+          <div class="ctrl-new focus">
+            <span class="chip">桌 A-01<span class="x">×</span></span>
+            <span class="sp"></span>
+            <span class="icons">× ▾</span>
+          </div>
+        </div>
+        <div class="field dish">
+          <div class="lbl muted">菜名或编号</div>
+          <div class="ctrl-new input">菜名或编号</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="notes">
+      <strong>终态约定（与方案一致）</strong>
+      <ul>
+        <li>底色一律 <code>brand-card</code>（不再用页面米底当输入底）</li>
+        <li>圆角一律 <code>rounded-lg</code>（约 8px），高度约 44px，边框 <code>brand-border</code></li>
+        <li>标签一律 <code>text-brand-text-muted</code>，与 <code>Input</code> 一致</li>
+        <li>聚焦金色 ring 与 Input 同款；桌号仍用现有多选，不新做控件</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

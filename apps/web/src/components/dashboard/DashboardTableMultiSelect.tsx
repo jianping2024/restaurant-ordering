@@ -24,13 +24,15 @@ type Props = {
   ariaLabel?: string;
 };
 
+/** Control chrome matches `@/components/ui/Input` (brand-card, rounded-lg, gold focus ring). */
 const selectStyles: StylesConfig<DashboardTableOption, true> = {
   control: (base, state) => ({
     ...base,
-    minHeight: 40,
-    backgroundColor: 'rgb(var(--color-brand-bg))',
+    minHeight: 44,
+    borderRadius: 8,
+    backgroundColor: 'rgb(var(--color-brand-card))',
     borderColor: 'rgb(var(--color-brand-border))',
-    boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.4)' : 'none',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.5)' : 'none',
     '&:hover': { borderColor: 'rgb(var(--color-brand-border))' },
   }),
   placeholder: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))', fontSize: 14 }),
@@ -57,6 +59,7 @@ const selectStyles: StylesConfig<DashboardTableOption, true> = {
   }),
   multiValue: (base) => ({
     ...base,
+    borderRadius: 6,
     backgroundColor: 'rgba(212, 175, 55, 0.16)',
     border: '1px solid rgba(212, 175, 55, 0.28)',
   }),

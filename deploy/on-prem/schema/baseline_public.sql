@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict KZTgP8p3h6aUy9VU0ibp68if8Vwrs9WnnJGuoFoe3nK3X0LIhZt0eJa276O7xGY
+\restrict VppqOPDMrxOIyx0VrvhidAX4OezrJLgpf7nqdHdBdZPWjvLq55H9CF4PXebyF0i
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -127,7 +127,7 @@ declare
   v_kitchen_count int := 0;
   v_kitchen_voided int := 0;
   v_kitchen_done_or_voided int := 0;
-  v_has_buffet boolean := false;
+  v_has_non_kitchen boolean := false;
   v_item_status text;
   v_kind text;
   v_price numeric;
@@ -205,12 +205,13 @@ begin
     v_total := v_total + (v_price * v_qty);
   end loop;
 
-  -- status: mirror deriveOrderStatusFromItems (kitchen = not buffet_base).
+  -- status: mirror deriveOrderStatusFromItems (kitchen = menu lines only;
+  -- buffet_base headcount + takeaway checkout charge are non-kitchen).
   for v_elem in select value from jsonb_array_elements(v_merged)
   loop
     v_kind := coalesce(v_elem->>'kind', '');
-    if v_kind = 'buffet_base' then
-      v_has_buffet := true;
+    if v_kind in ('buffet_base', 'takeaway') then
+      v_has_non_kitchen := true;
       continue;
     end if;
     v_kitchen_count := v_kitchen_count + 1;
@@ -226,7 +227,7 @@ begin
   if v_kitchen_count = 0 then
     if jsonb_array_length(v_merged) = 0 then
       v_status := 'pending';
-    elsif v_has_buffet then
+    elsif v_has_non_kitchen then
       v_status := 'done';
     else
       v_status := 'pending';
@@ -238,7 +239,7 @@ begin
   elsif exists (
     select 1
     from jsonb_array_elements(v_merged) e
-    where coalesce(e->>'kind', '') is distinct from 'buffet_base'
+    where coalesce(e->>'kind', '') not in ('buffet_base', 'takeaway')
       and coalesce(e->>'item_status', 'pending') in ('cooking', 'ready', 'done')
   ) then
     v_status := 'cooking';
@@ -297,7 +298,7 @@ $$;
 -- Name: FUNCTION append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb); Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON FUNCTION public.append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb) IS 'Sole guest/waiter append write: session advisory lock + latest order FOR UPDATE; append items or insert. Prevents concurrent jsonb lost updates.';
+COMMENT ON FUNCTION public.append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb) IS 'Sole guest/waiter/checkout append write: session advisory lock + latest order FOR UPDATE; append items or insert. Non-kitchen kinds: buffet_base, takeaway.';
 
 
 --
@@ -6298,6 +6299,7 @@ CREATE TABLE public.restaurants (
     cover_url text,
     business_hours jsonb DEFAULT '{}'::jsonb NOT NULL,
     storefront_intro jsonb DEFAULT jsonb_build_object('pt', '', 'en', '', 'zh', '') NOT NULL,
+    takeaway_vat_rate numeric DEFAULT 13 NOT NULL,
     CONSTRAINT restaurants_buffet_service_mode_check CHECK ((buffet_service_mode = ANY (ARRAY['classic'::text, 'sushi'::text]))),
     CONSTRAINT restaurants_cloud_owner_required CHECK (((deployment_mode <> 'cloud'::text) OR (owner_id IS NOT NULL))),
     CONSTRAINT restaurants_country_code_check CHECK ((country_code ~ '^[A-Z]{2}$'::text)),
@@ -6312,7 +6314,8 @@ CREATE TABLE public.restaurants (
     CONSTRAINT restaurants_print_locale_check CHECK ((print_locale = ANY (ARRAY['zh'::text, 'en'::text, 'pt'::text]))),
     CONSTRAINT restaurants_sushi_per_person_per_round_cap_range CHECK (((sushi_per_person_per_round_cap >= 1) AND (sushi_per_person_per_round_cap <= 20))),
     CONSTRAINT restaurants_sushi_round_confirm_timeout_range CHECK (((sushi_round_confirm_timeout_seconds >= 15) AND (sushi_round_confirm_timeout_seconds <= 45))),
-    CONSTRAINT restaurants_sushi_round_cooldown_range CHECK (((sushi_round_cooldown_seconds >= 30) AND (sushi_round_cooldown_seconds <= 600)))
+    CONSTRAINT restaurants_sushi_round_cooldown_range CHECK (((sushi_round_cooldown_seconds >= 30) AND (sushi_round_cooldown_seconds <= 600))),
+    CONSTRAINT restaurants_takeaway_vat_rate_range CHECK (((takeaway_vat_rate >= (0)::numeric) AND (takeaway_vat_rate <= (100)::numeric)))
 );
 
 
@@ -6489,6 +6492,13 @@ COMMENT ON COLUMN public.restaurants.business_hours IS 'Guest-facing weekly hour
 --
 
 COMMENT ON COLUMN public.restaurants.storefront_intro IS 'Guest storefront intro: { pt, en, zh }. Plain text; empty langs omit.';
+
+
+--
+-- Name: COLUMN restaurants.takeaway_vat_rate; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.restaurants.takeaway_vat_rate IS 'IVA percent points for checkout take-away charge lines (orders.items kind=takeaway). Default 13.';
 
 
 --
@@ -10154,5 +10164,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KZTgP8p3h6aUy9VU0ibp68if8Vwrs9WnnJGuoFoe3nK3X0LIhZt0eJa276O7xGY
+\unrestrict VppqOPDMrxOIyx0VrvhidAX4OezrJLgpf7nqdHdBdZPWjvLq55H9CF4PXebyF0i
 

@@ -24,7 +24,7 @@ const variants: Record<ButtonVariant, string> = {
    * Primary face — azulejo ink (variant id `gold` kept for call-site stability).
    * Strong relief + press-in feedback for staff/customer primary CTAs.
    */
-  gold: `border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold focus-visible:ring-brand-ink/45 ${buttonPressReliefStrongClass} enabled:active:bg-[rgb(var(--color-brand-ink)/0.92)]`,
+  gold: `border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold focus-visible:ring-brand-ink/45 ${buttonPressReliefStrongClass} [&:not(:disabled)]:active:bg-[rgb(var(--color-brand-ink)/0.92)]`,
   outline: `border border-brand-ink text-brand-ink hover:bg-brand-ink/10 font-semibold focus-visible:ring-brand-ink/30 ${buttonPressReliefSoftClass}`,
   ghost: `text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-ink/30 ${buttonPressReliefSoftClass}`,
   danger: `bg-red-600 text-white hover:bg-red-700 font-semibold focus-visible:ring-red-400/40 ${buttonPressReliefSoftClass}`,

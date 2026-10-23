@@ -5,7 +5,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   buildIdleBuffetDraftSnapshot,
   buffetFormAlignKey,
-  buffetSnapshotKey,
   parseResolvedBuffetPriceRpcRow,
   type BuffetFormAlignState,
   type BuffetGuestSnapshot,
@@ -38,6 +37,18 @@ function mergeSnapshotWithActiveBuffets(
     next[buffet.id] = snapshot[buffet.id] ?? { adults: 0, children: 0 };
   }
   return next;
+}
+
+/** Draft the form should show for an align state; null while table context is pending. */
+function draftFromAlignState(
+  alignState: BuffetFormAlignState,
+  activeBuffets: Buffet[],
+): BuffetGuestSnapshot | null {
+  if (alignState.mode === 'pending') return null;
+  if (alignState.mode === 'occupied') {
+    return mergeSnapshotWithActiveBuffets(alignState.snapshot, activeBuffets);
+  }
+  return buildIdleBuffetDraftSnapshot(alignState.activeBuffetIds);
 }
 
 function resolvedPricesForActiveBuffets(
@@ -84,24 +95,24 @@ export function useWaiterTableBuffetForm({
     [alignState, sessionId, tableId],
   );
 
+  const alignedDraft = useMemo(
+    () => draftFromAlignState(alignState, activeBuffets),
+    [activeBuffets, alignState],
+  );
+  const alignedDraftRef = useRef(alignedDraft);
+  alignedDraftRef.current = alignedDraft;
+
   useEffect(() => {
     if (lastAlignedKeyRef.current === alignKey) return;
     lastAlignedKeyRef.current = alignKey;
+    if (alignedDraft) setGuestSnapshot(alignedDraft);
+  }, [alignKey, alignedDraft]);
 
-    if (alignState.mode === 'pending') return;
-
-    if (alignState.mode === 'occupied') {
-      setGuestSnapshot(mergeSnapshotWithActiveBuffets(alignState.snapshot, activeBuffets));
-      return;
-    }
-
-    if (alignState.mode === 'session_open') {
-      setGuestSnapshot(buildIdleBuffetDraftSnapshot(alignState.activeBuffetIds));
-      return;
-    }
-
-    setGuestSnapshot(buildIdleBuffetDraftSnapshot(activeBuffetIds));
-  }, [activeBuffetIds, activeBuffets, alignKey, alignState]);
+  /** Drop an unsaved edit and show the table's authoritative headcount again. */
+  const resetDraftToAligned = useCallback(() => {
+    const next = alignedDraftRef.current;
+    if (next) setGuestSnapshot(next);
+  }, []);
 
   const fetchBuffetPrices = useCallback(
     async (silent: boolean) => {
@@ -235,12 +246,10 @@ export function useWaiterTableBuffetForm({
     [],
   );
 
-  const draftSnapshotKey = useMemo(() => buffetSnapshotKey(guestSnapshot), [guestSnapshot]);
-
   return {
     guestSnapshot,
-    draftSnapshotKey,
     setBuffetGuestCount,
+    resetDraftToAligned,
     resolvedByBuffetId,
     priceLoading,
   };

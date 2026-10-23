@@ -94,7 +94,7 @@
 | 写后内存投影 | `applyBuffetOpenWritePlanToOrders` |
 | 响应组装 | `buildActiveWaiterTablePageModel` |
 | 服务端单管道（开台 + 改人数） | `runBuffetWaiterOpenPipeline`（`intent` + `already_open`） |
-| 客户端提交（开台确认 + 已开台 autosave） | `useWaiterBuffetOpenMutation` → `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession` |
+| 客户端提交（开台确认 + 已开台 autosave） | `useWaiterBuffetOpenMutation` → `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession`；已开台只在点 −/+ 后 `scheduleAutosave` 防抖保存（加载/刷新/Realtime 不触发），改成 0 人先弹确认 |
 | 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
 | API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]` + `intent`） |
 | 失败日志 | 唯一出口 `respondWaiterBuffetFailure` → `[waiter_buffet] {"event":"open_failed",status,error,code?,table_id?,intent?,parse_*?}`（与 `logJsonConsoleEvent` / `order_append` 同形） |

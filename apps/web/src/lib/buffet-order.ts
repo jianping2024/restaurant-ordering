@@ -176,7 +176,7 @@ export type BuffetFormAlignState =
   | { mode: 'pending' }
   | { mode: 'idle'; defaultBuffetId: string | null; activeBuffetIds: string[] }
   | { mode: 'session_open'; activeBuffetIds: string[] }
-  | { mode: 'occupied'; snapshot: BuffetGuestSnapshot };
+  | { mode: 'occupied'; snapshot: BuffetGuestSnapshot; activeBuffetIds: string[] };
 
 export function resolveBuffetFormAlignState(input: {
   detailLoaded: boolean;
@@ -191,7 +191,7 @@ export function resolveBuffetFormAlignState(input: {
 
   const snapshot = deriveBuffetFormSnapshot(input.orders);
   if (Object.keys(snapshot).length > 0) {
-    return { mode: 'occupied', snapshot };
+    return { mode: 'occupied', snapshot, activeBuffetIds: input.activeBuffetIds };
   }
 
   if (input.hasOpenSession) {
@@ -227,7 +227,7 @@ export function buffetFormAlignKey(
   if (align.mode === 'session_open') {
     return `${tableId}:${sessionKey}:session_open:${align.activeBuffetIds.join(',')}`;
   }
-  return `${tableId}:${sessionKey}:occupied:${buffetSnapshotKey(align.snapshot)}`;
+  return `${tableId}:${sessionKey}:occupied:${align.activeBuffetIds.join(',')}:${buffetSnapshotKey(align.snapshot)}`;
 }
 
 export function normalizeBuffetGuestCounts(
@@ -288,6 +288,19 @@ export function isBuffetSubmitSnapshotUnchanged(
     buffetEntriesFromSnapshot(guestSnapshot, activeBuffetIds),
   );
   return isBuffetSnapshotUnchanged(orders, targetSnapshot);
+}
+
+/** Draft would take a table that has buffet guests down to 0 adults + 0 children. */
+export function buffetDraftClearsHeadcount(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+  guestSnapshot: BuffetGuestSnapshot,
+  activeBuffetIds: string[],
+): boolean {
+  const target = snapshotFromBuffetEntries(buffetEntriesFromSnapshot(guestSnapshot, activeBuffetIds));
+  return (
+    totalGuestsInBuffetSnapshot(target) === 0 &&
+    totalGuestsInBuffetSnapshot(buffetSnapshotFromOrders(orders)) > 0
+  );
 }
 
 export type BuffetSnapshotDiff = {

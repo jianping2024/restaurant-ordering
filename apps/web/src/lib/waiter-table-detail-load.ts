@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, Order } from '@/types';
-import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import { isCheckoutPending, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
+import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { ACTIVE_ORDER_STATUSES } from '@/lib/waiter-board-query';
 import { defaultActiveBuffet } from '@/lib/waiter-table-detail-view';
 import {
@@ -102,7 +102,12 @@ async function loadActiveBuffets(admin: SupabaseClient, restaurantId: string): P
   return (data || []) as Buffet[];
 }
 
-/** Default active buffet only; skip when checkout pending (buffet panel hidden). */
+/**
+ * Default active buffet live RPC prices only.
+ * Callers that show headcount (incl. checkout adjust) must
+ * `mergeBuffetPricesPreferLocked` so open-time line unit prices win.
+ * `skip` kept for callers that intentionally omit live resolve.
+ */
 export async function resolveOpenTableBuffetPrices(
   admin: SupabaseClient,
   restaurantId: string,
@@ -180,7 +185,6 @@ export async function loadWaiterTableDetailSnapshot(
   }
 
   const checkout = await fetchCheckoutRequestedForTable(admin, restaurantId, tableId);
-  const checkoutPending = isCheckoutPending(sessionMeta);
 
   if (!includeOpenTableDefaults) {
     const orders = await loadTableOrdersForSession(admin, restaurantId, sessionMeta.sessionId);
@@ -196,10 +200,13 @@ export async function loadWaiterTableDetailSnapshot(
   }
 
   const buffets = await loadActiveBuffets(admin, restaurantId);
-  const [orders, buffetPricesByBuffetId] = await Promise.all([
+  const [orders, livePrices] = await Promise.all([
     loadTableOrdersForSession(admin, restaurantId, sessionMeta.sessionId),
-    resolveOpenTableBuffetPrices(admin, restaurantId, buffets, checkoutPending),
+    // Checkout-pending used to skip prices (floor hides buffet panel); checkout
+    // headcount adjust needs them — always resolve, then prefer open-time locks.
+    resolveOpenTableBuffetPrices(admin, restaurantId, buffets, false),
   ]);
+  const buffetPricesByBuffetId = mergeBuffetPricesPreferLocked(livePrices, orders);
 
   return buildActiveWaiterTableSnapshot({
     table,

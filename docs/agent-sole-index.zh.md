@@ -337,7 +337,7 @@ sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameFor
 
 ### 开台确认
 
-idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save`, armed only by `scheduleAutosave` from a −/+ tap (never an effect on draft/orders/refs — load/refresh/Realtime realign once posted a lagging 0); total→0 on an occupied table is held behind the「人数改为 0？」confirm (`buffetDraftClearsHeadcount`), cancel = `resetDraftToAligned` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck. Floor buffet adult/child sole UI `BuffetGuestCounter` −/n/+ only (no typed qty / no `onQtyChange` on that counter).
+idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save`, armed only by `scheduleAutosave` from a −/+ tap (never an effect on draft/orders/refs — load/refresh/Realtime realign once posted a lagging 0); total→0 on an occupied table is held behind the「人数改为 0？」confirm (`buffetDraftClearsHeadcount`), cancel = `resetDraftToAligned` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck. Floor buffet adult/child sole UI `BuffetGuestCounter` −/n/+ only (no typed qty / no `onQtyChange` on that counter). Open-time unit prices sole on `buffet_base.adult_unit_price`/`child_unit_price` via `resolvedBuffetPriceFromLockedLine` / `mergeBuffetPricesPreferLocked` (checkout adjust + headcount upsert reuse lock; never re-slot a package that already locked — RPC only when no lock yet).
 
 ### 楼面跨端
 

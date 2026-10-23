@@ -2,12 +2,15 @@ import { loadCalledTicketKeys } from '@/lib/individual-checkout-reads';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order } from '@/types';
 import {
+  activeBuffetLineByBuffetId,
   aggregateBuffetHeadcountForOrders,
   buffetSnapshotFromOrders,
   buildBuffetBaseLine,
   diffBuffetSnapshots,
   isBuffetSnapshotUnchanged,
+  mergeBuffetPricesPreferLocked,
   normalizeBuffetGuestEntries,
+  resolvedBuffetPriceFromLockedLine,
   snapshotFromBuffetEntries,
   type BuffetGuestEntry,
   type ResolvedBuffetPriceRow,
@@ -28,7 +31,6 @@ import {
 } from '@/lib/checkout-session-payments';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import { openTableSessionIfAbsent } from '@/lib/table-session-open';
-import { isCheckoutPending } from '@/lib/waiter-board-session';
 import {
   buildActiveWaiterTablePageModel,
   fetchCheckoutRequestedForTable,
@@ -243,6 +245,7 @@ export async function runBuffetWaiterOpenPipeline(
     }
 
     const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);
+    const lockedLineByBuffetId = activeBuffetLineByBuffetId(sessionOrders);
     const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, targetSnapshot);
 
     const lineResults = await Promise.all(
@@ -260,7 +263,10 @@ export async function runBuffetWaiterOpenPipeline(
           };
         }
 
-        const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffetId);
+        // Open-time unit prices on the active line win; only resolve when no lock yet.
+        const existingLine = lockedLineByBuffetId.get(buffetId);
+        const locked = existingLine ? resolvedBuffetPriceFromLockedLine(existingLine) : null;
+        const resolved = locked ?? (await resolveBuffetPricesServer(admin, restaurantId, buffetId));
         if (!resolved) {
           return { ok: false as const, status: 500, error: 'price_resolve_failed' };
         }
@@ -318,14 +324,15 @@ export async function runBuffetWaiterOpenPipeline(
     });
   }
 
-  const checkoutPending = isCheckoutPending(sessionMeta);
-  const buffetPricesByBuffetId = await resolveOpenTableBuffetPrices(
+  // Live fill gaps; locked open-time unit prices win (incl. checkout-pending adjust).
+  const livePrices = await resolveOpenTableBuffetPrices(
     admin,
     restaurantId,
     activeBuffets,
-    checkoutPending,
+    false,
     resolvedByBuffetId,
   );
+  const buffetPricesByBuffetId = mergeBuffetPricesPreferLocked(livePrices, orders);
 
   const model = buildActiveWaiterTablePageModel({
     table,

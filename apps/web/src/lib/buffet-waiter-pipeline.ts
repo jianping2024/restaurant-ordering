@@ -8,13 +8,15 @@ import {
   buildBuffetBaseLine,
   diffBuffetSnapshots,
   isBuffetSnapshotUnchanged,
-  mergeBuffetPricesPreferLocked,
   normalizeBuffetGuestEntries,
-  resolvedBuffetPriceFromLockedLine,
   snapshotFromBuffetEntries,
   type BuffetGuestEntry,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
+import {
+  mergeBuffetPricesPreferLocked,
+  resolvedBuffetPriceFromLockedLine,
+} from '@/lib/buffet-locked-prices';
 import {
   applyBuffetOpenToSession,
   applyBuffetOpenWritePlanToOrders,

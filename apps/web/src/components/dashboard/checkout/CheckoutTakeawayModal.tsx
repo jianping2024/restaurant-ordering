@@ -1,16 +1,25 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
+import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
-import { TAKEAWAY_LINES_MAX, TAKEAWAY_LINE_NAME, parseTakeawayAmount } from '@/lib/checkout-takeaway';
+import { RightPushPanel } from '@/components/ui/RightPushPanel';
+import {
+  TAKEAWAY_LINE_NAME,
+  TAKEAWAY_LINES_MAX,
+  TAKEAWAY_QTY_MAX,
+  parseTakeawayAmount,
+  type TakeawayLineInput,
+} from '@/lib/checkout-takeaway';
 import { normalizeDecimalInput } from '@/lib/number-input';
 
 type Labels = {
   title: string;
-  hint: string;
   name: string;
   amount: string;
+  qty: string;
+  lineTotal: string;
   addRow: string;
   removeRow: string;
   total: string;
@@ -24,14 +33,18 @@ type Props = {
   busy: boolean;
   labels: Labels;
   onClose: () => void;
-  onConfirm: (amounts: number[]) => void | Promise<void>;
+  onConfirm: (lines: TakeawayLineInput[]) => void | Promise<void>;
 };
 
-type Row = { key: number; raw: string };
+type Row = { key: number; raw: string; qty: number };
 
-/** Sole checkout take-away editor: fixed name rows, amount only, qty 1. */
+/** Controls row under the fixed name: unit price | qty | subtotal | trash. */
+const CONTROLS_GRID =
+  'grid grid-cols-[minmax(5.5rem,1fr)_auto_minmax(4rem,auto)_auto] items-center gap-x-2';
+
+/** Sole checkout take-away editor: right-push panel, unit price + qty, read-only line total. */
 export function CheckoutTakeawayModal({ open, busy, labels, onClose, onConfirm }: Props) {
-  const [rows, setRows] = useState<Row[]>([{ key: 0, raw: '' }]);
+  const [rows, setRows] = useState<Row[]>([{ key: 0, raw: '', qty: 1 }]);
   const nextKey = useRef(1);
   const focusKey = useRef<number | null>(0);
   const inputs = useRef(new Map<number, HTMLInputElement>());
@@ -40,10 +53,9 @@ export function CheckoutTakeawayModal({ open, busy, labels, onClose, onConfirm }
     if (!open) return;
     nextKey.current = 1;
     focusKey.current = 0;
-    setRows([{ key: 0, raw: '' }]);
+    setRows([{ key: 0, raw: '', qty: 1 }]);
   }, [open]);
 
-  // New row scrolls into view with the caret on its amount.
   useEffect(() => {
     const key = focusKey.current;
     if (key == null) return;
@@ -54,45 +66,65 @@ export function CheckoutTakeawayModal({ open, busy, labels, onClose, onConfirm }
     el.scrollIntoView({ block: 'nearest' });
   }, [rows]);
 
-  const amounts = rows.map((row) => parseTakeawayAmount(row.raw));
-  const allValid = amounts.every((amount) => amount != null);
-  const total = amounts.reduce<number>((sum, amount) => sum + (amount ?? 0), 0);
+  const parsed = rows.map((row) => ({
+    amount: parseTakeawayAmount(row.raw),
+    qty: row.qty,
+  }));
+  const allValid = parsed.every((line) => line.amount != null && line.qty >= 1);
+  const total = parsed.reduce(
+    (sum, line) => sum + (line.amount != null ? line.amount * line.qty : 0),
+    0,
+  );
 
   const addRow = () => {
     if (rows.length >= TAKEAWAY_LINES_MAX) return;
     const key = nextKey.current++;
     focusKey.current = key;
-    setRows((prev) => [...prev, { key, raw: '' }]);
+    setRows((prev) => [...prev, { key, raw: '', qty: 1 }]);
+  };
+
+  const setQty = (key: number, qty: number) => {
+    const next = Math.min(TAKEAWAY_QTY_MAX, Math.max(1, Math.floor(qty) || 1));
+    setRows((prev) => prev.map((r) => (r.key === key ? { ...r, qty: next } : r)));
   };
 
   return (
-    <Modal
+    <RightPushPanel
       open={open}
+      title={labels.title}
       onClose={() => {
         if (busy) return;
         onClose();
       }}
-      title={labels.title}
-      size="md"
-      dismissOnBackdrop={!busy}
+      closeDisabled={busy}
+      width="form"
+      titleId="checkout-takeaway-panel-title"
     >
-      <div className="space-y-3">
-        <p className="text-sm text-brand-text-muted">{labels.hint}</p>
-        <div className="hidden gap-x-2 text-[13px] text-brand-text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_8.5rem_2.75rem]">
-          <span>{labels.name}</span>
-          <span>{labels.amount}</span>
-        </div>
-        <div className="max-h-[45vh] space-y-2 overflow-y-auto pr-1">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          <div className={`hidden text-[13px] text-brand-text-muted sm:grid ${CONTROLS_GRID} px-0`}>
+            <span>{labels.amount}</span>
+            <span className="text-center">{labels.qty}</span>
+            <span className="text-right">{labels.lineTotal}</span>
+            <span className="w-11" aria-hidden />
+          </div>
           {rows.map((row, index) => {
-            const invalid = row.raw !== '' && amounts[index] == null;
+            const amount = parsed[index]?.amount ?? null;
+            const invalid = row.raw !== '' && amount == null;
+            const lineTotal = amount != null ? amount * row.qty : 0;
             return (
-              <div key={row.key}>
-                {/* Narrow: name on its own line, amount + × below; ≥sm: name | amount | × in one row. */}
-                <div className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-x-2 gap-y-1 sm:grid-cols-[minmax(0,1fr)_8.5rem_2.75rem]">
-                  <span className="col-span-2 truncate rounded-lg border border-brand-border bg-brand-border/25 px-3 py-2.5 text-sm text-brand-text-muted sm:col-span-1">
+              <div
+                key={row.key}
+                className="space-y-1.5 border-b border-brand-border/40 pb-3 last:border-0 last:pb-0"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 flex-1 text-sm font-medium text-brand-text">
                     {TAKEAWAY_LINE_NAME}
                   </span>
-                  <label className="flex items-center rounded-lg border border-brand-border bg-brand-bg px-3 focus-within:ring-2 focus-within:ring-brand-gold/40">
+                  <span className="sr-only">{labels.name}</span>
+                </div>
+                <div className={CONTROLS_GRID}>
+                  <label className="flex min-w-0 items-center rounded-lg border border-brand-border bg-brand-bg px-2 focus-within:ring-2 focus-within:ring-brand-gold/40">
                     <span className="text-brand-text-muted">€</span>
                     <input
                       ref={(el) => {
@@ -111,55 +143,74 @@ export function CheckoutTakeawayModal({ open, busy, labels, onClose, onConfirm }
                       autoComplete="off"
                       placeholder="0.00"
                       aria-label={labels.amount}
-                      className="w-full min-w-0 bg-transparent py-2 text-right text-lg font-semibold tabular-nums text-brand-text focus:outline-none"
+                      className="w-full min-w-0 bg-transparent py-2 text-right text-base font-semibold tabular-nums text-brand-text focus:outline-none"
                     />
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
-                    disabled={busy || rows.length <= 1}
-                    aria-label={labels.removeRow}
-                    className="flex h-11 w-11 items-center justify-center rounded-lg text-xl text-brand-text-muted transition-colors hover:text-red-500 disabled:opacity-30"
-                  >
-                    ×
-                  </button>
+                  <CartQtyStepper
+                    qty={row.qty}
+                    density="compact"
+                    disabled={busy}
+                    max={TAKEAWAY_QTY_MAX}
+                    onDecrement={() => {
+                      if (row.qty <= 1) return;
+                      setQty(row.key, row.qty - 1);
+                    }}
+                    onIncrement={() => setQty(row.key, row.qty + 1)}
+                  />
+                  <span className="text-right text-sm font-semibold tabular-nums text-brand-text">
+                    €{lineTotal.toFixed(2)}
+                  </span>
+                  <RowRemoveIconButton
+                    large
+                    removable={rows.length > 1}
+                    disabled={busy}
+                    ariaLabel={labels.removeRow}
+                    onRemove={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
+                  />
                 </div>
                 {invalid ? (
-                  <p className="mt-1 text-[12px] text-red-500">{labels.invalidAmount}</p>
+                  <p className="text-[12px] text-red-500">{labels.invalidAmount}</p>
                 ) : null}
               </div>
             );
           })}
         </div>
-        <button
-          type="button"
-          onClick={addRow}
-          disabled={busy || rows.length >= TAKEAWAY_LINES_MAX}
-          className="text-sm font-semibold text-brand-gold transition-colors hover:text-brand-gold-dark disabled:opacity-40"
-        >
-          {labels.addRow}
-        </button>
-        <p className="text-sm text-brand-text-muted">
-          {labels.total
-            .replace('{n}', String(rows.length))
-            .replace('{amount}', total.toFixed(2))}
-        </p>
-        <ModalConfirmActions
-          cancelLabel={labels.cancel}
-          confirmLabel={labels.confirm}
-          onCancel={() => {
-            if (busy) return;
-            onClose();
-          }}
-          onConfirm={() => {
-            if (busy || !allValid) return;
-            void onConfirm(amounts as number[]);
-          }}
-          busy={busy}
-          confirmDisabled={!allValid}
-          divided
-        />
+
+        <div className="shrink-0 space-y-3 border-t border-brand-border px-4 py-3">
+          <p className="text-sm text-brand-text-muted">
+            {labels.total
+              .replace('{n}', String(rows.length))
+              .replace('{amount}', total.toFixed(2))}
+          </p>
+          <button
+            type="button"
+            onClick={addRow}
+            disabled={busy || rows.length >= TAKEAWAY_LINES_MAX}
+            className="w-full rounded-xl border border-dashed border-brand-gold/50 py-2.5 text-sm font-semibold text-brand-gold transition-colors hover:bg-brand-gold/10 disabled:opacity-40"
+          >
+            {labels.addRow}
+          </button>
+          <ModalConfirmActions
+            cancelLabel={labels.cancel}
+            confirmLabel={labels.confirm}
+            onCancel={() => {
+              if (busy) return;
+              onClose();
+            }}
+            onConfirm={() => {
+              if (busy || !allValid) return;
+              void onConfirm(
+                parsed.map((line) => ({
+                  amount: line.amount as number,
+                  qty: line.qty,
+                })),
+              );
+            }}
+            busy={busy}
+            confirmDisabled={!allValid}
+          />
+        </div>
       </div>
-    </Modal>
+    </RightPushPanel>
   );
 }

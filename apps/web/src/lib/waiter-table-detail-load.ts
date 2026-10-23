@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, Order } from '@/types';
-import { mergeBuffetPricesPreferLocked, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';

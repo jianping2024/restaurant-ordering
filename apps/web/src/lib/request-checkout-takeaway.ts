@@ -1,3 +1,5 @@
+import type { TakeawayLineInput } from '@/lib/checkout-takeaway';
+
 export type CheckoutTakeawayRequestResult = { ok: true } | { ok: false; error: string };
 
 async function sendCheckoutTakeaway(
@@ -20,17 +22,17 @@ async function sendCheckoutTakeaway(
   }
 }
 
-/** Add take-away charge lines. */
+/** Add take-away charge lines (`lines` = unit price + qty). */
 export function requestAddCheckoutTakeaway(params: {
   slug: string;
   billSplitId: string;
-  amounts: number[];
+  lines: TakeawayLineInput[];
   /** Same id for retries of one confirm (server replays instead of double-adding). */
   clientRequestId: string;
 }): Promise<CheckoutTakeawayRequestResult> {
   return sendCheckoutTakeaway(params.slug, 'POST', {
     bill_split_id: params.billSplitId,
-    amounts: params.amounts,
+    lines: params.lines,
     client_request_id: params.clientRequestId,
   });
 }

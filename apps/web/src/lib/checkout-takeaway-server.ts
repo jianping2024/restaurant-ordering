@@ -8,7 +8,7 @@ import {
 } from '@/lib/append-idempotency';
 import { writeAppendBatch } from '@/lib/append-write-batch';
 import type { AuditActor } from '@/lib/audit/types';
-import { buildTakeawayChargeItem } from '@/lib/checkout-takeaway';
+import { buildTakeawayChargeItem, type TakeawayLineInput } from '@/lib/checkout-takeaway';
 import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
 import { isTakeawayChargeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
@@ -66,12 +66,12 @@ async function loadCheckoutTakeawayTarget(
   };
 }
 
-/** Append take-away charge lines (one per amount) to the bill's session. Idempotent per request id. */
+/** Append take-away charge lines (one per `{ amount, qty }`) to the bill's session. Idempotent per request id. */
 export async function addCheckoutTakeawayLines(input: {
   admin: SupabaseClient;
   restaurantId: string;
   billSplitId: string;
-  amounts: number[];
+  lines: TakeawayLineInput[];
   clientRequestId: string;
 }): Promise<CheckoutTakeawayResult> {
   const { admin, restaurantId, clientRequestId } = input;
@@ -92,10 +92,11 @@ export async function addCheckoutTakeawayLines(input: {
   const batchId = generateAppendBatchId();
   const startMs = Date.now();
   // Bill / receipt / invoice rows sort by added_at — 1 ms apart keeps the cashier's entry order.
-  const newItems = input.amounts.map((amount, index) =>
+  const newItems = input.lines.map((line, index) =>
     buildTakeawayChargeItem({
       lineId: crypto.randomUUID(),
-      amount,
+      amount: line.amount,
+      qty: line.qty,
       batchId,
       addedAt: new Date(startMs + index).toISOString(),
     }),

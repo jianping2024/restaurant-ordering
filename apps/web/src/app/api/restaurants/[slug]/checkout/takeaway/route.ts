@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { parseAppendClientRequestId } from '@/lib/append-idempotency';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { checkoutErrorResponse } from '@/lib/checkout-error-response';
-import { TAKEAWAY_LINES_MAX, parseTakeawayAmount } from '@/lib/checkout-takeaway';
+import { parseTakeawayLines } from '@/lib/checkout-takeaway';
 import {
   addCheckoutTakeawayLines,
   voidCheckoutTakeawayLine,
@@ -28,7 +28,7 @@ function respond(result: CheckoutTakeawayResult) {
   );
 }
 
-/** Add take-away charge lines (cashier amounts, qty 1, fixed name) to the bill's session. */
+/** Add take-away charge lines (unit price + qty, fixed name) to the bill's session. */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
   const slug = params.slug?.trim();
   if (!slug) return checkoutErrorResponse('missing_slug');
@@ -44,14 +44,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'invalid_client_request_id' }, { status: 400 });
   }
 
-  const rawAmounts = Array.isArray(body.amounts) ? body.amounts : [];
-  const amounts = rawAmounts.map(parseTakeawayAmount);
-  if (
-    amounts.length === 0 ||
-    amounts.length > TAKEAWAY_LINES_MAX ||
-    amounts.some((amount) => amount == null)
-  ) {
-    return NextResponse.json({ error: 'invalid_amounts' }, { status: 400 });
+  const lines = parseTakeawayLines(body);
+  if (!lines) {
+    return NextResponse.json({ error: 'invalid_lines' }, { status: 400 });
   }
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req);
@@ -64,7 +59,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       admin: auth.admin,
       restaurantId: auth.restaurantId,
       billSplitId,
-      amounts: amounts as number[],
+      lines,
       clientRequestId,
     }),
   );

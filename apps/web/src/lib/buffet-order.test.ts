@@ -22,15 +22,17 @@ import {
   listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
-  resolvedBuffetPriceFromLockedLine,
-  resolvedBuffetPricesFromOrders,
-  mergeBuffetPricesPreferLocked,
   snapshotFromBuffetEntries,
   upsertBuffetLineOntoOrderItems,
   aggregateBuffetHeadcountForOrders,
   totalGuestsFromCounts,
   totalGuestsInBuffetSnapshot,
 } from '@/lib/buffet-order';
+import {
+  mergeBuffetPricesPreferLocked,
+  resolvedBuffetPriceFromLockedLine,
+  resolvedBuffetPricesFromOrders,
+} from '@/lib/buffet-locked-prices';
 
 const labels = { adults: '{n}成人', children: '{n}儿童' };
 const buffetA = { id: 'buffet-a', name: 'Simple Buffet' };

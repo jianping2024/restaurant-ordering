@@ -9,6 +9,8 @@ import {
   TAKEAWAY_LINE_NAME,
   buildTakeawayChargeItem,
   parseTakeawayAmount,
+  parseTakeawayLines,
+  parseTakeawayQty,
   parseTakeawayVatRatePatch,
   resolveTakeawayVatRate,
 } from './checkout-takeaway';
@@ -16,16 +18,18 @@ import { countSubmittedDishPortions } from './order-list-display';
 import { distinctMenuItemIdsFromOrders } from './menu-item-code';
 import { applyOrderItemDecrement } from './order-item-void/decrement-order-item';
 import { isMenuCatalogItem, kitchenRelevantItems } from './order-items';
+import { buildReceiptLinesFromOrders } from './order-receipt-enqueue';
 import { deriveOrderStatusFromItems } from './order-status';
 import { vatPercentForOrderItem } from './order-line-vat';
 import type { Order, OrderItem } from '@/types';
 
 const MENU_ID = '47cd765c-1443-454a-bd75-e73638c310f5';
 
-function takeaway(amount: number, lineId: string): OrderItem {
+function takeaway(amount: number, lineId: string, qty = 1): OrderItem {
   return buildTakeawayChargeItem({
     lineId,
     amount,
+    qty,
     batchId: 'b1',
     addedAt: '2026-10-23T17:00:00.000Z',
   });
@@ -77,6 +81,26 @@ describe('parseTakeawayAmount', () => {
   }
 });
 
+describe('parseTakeawayQty', () => {
+  it('accepts 1..99 integers only', () => {
+    assert.equal(parseTakeawayQty(1), 1);
+    assert.equal(parseTakeawayQty(99), 99);
+    assert.equal(parseTakeawayQty(0), null);
+    assert.equal(parseTakeawayQty(1.5), null);
+    assert.equal(parseTakeawayQty(100), null);
+  });
+});
+
+describe('parseTakeawayLines', () => {
+  it('sole POST shape lines[{amount,qty}]', () => {
+    assert.deepEqual(parseTakeawayLines({ lines: [{ amount: 1.5, qty: 2 }] }), [
+      { amount: 1.5, qty: 2 },
+    ]);
+    assert.equal(parseTakeawayLines({ amounts: [1.5] }), null);
+    assert.equal(parseTakeawayLines({ lines: [{ amount: 1.5, qty: 0 }] }), null);
+  });
+});
+
 describe('takeaway VAT setting', () => {
   it('resolve falls back to 13 and rounds', () => {
     assert.equal(resolveTakeawayVatRate(undefined), 13);
@@ -94,11 +118,34 @@ describe('takeaway VAT setting', () => {
 describe('takeaway line classification', () => {
   const line = takeaway(5, 'l1');
 
-  it('fixed name, qty 1, not a menu dish', () => {
+  it('fixed name, default qty 1, not a menu dish', () => {
     assert.equal(line.name_pt, TAKEAWAY_LINE_NAME);
     assert.equal(line.qty, 1);
     assert.equal(line.id, 'takeaway:l1');
     assert.equal(isMenuCatalogItem(line), false);
+  });
+
+  it('qty multiplies billable total', () => {
+    const multi = takeaway(2.5, 'm1', 3);
+    assert.equal(multi.qty, 3);
+    assert.equal(sumBillableSessionTotal([orderWith([multi])]), 7.5);
+    const screen = checkoutLinesFromOrders([orderWith([multi])], 'zh');
+    assert.equal(screen[0]?.quantityLabel, '× 3');
+    assert.equal(screen[0]?.lineTotal, 7.5);
+  });
+
+  it('receipt lines keep unit price and qty for take-away', () => {
+    const lines = buildReceiptLinesFromOrders(
+      [orderWith([takeaway(2.5, 'r1', 3)])],
+      'pt',
+      { byMenuId: {}, byBuffetId: {}, takeaway: 13 },
+    );
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.qty, 3);
+    assert.equal(lines[0]?.unit_price, 2.5);
+    assert.match(lines[0]!.display_name, /TAKE AWAY/);
   });
 
   it('never reaches kitchen or menu_items lookups', () => {
@@ -124,6 +171,15 @@ describe('takeaway line classification', () => {
     if (!removed.ok) return;
     assert.equal(removed.outcome, 'voided');
     assert.equal(sumBillableSessionTotal([orderWith(removed.nextItems)]), 4.5 + 3.5);
+  });
+
+  it('trash voids multi-qty take-away in one step', () => {
+    const multi = takeaway(2, 'mq', 4);
+    const removed = applyOrderItemDecrement([multi], 0, 'done');
+    assert.equal(removed.ok, true);
+    if (!removed.ok) return;
+    assert.equal(removed.outcome, 'voided');
+    assert.equal(sumBillableSessionTotal([orderWith(removed.nextItems)]), 0);
   });
 
   it('VAT comes from the restaurant take-away rate', () => {
@@ -163,6 +219,25 @@ describe('takeaway fiscal lines', () => {
     const beerLine = built.payload.lines?.find((l) => l.item_code === '006');
     assert.equal(beerLine?.open_price, undefined);
     assert.equal(built.payload.gross_total, '5.10');
+  });
+
+  it('whole_table: take-away qty>1 keeps unit price and multiplies line_gross', () => {
+    const built = buildBillSyncJobPayload({
+      ...base,
+      orders: [orderWith([takeaway(2.5, 'q3', 3)])],
+      splitMode: 'whole_table',
+      persons: [{ name: '__whole_table__' }],
+      vatRates: { byMenuId: {}, byBuffetId: {}, takeaway: 13 },
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    const ta = (built.payload.lines ?? []).filter((l) => l.item_code === TAKEAWAY_ITEM_CODE);
+    assert.equal(ta.length, 1);
+    assert.deepEqual(
+      [ta[0]?.qty, ta[0]?.unit_price_gross, ta[0]?.line_gross, ta[0]?.open_price],
+      ['3.00', '2.50', '7.50', true],
+    );
+    assert.equal(built.payload.gross_total, '7.50');
   });
 
   it('by_item: each guest invoice carries only their take-away share (half = 0.50 qty)', () => {

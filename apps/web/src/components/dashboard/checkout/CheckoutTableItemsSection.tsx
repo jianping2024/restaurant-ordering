@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 
 type Labels = {
@@ -15,7 +16,7 @@ type Props = {
   labels: Labels;
   className?: string;
   defaultOpen?: boolean;
-  /** Staff checkout: × on take-away charge rows removes the line. */
+  /** Staff checkout: trash on take-away charge rows removes the line. */
   takeawayRemove?: {
     onRemove: (lineId: string) => void;
     removingLineId: string | null;
@@ -66,16 +67,16 @@ export function CheckoutTableItemsSection({
                   €{line.lineTotal.toFixed(2)}
                 </span>
                 {takeawayRemove && line.takeawayLineId ? (
-                  <button
-                    type="button"
-                    onClick={() => takeawayRemove.onRemove(line.takeawayLineId!)}
-                    disabled={takeawayRemove.disabled || takeawayRemove.removingLineId != null}
-                    aria-label={takeawayRemove.label}
-                    title={takeawayRemove.label}
-                    className="-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-xl leading-none text-brand-text-muted transition-colors hover:text-red-500 disabled:opacity-30"
-                  >
-                    {takeawayRemove.removingLineId === line.takeawayLineId ? '…' : '×'}
-                  </button>
+                  <RowRemoveIconButton
+                    large
+                    removable
+                    ariaLabel={takeawayRemove.label}
+                    disabled={
+                      takeawayRemove.disabled ||
+                      takeawayRemove.removingLineId != null
+                    }
+                    onRemove={() => takeawayRemove.onRemove(line.takeawayLineId!)}
+                  />
                 ) : null}
               </div>
             ))}

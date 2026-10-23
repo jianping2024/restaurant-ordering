@@ -43,7 +43,8 @@ import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/componen
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
-import { mergeBuffetPricesPreferLocked, type BuffetGuestSnapshot } from '@/lib/buffet-order';
+import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { shouldPromptCheckoutZeroHeadcount } from '@/lib/checkout-zero-headcount-prompt';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
@@ -467,14 +468,14 @@ export function CheckoutRequestDetailHost({
   }, []);
 
   const confirmTakeaway = useCallback(
-    async (amounts: number[]) => {
+    async (lines: { amount: number; qty: number }[]) => {
       if (takeawayBusy) return;
       setTakeawayBusy(true);
       try {
         const result = await requestAddCheckoutTakeaway({
           slug: restaurantSlug,
           billSplitId: request.id,
-          amounts,
+          lines,
           clientRequestId: takeawayRequestId.current,
         });
         if (!result.ok) {
@@ -951,9 +952,10 @@ export function CheckoutRequestDetailHost({
         busy={takeawayBusy}
         labels={{
           title: t.takeawayTitle,
-          hint: t.takeawayHint,
           name: t.takeawayName,
           amount: t.takeawayAmount,
+          qty: t.takeawayQty,
+          lineTotal: t.takeawayLineTotal,
           addRow: t.takeawayAddRow,
           removeRow: t.takeawayRemoveRow,
           total: t.takeawayTotal,
@@ -965,7 +967,7 @@ export function CheckoutRequestDetailHost({
           if (takeawayBusy) return;
           setTakeawayOpen(false);
         }}
-        onConfirm={(amounts) => confirmTakeaway(amounts)}
+        onConfirm={(lines) => confirmTakeaway(lines)}
       />
       <CollectPaymentModal
         open={collectPending != null}

@@ -1,5 +1,5 @@
 /**
- * Checkout take-away charge — cashier types an amount, qty fixed 1, fixed name.
+ * Checkout take-away charge — cashier enters unit price + qty (default 1), fixed name.
  * Sole line shape: `OrderItem` kind `takeaway` built by {@link buildTakeawayChargeItem}.
  * Fiscal: fixed item_code {@link TAKEAWAY_ITEM_CODE}, `open_price` (one product, many prices).
  */
@@ -31,13 +31,19 @@ export function parseTakeawayVatRatePatch(body: unknown): number | undefined | n
   return n;
 }
 
-/** Upper bound per line — guards typos (e.g. 5000 instead of 50.00). */
+/** Upper bound per unit price — guards typos (e.g. 5000 instead of 50.00). */
 export const TAKEAWAY_AMOUNT_MAX = 1000;
+
+/** Max qty per take-away line (editor + POST). */
+export const TAKEAWAY_QTY_MAX = 99;
 
 /** Max lines per add request. */
 export const TAKEAWAY_LINES_MAX = 20;
 
 const TAKEAWAY_ID_PREFIX = 'takeaway:';
+
+/** One cashier-entered take-away row (unit price × qty). */
+export type TakeawayLineInput = { amount: number; qty: number };
 
 /** Euro amount with ≤2 decimals, 0 < amount ≤ max; else null. */
 export function parseTakeawayAmount(raw: unknown): number | null {
@@ -48,10 +54,38 @@ export function parseTakeawayAmount(raw: unknown): number | null {
   return cents / 100;
 }
 
+/** Integer qty 1..TAKEAWAY_QTY_MAX; else null. */
+export function parseTakeawayQty(raw: unknown): number | null {
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw.trim()) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > TAKEAWAY_QTY_MAX) return null;
+  return n;
+}
+
+/**
+ * Sole POST body parser for take-away add: `lines: [{ amount, qty }, …]`.
+ * Invalid / empty / over max → null.
+ */
+export function parseTakeawayLines(body: unknown): TakeawayLineInput[] | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
+  const raw = (body as Record<string, unknown>).lines;
+  if (!Array.isArray(raw) || raw.length === 0 || raw.length > TAKEAWAY_LINES_MAX) return null;
+  const lines: TakeawayLineInput[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+    const row = entry as Record<string, unknown>;
+    const amount = parseTakeawayAmount(row.amount);
+    const qty = parseTakeawayQty(row.qty);
+    if (amount == null || qty == null) return null;
+    lines.push({ amount, qty });
+  }
+  return lines;
+}
+
 /** Sole take-away line builder (server only writes these into `orders.items`). */
 export function buildTakeawayChargeItem(input: {
   lineId: string;
   amount: number;
+  qty: number;
   batchId: string;
   addedAt: string;
 }): OrderItem {
@@ -62,7 +96,7 @@ export function buildTakeawayChargeItem(input: {
     name_pt: TAKEAWAY_LINE_NAME,
     name_en: TAKEAWAY_LINE_NAME,
     name_zh: TAKEAWAY_LINE_NAME,
-    qty: 1,
+    qty: input.qty,
     price: input.amount,
     emoji: '🥡',
     // Charged at the counter — nothing for the kitchen to cook.

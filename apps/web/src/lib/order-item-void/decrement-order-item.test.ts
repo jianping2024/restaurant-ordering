@@ -49,6 +49,24 @@ describe('applyOrderItemDecrement', () => {
     assert.equal(result.nextItems[0]?.void_reason, undefined);
   });
 
+  it('take-away: voids the whole charge even when qty > 1', () => {
+    const items = [
+      baseItem({
+        id: 'takeaway:a',
+        kind: 'takeaway',
+        qty: 3,
+        price: 2.5,
+        item_status: 'done',
+      }),
+    ];
+    const result = applyOrderItemDecrement(items, 0, 'done');
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.outcome, 'voided');
+    assert.equal(result.nextItems[0]?.item_status, 'voided');
+    assert.equal(result.nextItems[0]?.qty, 3);
+  });
+
   it('rejects invalid indexes and buffet lines', () => {
     assert.deepEqual(applyOrderItemDecrement([baseItem()], -1, 'pending'), {
       ok: false,

@@ -59,7 +59,8 @@ export function applyOrderItemDecrement(
     return { ok: false, code: 'not_decrementable' };
   }
 
-  if (qty > 1) {
+  // Take-away trash removes the whole charge (qty is part of one cashier line, not peelable).
+  if (!isTakeawayChargeItem(before) && qty > 1) {
     const after: OrderItem = { ...before, qty: qty - 1 };
     const nextItems = items.map((item, index) => (index === itemIndex ? after : item));
     return {
@@ -76,7 +77,8 @@ export function applyOrderItemDecrement(
   const voidedAt = new Date().toISOString();
   const after: OrderItem = {
     ...before,
-    qty: 1,
+    // Keep original qty on the voided row for audit / receipt history.
+    qty: isTakeawayChargeItem(before) ? qty : 1,
     item_status: 'voided',
     voided_at: voidedAt,
   };

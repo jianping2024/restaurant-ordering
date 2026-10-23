@@ -25,6 +25,7 @@ export function SettlementBar({
   tableDisplayName,
   leading,
   stickyShellClass = checkoutSettlementBarStickyShellClass,
+  onAddTakeaway,
 }: {
   summary: CheckoutSettlementSummary;
   discountRate: number;
@@ -41,6 +42,8 @@ export function SettlementBar({
   leading?: ReactNode;
   /** Sole sticky shell — default under staff top bar. */
   stickyShellClass?: string;
+  /** Checkout take-away charge entry (whole table + by-item share it); omitted without permission. */
+  onAddTakeaway?: () => void;
 }) {
   return (
     <div className={stickyShellClass}>
@@ -86,6 +89,16 @@ export function SettlementBar({
             </span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {onAddTakeaway ? (
+              <button
+                type="button"
+                onClick={onAddTakeaway}
+                disabled={detailLocked}
+                className="mr-2 rounded-lg border border-brand-gold/50 bg-brand-gold/10 px-3 py-1.5 text-sm font-semibold text-brand-gold transition-colors hover:bg-brand-gold/20 disabled:opacity-40"
+              >
+                {t.takeawayAdd}
+              </button>
+            ) : null}
             <span className="text-[13px] text-brand-text-muted">{t.discountRate}</span>
             <IntegerInput
               min={0}

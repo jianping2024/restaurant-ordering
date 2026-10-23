@@ -177,6 +177,10 @@ sole fold `buildSplitSettlementRows(..., discountRate)` via `allocateDiscountedS
 
 sole decision `resolveCheckoutDiscountCommit` + hook `commitRate` + host `commitDiscountRate` wired as `onDiscountRateCommit` on IntegerInput onChange; never a parallel business onBlur that re-reads display draft after commit.
 
+### Checkout take-away charge
+
+sole line `buildTakeawayChargeItem` (`orders.items` kind `takeaway`, id `takeaway:<uuid>`, fixed `TAKEAWAY_LINE_NAME`, qty 1, item_status done) written only by `POST …/checkout/takeaway` (`append_order_items` + append idempotency, `checkout.confirm_payment`); remove = same route `DELETE` → `decrementOrderItemWithAudit` (× in `CheckoutTableItemsSection`, no confirm); entry sole `SettlementBar.onAddTakeaway` + `CheckoutTakeawayModal`; "is a menu dish" sole `isMenuCatalogItem` (kitchen / menu_items lookups / dish history / ranking / feedback); line IVA sole `vatPercentForOrderItem` + `loadOrderLineVatRates` (`restaurants.takeaway_vat_rate`); fiscal code `TAKEAWAY` + `open_price` (one product, many prices, never merged). Never a bill-level surcharge field, never per-line minted item codes.
+
 ## 顾客结账 / by-item / even
 
 ### Guest bill modes

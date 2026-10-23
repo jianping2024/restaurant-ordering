@@ -6,7 +6,7 @@
 import type { BillSplitOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import {
   addRationals,
   formatRational,
@@ -45,7 +45,7 @@ type ReviewableDraft = {
 
 function isReviewableCatalogLine(line: CatalogLine): boolean {
   if (line.item_status === 'voided') return false;
-  if (isBuffetBaseItem(line)) return false;
+  if (!isMenuCatalogItem(line)) return false;
   return typeof line.id === 'string' && line.id.length > 0;
 }
 

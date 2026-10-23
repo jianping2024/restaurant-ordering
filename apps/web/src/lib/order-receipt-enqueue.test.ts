@@ -161,8 +161,7 @@ describe('buildReceiptLinesFromOrders', () => {
     const lines = buildReceiptLinesFromOrders(
       mixed,
       'pt',
-      { 'menu-coke': 23, 'menu-free': 13 },
-      {},
+      { byMenuId: { 'menu-coke': 23, 'menu-free': 13 }, byBuffetId: {}, takeaway: null },
     );
     assert.ok(!('error' in lines));
     if ('error' in lines) return;
@@ -204,8 +203,7 @@ describe('buildReceiptLinesFromOrders', () => {
     const lines = buildReceiptLinesFromOrders(
       mixed,
       'pt',
-      { '47cd765c-1443-454a-bd75-e73638c310f5': 23 },
-      { [buffetId]: 13 },
+      { byMenuId: { '47cd765c-1443-454a-bd75-e73638c310f5': 23 }, byBuffetId: { [buffetId]: 13 }, takeaway: null },
     );
     assert.ok(!('error' in lines));
     if ('error' in lines) return;
@@ -239,7 +237,7 @@ describe('buildReceiptLinesFromOrders', () => {
         items: [{ ...cokeItem, qty: 1, note: 'com limao' }],
       },
     ];
-    const lines = buildReceiptLinesFromOrders(mergedOrders, 'pt', { 'menu-coke': 23 }, {});
+    const lines = buildReceiptLinesFromOrders(mergedOrders, 'pt', { byMenuId: { 'menu-coke': 23 }, byBuffetId: {}, takeaway: null });
     assert.ok(!('error' in lines));
     if ('error' in lines) return;
     assert.equal(lines.length, 1);
@@ -256,8 +254,7 @@ describe('buildSplitPersonReceiptLines', () => {
       0,
       orders,
       'pt',
-      { 'menu-coke': 23 },
-      {},
+      { byMenuId: { 'menu-coke': 23 }, byBuffetId: {}, takeaway: null },
     );
     assert.ok(!('error' in lines));
     if ('error' in lines) return;
@@ -273,7 +270,7 @@ describe('buildSplitPersonReceiptLines', () => {
       persons: [{ name: 'Guest 1', items: [MENU_KEY] }],
       result: [{ name: 'Guest 1', amount: 3 }],
     });
-    const lines = buildSplitPersonReceiptLines(split, 0, orders, 'pt', { 'menu-coke': 23 }, {});
+    const lines = buildSplitPersonReceiptLines(split, 0, orders, 'pt', { byMenuId: { 'menu-coke': 23 }, byBuffetId: {}, takeaway: null });
     assert.ok(!('error' in lines));
     if ('error' in lines) return;
     assert.equal(lines[0]?.share_qty_label, '1');
@@ -286,8 +283,7 @@ describe('buildSplitPersonReceiptLines', () => {
       0,
       orders,
       'pt',
-      { 'menu-coke': 23 },
-      {},
+      { byMenuId: { 'menu-coke': 23 }, byBuffetId: {}, takeaway: null },
     );
     assert.ok(!('error' in lines));
     if ('error' in lines) return;

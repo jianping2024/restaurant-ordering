@@ -78,8 +78,7 @@ describe('buildBillSyncJobPayload', () => {
       persons: [{ name: '__whole_table__' }],
       orders: withFree,
       itemCodeByMenuId: { [MENU_ID]: '006', 'menu-free': '200' },
-      vatRateByMenuId: { [MENU_ID]: 23, 'menu-free': 13 },
-      vatRateByBuffetId: {},
+      vatRates: { byMenuId: { [MENU_ID]: 23, 'menu-free': 13 }, byBuffetId: {}, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -97,8 +96,7 @@ describe('buildBillSyncJobPayload', () => {
       persons: [{ name: '__whole_table__' }],
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
-      vatRateByMenuId: { [MENU_ID]: 23 },
-      vatRateByBuffetId: {},
+      vatRates: { byMenuId: { [MENU_ID]: 23 }, byBuffetId: {}, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -117,8 +115,7 @@ describe('buildBillSyncJobPayload', () => {
       persons: [{ name: 'Jacky' }, { name: 'Tom' }],
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
-      vatRateByMenuId: { [MENU_ID]: 23 },
-      vatRateByBuffetId: {},
+      vatRates: { byMenuId: { [MENU_ID]: 23 }, byBuffetId: {}, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -141,8 +138,7 @@ describe('buildBillSyncJobPayload', () => {
       persons: [{ name: '__whole_table__' }],
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
-      vatRateByMenuId: { [MENU_ID]: 23 },
-      vatRateByBuffetId: {},
+      vatRates: { byMenuId: { [MENU_ID]: 23 }, byBuffetId: {}, takeaway: null },
       autoIssue: {
         auto_issue: true,
         payment_method: 'CASH',
@@ -171,8 +167,7 @@ describe('buildBillSyncJobPayload', () => {
       persons,
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
-      vatRateByMenuId: { [MENU_ID]: 23 },
-      vatRateByBuffetId: {},
+      vatRates: { byMenuId: { [MENU_ID]: 23 }, byBuffetId: {}, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -265,8 +260,7 @@ describe('buildBillSyncJobPayload', () => {
       persons,
       orders: buffetOrders,
       itemCodeByMenuId: { [aguaId]: 'AGUA', [vitalId]: 'VITA' },
-      vatRateByMenuId: { [aguaId]: 23, [vitalId]: 23 },
-      vatRateByBuffetId: { [buffetId]: 13 },
+      vatRates: { byMenuId: { [aguaId]: 23, [vitalId]: 23 }, byBuffetId: { [buffetId]: 13 }, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -319,8 +313,7 @@ describe('buildBillSyncJobPayload', () => {
       persons: [{ name: '__whole_table__' }],
       orders: buffetOrders,
       itemCodeByMenuId: {},
-      vatRateByMenuId: {},
-      vatRateByBuffetId: { [buffetId]: 13 },
+      vatRates: { byMenuId: {}, byBuffetId: { [buffetId]: 13 }, takeaway: null },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;

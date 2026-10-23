@@ -15,6 +15,11 @@ export type BillSyncLine = {
   unit_price_gross: string;
   line_gross: string;
   vat_rate: string;
+  /**
+   * Open-price line (checkout take-away): one fixed item_code, a different price per line.
+   * Same-code conflict check then compares vat_rate only. Omitted for catalog lines.
+   */
+  open_price?: true;
 };
 
 export type BillSyncSplit = {
@@ -129,6 +134,7 @@ export type BillSyncLineInput = {
   unit_price_gross: number;
   line_gross: number;
   vat_rate_percent: number;
+  open_price?: boolean;
 };
 
 export function buildBillSyncLine(input: BillSyncLineInput): BillSyncLine | { error: string } {
@@ -152,7 +158,15 @@ export function buildBillSyncLine(input: BillSyncLineInput): BillSyncLine | { er
   }
   if (!isValidBillSyncVatRateString(vat_rate)) return { error: 'invalid_vat_rate' };
 
-  return { item_code, name, qty, unit_price_gross, line_gross, vat_rate };
+  return {
+    item_code,
+    name,
+    qty,
+    unit_price_gross,
+    line_gross,
+    vat_rate,
+    ...(input.open_price ? { open_price: true as const } : {}),
+  };
 }
 
 /**
@@ -307,7 +321,10 @@ export type BillSyncPayload = {
   reprint_document_id?: string;
 };
 
-/** Detect conflicting catalog fields for the same item_code within one payload. */
+/**
+ * Detect conflicting catalog fields for the same item_code within one payload.
+ * Open-price lines (both flagged) may differ in unit price only.
+ */
 export function findBillSyncItemCodeConflict(
   lines: BillSyncLine[],
 ): { item_code: string } | null {
@@ -318,9 +335,10 @@ export function findBillSyncItemCodeConflict(
       seen.set(line.item_code, line);
       continue;
     }
+    const openPrice = prev.open_price === true && line.open_price === true;
     if (
       prev.name !== line.name ||
-      prev.unit_price_gross !== line.unit_price_gross ||
+      (!openPrice && prev.unit_price_gross !== line.unit_price_gross) ||
       prev.vat_rate !== line.vat_rate
     ) {
       return { item_code: line.item_code };

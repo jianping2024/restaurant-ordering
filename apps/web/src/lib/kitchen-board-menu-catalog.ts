@@ -1,4 +1,4 @@
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import type { Order, OrderItem } from '@/types';
 
 /**
@@ -50,7 +50,7 @@ export function collectKitchenBoardMenuItemIds(orders: Order[]): string[] {
   const ids = new Set<string>();
   for (const order of orders) {
     for (const item of order.items || []) {
-      if (!item || isBuffetBaseItem(item)) continue;
+      if (!item || !isMenuCatalogItem(item)) continue;
       const id = (item.id || '').trim();
       if (id) ids.add(id);
     }

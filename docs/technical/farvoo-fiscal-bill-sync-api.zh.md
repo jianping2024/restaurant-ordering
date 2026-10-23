@@ -157,8 +157,9 @@
 | `unit_price_gross` | money string | ✓ | 含税单价 |
 | `line_gross` | money string | ✓ | 行合计；不入主档 |
 | `vat_rate` | string | ✓ | 百分数点两位；不符 → 整单失败 |
+| `open_price` | boolean | — | 仅现场定价行（结账 Take away，`item_code` 固定 `TAKEAWAY`）为 `true`；目录菜/自助不带 |
 
-**同 code 冲突：** 同一请求内（`whole_table` 的全部 `lines`，或 `split` 展平后的全部行）同 `item_code` 若 `name` / `unit_price_gross` / `vat_rate` 不一致 → 整单失败，不部分写入。
+**同 code 冲突：** 同一请求内（`whole_table` 的全部 `lines`，或 `split` 展平后的全部行）同 `item_code` 若 `name` / `unit_price_gross` / `vat_rate` 不一致 → 整单失败，不部分写入。例外：两行都带 `open_price: true` 时只比 `name` / `vat_rate`，单价可不同（每行各自一行开票，不合并；主档单价取首行）。旧版 Agent 忽略该字段，同票多行不同价 Take away 会报 `item_code_conflict`，需升级 Agent。
 
 ---
 
@@ -181,7 +182,7 @@
 任一步失败 → ack `failed` + **可读 `error_message` / 原因码**（云端与结账页原样可展示）。  
 **禁止**先 ack 再写表（否则云端 succeeded、本机无草稿）。写表与 upsert 宜同一本地事务或等价「全成或全败再 ack」。
 
-**同 code 冲突：** 同一请求内同 `item_code` 若 `name` / `unit_price_gross` / `vat_rate` 不一致 → 整单失败并回传原因，不部分写入。
+**同 code 冲突：** 同一请求内同 `item_code` 若 `name` / `unit_price_gross` / `vat_rate` 不一致 → 整单失败并回传原因，不部分写入（`open_price` 行例外见 §5.4）。
 
 不自动开 FT。
 

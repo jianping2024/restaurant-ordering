@@ -8,7 +8,7 @@ import {
 } from '@/lib/buffet-order';
 import { getMessages } from '@/lib/i18n/messages';
 import type { UILanguage } from '@/lib/i18n';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isMenuCatalogItem } from '@/lib/order-items';
 
 export interface OrderListDisplayChip {
   key: string;
@@ -110,14 +110,14 @@ export function countOrderListItems(orders: Order[]): number {
 
 /**
  * Guest menu「已点」badge: Σ dish qty only.
- * Excludes buffet_base headcount and voided lines — sole footer submittedCount source.
+ * Excludes buffet headcount, take-away charges and voided lines — sole footer submittedCount source.
  */
 export function countSubmittedDishPortions(orders: Order[]): number {
   let total = 0;
   for (const order of orders) {
     for (const item of order.items) {
       if (isVoidedItem(item)) continue;
-      if (isBuffetBaseItem(item)) continue;
+      if (!isMenuCatalogItem(item)) continue;
       total += Number(item.qty) || 0;
     }
   }

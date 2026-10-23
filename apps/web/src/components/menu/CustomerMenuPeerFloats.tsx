@@ -7,7 +7,7 @@ import {
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
 } from '@/lib/customer-menu-chrome-layout';
-import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
+import { isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import {
   mintPaidPeerFloatBaselineAtMs,
   parsePeerFloatAddedAtMs,
@@ -217,7 +217,7 @@ export function CustomerMenuPeerFloats(params: {
       const nextOrderSeen = new Set<string>();
       for (const order of orderList) {
         for (const line of order.items) {
-          if (isBuffetBaseItem(line) || isKitchenRemakeItem(line)) continue;
+          if (!isMenuCatalogItem(line) || isKitchenRemakeItem(line)) continue;
           if (line.item_status === 'voided') continue;
           if (
             !shouldEmitOrderLinePeerFloat({

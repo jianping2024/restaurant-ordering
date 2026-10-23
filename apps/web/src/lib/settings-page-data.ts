@@ -1,3 +1,4 @@
+import { resolveTakeawayVatRate } from '@/lib/checkout-takeaway';
 import 'server-only';
 
 import { NextResponse } from 'next/server';
@@ -109,6 +110,7 @@ export type FeatureSettingsPageData = {
   orderCooldownSeconds: number;
   operationLogRetentionDays: number;
   kitchenReadyAfterMinutes: number;
+  takeawayVatRate: number;
   sushiRoundOrderingEnabled: boolean;
   sushiPerPersonPerRoundCap: number;
   sushiRoundConfirmTimeoutSeconds: number;
@@ -157,7 +159,7 @@ export async function loadFeatureSettingsPageData(
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'print_agent_config, order_cooldown_seconds, operation_log_retention_days, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
+      'print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
     )
     .eq('id', restaurantId)
     .single();
@@ -179,6 +181,7 @@ export async function loadFeatureSettingsPageData(
     orderCooldownSeconds: clampOrderCooldownSeconds(orderCooldownSeconds),
     operationLogRetentionDays,
     kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(data?.print_agent_config),
+    takeawayVatRate: resolveTakeawayVatRate(isMigrationRequired ? undefined : data?.takeaway_vat_rate),
     sushiRoundOrderingEnabled: sushiApi.sushiRoundOrderingEnabled,
     sushiPerPersonPerRoundCap: sushiApi.sushiPerPersonPerRoundCap,
     sushiRoundConfirmTimeoutSeconds: sushiApi.sushiRoundConfirmTimeoutSeconds,

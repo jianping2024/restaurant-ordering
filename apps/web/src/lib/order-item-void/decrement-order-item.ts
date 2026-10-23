@@ -1,5 +1,5 @@
 import { coerceCartQty } from '@/lib/cart-totals';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isTakeawayChargeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import type { Order, OrderItem, OrderItemStatus } from '@/types';
 
@@ -30,6 +30,8 @@ export function canDecrementOrderItem(
 ): boolean {
   if (isBuffetBaseItem(item)) return false;
   const status = normalizeOrderItemStatus(item, orderStatus);
+  // Take-away charge never goes through the kitchen — voidable until voided.
+  if (isTakeawayChargeItem(item)) return status !== 'voided';
   return status === 'pending' || status === 'cooking';
 }
 

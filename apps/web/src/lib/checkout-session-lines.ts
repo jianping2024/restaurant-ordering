@@ -6,7 +6,7 @@ import {
 import { formatLocalizedMenuItemLabel, resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isTakeawayChargeItem } from '@/lib/order-items';
 import type { UILanguage } from '@/lib/i18n';
 import type { Order } from '@/types';
 
@@ -19,6 +19,8 @@ export type CheckoutDisplayLine = {
   /** Sushi limited dish: chargeable share (display stays one row). */
   chargeableQty?: number;
   chargeableUnitPrice?: number;
+  /** Take-away charge line id (`takeaway:<uuid>`) — staff may remove it at checkout. */
+  takeawayLineId?: string;
 };
 
 /**
@@ -43,6 +45,7 @@ export function checkoutLinesFromOrders(
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       lineTotal: billableLineAmount(row),
       ...chargeableFieldsFromBillableRow(row),
+      ...(isTakeawayChargeItem(item) ? { takeawayLineId: item.id } : {}),
     };
   });
 }

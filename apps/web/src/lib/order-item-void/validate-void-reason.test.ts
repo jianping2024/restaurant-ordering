@@ -51,4 +51,10 @@ describe('validateVoidItemReason', () => {
       { ok: false, code: 'reason_detail_required' },
     );
   });
+
+  it('take-away charge removal needs no detail (not a served dish)', () => {
+    const row = voidedRow('done');
+    const takeaway = { ...row, before: { ...row.before, kind: 'takeaway' as const } };
+    assert.deepEqual(validateVoidItemReason([takeaway], 'qty_adjustment', null), { ok: true });
+  });
 });

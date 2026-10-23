@@ -23,7 +23,7 @@ import {
 import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import { normalizeOrderItemStatus, effectiveItemStatus } from '@/lib/order-status';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isMenuCatalogItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { DEFAULT_UI_LANG, type UILanguage } from '@/lib/i18n';
@@ -131,7 +131,7 @@ function resolveMenuLineActionTarget(
       const items = order.items || [];
       for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
         const item = items[itemIdx];
-        if (!item || isBuffetBaseItem(item)) continue;
+        if (!item || !isMenuCatalogItem(item)) continue;
         if (!match(item)) continue;
         if (
           !shouldShowKitchenItemProgress({

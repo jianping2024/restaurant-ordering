@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { writeAppendBatch } from '@/lib/append-write-batch';
-import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import {
@@ -149,7 +149,7 @@ export async function listDishHistory(params: {
     const sessionOpen = Boolean(order.session_id && openSessionIds.has(order.session_id));
     for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
       const item = items[itemIndex];
-      if (isBuffetBaseItem(item)) continue;
+      if (!isMenuCatalogItem(item)) continue;
       if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
       if (!itemMatchesQuery(item, q)) continue;
 

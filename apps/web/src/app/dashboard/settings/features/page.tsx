@@ -13,6 +13,7 @@ export default async function SettingsFeaturesPage() {
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
       initialOperationLogRetentionDays={data.operationLogRetentionDays}
       initialKitchenReadyAfterMinutes={data.kitchenReadyAfterMinutes}
+      initialTakeawayVatRate={data.takeawayVatRate}
       initialSushiRoundOrderingEnabled={data.sushiRoundOrderingEnabled}
       initialSushiPerPersonPerRoundCap={data.sushiPerPersonPerRoundCap}
       initialSushiRoundConfirmTimeoutSeconds={data.sushiRoundConfirmTimeoutSeconds}

@@ -40,6 +40,7 @@ type Props = {
   initialOrderCooldownSeconds: number;
   initialOperationLogRetentionDays: number;
   initialKitchenReadyAfterMinutes: number;
+  initialTakeawayVatRate: number;
   initialSushiRoundOrderingEnabled: boolean;
   initialSushiPerPersonPerRoundCap: number;
   initialSushiRoundConfirmTimeoutSeconds: number;
@@ -54,6 +55,7 @@ export function FeatureFlagsManager({
   initialOrderCooldownSeconds,
   initialOperationLogRetentionDays,
   initialKitchenReadyAfterMinutes,
+  initialTakeawayVatRate,
   initialSushiRoundOrderingEnabled,
   initialSushiPerPersonPerRoundCap,
   initialSushiRoundConfirmTimeoutSeconds,
@@ -72,6 +74,7 @@ export function FeatureFlagsManager({
   const [kitchenReadyAfterMinutes, setKitchenReadyAfterMinutes] = useState(
     initialKitchenReadyAfterMinutes,
   );
+  const [takeawayVatRate, setTakeawayVatRate] = useState(initialTakeawayVatRate);
   const [sushiRoundOrderingEnabled, setSushiRoundOrderingEnabled] = useState(
     initialSushiRoundOrderingEnabled,
   );
@@ -111,6 +114,7 @@ export function FeatureFlagsManager({
           orderCooldownSeconds,
           operationLogRetentionDays,
           kitchenReadyAfterMinutes,
+          takeawayVatRate,
           sushiRoundOrderingEnabled,
           sushiPerPersonPerRoundCap,
           sushiRoundConfirmTimeoutSeconds,
@@ -126,6 +130,7 @@ export function FeatureFlagsManager({
         orderCooldownSeconds?: number;
         operationLogRetentionDays?: number;
         kitchenReadyAfterMinutes?: number;
+        takeawayVatRate?: number;
         sushiRoundOrderingEnabled?: boolean;
         sushiPerPersonPerRoundCap?: number;
         sushiRoundConfirmTimeoutSeconds?: number;
@@ -140,6 +145,8 @@ export function FeatureFlagsManager({
           setError(t.kitchenReadyAfterMinutesInvalid);
         } else if (json.error === 'invalid_operation_log_retention_days') {
           setError(t.operationLogRetentionDaysInvalid);
+        } else if (json.error === 'invalid_takeaway_vat_rate') {
+          setError(t.takeawayVatRateInvalid);
         } else if (json.error?.startsWith('invalid_sushi_')) setError(t.sushiRoundInvalid);
         else setError(t.saveFail);
         return;
@@ -153,6 +160,7 @@ export function FeatureFlagsManager({
       if (json.kitchenReadyAfterMinutes != null) {
         setKitchenReadyAfterMinutes(json.kitchenReadyAfterMinutes);
       }
+      if (json.takeawayVatRate != null) setTakeawayVatRate(json.takeawayVatRate);
       if (json.sushiRoundOrderingEnabled != null) {
         setSushiRoundOrderingEnabled(json.sushiRoundOrderingEnabled);
       }
@@ -385,6 +393,31 @@ export function FeatureFlagsManager({
                 <span className="text-[13px] text-brand-text-muted">
                   {t.sushiRoundCooldownSecondsUnit}
                 </span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleCheckoutTakeaway}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
+            <label className="block">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.takeawayVatRate}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.takeawayVatRateDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={takeawayVatRate}
+                  min={0}
+                  max={100}
+                  onChange={setTakeawayVatRate}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.takeawayVatRate}
+                />
+                <span className="text-[13px] text-brand-text-muted">%</span>
               </div>
             </label>
           </div>

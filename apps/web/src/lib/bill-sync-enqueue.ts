@@ -7,6 +7,7 @@ import {
 } from '@/lib/bill-sync-build-payload';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
+import type { OrderLineVatRates } from '@/lib/order-line-vat';
 import type { Order, SplitPerson } from '@/types';
 
 export type EnqueueBillSyncInput = {
@@ -19,8 +20,7 @@ export type EnqueueBillSyncInput = {
   persons: SplitPerson[] | null | undefined;
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
-  vatRateByMenuId: Record<string, number>;
-  vatRateByBuffetId: Record<string, number>;
+  vatRates: OrderLineVatRates;
   createdBy: string | null;
   requestId?: string;
   /** Print-invoice fields; every enqueued job asks the Agent to issue (reprint uses its own enqueue). */
@@ -80,8 +80,7 @@ export async function enqueueBillSyncJob(
     persons: Array.isArray(input.persons) ? input.persons : [],
     orders: input.orders,
     itemCodeByMenuId: input.itemCodeByMenuId,
-    vatRateByMenuId: input.vatRateByMenuId,
-    vatRateByBuffetId: input.vatRateByBuffetId,
+    vatRates: input.vatRates,
     autoIssue: input.autoIssue,
   });
   if (!built.ok) {

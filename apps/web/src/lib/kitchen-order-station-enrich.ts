@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import type { Order, OrderItem } from '@/types';
@@ -13,7 +13,7 @@ export async function enrichKitchenOrdersWithStations(
   const menuIds = new Set<string>();
   for (const order of orders) {
     for (const item of order.items || []) {
-      if (isBuffetBaseItem(item)) continue;
+      if (!isMenuCatalogItem(item)) continue;
       if (item.print_station_id) continue;
       if (item.id) menuIds.add(item.id);
     }
@@ -43,7 +43,7 @@ export async function enrichKitchenOrdersWithStations(
   return orders.map((order) => ({
     ...order,
     items: (order.items || []).map((item: OrderItem) => {
-      if (isBuffetBaseItem(item)) return item;
+      if (!isMenuCatalogItem(item)) return item;
       if (item.print_station_id) return item;
       const menu = menuStationById.get(item.id);
       if (!menu) return item;

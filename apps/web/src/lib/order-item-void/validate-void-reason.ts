@@ -1,6 +1,7 @@
 import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-reason';
 import type { AbnormalReasonValidationResult } from '@/lib/audit/validate-abnormal-reason';
 import type { NewlyVoidedItem } from '@/lib/order-item-void/detect-newly-voided';
+import { isMenuCatalogItem } from '@/lib/order-items';
 
 export type VoidReasonValidationResult = AbnormalReasonValidationResult;
 
@@ -14,6 +15,9 @@ export function validateVoidItemReason(
   }
 
   return validateRequiredAbnormalReason('void_item', reason, reasonDetail, {
-    voidItemWasServed: newlyVoided.some((row) => row.statusBefore === 'done'),
+    // Served-dish void needs a detail; take-away charges are not dishes (cashier × removal).
+    voidItemWasServed: newlyVoided.some(
+      (row) => row.statusBefore === 'done' && isMenuCatalogItem(row.before),
+    ),
   });
 }

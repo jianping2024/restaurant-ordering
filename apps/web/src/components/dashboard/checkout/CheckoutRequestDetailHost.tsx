@@ -38,6 +38,7 @@ import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
 import { CheckoutHeadcountAdjustModal } from '@/components/dashboard/checkout/CheckoutHeadcountAdjustModal';
+import { CheckoutTakeawayModal } from '@/components/dashboard/checkout/CheckoutTakeawayModal';
 import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/components/dashboard/checkout/CollectPaymentModal';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -55,7 +56,12 @@ import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { buildCheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
-import type { Capabilities } from '@/lib/permissions/can';
+import { can, type Capabilities } from '@/lib/permissions/can';
+import { mintBrowserUuid } from '@/lib/browser-uuid';
+import {
+  requestAddCheckoutTakeaway,
+  requestRemoveCheckoutTakeaway,
+} from '@/lib/request-checkout-takeaway';
 import { StaffCheckoutSplitEditor } from '@/components/dashboard/checkout/StaffCheckoutSplitEditor';
 import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -275,6 +281,11 @@ export function CheckoutRequestDetailHost({
   const [zeroHeadcountPromptOpen, setZeroHeadcountPromptOpen] = useState(false);
   const [headcountAdjustOpen, setHeadcountAdjustOpen] = useState(false);
   const [headcountAdjustBusy, setHeadcountAdjustBusy] = useState(false);
+  const [takeawayOpen, setTakeawayOpen] = useState(false);
+  const [takeawayBusy, setTakeawayBusy] = useState(false);
+  const [removingTakeawayLineId, setRemovingTakeawayLineId] = useState<string | null>(null);
+  /** One idempotency key per take-away modal visit (retries replay, never double-add). */
+  const takeawayRequestId = useRef<string>('');
   const { printFiscalInvoiceAvailable } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
@@ -286,21 +297,21 @@ export function CheckoutRequestDetailHost({
     },
   });
 
-  const loadSessionOrders = useCallback(async () => {
-    if (!restaurantId || !request.session_id) {
-      setSessionOrders([]);
-      setItemCodeByMenuId({});
-      setImageUrlByMenuId({});
-      setOrdersReady(true);
-      return;
-    }
+  /** Session orders for this bill; null when unavailable. */
+  const readSessionOrders = useCallback(async (): Promise<Order[] | null> => {
+    if (!restaurantId || !request.session_id) return null;
     const { data: orderRows, error } = await supabase
       .from('orders')
       .select('*')
       .eq('restaurant_id', restaurantId)
       .eq('session_id', request.session_id);
+    if (error) return null;
+    return (orderRows || []) as Order[];
+  }, [restaurantId, request.session_id, supabase]);
 
-    if (error) {
+  const loadSessionOrders = useCallback(async () => {
+    const orders = await readSessionOrders();
+    if (!orders) {
       setSessionOrders([]);
       setItemCodeByMenuId({});
       setImageUrlByMenuId({});
@@ -308,7 +319,6 @@ export function CheckoutRequestDetailHost({
       return;
     }
 
-    const orders = (orderRows || []) as Order[];
     const menuItemIds = distinctMenuItemIdsFromOrders(orders);
     let codes: Record<string, string> = {};
     let images: Record<string, string> = {};
@@ -326,7 +336,7 @@ export function CheckoutRequestDetailHost({
     setItemCodeByMenuId(codes);
     setImageUrlByMenuId(images);
     setOrdersReady(true);
-  }, [restaurantId, request.session_id, supabase]);
+  }, [readSessionOrders, restaurantId, supabase]);
 
   useEffect(() => {
     setOrdersReady(false);
@@ -390,7 +400,7 @@ export function CheckoutRequestDetailHost({
     zeroHeadcountPromptOpen,
   ]);
 
-  const refreshBillAfterHeadcount = useCallback(
+  const refreshBillAfterOrdersChange = useCallback(
     async (nextOrders: Order[]) => {
       const mode = request.split_mode;
       const payload =
@@ -442,6 +452,69 @@ export function CheckoutRequestDetailHost({
     [billT, reload, request, restaurantSlug, t, upsertRequestFromSubmit],
   );
 
+  /** Take-away add/remove changed the session lines → refresh the bill the same way as headcount. */
+  const refreshBillAfterTakeaway = useCallback(async (): Promise<boolean> => {
+    const nextOrders = await readSessionOrders();
+    if (!nextOrders) return false;
+    const ok = await refreshBillAfterOrdersChange(nextOrders);
+    if (ok) syncBoardAfterMutation(request.table_id);
+    return ok;
+  }, [readSessionOrders, refreshBillAfterOrdersChange, request.table_id, syncBoardAfterMutation]);
+
+  const openTakeaway = useCallback(() => {
+    takeawayRequestId.current = mintBrowserUuid();
+    setTakeawayOpen(true);
+  }, []);
+
+  const confirmTakeaway = useCallback(
+    async (amounts: number[]) => {
+      if (takeawayBusy) return;
+      setTakeawayBusy(true);
+      try {
+        const result = await requestAddCheckoutTakeaway({
+          slug: restaurantSlug,
+          billSplitId: request.id,
+          amounts,
+          clientRequestId: takeawayRequestId.current,
+        });
+        if (!result.ok) {
+          showToast(t.takeawayFailed, 'error');
+          return;
+        }
+        setTakeawayOpen(false);
+        await refreshBillAfterTakeaway();
+      } finally {
+        setTakeawayBusy(false);
+      }
+    },
+    [refreshBillAfterTakeaway, request.id, restaurantSlug, t, takeawayBusy],
+  );
+
+  const removeTakeaway = useCallback(
+    async (lineId: string) => {
+      if (removingTakeawayLineId) return;
+      setRemovingTakeawayLineId(lineId);
+      try {
+        const result = await requestRemoveCheckoutTakeaway({
+          slug: restaurantSlug,
+          billSplitId: request.id,
+          lineId,
+        });
+        if (!result.ok) {
+          showToast(
+            result.error === 'claimed_by_ticket' ? t.takeawayRemoveClaimed : t.takeawayRemoveFailed,
+            'error',
+          );
+          return;
+        }
+        await refreshBillAfterTakeaway();
+      } finally {
+        setRemovingTakeawayLineId(null);
+      }
+    },
+    [refreshBillAfterTakeaway, removingTakeawayLineId, request.id, restaurantSlug, t],
+  );
+
   const confirmHeadcountAdjust = useCallback(
     async (snapshot: BuffetGuestSnapshot) => {
       if (headcountAdjustBusy) return;
@@ -459,7 +532,7 @@ export function CheckoutRequestDetailHost({
           return;
         }
         const nextOrders = (result.model.detail.orders ?? []) as Order[];
-        const ok = await refreshBillAfterHeadcount(nextOrders);
+        const ok = await refreshBillAfterOrdersChange(nextOrders);
         if (!ok) return;
         setAcknowledgedZeroHeadcount(true);
         setHeadcountAdjustOpen(false);
@@ -475,7 +548,7 @@ export function CheckoutRequestDetailHost({
       activeBuffets,
       headcountAdjustBusy,
       lang,
-      refreshBillAfterHeadcount,
+      refreshBillAfterOrdersChange,
       request.table_id,
       restaurantSlug,
       syncBoardAfterMutation,
@@ -756,6 +829,15 @@ export function CheckoutRequestDetailHost({
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
         }
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
+        takeaway={
+          can(capabilities, 'checkout.confirm_payment')
+            ? {
+                onAdd: openTakeaway,
+                onRemove: (lineId) => void removeTakeaway(lineId),
+                removingLineId: removingTakeawayLineId,
+              }
+            : undefined
+        }
         ticketUnlock={ticketUnlock}
         onCollectPerson={(index, amount, personName, partyId, preDiscountAmount, wholeTable) => {
           setCollectPending({
@@ -860,6 +942,27 @@ export function CheckoutRequestDetailHost({
         onConfirm={(snapshot) => {
           void confirmHeadcountAdjust(snapshot);
         }}
+      />
+      <CheckoutTakeawayModal
+        open={takeawayOpen}
+        busy={takeawayBusy}
+        labels={{
+          title: t.takeawayTitle,
+          hint: t.takeawayHint,
+          name: t.takeawayName,
+          amount: t.takeawayAmount,
+          addRow: t.takeawayAddRow,
+          removeRow: t.takeawayRemoveRow,
+          total: t.takeawayTotal,
+          invalidAmount: t.takeawayInvalidAmount,
+          confirm: t.takeawayConfirm,
+          cancel: t.takeawayCancel,
+        }}
+        onClose={() => {
+          if (takeawayBusy) return;
+          setTakeawayOpen(false);
+        }}
+        onConfirm={(amounts) => confirmTakeaway(amounts)}
       />
       <CollectPaymentModal
         open={collectPending != null}

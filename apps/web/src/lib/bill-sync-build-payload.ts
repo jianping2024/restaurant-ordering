@@ -37,19 +37,14 @@ import {
   eurosToCents,
   centsToEuros,
 } from '@/lib/money-allocation';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { TAKEAWAY_ITEM_CODE } from '@/lib/checkout-takeaway';
+import { vatPercentForOrderItem, type OrderLineVatRates } from '@/lib/order-line-vat';
+import { isBuffetBaseItem, isTakeawayChargeItem } from '@/lib/order-items';
 import { splitPartyKey } from '@/lib/split-party-id';
 import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson } from '@/types';
 
-/** Buffet uuid from a buffet_base order line (fail-closed when missing). */
-export function buffetIdFromOrderItem(item: OrderItem): string | null {
-  if (!isBuffetBaseItem(item)) return null;
-  const raw = (item.buffet_id || item.id.replace(/^buffet:/, '')).trim();
-  return raw || null;
-}
-
 /**
- * Sole fiscal item_code for a billable line (menu snapshot or buffet_base).
+ * Sole fiscal item_code for a billable line (menu snapshot, buffet_base, or take-away).
  * Buffet: stable `BF` + first 8 hex of buffet uuid + `A`|`C` (adult|child).
  * Never mint a bare BF######## — adult/child must not share one code.
  */
@@ -58,6 +53,7 @@ export function resolveBillSyncItemCode(
   itemCodeByMenuId: Record<string, string>,
   buffetGuest?: BuffetGuestType | null,
 ): string {
+  if (isTakeawayChargeItem(item)) return TAKEAWAY_ITEM_CODE;
   const fromMenu = (resolveMenuItemCode(item, itemCodeByMenuId) ?? '').trim();
   if (fromMenu) return fromMenu;
   if (!isBuffetBaseItem(item)) return '';
@@ -88,35 +84,14 @@ export type BuildBillSyncPayloadInput = {
   persons: SplitPerson[];
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
-  vatRateByMenuId: Record<string, number>;
-  /** Buffet headcount VAT by buffet uuid — fail-closed when missing. */
-  vatRateByBuffetId: Record<string, number>;
+  /** Line IVA (menu / buffet / take-away) — fail-closed when missing. */
+  vatRates: OrderLineVatRates;
   autoIssue?: BillSyncAutoIssueFields | null;
 };
 
 export type BuildBillSyncPayloadResult =
   | { ok: true; payload: BillSyncPayload }
   | { ok: false; error: string };
-
-function vatPercentForItem(
-  item: OrderItem,
-  vatRateByMenuId: Record<string, number>,
-  vatRateByBuffetId: Record<string, number>,
-): number | { error: string } {
-  if (isBuffetBaseItem(item)) {
-    const buffetId = buffetIdFromOrderItem(item);
-    if (!buffetId) return { error: 'missing_vat_rate' };
-    const rate = vatRateByBuffetId[buffetId];
-    if (typeof rate !== 'number' || !Number.isFinite(rate)) {
-      return { error: 'missing_vat_rate' };
-    }
-    return rate;
-  }
-  if (item.id && typeof vatRateByMenuId[item.id] === 'number') {
-    return vatRateByMenuId[item.id]!;
-  }
-  return { error: 'missing_vat_rate' };
-}
 
 function pushBuiltLine(
   lines: BillSyncLine[],
@@ -126,16 +101,11 @@ function pushBuiltLine(
     qty: number;
     unitPrice: number;
     lineGross: number;
-    vatRateByMenuId: Record<string, number>;
-    vatRateByBuffetId: Record<string, number>;
+    vatRates: OrderLineVatRates;
   },
 ): { error: string } | null {
-  const vat = vatPercentForItem(
-    input.item,
-    input.vatRateByMenuId,
-    input.vatRateByBuffetId,
-  );
-  if (typeof vat !== 'number') return vat;
+  const vat = vatPercentForOrderItem(input.item, input.vatRates);
+  if (vat == null) return { error: 'missing_vat_rate' };
   const built = buildBillSyncLine({
     item_code: input.itemCode,
     name: resolveMenuItemLocalizedName(input.item, 'pt'),
@@ -143,6 +113,7 @@ function pushBuiltLine(
     unit_price_gross: input.unitPrice,
     line_gross: input.lineGross,
     vat_rate_percent: vat,
+    open_price: isTakeawayChargeItem(input.item),
   });
   if ('error' in built) return { error: built.error };
   lines.push(built);
@@ -175,8 +146,7 @@ function appendWholeTableBuffetLines(
       qty: band.qty,
       unitPrice: unit,
       lineGross,
-      vatRateByMenuId: input.vatRateByMenuId,
-      vatRateByBuffetId: input.vatRateByBuffetId,
+      vatRates: input.vatRates,
     });
     if (err) return err;
   }
@@ -212,8 +182,7 @@ function buildWholeTableLines(input: BuildBillSyncPayloadInput): BillSyncLine[] 
       qty,
       unitPrice: unit,
       lineGross,
-      vatRateByMenuId: input.vatRateByMenuId,
-      vatRateByBuffetId: input.vatRateByBuffetId,
+      vatRates: input.vatRates,
     });
     if (err) return err;
   }
@@ -294,8 +263,7 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
         qty,
         unitPrice,
         lineGross: share.shareAmount,
-        vatRateByMenuId: input.vatRateByMenuId,
-        vatRateByBuffetId: input.vatRateByBuffetId,
+        vatRates: input.vatRates,
       });
       if (err) return err;
     }

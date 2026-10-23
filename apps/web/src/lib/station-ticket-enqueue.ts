@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrderItem } from '@/types';
-import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
+import { isMenuCatalogItem, orderItemBatchKey } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
@@ -221,7 +221,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const kitchenLines: { idx: number; item: OrderItem; batch: string }[] = [];
   items.forEach((item, idx) => {
-    if (isBuffetBaseItem(item)) return;
+    if (!isMenuCatalogItem(item)) return;
     const st = normalizeOrderItemStatus(item, orderStatus);
     if (st === 'voided') return;
     if (!isUuid(item.id)) return;

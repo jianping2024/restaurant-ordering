@@ -192,7 +192,8 @@ export interface MenuCategory {
   print_station_id?: string | null;
 }
 
-export type OrderItemKind = 'menu' | 'buffet_base';
+/** `takeaway`: cashier open-price charge added at checkout (sole builder `buildTakeawayChargeItem`). */
+export type OrderItemKind = 'menu' | 'buffet_base' | 'takeaway';
 
 export interface OrderItem {
   id: string;         // menu_item.id, or synthetic e.g. buffet:<uuid>

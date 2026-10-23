@@ -15,6 +15,13 @@ type Props = {
   labels: Labels;
   className?: string;
   defaultOpen?: boolean;
+  /** Staff checkout: × on take-away charge rows removes the line. */
+  takeawayRemove?: {
+    onRemove: (lineId: string) => void;
+    removingLineId: string | null;
+    disabled: boolean;
+    label: string;
+  };
 };
 
 export function CheckoutTableItemsSection({
@@ -23,6 +30,7 @@ export function CheckoutTableItemsSection({
   labels,
   className,
   defaultOpen = false,
+  takeawayRemove,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
@@ -57,6 +65,18 @@ export function CheckoutTableItemsSection({
                 <span className="text-brand-text text-sm font-semibold tabular-nums shrink-0">
                   €{line.lineTotal.toFixed(2)}
                 </span>
+                {takeawayRemove && line.takeawayLineId ? (
+                  <button
+                    type="button"
+                    onClick={() => takeawayRemove.onRemove(line.takeawayLineId!)}
+                    disabled={takeawayRemove.disabled || takeawayRemove.removingLineId != null}
+                    aria-label={takeawayRemove.label}
+                    title={takeawayRemove.label}
+                    className="-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-xl leading-none text-brand-text-muted transition-colors hover:text-red-500 disabled:opacity-30"
+                  >
+                    {takeawayRemove.removingLineId === line.takeawayLineId ? '…' : '×'}
+                  </button>
+                ) : null}
               </div>
             ))}
             <div className="flex items-center justify-between px-3 py-2 bg-brand-border/25 text-sm">

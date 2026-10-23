@@ -1,5 +1,5 @@
 import type { Order, OrderItem, OrderItemStatus } from '@/types';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import {
   effectiveItemStatus,
   isKitchenBoardOpenStatus,
@@ -85,7 +85,7 @@ export function collectStationBoardLines(input: {
     const items = order.items || [];
     for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
       const item = items[itemIndex];
-      if (!item || isBuffetBaseItem(item)) continue;
+      if (!item || !isMenuCatalogItem(item)) continue;
       if (item.print_station_id !== input.printStationId) continue;
       const effectiveStatus = effectiveItemStatus({
         item,

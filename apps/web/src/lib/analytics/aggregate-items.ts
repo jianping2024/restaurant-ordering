@@ -1,5 +1,5 @@
 import { auditMoney } from '@/lib/audit/money';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import type { Order, OrderItem } from '@/types';
 
@@ -15,7 +15,7 @@ export type MenuItemAgg = {
 };
 
 export function isCountableMenuLine(item: OrderItem, orderStatus: Order['status']): boolean {
-  if (isBuffetBaseItem(item)) return false;
+  if (!isMenuCatalogItem(item)) return false;
   if (normalizeOrderItemStatus(item, orderStatus) === 'voided') return false;
   const qty = Number(item.qty) || 0;
   return qty > 0;

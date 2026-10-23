@@ -2,9 +2,8 @@
  * Shared Restaurant load for bill-sync POST enqueue.
  * Sole place that gathers split + session orders + catalog codes/VAT for a bill_split.
  */
-import { buffetIdFromOrderItem } from '@/lib/bill-sync-build-payload';
 import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { loadOrderLineVatRates, type OrderLineVatRates } from '@/lib/order-line-vat';
 import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, SplitPerson } from '@/types';
@@ -17,25 +16,12 @@ export type BillSyncLiveContext = {
   persons: SplitPerson[];
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
-  vatRateByMenuId: Record<string, number>;
-  vatRateByBuffetId: Record<string, number>;
+  vatRates: OrderLineVatRates;
 };
 
 export type LoadBillSyncLiveContextResult =
   | { ok: true; ctx: BillSyncLiveContext }
   | { ok: false; error: string; status: number; message?: string };
-
-function distinctBuffetIdsFromOrders(orders: Order[]): string[] {
-  const ids = new Set<string>();
-  for (const order of orders) {
-    for (const item of order.items ?? []) {
-      if (!isBuffetBaseItem(item)) continue;
-      const id = buffetIdFromOrderItem(item);
-      if (id) ids.add(id);
-    }
-  }
-  return Array.from(ids);
-}
 
 export async function loadBillSyncLiveContext(input: {
   admin: SupabaseClient;
@@ -78,39 +64,19 @@ export async function loadBillSyncLiveContext(input: {
 
   const menuIds = distinctMenuItemIdsFromOrders(orders);
   const itemCodeByMenuId: Record<string, string> = {};
-  const vatRateByMenuId: Record<string, number> = {};
   if (menuIds.length > 0) {
     const { data: menuRows } = await input.admin
       .from('menu_items')
-      .select('id, item_code, vat_rate')
+      .select('id, item_code')
       .eq('restaurant_id', input.restaurantId)
       .in('id', menuIds);
     for (const row of menuRows ?? []) {
-      const id = String(row.id);
       if (typeof row.item_code === 'string' && row.item_code.trim()) {
-        itemCodeByMenuId[id] = row.item_code.trim();
-      }
-      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
-        vatRateByMenuId[id] = row.vat_rate;
+        itemCodeByMenuId[String(row.id)] = row.item_code.trim();
       }
     }
   }
-
-  const buffetIds = distinctBuffetIdsFromOrders(orders);
-  const vatRateByBuffetId: Record<string, number> = {};
-  if (buffetIds.length > 0) {
-    const { data: buffetRows } = await input.admin
-      .from('buffets')
-      .select('id, vat_rate')
-      .eq('restaurant_id', input.restaurantId)
-      .in('id', buffetIds);
-    for (const row of buffetRows ?? []) {
-      const id = String(row.id);
-      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
-        vatRateByBuffetId[id] = row.vat_rate;
-      }
-    }
-  }
+  const vatRates = await loadOrderLineVatRates(input.admin, input.restaurantId, orders);
 
   return {
     ok: true,
@@ -123,8 +89,7 @@ export async function loadBillSyncLiveContext(input: {
       persons: Array.isArray(split.persons) ? (split.persons as SplitPerson[]) : [],
       orders,
       itemCodeByMenuId,
-      vatRateByMenuId,
-      vatRateByBuffetId,
+      vatRates,
     },
   };
 }

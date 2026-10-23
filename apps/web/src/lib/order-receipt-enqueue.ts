@@ -3,7 +3,6 @@ import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import {
   formatBuffetReceiptQtyLabel,
 } from '@/lib/buffet-order';
-import { buffetIdFromOrderItem } from '@/lib/bill-sync-build-payload';
 import {
   formatBillSyncVatRate,
   type BillSyncPaymentLine,
@@ -14,7 +13,12 @@ import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
-import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
+import {
+  EMPTY_ORDER_LINE_VAT_RATES,
+  loadOrderLineVatRates,
+  vatPercentForOrderItem,
+  type OrderLineVatRates,
+} from '@/lib/order-line-vat';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
@@ -96,71 +100,15 @@ function receiptLineFromOrderItem(
   };
 }
 
-function vatRateStringForItem(
-  item: OrderItem,
-  vatRateByMenuId: Record<string, number>,
-  vatRateByBuffetId: Record<string, number>,
-): string | null {
+/** Receipt `vat_rate` string from the sole line IVA lookup; null = unknown. */
+function vatRateStringForItem(item: OrderItem, vatRates: OrderLineVatRates): string | null {
+  const rate = vatPercentForOrderItem(item, vatRates);
+  if (rate == null) return null;
   try {
-    if (isBuffetBaseItem(item)) {
-      const buffetId = buffetIdFromOrderItem(item);
-      if (!buffetId) return null;
-      const rate = vatRateByBuffetId[buffetId];
-      if (typeof rate !== 'number' || !Number.isFinite(rate)) return null;
-      return formatBillSyncVatRate(rate);
-    }
-    if (item.id && typeof vatRateByMenuId[item.id] === 'number') {
-      return formatBillSyncVatRate(vatRateByMenuId[item.id]!);
-    }
+    return formatBillSyncVatRate(rate);
   } catch {
     return null;
   }
-  return null;
-}
-
-async function loadReceiptVatMaps(
-  admin: SupabaseClient,
-  restaurantId: string,
-  orders: Order[],
-): Promise<{
-  vatRateByMenuId: Record<string, number>;
-  vatRateByBuffetId: Record<string, number>;
-}> {
-  const vatRateByMenuId: Record<string, number> = {};
-  const vatRateByBuffetId: Record<string, number> = {};
-  const menuIds = distinctMenuItemIdsFromOrders(orders);
-  if (menuIds.length > 0) {
-    const { data: menuRows } = await admin
-      .from('menu_items')
-      .select('id, vat_rate')
-      .eq('restaurant_id', restaurantId)
-      .in('id', menuIds);
-    for (const row of menuRows ?? []) {
-      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
-        vatRateByMenuId[String(row.id)] = row.vat_rate;
-      }
-    }
-  }
-  const buffetIds = new Set<string>();
-  for (const order of orders) {
-    for (const item of order.items ?? []) {
-      const id = buffetIdFromOrderItem(item);
-      if (id) buffetIds.add(id);
-    }
-  }
-  if (buffetIds.size > 0) {
-    const { data: buffetRows } = await admin
-      .from('buffets')
-      .select('id, vat_rate')
-      .eq('restaurant_id', restaurantId)
-      .in('id', Array.from(buffetIds));
-    for (const row of buffetRows ?? []) {
-      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
-        vatRateByBuffetId[String(row.id)] = row.vat_rate;
-      }
-    }
-  }
-  return { vatRateByMenuId, vatRateByBuffetId };
 }
 
 /** Merge key for billable menu lines (notes ignored). */
@@ -169,8 +117,7 @@ export { billableMenuItemMergeKey as receiptMenuItemMergeKey } from '@/lib/billa
 export function buildReceiptLinesFromOrders(
   orders: Order[],
   locale: PrintLocale = 'pt',
-  vatRateByMenuId: Record<string, number> = {},
-  vatRateByBuffetId: Record<string, number> = {},
+  vatRates: OrderLineVatRates = EMPTY_ORDER_LINE_VAT_RATES,
 ): OrderReceiptJobPayload['lines'] | { error: string } {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
@@ -183,7 +130,7 @@ export function buildReceiptLinesFromOrders(
     const unitPrice = qty > 0 ? amount / qty : 0;
     const item =
       unitPrice === row.item.price ? row.item : { ...row.item, price: unitPrice };
-    const vat_rate = vatRateStringForItem(item, vatRateByMenuId, vatRateByBuffetId);
+    const vat_rate = vatRateStringForItem(item, vatRates);
     if (!vat_rate) return { error: 'missing_vat_rate' };
     lines.push(receiptLineFromOrderItem(item, itemIndex, locale, vat_rate));
   }
@@ -197,8 +144,7 @@ export function buildSplitPersonReceiptLines(
   personIndex: number,
   orders: Order[],
   locale: PrintLocale = 'pt',
-  vatRateByMenuId: Record<string, number> = {},
-  vatRateByBuffetId: Record<string, number> = {},
+  vatRates: OrderLineVatRates = EMPTY_ORDER_LINE_VAT_RATES,
 ): OrderReceiptJobPayload['lines'] | { error: string } {
   const byKey = new Map(
     buildByItemSplitOrderLines(orders).map((line) => [line.key, line]),
@@ -210,7 +156,7 @@ export function buildSplitPersonReceiptLines(
     if (!(row.shareAmount > 0)) continue;
     const catalog = byKey.get(row.key);
     const vat_rate = catalog
-      ? vatRateStringForItem(catalog, vatRateByMenuId, vatRateByBuffetId)
+      ? vatRateStringForItem(catalog, vatRates)
       : null;
     if (!vat_rate) return { error: 'missing_vat_rate' };
     lines.push({
@@ -422,18 +368,9 @@ export async function enqueueReceiptPrint(
   }
 
   const orderRows = orders as Order[];
-  const { vatRateByMenuId, vatRateByBuffetId } = await loadReceiptVatMaps(
-    admin,
-    restaurantId,
-    orderRows,
-  );
+  const vatRates = await loadOrderLineVatRates(admin, restaurantId, orderRows);
 
-  const linesResult = buildReceiptLinesFromOrders(
-    orderRows,
-    locale,
-    vatRateByMenuId,
-    vatRateByBuffetId,
-  );
+  const linesResult = buildReceiptLinesFromOrders(orderRows, locale, vatRates);
   if ('error' in linesResult) {
     return { ok: false, status: 400, code: linesResult.error };
   }
@@ -452,8 +389,7 @@ export async function enqueueReceiptPrint(
       personIndex,
       orderRows,
       locale,
-      vatRateByMenuId,
-      vatRateByBuffetId,
+      vatRates,
     );
     if ('error' in shareLines) {
       return { ok: false, status: 400, code: shareLines.error };

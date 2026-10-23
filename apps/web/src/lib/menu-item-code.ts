@@ -1,3 +1,4 @@
+import { isMenuCatalogItem } from '@/lib/order-items';
 import type { OrderItem } from '@/types';
 
 export function resolveMenuItemCode(
@@ -20,7 +21,7 @@ export function menuItemCodeLookupFromRows(
   return map;
 }
 
-/** Distinct menu line ids on session orders (excludes buffet_base synthetic lines). */
+/** Distinct menu_items ids on session orders (excludes buffet / take-away synthetic lines). */
 export function distinctMenuItemIdsFromOrders(
   orders: Array<{ items?: OrderItem[] }>,
 ): string[] {
@@ -28,7 +29,7 @@ export function distinctMenuItemIdsFromOrders(
     new Set(
       orders.flatMap((order) =>
         (order.items || [])
-          .filter((item) => item.kind !== 'buffet_base')
+          .filter(isMenuCatalogItem)
           .map((item) => item.id),
       ),
     ),

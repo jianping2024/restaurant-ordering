@@ -10,7 +10,7 @@ import {
 } from '@/lib/dish-feedback-reasons';
 import { mineByItemFeedbackOrderKeys } from '@/lib/guest-reviewable-items';
 import { loadIndividualTickets } from '@/lib/individual-checkout-reads';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isMenuCatalogItem } from '@/lib/order-items';
 import type { DishFeedbackVote, Order, SplitPerson } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -63,7 +63,7 @@ function sessionOrderMenuKeys(orders: ReadonlyArray<Order>): {
     const lines = Array.isArray(order.items) ? order.items : [];
     for (const line of lines) {
       if (!line || typeof line !== 'object') continue;
-      if (isBuffetBaseItem(line)) continue;
+      if (!isMenuCatalogItem(line)) continue;
       const fromField = optionalMenuItemIdField(line);
       const fromId = typeof line.id === 'string' ? line.id.trim() : '';
       const menuId =
@@ -258,7 +258,7 @@ export async function submitDishFeedback(params: {
     const fallbackOrderId = typedOrders[0]?.id ?? '';
     const catalogByLineKey = new Map<string, { menuItemId: string; orderId: string }>();
     for (const line of buildByItemSplitOrderLines(typedOrders)) {
-      if (isBuffetBaseItem(line) || line.item_status === 'voided') continue;
+      if (!isMenuCatalogItem(line) || line.item_status === 'voided') continue;
       const key = typeof line.key === 'string' ? line.key.trim() : '';
       if (!key || !isUuid(line.id) || catalogByLineKey.has(key)) continue;
       const orderId =

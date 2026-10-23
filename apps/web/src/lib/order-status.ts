@@ -4,7 +4,7 @@
  */
 
 import type { Order, OrderItem, OrderItemStatus } from '@/types';
-import { isBuffetBaseItem, kitchenRelevantItems } from '@/lib/order-items';
+import { kitchenRelevantItems } from '@/lib/order-items';
 
 export const KITCHEN_ITEM_STATUSES = [
   'pending',
@@ -41,9 +41,8 @@ export function itemsEveryVoided(items: StatusLike[]): boolean {
 export function deriveOrderStatusFromItems(items: OrderItem[]): Order['status'] {
   const kitchen = kitchenRelevantItems(items);
   if (kitchen.length === 0) {
-    if (items.length === 0) return 'pending';
-    if (items.some((i) => isBuffetBaseItem(i))) return 'done';
-    return 'pending';
+    // Only non-kitchen lines (buffet headcount / take-away charge) → nothing to cook.
+    return items.length === 0 ? 'pending' : 'done';
   }
   if (itemsEveryVoided(kitchen)) return 'pending';
   const statuses = kitchen.map((item) => normalizeOrderItemStatus(item, 'pending'));

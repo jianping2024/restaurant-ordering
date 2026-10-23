@@ -33,6 +33,7 @@ import {
   type SushiRoundSettings,
 } from '@/lib/table-order-round/settings';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseTakeawayVatRatePatch, resolveTakeawayVatRate } from '@/lib/checkout-takeaway';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
@@ -52,6 +53,7 @@ function featureSettingsResponse(input: {
   printAgentConfig: unknown;
   orderCooldownSeconds: unknown;
   operationLogRetentionDays: unknown;
+  takeawayVatRate: unknown;
   printLocale: string | null | undefined;
   sushiRoundSettings: SushiRoundSettings;
 }) {
@@ -69,6 +71,7 @@ function featureSettingsResponse(input: {
       ),
     ),
     operationLogRetentionDays: resolveOperationLogRetentionDays(input.operationLogRetentionDays),
+    takeawayVatRate: resolveTakeawayVatRate(input.takeawayVatRate),
     printLocale: normalizePrintLocale(input.printLocale),
     ...sushiRoundSettingsToApiJson(input.sushiRoundSettings),
   };
@@ -136,7 +139,7 @@ export async function GET() {
   const { data, error } = await admin
     .from('restaurants')
     .select(
-      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, ${SUSHI_ROUND_SELECT}`,
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, ${SUSHI_ROUND_SELECT}`,
     )
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
@@ -154,6 +157,7 @@ export async function GET() {
       printAgentConfig: data?.print_agent_config,
       orderCooldownSeconds: data?.order_cooldown_seconds,
       operationLogRetentionDays: data?.operation_log_retention_days,
+      takeawayVatRate: data?.takeaway_vat_rate,
       printLocale: data?.print_locale,
       sushiRoundSettings: parseSushiRoundSettingsFromRestaurantRow(data ?? undefined),
     }),
@@ -175,6 +179,7 @@ export async function PATCH(req: Request) {
   const kitchenReadyAfterMinutes = parseKitchenReadyAfterMinutesPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
   const operationLogRetentionDays = parseOperationLogRetentionDaysPatch(body);
+  const takeawayVatRate = parseTakeawayVatRatePatch(body);
   const printLocale = parsePrintLocalePatch(body);
   const sushiRoundParsed = parseSushiRoundSettingsPatch(body);
   if (!sushiRoundParsed.ok) {
@@ -188,6 +193,7 @@ export async function PATCH(req: Request) {
     hanBitmapFontPx === undefined &&
     orderCooldownSeconds === undefined &&
     operationLogRetentionDays === undefined &&
+    takeawayVatRate === undefined &&
     printLocale === undefined &&
     kitchenReadyAfterMinutes === undefined &&
     !sushiRoundPatch
@@ -212,6 +218,9 @@ export async function PATCH(req: Request) {
   if (printLocale === null) {
     return NextResponse.json({ error: 'invalid_print_locale' }, { status: 400 });
   }
+  if (takeawayVatRate === null) {
+    return NextResponse.json({ error: 'invalid_takeaway_vat_rate' }, { status: 400 });
+  }
   if (kitchenReadyAfterMinutes === null) {
     return NextResponse.json({ error: 'invalid_kitchen_ready_after_minutes' }, { status: 400 });
   }
@@ -227,6 +236,7 @@ export async function PATCH(req: Request) {
     kitchenReadyAfterMinutes !== undefined ||
     orderCooldownSeconds !== undefined ||
     operationLogRetentionDays !== undefined ||
+    takeawayVatRate !== undefined ||
     Boolean(sushiRoundPatch);
 
   const loaded = await loadPrincipalWithCapabilities();
@@ -259,7 +269,7 @@ export async function PATCH(req: Request) {
   const { data: row, error: readError } = await admin
     .from('restaurants')
     .select(
-      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, suspended_at, ${SUSHI_ROUND_SELECT}`,
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, suspended_at, ${SUSHI_ROUND_SELECT}`,
     )
     .eq('id', loaded.principal.restaurantId)
     .maybeSingle();
@@ -306,6 +316,7 @@ export async function PATCH(req: Request) {
     print_agent_config?: unknown;
     order_cooldown_seconds?: number;
     operation_log_retention_days?: number;
+    takeaway_vat_rate?: number;
     print_locale?: 'pt' | 'en' | 'zh';
     sushi_round_ordering_enabled?: boolean;
     sushi_per_person_per_round_cap?: number;
@@ -323,6 +334,9 @@ export async function PATCH(req: Request) {
   }
   if (operationLogRetentionDays !== undefined) {
     updatePayload.operation_log_retention_days = operationLogRetentionDays;
+  }
+  if (takeawayVatRate !== undefined) {
+    updatePayload.takeaway_vat_rate = takeawayVatRate;
   }
   if (printLocale !== undefined && printLocale !== null) {
     updatePayload.print_locale = printLocale;
@@ -381,6 +395,7 @@ export async function PATCH(req: Request) {
       printAgentConfig: nextConfig ?? row?.print_agent_config,
       orderCooldownSeconds: nextOrderCooldownSeconds,
       operationLogRetentionDays: nextOperationLogRetentionDays,
+      takeawayVatRate: takeawayVatRate ?? row?.takeaway_vat_rate,
       printLocale: printLocale ?? row?.print_locale,
       sushiRoundSettings: nextSushiRound,
     }),

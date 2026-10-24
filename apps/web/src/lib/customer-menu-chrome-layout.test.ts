@@ -4,7 +4,6 @@ import {
   CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
   CUSTOMER_MENU_CATEGORY_RAIL_PAGE_HEIGHT_CLASS,
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
-  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
   customerMenuCatalogPaneClass,
@@ -12,9 +11,10 @@ import {
   customerMenuCategoryNavShellPageScrollClass,
   customerMenuCategoryRailClass,
   customerMenuCategoryRailPageScrollClass,
+  customerMenuContentHostClass,
   customerMenuDualPaneRootClass,
-  customerMenuFixedShellDockClass,
   customerMenuNoticeTabShellClass,
+  customerMenuPeerFloatRailClass,
   customerMenuShellRootClass,
 } from './customer-menu-chrome-layout';
 
@@ -30,16 +30,24 @@ describe('customerMenuChromeLayout', () => {
     assert.ok(customerMenuShellRootClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 
-  it('docks fixed overlays to the centered shell', () => {
-    assert.match(customerMenuFixedShellDockClass, /left-1\/2/);
-    assert.match(customerMenuFixedShellDockClass, /-translate-x-1\/2/);
-    assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
-    assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS));
-  });
-
-  it('keeps notice tab below identity header (no top category strip)', () => {
-    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /3\.75rem/);
-    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /6\.5rem/);
+  it('anchors notice + peer-float to content host (not viewport rem top)', () => {
+    assert.match(customerMenuContentHostClass, /relative/);
+    assert.match(customerMenuContentHostClass, /flex-1/);
+    assert.match(customerMenuContentHostClass, /min-h-0/);
+    assert.match(customerMenuContentHostClass, /overflow-hidden/);
+    assert.match(customerMenuNoticeTabShellClass, /absolute/);
+    assert.match(customerMenuNoticeTabShellClass, /inset-x-0/);
+    assert.match(customerMenuNoticeTabShellClass, /top-0/);
+    assert.doesNotMatch(customerMenuNoticeTabShellClass, /fixed/);
+    assert.doesNotMatch(customerMenuNoticeTabShellClass, /3\.75rem|6\.5rem|safe-area/);
+    assert.match(customerMenuPeerFloatRailClass, /absolute/);
+    assert.match(customerMenuPeerFloatRailClass, /inset-x-0/);
+    assert.match(customerMenuPeerFloatRailClass, /top-0/);
+    assert.ok(
+      customerMenuPeerFloatRailClass.includes(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS),
+    );
+    assert.doesNotMatch(customerMenuPeerFloatRailClass, /fixed/);
+    assert.doesNotMatch(customerMenuPeerFloatRailClass, /3\.75rem|6\.5rem|safe-area/);
   });
 
   it('keeps sole left category rail width shared with peer-float dodge', () => {

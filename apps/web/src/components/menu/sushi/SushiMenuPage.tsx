@@ -19,6 +19,7 @@ import {
 } from '@/lib/i18n/sushi-round-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import {
+  customerMenuContentHostClass,
   customerMenuDualPaneRootClass,
   customerMenuShellRootClass,
 } from '@/lib/customer-menu-chrome-layout';
@@ -1132,6 +1133,7 @@ export function SushiMenuPage({
         />
       ) : null}
 
+      <div className={customerMenuContentHostClass}>
       <CustomerMenuStorefrontScroll restaurant={restaurant} lang={lang} enabled={!isDemo}>
       <CustomerMenuCategoryNav
         scrollMode={customerMenuCategoryScrollModeForStorefront(!isDemo, restaurant)}
@@ -1211,6 +1213,30 @@ export function SushiMenuPage({
         )}
       </CustomerMenuCategoryNav>
       </CustomerMenuStorefrontScroll>
+
+      {guestNotice ? (
+        <CustomerGuestOrderingNotice
+          restaurantId={restaurant.id}
+          notice={guestNotice}
+          lang={lang}
+          hidden={hideGuestNoticeChrome}
+        />
+      ) : null}
+
+      <CustomerMenuPeerFloats
+        lines={round.snapshot.lines}
+        guestClientId={round.guestClientId}
+        menuItems={menuItems}
+        lang={lang}
+        enabled={!isDemo && Boolean(round.guestClientId)}
+        tableId={tableId}
+        sessionId={activeSession?.id ?? null}
+        roundSnapshotReady={round.snapshotReady}
+        paidOrdersReady={ordersSnapshotReady}
+        recentOrders={recentOrders}
+        selfBatchIds={selfBatchIds}
+      />
+      </div>
 
       <CustomerMenuFooter
         {...footer}
@@ -1352,20 +1378,6 @@ export function SushiMenuPage({
         confirming={false}
       />
 
-      <CustomerMenuPeerFloats
-        lines={round.snapshot.lines}
-        guestClientId={round.guestClientId}
-        menuItems={menuItems}
-        lang={lang}
-        enabled={!isDemo && Boolean(round.guestClientId)}
-        tableId={tableId}
-        sessionId={activeSession?.id ?? null}
-        roundSnapshotReady={round.snapshotReady}
-        paidOrdersReady={ordersSnapshotReady}
-        recentOrders={recentOrders}
-        selfBatchIds={selfBatchIds}
-      />
-
       <CustomerOrderingIntroModal
         open={introVisible}
         lang={lang}
@@ -1373,15 +1385,6 @@ export function SushiMenuPage({
         onDismiss={dismissIntro}
         showSplitPreview={false}
       />
-
-      {guestNotice ? (
-        <CustomerGuestOrderingNotice
-          restaurantId={restaurant.id}
-          notice={guestNotice}
-          lang={lang}
-          hidden={hideGuestNoticeChrome}
-        />
-      ) : null}
 
       <CustomerTableSessionRealtimeLazy
         tableId={tableId}

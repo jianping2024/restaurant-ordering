@@ -1,10 +1,10 @@
 /**
- * Customer menu shell — shared width budget and fixed overlay coordinates.
+ * Customer menu shell — shared width budget and content-region edge floats.
  * Bottom bar tokens live in customer-menu-bottom-bar-layout.ts; this module
- * covers header trailing slots and edge affordances (guest notice tab).
+ * covers dual-pane chrome + notice/peer-float anchors on the content host.
  *
  * Sole width: phone `max-w-mobile`, `lg+` ~1088px — page root, footer dock,
- * notice tab, and cart/ordered sheets all import this class (no parallel max-w-*).
+ * and cart/ordered sheets all import this class (no parallel max-w-*).
  */
 
 export const CUSTOMER_MENU_SHELL_WIDTH_CLASS =
@@ -12,13 +12,6 @@ export const CUSTOMER_MENU_SHELL_WIDTH_CLASS =
 
 /** Centered mobile shell used by menu page root and fixed overlays. */
 export const customerMenuShellRootClass = `${CUSTOMER_MENU_SHELL_WIDTH_CLASS} mx-auto`;
-
-/**
- * Fixed layer anchored to the centered shell (same X transform as the bottom bar).
- * Pair with CUSTOMER_MENU_SHELL_WIDTH_CLASS on the same element.
- */
-export const customerMenuFixedShellDockClass =
-  'fixed left-1/2 z-20 -translate-x-1/2';
 
 /**
  * Sole left category rail width (guest + staff-assisted + sushi).
@@ -106,17 +99,26 @@ export const CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS =
   'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg px-3 py-2';
 
 /**
- * Guest notice tab vertical offset — below identity header + safe area.
- * Left category rail is beside the catalog (not a sticky top strip); calibrate to
- * compact identity row only. Static string for Tailwind JIT.
+ * Sole guest menu content region under non-scrolling top chrome
+ * (identity header + guests strip / sushi sticky + optional gate banner).
+ * Edge floats (notice tab + peer-float rail) mount inside and use absolute
+ * top-0 of this host — never a viewport rem stack that drifts when chrome grows.
  */
-export const CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS =
-  'top-[calc(env(safe-area-inset-top,0px)+3.75rem)]';
+export const customerMenuContentHostClass =
+  'relative flex min-h-0 flex-1 flex-col overflow-hidden';
 
-/** Full-width shell track for the notice tab; children use pointer-events-auto. */
-export const customerMenuNoticeTabShellClass = [
-  customerMenuFixedShellDockClass,
-  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
-  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
-  'pointer-events-none',
+/**
+ * Sole guest notice tab shell: absolute to {@link customerMenuContentHostClass}
+ * (inset-x + top). Children use pointer-events-auto. Not viewport-fixed.
+ */
+export const customerMenuNoticeTabShellClass =
+  'pointer-events-none absolute inset-x-0 top-0 z-20';
+
+/**
+ * Sole peer-float rail shell: same content-host anchor as the notice tab
+ * (absolute inset-x top-0). Left inset clears the category rail.
+ */
+export const customerMenuPeerFloatRailClass = [
+  'pointer-events-none absolute inset-x-0 top-0 z-40 flex flex-col items-start gap-2',
+  CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
 ].join(' ');

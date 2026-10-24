@@ -2,11 +2,7 @@
 
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
-import {
-  CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
-  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
-  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
-} from '@/lib/customer-menu-chrome-layout';
+import { customerMenuPeerFloatRailClass } from '@/lib/customer-menu-chrome-layout';
 import { isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import {
   mintPaidPeerFloatBaselineAtMs,
@@ -38,21 +34,6 @@ const MAX_VISIBLE = 4;
 export const PEER_FLOAT_HOLD_MS = 10_000;
 /** Sole peer-float CSS fade-out duration; keep in sync with `duration-300` on bubbles. */
 export const PEER_FLOAT_FADE_MS = 300;
-
-/**
- * Sole peer-float rail: centered menu shell, left-inset by the category rail
- * (dodge sole `CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS` — bubbles sit on the
- * catalog column, not over left category labels).
- * Top under identity header; chronological flex-col (older above).
- * Same X dock as `customerMenuFixedShellDockClass` but z-40 (floats above chrome).
- * Never viewport `left-*` alone — that drifts from the menu on lg+.
- */
-export const customerMenuPeerFloatRailClass = [
-  'pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 flex flex-col items-start gap-2',
-  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
-  CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
-  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
-].join(' ');
 
 /** Sole bubble chrome: opacity fade (Toast-style); duration matches PEER_FLOAT_FADE_MS. */
 export const customerMenuPeerFloatBubbleClass = (fading: boolean) =>

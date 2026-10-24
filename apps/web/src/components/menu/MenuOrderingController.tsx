@@ -20,6 +20,7 @@ import {
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import {
+  customerMenuContentHostClass,
   customerMenuDualPaneRootClass,
   customerMenuShellRootClass,
 } from '@/lib/customer-menu-chrome-layout';
@@ -974,6 +975,7 @@ export function MenuOrderingController({
         />
       ) : null}
 
+      <div className={customerMenuContentHostClass}>
       <CustomerMenuStorefrontScroll
         restaurant={restaurant}
         lang={lang}
@@ -1052,6 +1054,31 @@ export function MenuOrderingController({
         )}
       </CustomerMenuCategoryNav>
       </CustomerMenuStorefrontScroll>
+
+      {guestNotice ? (
+        <CustomerGuestOrderingNotice
+          restaurantId={restaurant.id}
+          notice={guestNotice}
+          lang={lang}
+          hidden={hideGuestNoticeChrome}
+        />
+      ) : null}
+
+      <CustomerMenuPeerFloats
+        lines={[]}
+        guestClientId={individualHold.guestClientId ?? ''}
+        menuItems={menuItems}
+        lang={lang}
+        enabled={!isDemo && !staffAssisted && Boolean(individualHold.guestClientId)}
+        tableId={tableId}
+        sessionId={activeSession?.id ?? null}
+        roundSnapshotReady
+        paidOrdersReady={ordersSnapshotReady}
+        recentOrders={recentOrders}
+        selfBatchIds={selfBatchIds}
+        includeZeroPriceOrderLines
+      />
+      </div>
 
       <CustomerMenuFooter
         {...footer}
@@ -1146,30 +1173,6 @@ export function MenuOrderingController({
         lang={lang}
         copy={introCopy}
         onDismiss={dismissIntro}
-      />
-
-      {guestNotice ? (
-        <CustomerGuestOrderingNotice
-          restaurantId={restaurant.id}
-          notice={guestNotice}
-          lang={lang}
-          hidden={hideGuestNoticeChrome}
-        />
-      ) : null}
-
-      <CustomerMenuPeerFloats
-        lines={[]}
-        guestClientId={individualHold.guestClientId ?? ''}
-        menuItems={menuItems}
-        lang={lang}
-        enabled={!isDemo && !staffAssisted && Boolean(individualHold.guestClientId)}
-        tableId={tableId}
-        sessionId={activeSession?.id ?? null}
-        roundSnapshotReady
-        paidOrdersReady={ordersSnapshotReady}
-        recentOrders={recentOrders}
-        selfBatchIds={selfBatchIds}
-        includeZeroPriceOrderLines
       />
 
       <CustomerTableSessionRealtimeLazy

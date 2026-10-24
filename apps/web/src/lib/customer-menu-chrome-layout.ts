@@ -81,10 +81,13 @@ export const customerMenuCatalogPaneClass =
 
 /**
  * Page-scroll mode: catalog is document flow inside the outer storefront scroll
- * (no nested overflow-y). Same pad / before spacer as the pane scrollport.
+ * (no nested overflow). Do not put `overflow-x-hidden` here — CSS would compute
+ * overflow-y to auto and trap vertical gestures away from the storefront scrollport.
+ * Horizontal clip lives only on `[data-mesa-storefront-menu-scroll]`.
+ * Same pad / before spacer as the pane scrollport.
  */
 export const customerMenuCatalogPanePageScrollClass =
-  "min-w-0 flex-1 overflow-x-hidden px-3 pb-8 before:block before:h-4 before:content-['']";
+  "min-w-0 flex-1 px-3 pb-8 before:block before:h-4 before:content-['']";
 
 /**
  * Sole subcategory chip strip sticky chrome (right catalog pane only).

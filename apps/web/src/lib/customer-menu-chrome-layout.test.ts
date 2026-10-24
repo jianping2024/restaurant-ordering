@@ -7,6 +7,7 @@ import {
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
   customerMenuCatalogPaneClass,
+  customerMenuCatalogPanePageScrollClass,
   customerMenuCategoryNavShellClass,
   customerMenuCategoryNavShellPageScrollClass,
   customerMenuCategoryRailClass,
@@ -91,5 +92,11 @@ describe('customerMenuChromeLayout', () => {
     assert.doesNotMatch(customerMenuCategoryRailPageScrollClass, /h-\[calc/);
     assert.match(customerMenuCategoryRailPageScrollClass, /overflow-y-auto/);
     assert.match(customerMenuCategoryRailPageScrollClass, /sticky/);
+  });
+
+  it('page-scroll catalog is not a scrollport (overflow stays on storefront only)', () => {
+    assert.doesNotMatch(customerMenuCatalogPanePageScrollClass, /overflow-/);
+    assert.match(customerMenuCatalogPaneClass, /overflow-x-hidden/);
+    assert.match(customerMenuCatalogPaneClass, /overflow-y-auto/);
   });
 });

@@ -319,7 +319,7 @@ sole `formatCustomerMenuTableGuestsLabel` + `MENU_PAGE_MESSAGES.tableGuestsCap` 
 
 ### Customer menu category chrome
 
-sole `CustomerMenuCategoryNav` dual-pane (`customerMenuDualPaneRootClass` + nav shell `customerMenuCategoryNavShellClass`=`min-w-0 w-full overflow-hidden` + `customerMenuCategoryRailClass` / catalog `overflow-x-hidden`+`overscroll-y-contain`); guest page and staff embedded share one independent left/right scroll — never page sticky nested rail chained to document scroll; never omit nav-shell width containment (false 2-col / clipped list +).
+sole `CustomerMenuCategoryNav` dual-pane (`customerMenuDualPaneRootClass` + nav shell `customerMenuCategoryNavShellClass`=`min-w-0 w-full overflow-hidden` + `customerMenuCategoryRailClass` / catalog `overflow-x-hidden`+`overscroll-y-contain`); page-scroll catalog sole `customerMenuCatalogPanePageScrollClass` has **no** overflow (vertical scroll + horizontal clip only on storefront `[data-mesa-storefront-menu-scroll]` — never `overflow-x-hidden` on the catalog or CSS will trap gestures); guest page and staff embedded share one independent left/right scroll in pane mode — never page sticky nested rail chained to document scroll; never omit nav-shell width containment (false 2-col / clipped list +).
 
 ### Guest menu bottom sheet height
 

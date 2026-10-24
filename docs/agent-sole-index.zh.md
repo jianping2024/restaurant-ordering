@@ -381,7 +381,7 @@ sole `sortBillableSessionItemsForWaiterDetail` (buffet headcount first, then on-
 
 ### Waiter detail ordered row
 
-sole `WaiterTableOrderedItemsPanel` + `waiterDetailLayout` receipt grid: code `5ch` (as stored, no zero-pad) · name+leader `1fr` · mid auto (`€`/`unitPrice` + status + qty + serve/minus) · balance `1fr` (mid near center); never a parallel `orderedItemIdentity` or far-right-only qty column. Buffet headcount sole `buffetOrderedTitle` via `formatWaiterOrderedBuffetTitle` on the section title row — never a buffet_base row inside `orderLines`.
+sole `WaiterTableOrderedItemsPanel` + `waiterDetailLayout` receipt grid: code `5ch` (as stored, no zero-pad) · name+leader `1fr` · mid auto (`€`/`unitPrice` + status + qty + serve/minus); below `sm` three cols mid flush right (no balance); `sm+` balance `1fr` mid near center; never a parallel `orderedItemIdentity` or far-right-only qty column. Buffet headcount sole `buffetOrderedTitle` via `formatWaiterOrderedBuffetTitle` on the section title row — never a buffet_base row inside `orderLines`.
 
 ### Kitchen board row swipe prep
 

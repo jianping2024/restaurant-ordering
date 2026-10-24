@@ -89,20 +89,21 @@ export const waiterDetailLayout = {
   orderedItemsPreBillAction: 'shrink-0 whitespace-nowrap',
   /**
    * One dish = one horizontal receipt row (unique shape):
-   * grid [code 5ch | name+dots 1fr | mid auto | balance 1fr] so mid sits near screen center.
+   * Narrow (below sm): [code 5ch | name+dots 1fr | mid auto] — mid flush right (more room for name).
+   * sm+: [code | name+dots 1fr | mid auto | balance 1fr] — mid near center (unchanged desktop).
    * Code is fixed `w-[5ch]` (display as stored, no zero-pad); name truncates; leader fills to mid.
    * Unit price is sole `orderedItemUnitPrice` from `WaiterOrderLine.unitPrice` (not in label).
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
    */
   orderedItemRow:
-    'grid max-w-full min-w-0 grid-cols-[5ch_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1.5',
+    'grid max-w-full min-w-0 grid-cols-[5ch_minmax(0,1fr)_auto] items-center gap-x-1.5 sm:grid-cols-[5ch_minmax(0,1fr)_auto_minmax(0,1fr)]',
   orderedItemCode: `col-start-1 w-[5ch] text-left ${waiterFloorType.listCode}`,
   orderedItemNameLeader: 'col-start-2 flex min-w-0 items-baseline gap-1.5',
   orderedItemLabel: waiterFloorType.listBodyTruncate,
   orderedItemLeader:
     'min-w-[0.75rem] flex-1 translate-y-[-0.35em] border-b border-dotted border-brand-border/70',
   orderedItemMid: 'col-start-3 flex shrink-0 items-center gap-2',
-  orderedItemBalance: 'col-start-4 min-w-0',
+  orderedItemBalance: 'col-start-4 hidden min-w-0 sm:block',
   orderedItemUnitPrice:
     'shrink-0 text-lg font-semibold tabular-nums text-brand-gold leading-snug',
   orderedItemStatus:

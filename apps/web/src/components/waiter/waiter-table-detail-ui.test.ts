@@ -95,9 +95,16 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
 
-test('ordered-item row is receipt midline grid (code · name+dots · mid · balance)', () => {
+test('ordered-item row is receipt grid (narrow mid-right; sm+ mid+balance center)', () => {
   assert.match(waiterDetailLayout.orderedItemRow, /grid/);
-  assert.match(waiterDetailLayout.orderedItemRow, /grid-cols-\[5ch_minmax\(0,1fr\)_auto_minmax\(0,1fr\)\]/);
+  assert.match(
+    waiterDetailLayout.orderedItemRow,
+    /grid-cols-\[5ch_minmax\(0,1fr\)_auto\]/,
+  );
+  assert.match(
+    waiterDetailLayout.orderedItemRow,
+    /sm:grid-cols-\[5ch_minmax\(0,1fr\)_auto_minmax\(0,1fr\)\]/,
+  );
   assert.match(waiterDetailLayout.orderedItemRow, /items-center/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /justify-between/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /gap-8/);
@@ -111,6 +118,8 @@ test('ordered-item row is receipt midline grid (code · name+dots · mid · bala
   assert.match(waiterDetailLayout.orderedItemLeader, /border-dotted/);
   assert.match(waiterDetailLayout.orderedItemMid, /col-start-3/);
   assert.match(waiterDetailLayout.orderedItemBalance, /col-start-4/);
+  assert.match(waiterDetailLayout.orderedItemBalance, /hidden/);
+  assert.match(waiterDetailLayout.orderedItemBalance, /sm:block/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /text-brand-gold/);
   assert.match(waiterDetailLayout.orderedItemUnitPrice, /tabular-nums/);

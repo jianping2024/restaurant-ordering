@@ -9,6 +9,12 @@ let savedHtmlOverflow = '';
 export const MENU_SCROLLPORT_SELECTOR =
   '[data-mesa-storefront-menu-scroll], [data-mesa-menu-catalog-pane]';
 
+/**
+ * Sole skip rule: menu scrollports already inside an open modal dialog must keep
+ * scrolling (staff continue-order {@link RightPushPanel}). Never freeze those.
+ */
+export const MENU_SCROLLPORT_LOCK_SKIP_CLOSEST = '[role="dialog"][aria-modal="true"]';
+
 type SavedMenuScrollport = {
   el: HTMLElement;
   scrollTop: number;
@@ -17,9 +23,14 @@ type SavedMenuScrollport = {
 
 let savedMenuScrollports: SavedMenuScrollport[] = [];
 
+function shouldFreezeMenuScrollport(el: HTMLElement): boolean {
+  return !el.closest(MENU_SCROLLPORT_LOCK_SKIP_CLOSEST);
+}
+
 function freezeMenuScrollports(): void {
   savedMenuScrollports = [];
   document.querySelectorAll<HTMLElement>(MENU_SCROLLPORT_SELECTOR).forEach((el) => {
+    if (!shouldFreezeMenuScrollport(el)) return;
     const scrollTop = el.scrollTop;
     savedMenuScrollports.push({
       el,

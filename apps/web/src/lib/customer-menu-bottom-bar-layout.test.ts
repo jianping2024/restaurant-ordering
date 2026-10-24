@@ -163,8 +163,10 @@ describe('one representation — customer menu bottom inset + badge', () => {
       /function OrderedSummary[\s\S]*?<FooterIconSlot[\s\S]*?count=\{submittedCount\}[\s\S]*?<FooterAmount/,
     );
 
-    const sheet = readFileSync(join(webSrc, 'components/menu/CustomerMenuBottomSheet.tsx'), 'utf8');
-    assert.match(sheet, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
+    const sheetLayout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-sheet-layout.ts'), 'utf8');
+    assert.match(sheetLayout, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
+    assert.match(sheetLayout, /max-h-\[100dvh\]/);
+    assert.doesNotMatch(sheetLayout, /max-h-\[60vh\]/);
 
     // Detail footer needs 1rem + safe (cannot stack two pb-*); still sole CSS var.
     const detail = readFileSync(join(webSrc, 'lib/customer-menu-item-detail-layout.ts'), 'utf8');

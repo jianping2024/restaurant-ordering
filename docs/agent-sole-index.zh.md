@@ -317,6 +317,10 @@ sole `formatCustomerMenuTableGuestsLabel` + `MENU_PAGE_MESSAGES.tableGuestsCap` 
 
 sole `CustomerMenuCategoryNav` dual-pane (`customerMenuDualPaneRootClass` + nav shell `customerMenuCategoryNavShellClass`=`min-w-0 w-full overflow-hidden` + `customerMenuCategoryRailClass` / catalog `overflow-x-hidden`+`overscroll-y-contain`); guest page and staff embedded share one independent left/right scroll — never page sticky nested rail chained to document scroll; never omit nav-shell width containment (false 2-col / clipped list +).
 
+### Guest menu overlay scroll lock
+
+sole `lockBodyScroll` / `useBodyScrollLock` freezes + restores guest menu scrollports (`MENU_SCROLLPORT_SELECTOR` = storefront `[data-mesa-storefront-menu-scroll]` + catalog `[data-mesa-menu-catalog-pane]`) with body/html overflow — never a CartDrawer-only scroll restore beside that lock.
+
 ### Cart line remove + clear
 
 sole trash `RowRemoveIconButton` (cart + by-item/buffet shares); sole empty+close `clearSubmitCart`; cart header clear via `CustomerMenuBottomSheet` `headerActions` + `ConfirmModal` danger; remove-last/clear closes drawer; submit locks −/+ / trash / clear — never a second cart trash or parallel clear helper beside `clearSubmitCart`.

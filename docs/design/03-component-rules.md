@@ -38,7 +38,7 @@
 - 链接形态用 `ButtonLink`，保持与 button 同形；外链主操作复用 `buttonClasses({ variant:'gold' })`，禁止另写一套 `bg-brand-gold` 主钮
 - 主操作脸唯一：`Button` / `ButtonLink` / `buttonClasses` 的 `variant="gold"`（靛青墨面 + **强**浮雕底板 + 按下内凹）。结账「收款」也走这套（`size="action"`），金额旁置，不用绿底、不手写 `bg-brand-gold … py-1.5`
 - **按下浮雕唯一**：`components/ui/button-press-relief.ts` — `buttonPressReliefStrongClass`（仅 `gold`）/ `buttonPressReliefSoftClass`（`outline`·`ghost`·`danger`·`soft`·`close` + 按菜池子 CTA）/ `buttonPressReliefCompactClass`（人选 chip、垃圾桶等图标钮）。禁止在业务页再抄一份 shadow / `active:translate-y`
-- **按钮文案不可选中**：原生 `button` / `[role="button"]` 唯一写在 `globals.css`；链接形态钮靠 `buttonClasses` 基类禁选。禁止在业务页再逐个加禁选类当按钮禁选
+- **全站文案不可选中**：唯一写在各自应用 `globals.css` 的 `@layer base`（`html` 禁选；`input` / `textarea` / `select` / `[contenteditable]` 恢复可选）。禁止在业务页再散写第二套禁选政策；局部 `select-none` 不替代全局规则
 - `mesa-badge-success` 只用于**状态徽章**（已付等），不是按钮
 - 下拉菜单内**主操作**（如同行组「创建」）用 `Button` `gold`/`sm`，固定在菜单顶区；选项列表保持普通 `menuitem` 行，二者不要画成同一种 list row
 

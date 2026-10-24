@@ -35,28 +35,29 @@ function assertNoSkyPalette(className: string) {
 }
 
 describe('waiter-board-card-theme theme tokens', () => {
-  it('floor interactive chrome disables long-press text selection in globals only', () => {
+  it('app-wide text selection ban lives once under @layer base in globals', () => {
     const globals = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), '../app/globals.css'),
       'utf8',
     );
     assert.match(
       globals,
-      /\.mesa-scroll-frame,\s*\n\s*\.mesa-stat\s*\{[\s\S]*?user-select:\s*none/,
+      /@layer base\s*\{[\s\S]*?html\s*\{[\s\S]*?user-select:\s*none[\s\S]*?-webkit-touch-callout:\s*none/,
+    );
+    assert.match(
+      globals,
+      /input,\s*\n\s*textarea,\s*\n\s*select,\s*\n\s*\[contenteditable='true'\]\s*\{[\s\S]*?user-select:\s*text/,
+    );
+    // Selection policy must not be restated on button / floor chrome.
+    assert.doesNotMatch(
+      globals,
+      /button,\s*\n\s*\[role='button'\]\s*\{[\s\S]*?user-select:/,
+    );
+    assert.doesNotMatch(
+      globals,
+      /\.mesa-scroll-frame,\s*\n\s*\.mesa-stat\s*\{[\s\S]*?user-select:/,
     );
     assert.doesNotMatch(globals, /WaiterBoardTableCard/);
-    assert.doesNotMatch(globals, /\bselect-none\b/);
-  });
-
-  it('button tap chrome disables long-press text selection in globals only', () => {
-    const globals = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '../app/globals.css'),
-      'utf8',
-    );
-    assert.match(
-      globals,
-      /button,\s*\n\s*\[role='button'\]\s*\{[\s\S]*?user-select:\s*none[\s\S]*?-webkit-touch-callout:\s*none/,
-    );
     assert.doesNotMatch(globals, /\bselect-none\b/);
   });
 

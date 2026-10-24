@@ -3,15 +3,28 @@
 @tailwind utilities;
 
 /**
- * Sole button tap chrome — native `button` + `[role="button"]`.
- * Blocks long-press text selection / iOS callout; inputs stay selectable.
+ * Sole app-wide text selection policy — one place in this file.
+ * Page chrome / copy: no long-press select or iOS callout.
+ * Editable fields only: restore text selection so login / search still work.
  */
 @layer base {
-  button,
-  [role='button'] {
+  html {
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [contenteditable='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  button,
+  [role='button'] {
     touch-action: manipulation;
   }
 }

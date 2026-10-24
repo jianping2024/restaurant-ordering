@@ -3,6 +3,7 @@ import { describe, it, beforeEach } from 'node:test';
 import {
   bodyScrollLockCountForTest,
   lockBodyScroll,
+  MENU_SCROLLPORT_LOCK_SKIP_CLOSEST,
   MENU_SCROLLPORT_SELECTOR,
   resetBodyScrollLock,
   savedMenuScrollportCountForTest,
@@ -10,8 +11,15 @@ import {
 
 type StyleBag = { overflow: string };
 
-function makeScrollEl(scrollTop: number, attrs: Record<string, string> = {}): HTMLElement {
+function makeScrollEl(
+  scrollTop: number,
+  attrs: Record<string, string> = {},
+  opts: { insideModalDialog?: boolean } = {},
+): HTMLElement {
   const style: StyleBag = { overflow: '' };
+  const dialogHost = opts.insideModalDialog
+    ? ({ getAttribute: () => 'dialog' } as unknown as Element)
+    : null;
   const el = {
     scrollTop,
     style,
@@ -21,6 +29,10 @@ function makeScrollEl(scrollTop: number, attrs: Record<string, string> = {}): HT
     },
     hasAttribute(name: string) {
       return name in attrs;
+    },
+    closest(selector: string) {
+      if (selector === MENU_SCROLLPORT_LOCK_SKIP_CLOSEST && dialogHost) return dialogHost;
+      return null;
     },
   };
   return el as unknown as HTMLElement;
@@ -127,5 +139,21 @@ describe('body-scroll-lock', () => {
     assert.equal(storefront.scrollTop, 200);
     assert.equal(storefront.style.overflow, '');
     assert.equal(savedMenuScrollportCountForTest(), 0);
+  });
+
+  it('does not freeze catalog scrollports inside an open modal dialog', () => {
+    const background = makeScrollEl(40, { 'data-mesa-menu-catalog-pane': '' });
+    const insideDialog = makeScrollEl(90, { 'data-mesa-menu-catalog-pane': '' }, {
+      insideModalDialog: true,
+    });
+    installDocumentStub([background, insideDialog]);
+    const release = lockBodyScroll();
+    assert.equal(savedMenuScrollportCountForTest(), 1);
+    assert.equal(background.style.overflow, 'hidden');
+    assert.equal(insideDialog.style.overflow, '');
+    assert.equal(insideDialog.scrollTop, 90);
+    release();
+    assert.equal(background.style.overflow, '');
+    assert.equal(insideDialog.style.overflow, '');
   });
 });

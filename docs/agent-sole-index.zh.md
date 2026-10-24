@@ -327,7 +327,7 @@ sole `customer-menu-bottom-sheet-layout` (`max-h-[100dvh]` flex panel + `custome
 
 ### Guest menu overlay scroll lock
 
-sole `lockBodyScroll` / `useBodyScrollLock` freezes + restores guest menu scrollports (`MENU_SCROLLPORT_SELECTOR` = storefront `[data-mesa-storefront-menu-scroll]` + catalog `[data-mesa-menu-catalog-pane]`) with body/html overflow — never a CartDrawer-only scroll restore beside that lock.
+sole `lockBodyScroll` / `useBodyScrollLock` freezes + restores guest menu scrollports (`MENU_SCROLLPORT_SELECTOR` = storefront `[data-mesa-storefront-menu-scroll]` + catalog `[data-mesa-menu-catalog-pane]`) with body/html overflow; sole skip `MENU_SCROLLPORT_LOCK_SKIP_CLOSEST` = open `[role=dialog][aria-modal=true]` so staff continue-order catalog stays scrollable — never freeze dialog-owned scrollports, never a CartDrawer-only scroll restore beside that lock.
 
 ### Cart line remove + clear
 

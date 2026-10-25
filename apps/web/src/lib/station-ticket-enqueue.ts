@@ -22,6 +22,7 @@ import {
   guestCountFromTableOrders,
   stationTicketOrderTimeIso,
 } from '@/lib/table-guest-count';
+import { stationTicketAlreadyEnqueuedForBatch } from '@/lib/station-ticket-enqueue-dedupe';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -80,19 +81,6 @@ export type StationTicketJobPayload = {
     category_group_header: string;
   }>;
 };
-
-function stationTicketPayloadMatch(
-  p: Record<string, unknown>,
-  orderId: string,
-  batchId: string,
-  printStationId: string,
-): boolean {
-  return (
-    p.order_id === orderId &&
-    p.batch_id === batchId &&
-    p.print_station_id === printStationId
-  );
-}
 
 export type RestaurantEnqueueRow = {
   id: string;
@@ -359,16 +347,12 @@ export async function enqueueStationTicketsForOrder(params: {
   );
   const orderTime = formatStationTicketOrderTime(orderTimeIso);
 
-  const hasPendingDuplicate = (printStationId: string) =>
-    (existingJobs || []).some(
-      (j) =>
-        ['pending', 'processing'].includes((j as { status: string }).status) &&
-        stationTicketPayloadMatch(
-          (j as { payload: Record<string, unknown> }).payload,
-          orderId,
-          batchId,
-          printStationId,
-        ),
+  const hasExistingTicket = (printStationId: string) =>
+    stationTicketAlreadyEnqueuedForBatch(
+      (existingJobs || []) as Array<{ payload: unknown }>,
+      orderId,
+      batchId,
+      printStationId,
     );
 
   const { data: stations, error: sErr } = await admin
@@ -407,7 +391,7 @@ export async function enqueueStationTicketsForOrder(params: {
   const stationNames: string[] = [];
 
   for (const sid of autoStationIds) {
-    if (hasPendingDuplicate(sid)) {
+    if (hasExistingTicket(sid)) {
       skipped_duplicates += 1;
       continue;
     }

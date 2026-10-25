@@ -289,6 +289,10 @@ sole chrome `mesaSelectionChipStrongClass`/`mesaSelectionChipSoftClass` + `mesaS
 
 sole dictionary is `menu_note_preset_groups` + `menu_note_presets` (seed via SQL `seed_default_menu_note_presets`); dish sole link `note_preset_group_ids` (groups only); guest chips via catalog + `toggleCartNotePresetSelection` / `composeCartLineNote` (one pick per group) — never hardcode `NOTE_PRESETS` / `note-presets.ts`, never dish-level preset-id checkboxes beside group ids.
 
+### Sushi round finalize append intent
+
+sole `resolveRoundAppendClientRequestId` (conditional mint of `append_client_request_id`) + append idempotency on that id; station-ticket replay skip sole `stationTicketAlreadyEnqueuedForBatch` (any status) — never parallel per-phone mint that double-appends / double-prints.
+
 ### Sushi roundReview cart badge
 
 sole `round.ownReviewQty` → footer `roundOwnQty` (本机本轮份数);整桌 `tableReviewQty`/`lines_qty_total` only sticky + round review UI — never wire `tableReviewQty` to cart icon badge.

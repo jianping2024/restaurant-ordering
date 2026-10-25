@@ -31,6 +31,7 @@ import type {
 } from '@/lib/table-order-round/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import type { RoundLineQtyMode } from '@/lib/table-order-round/round-line-identity';
+import { resolveRoundAppendClientRequestId } from '@/lib/table-order-round/round-append-intent';
 import { sessionGuestCountForLimits } from '@/lib/sushi-buffet-limits';
 import type { OrderItem } from '@/types';
 import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
@@ -604,13 +605,12 @@ export async function finalizeRound(params: {
     return { ok: false, status: 400, error: 'round_empty' };
   }
 
-  const clientRequestId = round.append_client_request_id || randomUUID();
-  if (!round.append_client_request_id) {
-    await admin
-      .from('table_order_rounds')
-      .update({ append_client_request_id: clientRequestId, updated_at: new Date().toISOString() })
-      .eq('id', round.id);
-  }
+  // One finalize intent per round — concurrent phones/GET settle must share this id.
+  const clientRequestId = await resolveRoundAppendClientRequestId({
+    admin,
+    roundId: round.id,
+    existingId: round.append_client_request_id,
+  });
 
   const rawItems = aggregateRoundLinesForAppend(lines);
 
@@ -663,7 +663,7 @@ export async function finalizeRound(params: {
       .eq('id', round.id)
       .in('status', ['pending_confirm', 'finalize_failed', 'cooldown']);
 
-    // Replay may follow a prior write that never printed; pending/processing dedupe skips dupes.
+    // Replay may follow a prior write that never printed; any-status batch dedupe skips dupes.
     await enqueueStationTicketsAfterRoundFinalize({
       admin,
       restaurantId,

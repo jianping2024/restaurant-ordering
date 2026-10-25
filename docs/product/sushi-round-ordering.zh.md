@@ -117,7 +117,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | `submit_request_id` | uuid；本轮送厨意图 id（同桌提示去重用） |
 | `submit_requested_at`, `submit_deadline_at` | 进入 pending_confirm 时写入 |
 | `cooldown_until` | cooldown 结束时间 |
-| `append_client_request_id` | finalize 成功后写入；append 幂等 |
+| `append_client_request_id` | 本轮送厨 **唯一** append 意图 id；条件写入领取（多机 finalize 共用），再作 append 幂等键 |
 | `created_at`, `updated_at` | |
 
 ### 6.2 `table_order_round_lines`
@@ -201,7 +201,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 ## 11. 安全与并发（硬门禁）
 
-1. **finalize 幂等**：`UPDATE … WHERE status='pending_confirm'` 仅一行成功；append 用固定 `append_client_request_id`
+1. **finalize 幂等**：`append_client_request_id` 条件更新领取（sole `resolveRoundAppendClientRequestId`）→ 全桌共用同一幂等键；append 成功后 round → `cooldown`；replay 入队时若该 `order_id+batch_id+档口` 已有任意状态 `station_ticket` 则跳过（sole `stationTicketAlreadyEnqueuedForBatch`）——**禁止**多机到点打出两张相同出品联
 2. **append 失败**：round 保持 `pending_confirm` 或转 `finalize_failed` 可重试态；**禁止**重复送厨成功
 3. **finalize_failed 锁篮**：仅失败态拒绝 lines 写；`pending_confirm` 倒计时中仍可改篮
 4. **改人数**：送厨确认进行中 **不更新** `guest_count_snapshot`；collecting 阶段上限随 live 人数变

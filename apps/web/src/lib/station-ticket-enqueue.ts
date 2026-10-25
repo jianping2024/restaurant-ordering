@@ -81,17 +81,24 @@ export type StationTicketJobPayload = {
   }>;
 };
 
-function stationTicketPayloadMatch(
-  p: Record<string, unknown>,
-  orderId: string,
-  batchId: string,
-  printStationId: string,
-): boolean {
-  return (
-    p.order_id === orderId &&
-    p.batch_id === batchId &&
-    p.print_station_id === printStationId
-  );
+/**
+ * Sole station_ticket insert. DB unique (restaurant, order, batch, station) is the
+ * only dedupe guard — a concurrent or replayed enqueue of the same batch gets `duplicate`.
+ */
+export async function insertStationTicketJob(
+  admin: SupabaseClient,
+  restaurantId: string,
+  payload: StationTicketJobPayload,
+): Promise<{ ok: true; duplicate: boolean } | { ok: false; message: string }> {
+  const { error } = await admin.from('print_jobs').insert({
+    restaurant_id: restaurantId,
+    type: 'station_ticket',
+    payload,
+    status: 'pending',
+  });
+  if (!error) return { ok: true, duplicate: false };
+  if (error.code === '23505') return { ok: true, duplicate: true };
+  return { ok: false, message: error.message };
 }
 
 export type RestaurantEnqueueRow = {
@@ -241,23 +248,16 @@ export async function enqueueStationTicketsForOrder(params: {
 
   let menuRows: unknown[] | null;
   let categoryList: Array<MenuCategoryForStationTicket & { print_station_id: string | null }>;
-  let existingJobs: unknown[] | null;
   let guestCount: number;
 
   try {
-    const [menuResult, categories, jobsResult, guestCountResult] = await Promise.all([
+    const [menuResult, categories, guestCountResult] = await Promise.all([
       admin
         .from('menu_items')
         .select('id, category_id, print_station_id, item_code')
         .eq('restaurant_id', restaurantId)
         .in('id', menuIds),
       loadMenuCategoriesForEnqueue(restaurantId),
-      admin
-        .from('print_jobs')
-        .select('status, payload')
-        .eq('restaurant_id', restaurantId)
-        .eq('type', 'station_ticket')
-        .contains('payload', { order_id: orderId, batch_id: batchId }),
       resolveGuestCountForStationTicket(admin, restaurantId, {
         status: order.status as string,
         items,
@@ -276,18 +276,9 @@ export async function enqueueStationTicketsForOrder(params: {
         message: menuResult.error.message,
       };
     }
-    if (jobsResult.error) {
-      return {
-        ok: false,
-        status: 500,
-        code: 'jobs_lookup_failed',
-        message: jobsResult.error.message,
-      };
-    }
 
     menuRows = menuResult.data;
     categoryList = categories;
-    existingJobs = jobsResult.data;
     guestCount = guestCountResult;
   } catch (e) {
     const message = e instanceof Error ? e.message : 'enqueue_lookup_failed';
@@ -359,18 +350,6 @@ export async function enqueueStationTicketsForOrder(params: {
   );
   const orderTime = formatStationTicketOrderTime(orderTimeIso);
 
-  const hasPendingDuplicate = (printStationId: string) =>
-    (existingJobs || []).some(
-      (j) =>
-        ['pending', 'processing'].includes((j as { status: string }).status) &&
-        stationTicketPayloadMatch(
-          (j as { payload: Record<string, unknown> }).payload,
-          orderId,
-          batchId,
-          printStationId,
-        ),
-    );
-
   const { data: stations, error: sErr } = await admin
     .from('print_stations')
     .select('id, name_pt, name_en, name_zh, kitchen_enabled')
@@ -407,11 +386,6 @@ export async function enqueueStationTicketsForOrder(params: {
   const stationNames: string[] = [];
 
   for (const sid of autoStationIds) {
-    if (hasPendingDuplicate(sid)) {
-      skipped_duplicates += 1;
-      continue;
-    }
-
     const stMeta = stationById.get(sid);
     if (!stMeta) continue;
 
@@ -445,14 +419,13 @@ export async function enqueueStationTicketsForOrder(params: {
       }),
     };
 
-    const { error: insErr } = await admin.from('print_jobs').insert({
-      restaurant_id: restaurantId,
-      type: 'station_ticket',
-      payload,
-      status: 'pending',
-    });
-    if (insErr) {
-      return { ok: false, status: 500, code: 'insert_failed', message: insErr.message };
+    const ins = await insertStationTicketJob(admin, restaurantId, payload);
+    if (!ins.ok) {
+      return { ok: false, status: 500, code: 'insert_failed', message: ins.message };
+    }
+    if (ins.duplicate) {
+      skipped_duplicates += 1;
+      continue;
     }
     inserted += 1;
     stationNames.push(stationLabelForLocale(stMeta, locale));
@@ -465,7 +438,7 @@ export async function enqueueStationTicketsForOrder(params: {
       code: 'nothing_enqueued',
       message:
         skipped_duplicates > 0
-          ? 'Station ticket tasks may already be pending for this batch.'
+          ? 'Station tickets for this batch were already enqueued.'
           : 'No station tickets to enqueue for this batch.',
     };
   }

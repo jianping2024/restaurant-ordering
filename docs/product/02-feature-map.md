@@ -596,4 +596,5 @@
 | 自助餐 | [`../buffet-open-table.zh.md`](../buffet-open-table.zh.md) |
 | 经营分析 | [`../value-analytics-design.zh.md`](../value-analytics-design.zh.md) |
 | 功能开关 | [`../restaurant-features.zh.md`](../restaurant-features.zh.md) |
+| 客户注册与优惠券（定稿 · 未实现） | [`./customer-registration-coupons.zh.md`](./customer-registration-coupons.zh.md) |
 | E2E 用例 | [`./e2e-order-to-checkout-test-cases.zh.md`](./e2e-order-to-checkout-test-cases.zh.md) |

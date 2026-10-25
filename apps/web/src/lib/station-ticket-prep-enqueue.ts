@@ -4,7 +4,7 @@ import type { OrderItem } from '@/types';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { resolveEffectivePrintStationIds } from '@/lib/print-station-resolve';
 import { normalizePrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
@@ -175,7 +175,7 @@ export async function enqueueStationTicketsForPrepSelection(params: {
   const [menuResult, categoryList] = await Promise.all([
     admin
       .from('menu_items')
-      .select('id, category_id, print_station_id, item_code')
+      .select('id, category_id, print_station_ids, item_code')
       .eq('restaurant_id', restaurantId)
       .in('id', menuIds),
     loadMenuCategoriesForEnqueue(restaurantId),
@@ -193,10 +193,10 @@ export async function enqueueStationTicketsForPrepSelection(params: {
   type CategoryRow = MenuCategoryForStationTicket & { print_station_id: string | null };
   const categoryById = new Map(categoryList.map((c) => [c.id, c as CategoryRow]));
   const menuById = new Map<string, MenuItemForPrint>();
-  const resolveMap = new Map<string, string | null>();
+  const resolveMap = new Map<string, string[]>();
 
   for (const row of menuResult.data || []) {
-    const r = row as MenuItemForPrint & { print_station_id?: string | null };
+    const r = row as MenuItemForPrint & { print_station_ids?: string[] | null };
     menuById.set(r.id, {
       id: r.id,
       category_id: r.category_id,
@@ -204,13 +204,13 @@ export async function enqueueStationTicketsForPrepSelection(params: {
     });
     resolveMap.set(
       r.id,
-      resolveEffectivePrintStationId(r.print_station_id ?? null, r.category_id, categoryList),
+      resolveEffectivePrintStationIds(r.print_station_ids, r.category_id, categoryList),
     );
   }
 
   for (const line of prepLines) {
-    const eff = resolveMap.get(line.item.id) ?? null;
-    if (eff !== printStationId) {
+    const eff = resolveMap.get(line.item.id) ?? [];
+    if (!eff.includes(printStationId)) {
       return { ok: false, status: 400, code: 'station_mismatch' };
     }
   }

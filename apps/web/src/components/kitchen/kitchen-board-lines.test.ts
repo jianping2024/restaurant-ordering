@@ -289,7 +289,7 @@ describe('collectStationBoardLines', () => {
             price: 1.5,
             emoji: '💧',
             item_status: 'pending',
-            print_station_id: 'st1',
+            print_station_ids: ['st1'],
             item_code: '001',
           },
         ],

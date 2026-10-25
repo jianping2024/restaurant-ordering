@@ -432,7 +432,8 @@ type MenuItemInput = {
   vat_rate: number;
   category_id: string;
   item_code: string;
-  print_station_id?: string | null;
+  /** Empty = inherit category default. */
+  print_station_ids: string[];
   emoji: string;
   available: boolean;
   note_preset_group_ids: string[];
@@ -515,7 +516,7 @@ function buildMenuItemPayload(
     station_print_pt: input.station_print_pt,
     station_print_en: input.station_print_en && !!input.name_en?.trim(),
     station_print_zh: input.station_print_zh && !!input.name_zh?.trim(),
-    print_station_id: input.print_station_id || null,
+    print_station_ids: input.print_station_ids,
     item_code: normalizedCode,
     per_person_qty_limit: input.per_person_qty_limit,
     over_limit_unit_price: input.over_limit_unit_price,
@@ -539,6 +540,26 @@ async function withValidatedNotePresetGroupIds(
   return { ...input, note_preset_group_ids: keys };
 }
 
+async function assertMenuItemPrintStationIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+  ids: string[],
+): Promise<MenuMutationError | null> {
+  if (ids.length === 0) return null;
+  const { data, error } = await admin
+    .from('print_stations')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .in('id', ids);
+  if (error) {
+    return { error: 'print_stations_query_failed', message: error.message, status: 500 };
+  }
+  if ((data || []).length !== ids.length) {
+    return { error: 'invalid_print_station_ids', status: 400 };
+  }
+  return null;
+}
+
 export async function createMenuItem(
   admin: SupabaseClient,
   restaurantId: string,
@@ -546,6 +567,13 @@ export async function createMenuItem(
 ): Promise<{ item: MenuItem } | MenuMutationError> {
   const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
   if ('error' in validated) return validated;
+
+  const stationErr = await assertMenuItemPrintStationIds(
+    admin,
+    restaurantId,
+    validated.print_station_ids,
+  );
+  if (stationErr) return stationErr;
 
   const categories = await loadActiveCategories(admin, restaurantId);
   if ('error' in categories) return categories;
@@ -658,6 +686,13 @@ export async function updateMenuItem(
 
   const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
   if ('error' in validated) return validated;
+
+  const stationErr = await assertMenuItemPrintStationIds(
+    admin,
+    restaurantId,
+    validated.print_station_ids,
+  );
+  if (stationErr) return stationErr;
 
   const categories = await loadActiveCategories(admin, restaurantId);
   if ('error' in categories) return categories;
@@ -1114,7 +1149,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     vat_rate: vatRate,
     category_id: raw.category_id,
     item_code: raw.item_code,
-    print_station_id: typeof raw.print_station_id === 'string' ? raw.print_station_id : null,
+    print_station_ids: parseMenuItemPrintStationIds(raw.print_station_ids),
     emoji: raw.emoji,
     available: raw.available !== false,
     note_preset_group_ids: raw.note_preset_group_ids,
@@ -1128,6 +1163,22 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     over_limit_unit_price: limits.over_limit_unit_price,
     time_slot_id: timeSlotId,
   };
+}
+
+/** Sole body parser for dish station binding (empty array = inherit). */
+export function parseMenuItemPrintStationIds(raw: unknown): string[] {
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of raw) {
+    if (typeof entry !== 'string') continue;
+    const id = parseTableIdParam(entry);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
 }
 
 export async function listRecommendedMenuItemIds(

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>编辑菜品 · 出品档口（轻量多选）— 静态稿</title>
+  <style>
+    :root {
+      --bg: #f3f1ec;
+      --card: #fffcf7;
+      --line: #d4cdc2;
+      --muted: #8a8377;
+      --text: #1a1612;
+      --gold: #8b6530;
+      --gold-soft: rgba(139, 101, 48, 0.12);
+      --sans: system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+      font-weight: 650;
+    }
+    .lede {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    .case {
+      margin-bottom: 22px;
+    }
+    .case > .t {
+      font-size: 0.75rem;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 650;
+      font-size: 0.95rem;
+    }
+    .head span { color: var(--muted); font-weight: 400; font-size: 1.15rem; }
+    .body { padding: 14px; }
+    .lab {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .hint {
+      margin: 6px 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Compact station picker */
+    .picker {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+      min-height: 42px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8125rem;
+      padding: 4px 8px 4px 10px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: var(--gold);
+      font-weight: 600;
+      border: 1px solid rgba(139, 101, 48, 0.35);
+    }
+    .tag i {
+      font-style: normal;
+      opacity: 0.65;
+      font-weight: 500;
+      font-size: 0.85rem;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .placeholder {
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 4px 6px;
+    }
+    .add {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--gold);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px dashed rgba(139, 101, 48, 0.4);
+      background: transparent;
+    }
+
+    /* Open search dropdown (rare: adding another) */
+    .picker.open { border-color: rgba(139, 101, 48, 0.45); }
+    .search {
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    .search input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .opts {
+      margin-top: 6px;
+      max-height: 160px;
+      overflow: auto;
+    }
+    .opt {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+    .opt:hover, .opt.hl { background: var(--gold-soft); }
+    .opt.muted { color: var(--muted); font-size: 0.8rem; }
+
+    .foot {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .foot b { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>出品档口 · 轻量多选</h1>
+    <p class="lede">
+      多数菜：继承或选 1 个。极少数才加第 2 个。几十个档口不铺开，用搜索挑选。
+    </p>
+
+    <!-- Case A: inherit (default / most common) -->
+    <div class="case">
+      <div class="t">多数 · 不绑（继承分类）</div>
+      <div class="modal">
+        <div class="head">编辑菜品 <span>×</span></div>
+        <div class="body">
+          <div class="lab">本菜出品档口</div>
+          <div class="picker">
+            <div class="tags">
+              <span class="placeholder">继承分类（热菜）</span>
+              <span class="add">+ 选择档口</span>
+            </div>
+          </div>
+          <p class="hint">不选则用分类默认。需要指定时点「+ 选择档口」。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case B: one station (common override) -->
+    <div class="case">
+      <div class="t">常见 · 只绑 1 个</div>
+      <div class="modal">
+        <div class="head">编辑菜品 <span>×</span></div>
+        <div class="body">
+          <div class="lab">本菜出品档口</div>
+          <div class="picker">
+            <div class="tags">
+              <span class="tag">酒吧 <i>×</i></span>
+              <span class="add">+ 添加档口</span>
+            </div>
+          </div>
+          <p class="hint">点 × 去掉后回到继承。只有多工序菜才再点「+ 添加档口」。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case C: multi + search (rare) -->
+    <div class="case">
+      <div class="t">少数 · 绑多个（打开搜索，不铺几十个标签）</div>
+      <div class="modal">
+        <div class="head">编辑菜品 <span>×</span></div>
+        <div class="body">
+          <div class="lab">本菜出品档口</div>
+          <div class="picker open">
+            <div class="tags">
+              <span class="tag">热菜 <i>×</i></span>
+              <span class="tag">凉菜 <i>×</i></span>
+              <span class="add">+ 添加档口</span>
+            </div>
+            <div class="search">
+              <input type="text" value="烧" readonly aria-label="搜索档口" />
+              <div class="opts">
+                <div class="opt hl">烧烤</div>
+                <div class="opt">烧鸟</div>
+                <div class="opt muted">已选不重复列出 · 共 28 个档口可搜</div>
+              </div>
+            </div>
+          </div>
+          <p class="hint">下单后：热菜、凉菜各打一张出品联。</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="foot">
+      <b>不采用：</b>把全部档口做成一排芯片（档口一多就炸）。<br />
+      <b>采用：</b>已选显示为小标签 +「+」打开搜索添加。表面仍像单选，多选是附加动作。
+    </p>
+  </div>
+</body>
+</html>

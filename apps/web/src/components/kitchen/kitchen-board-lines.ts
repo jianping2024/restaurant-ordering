@@ -7,6 +7,7 @@ import {
 import { formatOnScreenMenuItemLabel, resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
+import { orderItemMatchesPrintStation } from '@/lib/print-station-resolve';
 
 export type KitchenBoardLine = {
   key: string;
@@ -72,7 +73,7 @@ export function lineWaitMinutes(orderedAtMs: number, nowMs: number): number {
   return Math.max(0, Math.floor((nowMs - orderedAtMs) / 60_000));
 }
 
-/** Lines for one station pane: open statuses, matching print_station_id. */
+/** Lines for one station pane: open statuses, dish stations include this pane. */
 export function collectStationBoardLines(input: {
   orders: Order[];
   printStationId: string;
@@ -86,7 +87,7 @@ export function collectStationBoardLines(input: {
     for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
       const item = items[itemIndex];
       if (!item || !isMenuCatalogItem(item)) continue;
-      if (item.print_station_id !== input.printStationId) continue;
+      if (!orderItemMatchesPrintStation(item, input.printStationId)) continue;
       const effectiveStatus = effectiveItemStatus({
         item,
         orderStatus: order.status,

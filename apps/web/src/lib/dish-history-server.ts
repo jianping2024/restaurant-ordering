@@ -10,7 +10,7 @@ import {
   paginateList,
   type ListPageSize,
 } from '@/lib/paginate-list';
-import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { resolveEffectivePrintStationIds } from '@/lib/print-station-resolve';
 import { generateAppendBatchId } from '@/lib/resolve-append-cart-items';
 import { parseCommaSeparatedTableIds, parseTableIdParam } from '@/lib/restaurant-tables';
 import {
@@ -293,33 +293,34 @@ export async function remakeDishFromHistory(params: {
   >;
   const openOrder = pickLatestOpenOrder(sessionOrderRows);
 
-  // Resolve station for auto-print decision (kitchen_enabled → board only).
-  let printStationId: string | null = null;
+  // Resolve stations for remake routing / auto-print (kitchen_enabled → board only).
+  let printStationIds: string[] = [];
   const { data: menuRow } = await params.admin
     .from('menu_items')
-    .select('id, category_id, print_station_id')
+    .select('id, category_id, print_station_ids')
     .eq('restaurant_id', restaurantId)
     .eq('id', sourceItem.id)
     .maybeSingle();
 
   if (menuRow) {
     const categories = await loadMenuCategoriesForEnqueue(restaurantId);
-    printStationId = resolveEffectivePrintStationId(
-      (menuRow as { print_station_id?: string | null }).print_station_id,
+    printStationIds = resolveEffectivePrintStationIds(
+      (menuRow as { print_station_ids?: string[] | null }).print_station_ids,
       (menuRow as { category_id?: string | null }).category_id,
       categories,
     );
   }
 
-  let kitchenEnabled = false;
-  if (printStationId) {
-    const { data: station } = await params.admin
+  let hasAutoPrintStation = false;
+  if (printStationIds.length > 0) {
+    const { data: stations } = await params.admin
       .from('print_stations')
       .select('id, kitchen_enabled')
       .eq('restaurant_id', restaurantId)
-      .eq('id', printStationId)
-      .maybeSingle();
-    kitchenEnabled = Boolean((station as { kitchen_enabled?: boolean } | null)?.kitchen_enabled);
+      .in('id', printStationIds);
+    hasAutoPrintStation = (stations || []).some(
+      (s) => !(s as { kitchen_enabled?: boolean }).kitchen_enabled,
+    );
   }
 
   const batchId = generateAppendBatchId();
@@ -341,7 +342,7 @@ export async function remakeDishFromHistory(params: {
     batch_id: batchId,
     added_at: addedAt,
     kitchen_remake: true,
-    ...(printStationId ? { print_station_id: printStationId } : {}),
+    ...(printStationIds.length > 0 ? { print_station_ids: printStationIds } : {}),
   };
 
   const write = await writeAppendBatch({
@@ -387,7 +388,7 @@ export async function remakeDishFromHistory(params: {
   }
 
   let printed = false;
-  if (!kitchenEnabled && printStationId) {
+  if (hasAutoPrintStation) {
     const enqueue = await enqueueStationTicketsForOrder({
       admin: params.admin,
       restaurant: params.restaurant,

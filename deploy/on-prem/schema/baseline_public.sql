@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict VppqOPDMrxOIyx0VrvhidAX4OezrJLgpf7nqdHdBdZPWjvLq55H9CF4PXebyF0i
+\restrict USlL59zMbWqSpNkchwYSIfAcCc1cPEXasNEn3Wsas7e7iFicPteRypnmGkJBFCO
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1636,6 +1636,38 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
+$$;
+
+
+--
+-- Name: enforce_menu_item_print_station_ids_same_restaurant(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.enforce_menu_item_print_station_ids_same_restaurant() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+declare
+  sid uuid;
+  ok boolean;
+begin
+  if new.print_station_ids is null then
+    new.print_station_ids := '{}';
+  end if;
+
+  foreach sid in array new.print_station_ids
+  loop
+    select exists (
+      select 1
+      from public.print_stations ps
+      where ps.id = sid
+        and ps.restaurant_id = new.restaurant_id
+    ) into ok;
+    if not ok then
+      raise exception 'print_station_ids must reference print_stations for the same restaurant';
+    end if;
+  end loop;
+  return new;
+end;
 $$;
 
 
@@ -4161,6 +4193,23 @@ COMMENT ON FUNCTION public.staff_has_restaurant_permission(p_restaurant_id uuid,
 
 
 --
+-- Name: strip_deleted_print_station_from_menu_items(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.strip_deleted_print_station_from_menu_items() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  update public.menu_items
+  set print_station_ids = array_remove(print_station_ids, old.id)
+  where restaurant_id = old.restaurant_id
+    and old.id = any (print_station_ids);
+  return old;
+end;
+$$;
+
+
+--
 -- Name: sync_even_persons_to_result(jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -5702,7 +5751,6 @@ CREATE TABLE public.menu_items (
     category_en text,
     category_zh text,
     category_id uuid,
-    print_station_id uuid,
     item_code character varying(10) NOT NULL,
     vat_rate numeric(5,2) DEFAULT 23 NOT NULL,
     per_person_qty_limit integer,
@@ -5715,6 +5763,7 @@ CREATE TABLE public.menu_items (
     station_print_en boolean DEFAULT false NOT NULL,
     station_print_zh boolean DEFAULT false NOT NULL,
     time_slot_id uuid,
+    print_station_ids uuid[] DEFAULT '{}'::uuid[] NOT NULL,
     CONSTRAINT menu_items_item_code_max_len_10 CHECK ((char_length(btrim((item_code)::text)) <= 10)),
     CONSTRAINT menu_items_item_code_not_blank CHECK ((btrim((item_code)::text) <> ''::text)),
     CONSTRAINT menu_items_limit_requires_overage_price CHECK ((((per_person_qty_limit IS NULL) AND (over_limit_unit_price IS NULL)) OR ((per_person_qty_limit IS NOT NULL) AND (over_limit_unit_price IS NOT NULL)))),
@@ -7499,10 +7548,10 @@ CREATE INDEX idx_menu_items_note_preset_group_ids ON public.menu_items USING gin
 
 
 --
--- Name: idx_menu_items_print_station; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_menu_items_print_station_ids; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_menu_items_print_station ON public.menu_items USING btree (restaurant_id, print_station_id) WHERE (print_station_id IS NOT NULL);
+CREATE INDEX idx_menu_items_print_station_ids ON public.menu_items USING gin (print_station_ids);
 
 
 --
@@ -8003,6 +8052,13 @@ CREATE UNIQUE INDEX uniq_table_order_rounds_active_session ON public.table_order
 
 
 --
+-- Name: uq_print_jobs_station_ticket_batch_station; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_print_jobs_station_ticket_batch_station ON public.print_jobs USING btree (restaurant_id, ((payload ->> 'order_id'::text)), ((payload ->> 'batch_id'::text)), ((payload ->> 'print_station_id'::text))) WHERE ((type = 'station_ticket'::text) AND (NOT (payload ? 'duplicate_of'::text)));
+
+
+--
 -- Name: abnormal_operations abnormal_operations_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -8045,10 +8101,10 @@ CREATE TRIGGER menu_categories_print_station_restaurant BEFORE INSERT OR UPDATE 
 
 
 --
--- Name: menu_items menu_items_print_station_restaurant; Type: TRIGGER; Schema: public; Owner: -
+-- Name: menu_items menu_items_print_station_ids_restaurant; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER menu_items_print_station_restaurant BEFORE INSERT OR UPDATE OF print_station_id, restaurant_id ON public.menu_items FOR EACH ROW EXECUTE FUNCTION public.enforce_print_station_same_restaurant();
+CREATE TRIGGER menu_items_print_station_ids_restaurant BEFORE INSERT OR UPDATE OF print_station_ids, restaurant_id ON public.menu_items FOR EACH ROW EXECUTE FUNCTION public.enforce_menu_item_print_station_ids_same_restaurant();
 
 
 --
@@ -8077,6 +8133,13 @@ CREATE TRIGGER orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXE
 --
 
 CREATE TRIGGER print_jobs_set_updated_at BEFORE UPDATE ON public.print_jobs FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+
+--
+-- Name: print_stations print_stations_strip_menu_item_ids; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER print_stations_strip_menu_item_ids BEFORE DELETE ON public.print_stations FOR EACH ROW EXECUTE FUNCTION public.strip_deleted_print_station_from_menu_items();
 
 
 --
@@ -8477,14 +8540,6 @@ ALTER TABLE ONLY public.menu_categories
 
 ALTER TABLE ONLY public.menu_items
     ADD CONSTRAINT menu_items_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.menu_categories(id) ON DELETE SET NULL;
-
-
---
--- Name: menu_items menu_items_print_station_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.menu_items
-    ADD CONSTRAINT menu_items_print_station_id_fkey FOREIGN KEY (print_station_id) REFERENCES public.print_stations(id) ON DELETE SET NULL;
 
 
 --
@@ -10164,5 +10219,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict VppqOPDMrxOIyx0VrvhidAX4OezrJLgpf7nqdHdBdZPWjvLq55H9CF4PXebyF0i
+\unrestrict USlL59zMbWqSpNkchwYSIfAcCc1cPEXasNEn3Wsas7e7iFicPteRypnmGkJBFCO
 

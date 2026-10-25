@@ -19,6 +19,7 @@ import {
 } from '@/lib/print-agent-config';
 import { formatStationTicketOrderTime } from '@/lib/table-guest-count';
 import {
+  insertStationTicketJob,
   resolveGuestCountForStationTicket,
   resolvePrintAgentConfig,
   stationLabelForLocale,
@@ -287,16 +288,11 @@ export async function enqueueStationTicketsForPrepSelection(params: {
       }),
     };
 
-    const { error: insErr } = await admin.from('print_jobs').insert({
-      restaurant_id: restaurantId,
-      type: 'station_ticket',
-      payload,
-      status: 'pending',
-    });
-    if (insErr) {
-      return { ok: false, status: 500, code: 'insert_failed', message: insErr.message };
+    const ins = await insertStationTicketJob(admin, restaurantId, payload);
+    if (!ins.ok) {
+      return { ok: false, status: 500, code: 'insert_failed', message: ins.message };
     }
-    inserted += 1;
+    if (!ins.duplicate) inserted += 1;
   }
 
   if (inserted > 0) {

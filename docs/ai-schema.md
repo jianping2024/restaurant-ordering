@@ -349,6 +349,7 @@ print_jobs:
 
 - idx_print_jobs_restaurant_status_created: btree(restaurant_id, status, created_at DESC)
 - idx_print_jobs_restaurant_table_id: btree(restaurant_id, table_id, created_at DESC) WHERE table_id IS NOT NULL
+- uq_print_jobs_station_ticket_batch_station: UNIQUE btree(restaurant_id, payload->>'order_id', payload->>'batch_id', payload->>'print_station_id') WHERE type='station_ticket' AND NOT payload ? 'duplicate_of' (sole station-ticket dedupe; historical dupes tagged payload.duplicate_of)
 - print_jobs_pkey: PK btree(id)
 
 print_stations:

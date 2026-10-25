@@ -663,7 +663,7 @@ export async function finalizeRound(params: {
       .eq('id', round.id)
       .in('status', ['pending_confirm', 'finalize_failed', 'cooldown']);
 
-    // Replay may follow a prior write that never printed; pending/processing dedupe skips dupes.
+    // Replay may follow a prior write that never printed; DB unique (order, batch, station) skips already-enqueued tickets.
     await enqueueStationTicketsAfterRoundFinalize({
       admin,
       restaurantId,

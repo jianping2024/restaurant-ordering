@@ -3,7 +3,7 @@ import type { OrderItem } from '@/types';
 import { isMenuCatalogItem, orderItemBatchKey } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { resolveEffectivePrintStationIds } from '@/lib/print-station-resolve';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
@@ -248,7 +248,7 @@ export async function enqueueStationTicketsForOrder(params: {
     const [menuResult, categories, jobsResult, guestCountResult] = await Promise.all([
       admin
         .from('menu_items')
-        .select('id, category_id, print_station_id, item_code')
+        .select('id, category_id, print_station_ids, item_code')
         .eq('restaurant_id', restaurantId)
         .in('id', menuIds),
       loadMenuCategoriesForEnqueue(restaurantId),
@@ -302,7 +302,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const menuById = new Map<string, MenuItemForPrint>();
   for (const row of menuRows || []) {
-    const r = row as MenuItemForPrint & { print_station_id?: string | null };
+    const r = row as MenuItemForPrint & { print_station_ids?: string[] | null };
     menuById.set(r.id, {
       id: r.id,
       category_id: r.category_id,
@@ -326,31 +326,34 @@ export async function enqueueStationTicketsForOrder(params: {
     };
   }
 
-  const resolveMap = new Map<string, string | null>();
+  const resolveMap = new Map<string, string[]>();
   for (const row of menuRows || []) {
     const r = row as {
       id: string;
       category_id: string | null;
-      print_station_id: string | null;
+      print_station_ids: string[] | null;
     };
-    const eff = resolveEffectivePrintStationId(
-      r.print_station_id,
-      r.category_id,
-      categoryList,
+    resolveMap.set(
+      r.id,
+      resolveEffectivePrintStationIds(r.print_station_ids, r.category_id, categoryList),
     );
-    resolveMap.set(r.id, eff);
   }
 
-  const linesInBatch = kitchenLines
-    .filter((l) => l.batch === batchId)
-    .map((l) => ({ ...l, station_id: resolveMap.get(l.item.id) ?? null }))
-    .filter((l) => l.station_id);
+  type Lined = (typeof kitchenLines)[number] & { station_id: string };
+  const linesInBatch: Lined[] = [];
+  for (const l of kitchenLines) {
+    if (l.batch !== batchId) continue;
+    const stations = resolveMap.get(l.item.id) ?? [];
+    for (const station_id of stations) {
+      linesInBatch.push({ ...l, station_id });
+    }
+  }
 
   if (linesInBatch.length === 0) {
     return { ok: false, status: 400, code: 'no_station_bound_lines' };
   }
 
-  const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
+  const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id)));
 
   const orderTimeIso = stationTicketOrderTimeIso(
     items,

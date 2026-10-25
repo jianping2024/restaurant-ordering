@@ -151,7 +151,8 @@ export interface MenuItem {
   category_id?: string | null;
   /** Optional code (max 10) for thermal ticket prefix. */
   item_code?: string | null;
-  print_station_id?: string | null;
+  /** Explicit dish→station routing; empty = inherit category default. */
+  print_station_ids?: string[];
   category_en?: Category | null;
   category_zh?: Category | null;
   emoji: string;
@@ -238,7 +239,12 @@ export interface OrderItem {
    * See docs/product/station-kitchen-screens.zh.md §9.
    */
   kitchen_remake?: boolean;
-  /** Snapshot station at remake/prep routing time when set. */
+  /**
+   * Effective station ids for kitchen/print routing (enrich or remake snapshot).
+   * Empty/missing + legacy `print_station_id` → treat as single-id list when reading old rows.
+   */
+  print_station_ids?: string[];
+  /** @deprecated Prefer `print_station_ids`. Kept for old order JSON / remake rows. */
   print_station_id?: string | null;
 }
 

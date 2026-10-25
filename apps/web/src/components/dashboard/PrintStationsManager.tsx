@@ -32,7 +32,7 @@ interface PrintStationsManagerProps {
   restaurantId: string;
   initialStations: PrintStation[];
   initialCategories?: Pick<MenuCategory, 'id' | 'print_station_id'>[];
-  initialItems?: Pick<MenuItem, 'id' | 'print_station_id'>[];
+  initialItems?: Pick<MenuItem, 'id' | 'print_station_ids'>[];
   onStationsChange?: (stations: PrintStation[]) => void;
 }
 

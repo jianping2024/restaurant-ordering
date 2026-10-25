@@ -72,7 +72,11 @@ import {
 import { menuCategorySiblingsInScope } from '@/lib/menu-category-order';
 import { applyOrderedSortOrders, moveIdInOrderedList } from '@/lib/sort-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
-import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import {
+  normalizePrintStationIds,
+  resolveEffectivePrintStationIds,
+} from '@/lib/print-station-resolve';
+import { MenuItemPrintStationPicker } from '@/components/dashboard/MenuItemPrintStationPicker';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
 import { RecommendedMenuItemsManager } from '@/components/dashboard/RecommendedMenuItemsManager';
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
@@ -135,7 +139,7 @@ type ItemForm = {
   vat_rate: string;
   category_id: string;
   item_code: string;
-  print_station_id: string;
+  print_station_ids: string[];
   emoji: string;
   available: boolean;
   is_vegetarian: boolean;
@@ -162,7 +166,7 @@ const defaultItemForm: ItemForm = {
   vat_rate: String(DEFAULT_MENU_VAT_RATE),
   category_id: '',
   item_code: '',
-  print_station_id: '',
+  print_station_ids: [],
   emoji: '🍽️',
   available: true,
   is_vegetarian: false,
@@ -510,14 +514,25 @@ export function MenuManager({
   };
 
   const getEffectiveStationName = (item: MenuItem): string | null => {
-    const eff = resolveEffectivePrintStationId(
-      item.print_station_id,
+    const eff = resolveEffectivePrintStationIds(
+      item.print_station_ids,
       item.category_id ?? null,
       categories,
     );
-    if (!eff) return null;
-    const st = printStations.find((p) => p.id === eff);
-    return st ? getPrintStationDisplayName(st, lang) : eff;
+    if (eff.length === 0) return null;
+    return eff
+      .map((id) => {
+        const st = printStations.find((p) => p.id === id);
+        return st ? getPrintStationDisplayName(st, lang) : id;
+      })
+      .join(' · ');
+  };
+
+  const inheritStationNameForForm = (categoryId: string): string | null => {
+    const eff = resolveEffectivePrintStationIds([], categoryId || null, categories);
+    if (eff.length === 0) return null;
+    const st = printStations.find((p) => p.id === eff[0]);
+    return st ? getPrintStationDisplayName(st, lang) : eff[0]!;
   };
 
   const filteredItems = useMemo(() => {
@@ -606,7 +621,7 @@ export function MenuManager({
       vat_rate: String(normalizeMenuVatRate(item.vat_rate)),
       category_id: item.category_id || '',
       item_code: item.item_code || '',
-      print_station_id: item.print_station_id ?? '',
+      print_station_ids: normalizePrintStationIds(item.print_station_ids),
       emoji: item.emoji,
       available: item.available,
       is_vegetarian: item.is_vegetarian === true,
@@ -688,7 +703,7 @@ export function MenuManager({
       note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
       flavor_codes: itemForm.flavor_codes,
-      print_station_id: itemForm.print_station_id || null,
+      print_station_ids: normalizePrintStationIds(itemForm.print_station_ids),
       item_code: normalizedItemCode,
       per_person_qty_limit: itemForm.per_person_qty_limit.trim()
         ? Number(itemForm.per_person_qty_limit)
@@ -1889,22 +1904,19 @@ export function MenuManager({
             </div>
           ) : null}
 
-          <div>
-            <label className="text-sm text-brand-text-muted font-medium block mb-1.5">{t.itemPrintStation}</label>
-            <select
-              value={itemForm.print_station_id}
-              onChange={(e) => setItemForm((f) => ({ ...f, print_station_id: e.target.value }))}
-              className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
-            >
-              <option value="">{t.printStationItemInherit}</option>
-              {printStations.map((ps) => (
-                <option key={ps.id} value={ps.id}>
-                  {lang === 'en' ? ps.name_en || ps.name_pt : lang === 'zh' ? ps.name_zh || ps.name_pt : ps.name_pt}
-                </option>
-              ))}
-            </select>
-            <p className="text-[12px] text-brand-text-muted mt-1">{t.itemPrintStationHint}</p>
-          </div>
+          <MenuItemPrintStationPicker
+            stations={printStations}
+            selectedIds={itemForm.print_station_ids}
+            onChange={(ids) => setItemForm((f) => ({ ...f, print_station_ids: ids }))}
+            inheritLabel={t.printStationItemInherit}
+            inheritStationName={inheritStationNameForForm(itemForm.category_id)}
+            searchPlaceholder={t.itemPrintStationSearch}
+            addLabel={t.itemPrintStationAdd}
+            emptyStationsHint={t.itemPrintStationEmpty}
+            lang={lang}
+            hint={t.itemPrintStationHint}
+            label={t.itemPrintStation}
+          />
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
             <p className="text-sm font-medium text-brand-text">{allergenUi.title}</p>

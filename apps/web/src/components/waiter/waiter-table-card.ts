@@ -135,6 +135,7 @@ function resolveMenuLineActionTarget(
         if (!match(item)) continue;
         if (
           !shouldShowKitchenItemProgress({
+            printStationIds: item.print_station_ids,
             printStationId: item.print_station_id,
             kitchenEnabledStationIds,
             item,
@@ -271,6 +272,7 @@ export function buildWaiterTableCard(
         orderStatus: statusOrder?.status ?? 'pending',
         nowMs,
         readyAfterMinutes,
+        printStationIds: statusItem.print_station_ids,
         printStationId: statusItem.print_station_id,
         kitchenEnabledStationIds,
       });

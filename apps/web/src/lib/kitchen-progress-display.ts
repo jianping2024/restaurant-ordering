@@ -40,17 +40,32 @@ export function kitchenItemProgressLabel(
   return table[status];
 }
 
+function dishStationIdsForProgress(args: {
+  printStationIds?: readonly string[] | null;
+  printStationId?: string | null;
+}): string[] {
+  const fromList = (args.printStationIds || []).filter(
+    (id): id is string => typeof id === 'string' && id.trim() !== '',
+  );
+  if (fromList.length > 0) return fromList;
+  if (args.printStationId) return [args.printStationId];
+  return [];
+}
+
 /** Show progress only for kitchen-enabled stations (or mid-flight lines if binding flipped). */
 export function shouldShowKitchenItemProgress(args: {
-  printStationId: string | null | undefined;
+  printStationIds?: readonly string[] | null;
+  /** @deprecated Prefer printStationIds */
+  printStationId?: string | null;
   kitchenEnabledStationIds: ReadonlySet<string> | readonly string[];
   item: Pick<OrderItem, 'item_status' | 'started_at'>;
 }): boolean {
-  const ids =
+  const kitchenIds =
     args.kitchenEnabledStationIds instanceof Set
       ? args.kitchenEnabledStationIds
       : new Set(args.kitchenEnabledStationIds);
-  if (args.printStationId && ids.has(args.printStationId)) return true;
+  const dishIds = dishStationIdsForProgress(args);
+  if (dishIds.some((id) => kitchenIds.has(id))) return true;
   const stored = args.item.item_status;
   return (
     stored === 'cooking' ||
@@ -63,12 +78,14 @@ export function shouldShowKitchenItemProgress(args: {
 export function resolveKitchenItemProgressLabel(
   args: EffectiveItemStatusInput & {
     lang: UILanguage;
-    printStationId: string | null | undefined;
+    printStationIds?: readonly string[] | null;
+    printStationId?: string | null;
     kitchenEnabledStationIds: ReadonlySet<string> | readonly string[];
   },
 ): string | null {
   if (
     !shouldShowKitchenItemProgress({
+      printStationIds: args.printStationIds,
       printStationId: args.printStationId,
       kitchenEnabledStationIds: args.kitchenEnabledStationIds,
       item: args.item,

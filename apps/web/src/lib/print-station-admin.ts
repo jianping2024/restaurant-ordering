@@ -11,11 +11,11 @@ export function getPrintStationDisplayName(station: PrintStation, lang: UILangua
 export function countPrintStationBindings(
   stationId: string,
   categories: Pick<MenuCategory, 'print_station_id'>[],
-  items: Pick<MenuItem, 'print_station_id'>[],
+  items: Pick<MenuItem, 'print_station_ids'>[],
 ): { categories: number; dishes: number } {
   return {
     categories: categories.filter((c) => c.print_station_id === stationId).length,
-    dishes: items.filter((i) => i.print_station_id === stationId).length,
+    dishes: items.filter((i) => (i.print_station_ids ?? []).includes(stationId)).length,
   };
 }
 

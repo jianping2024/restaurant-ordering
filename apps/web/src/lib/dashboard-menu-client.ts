@@ -157,7 +157,7 @@ export type MenuItemMutationInput = {
   vat_rate: number;
   category_id: string;
   item_code: string;
-  print_station_id?: string | null;
+  print_station_ids?: string[];
   emoji: string;
   available: boolean;
   note_preset_group_ids: string[];

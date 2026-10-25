@@ -85,6 +85,7 @@ export function buildCustomerSubmittedDisplayOrders(
             orderStatus: order.status,
             nowMs,
             readyAfterMinutes,
+            printStationIds: item.print_station_ids,
             printStationId: item.print_station_id,
             kitchenEnabledStationIds: enabledIds,
           })

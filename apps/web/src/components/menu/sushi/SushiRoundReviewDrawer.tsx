@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/Button';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
 import { APPEND_CART_QTY_MAX } from '@/types';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import type {
@@ -119,13 +120,16 @@ export function SushiRoundReviewDrawer({
                     key={line.key}
                     className="flex items-center justify-between gap-3 text-sm text-brand-text"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate">{line.label}</p>
-                      {line.note ? (
-                        <p className="mt-0.5 truncate text-[12px] text-brand-text-muted">
-                          {line.note}
-                        </p>
-                      ) : null}
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <PeerFloatDishThumb thumb={line.thumb} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate">{line.label}</p>
+                        {line.note ? (
+                          <p className="mt-0.5 truncate text-[12px] text-brand-text-muted">
+                            {line.note}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                     {line.editable ? (
                       <CartQtyStepper
@@ -156,9 +160,12 @@ export function SushiRoundReviewDrawer({
                 key={line.key}
                 className="flex items-center justify-between gap-3 text-sm text-brand-text-muted"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate">{line.label}</p>
-                  {line.note ? <p className="mt-0.5 truncate text-[12px]">{line.note}</p> : null}
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <PeerFloatDishThumb thumb={line.thumb} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate">{line.label}</p>
+                    {line.note ? <p className="mt-0.5 truncate text-[12px]">{line.note}</p> : null}
+                  </div>
                 </div>
                 <span className="shrink-0 text-[13px] font-semibold tabular-nums">
                   ✓ {line.qty}

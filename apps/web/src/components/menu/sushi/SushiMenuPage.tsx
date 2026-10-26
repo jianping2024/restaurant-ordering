@@ -746,8 +746,15 @@ export function SushiMenuPage({
       orders: recentOrders,
       roundStartedAt: activeForReview ? round.snapshot.round?.created_at : null,
       lang,
+      menuItems,
     });
-  }, [lang, recentOrders, round.snapshot.round?.created_at, round.snapshot.round?.status]);
+  }, [
+    lang,
+    menuItems,
+    recentOrders,
+    round.snapshot.round?.created_at,
+    round.snapshot.round?.status,
+  ]);
 
 
   const formatCountLabel = useCallback(

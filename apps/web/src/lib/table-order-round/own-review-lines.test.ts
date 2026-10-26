@@ -40,6 +40,8 @@ describe('buildTableRoundReviewGroups', () => {
     assert.equal(groups[0]?.lines[0]?.qty, 3);
     assert.equal(groups[0]?.lines[0]?.note, 'soft');
     assert.ok(!groups[0]?.lines[0]?.label.includes('×'));
+    assert.equal(groups[0]?.lines[0]?.label, '三文鱼');
+    assert.equal(groups[0]?.lines[0]?.thumb.emoji, '🍣');
     assert.equal(groups[1]?.lines[0]?.editable, false);
     assert.equal(groups[1]?.lines[0]?.qty, 2);
   });

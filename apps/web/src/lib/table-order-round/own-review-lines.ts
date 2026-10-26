@@ -1,13 +1,21 @@
-import { formatOrderItemNameLabel } from '@/lib/order-list-display';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { TableOrderRoundLineRow } from '@/lib/table-order-round/types';
+import {
+  resolvePeerFloatThumb,
+  type PeerFloatThumb,
+} from '@/lib/table-order-round/sushi-peer-float-display';
 import { isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import type { Language, MenuItem, Order } from '@/types';
+
+type RoundReviewMenuThumb = Pick<MenuItem, 'id' | 'image_url' | 'emoji' | 'name_pt' | 'name_en' | 'name_zh'>;
 
 export type RoundReviewLine = {
   key: string;
   lineId: string;
   menuItemId: string;
+  /** Localized name only — picture lives on `thumb`. */
   label: string;
+  thumb: PeerFloatThumb;
   note: string;
   qty: number;
   editable: boolean;
@@ -22,12 +30,12 @@ export type RoundReviewGroup = {
 
 /**
  * Sole round-review list builder: whole-table lines, one block per guest_client_id.
- * Labels are name-only (qty lives in CartQtyStepper for own rows).
+ * Labels are name-only (qty lives in CartQtyStepper for own rows; thumb owns the picture).
  */
 export function buildTableRoundReviewGroups(params: {
   lines: TableOrderRoundLineRow[];
   guestClientId: string;
-  menuItems: MenuItem[];
+  menuItems: RoundReviewMenuThumb[];
   lang: Language;
   ownBlockLabel: string;
   /** When false, own rows render qty read-only (cooldown / finalize_failed). */
@@ -66,9 +74,8 @@ export function buildTableRoundReviewGroups(params: {
       submittedTimeLabel: isOwn ? ownBlockLabel : '',
       lines: clientLines.map((line) => {
         const item = byId.get(line.menu_item_id);
-        const label = formatOrderItemNameLabel(
+        const label = resolveMenuItemLocalizedName(
           {
-            emoji: item?.emoji || '🍽️',
             name: item?.name_pt || '',
             name_pt: item?.name_pt || '',
             name_en: item?.name_en || '',
@@ -83,6 +90,7 @@ export function buildTableRoundReviewGroups(params: {
           lineId: line.id,
           menuItemId: line.menu_item_id,
           label,
+          thumb: resolvePeerFloatThumb({ menu: item }),
           note,
           qty,
           editable: isOwn && ownLinesEditable,
@@ -95,7 +103,9 @@ export function buildTableRoundReviewGroups(params: {
 /** Read-only paid row shown in round review (already sent on submit — never in the round). */
 export type RoundReviewPaidSentLine = {
   key: string;
+  /** Localized name only — picture lives on `thumb`. */
   label: string;
+  thumb: PeerFloatThumb;
   note: string;
   qty: number;
 };
@@ -111,9 +121,12 @@ export function buildRoundPaidSentLines(params: {
   /** Active round `created_at`; null (no active round) → no rows. */
   roundStartedAt: string | null | undefined;
   lang: Language;
+  /** Live catalog — photo/emoji for thumbs (same source as 已点). */
+  menuItems?: readonly RoundReviewMenuThumb[];
 }): RoundReviewPaidSentLine[] {
   const startedAtMs = params.roundStartedAt ? Date.parse(params.roundStartedAt) : NaN;
   if (!Number.isFinite(startedAtMs)) return [];
+  const menuById = new Map((params.menuItems ?? []).map((row) => [row.id, row]));
 
   const rows: { row: RoundReviewPaidSentLine; addedAtMs: number }[] = [];
   for (const order of params.orders) {
@@ -129,7 +142,11 @@ export function buildRoundPaidSentLines(params: {
         addedAtMs,
         row: {
           key: `${order.id}:${index}`,
-          label: formatOrderItemNameLabel(line, params.lang),
+          label: resolveMenuItemLocalizedName(line, params.lang),
+          thumb: resolvePeerFloatThumb({
+            menu: menuById.get(line.id),
+            fallbackEmoji: line.emoji,
+          }),
           note: (line.note ?? '').trim(),
           qty,
         },

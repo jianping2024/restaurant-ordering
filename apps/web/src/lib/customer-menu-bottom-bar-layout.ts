@@ -9,9 +9,13 @@ export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =
   'pb-[var(--mesa-customer-menu-bottom-safe)]';
 
-/** Scroll pad when footer is visible (bar + inset + cushion). Static for Tailwind JIT. */
+/**
+ * Scroll pad when footer is visible (bar + optional guidance strip + inset +
+ * cushion). `--mesa-bottom-dock-extra` is the sole strip height var (globals.css,
+ * set only while a `data-mesa-bottom-dock-guidance` strip is mounted). Static for Tailwind JIT.
+ */
 export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
-  'pb-[calc(3.5rem+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
+  'pb-[calc(3.5rem+var(--mesa-bottom-dock-extra)+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
 
 /**
  * Sole guest bottom-dock surface (menu footer + bill call-checkout): flush
@@ -29,6 +33,13 @@ export const customerBottomDockSurfaceClass = [
 export const customerMenuBottomBarDockClass = `${customerBottomDockSurfaceClass} ${CUSTOMER_MENU_SHELL_WIDTH_CLASS}`;
 
 export const customerMenuBottomBarRowClass = `flex w-full min-w-0 ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4`;
+
+/**
+ * Sole footer guidance strip (sushi 送厨 steps + notice) above the bar row.
+ * Height must equal `--mesa-bottom-dock-extra` in globals.css (4.5rem).
+ */
+export const customerMenuBottomBarGuidanceClass =
+  'flex h-[4.5rem] w-full min-w-0 flex-col justify-end gap-1.5 border-b border-brand-border/60 px-3 pb-1.5 sm:px-4';
 
 export const customerMenuBottomBarSummarySlotClass =
   'flex min-w-0 flex-1 items-center overflow-hidden';

@@ -34,6 +34,8 @@ interface CartDrawerProps {
   onSubmit: () => void;
   submitting: boolean;
   submitCooldownRemaining?: number;
+  /** Submit button label override (sushi: 加入本轮 / 下单并加入本轮); default placeOrder. */
+  submitActionLabel?: string;
 }
 
 export function CartDrawer({
@@ -51,6 +53,7 @@ export function CartDrawer({
   onSubmit,
   submitting,
   submitCooldownRemaining = 0,
+  submitActionLabel,
 }: CartDrawerProps) {
   const t = MENU_PAGE_MESSAGES[lang];
   const menuById = new Map(menuItems.map((row) => [row.id, row]));
@@ -59,7 +62,7 @@ export function CartDrawer({
   const cartLocked = submitting;
   const submitLabel = cooldownActive
     ? formatSubmitCooldownWaitMessage(t.submitCooldownWait, submitCooldownRemaining)
-    : t.placeOrder;
+    : (submitActionLabel ?? t.placeOrder);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
   useEffect(() => {

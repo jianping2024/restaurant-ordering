@@ -80,6 +80,18 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.showOrderedCta, true);
   });
 
+  it('keeps roundReview CTA when only other guests have unsent round qty', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      roundOwnQty: 0,
+      roundTableQty: 2,
+      recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
+    });
+    assert.equal(view.phase, 'roundReview');
+    assert.equal(view.primaryAction, 'openRoundReview');
+    assert.equal(view.roundOwnQty, 0);
+  });
+
   it('prefers draft over roundReview when cart has items', () => {
     const view = deriveMenuPageFooter({
       ...base,

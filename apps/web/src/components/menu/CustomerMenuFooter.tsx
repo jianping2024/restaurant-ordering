@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { CustomerCartIcon, CustomerOrderedBagIcon } from '@/components/menu/customer-ordering-icons';
+import {
+  CustomerCartIcon,
+  CustomerOrderedBagIcon,
+  CustomerRoundTrayIcon,
+} from '@/components/menu/customer-ordering-icons';
 import {
   customerMenuBottomBarActionSlotClass,
   customerMenuBottomBarCountBadgeClass,
@@ -40,6 +44,8 @@ type Props = MenuPageFooterView & {
   cartAddFeedbackKey?: number;
   /** Sole submit success feedback (✓ pill + ordered badge pop) — not a toast. */
   submitFeedback?: CustomerMenuSubmitFeedback | null;
+  /** Sushi-only guidance strip above the bar row (classic never passes one). */
+  guidance?: ReactNode;
 };
 
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
@@ -85,10 +91,12 @@ function FooterIconSlot({
 }
 
 function FooterBarShell({
+  guidance,
   summary,
   action,
   liveMessage,
 }: {
+  guidance?: ReactNode;
   summary: ReactNode;
   action: ReactNode;
   /** Persistent polite live region — submit success is announced, not toasted. */
@@ -99,6 +107,7 @@ function FooterBarShell({
       <span className="sr-only" role="status" aria-live="polite">
         {liveMessage}
       </span>
+      {guidance}
       <div className={customerMenuBottomBarRowClass}>
         <div className={customerMenuBottomBarSummarySlotClass}>{summary}</div>
         {action ? <div className={customerMenuBottomBarActionSlotClass}>{action}</div> : null}
@@ -200,7 +209,7 @@ function RoundReviewSummary({
         aria-label={viewRoundReviewLabel}
       >
         <FooterIconSlot
-          icon={<CustomerCartIcon className={customerMenuBottomBarIconClass} />}
+          icon={<CustomerRoundTrayIcon className={customerMenuBottomBarIconClass} />}
           count={roundOwnQty}
         />
         <span className="sr-only">{roundReviewCountLabel}</span>
@@ -363,12 +372,14 @@ export function CustomerMenuFooter(props: Props) {
     onOpenOrdered,
     onOpenRoundReview,
     submitFeedback,
+    guidance,
   } = props;
 
   if (!visible) return null;
 
   return (
     <FooterBarShell
+      guidance={guidance}
       summary={footerSummaryForPhase(phase, props)}
       action={
         submitFeedback ? (

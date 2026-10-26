@@ -2,145 +2,65 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   SUSHI_ROUND_MESSAGES,
-  resolveSushiStickyStatusFragment,
+  formatSushiStickyRoundLimit,
+  formatSushiSendGuidanceMessage,
+  resolveSushiCartSubmitLabel,
   messageForGuestRoundQtyPreview,
   messageForSushiRoundError,
 } from './sushi-round-messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
-describe('resolveSushiStickyStatusFragment', () => {
+describe('formatSushiStickyRoundLimit', () => {
   const zh = SUSHI_ROUND_MESSAGES.zh;
   const en = SUSHI_ROUND_MESSAGES.en;
   const pt = SUSHI_ROUND_MESSAGES.pt;
-  const nowMs = Date.parse('2026-10-05T12:00:00.000Z');
 
-  it('shows short max-per-round hint when idle empty basket', () => {
-    assert.deepEqual(
-      resolveSushiStickyStatusFragment({
-        status: 'collecting',
-        cooldownUntil: null,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: zh,
-        nowMs,
-      }),
-      { kind: 'limit', text: '每轮最多 40' },
-    );
-    assert.equal(
-      resolveSushiStickyStatusFragment({
-        status: null,
-        cooldownUntil: null,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: en,
-        nowMs,
-      })?.text,
-      'max 40',
-    );
-    assert.equal(
-      resolveSushiStickyStatusFragment({
-        status: null,
-        cooldownUntil: null,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: pt,
-        nowMs,
-      })?.text,
-      'máx. 40',
-    );
+  it('shows short max-per-round hint when the round is empty', () => {
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 0, roundCapTotal: 40, labels: zh }), '每轮最多 40');
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 0, roundCapTotal: 40, labels: en }), 'max 40');
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 0, roundCapTotal: 40, labels: pt }), 'máx. 40');
   });
 
-  it('shows qty/cap progress when basket has qty', () => {
-    assert.deepEqual(
-      resolveSushiStickyStatusFragment({
-        status: 'collecting',
-        cooldownUntil: null,
-        submitDeadlineAt: null,
-        linesQtyTotal: 8,
-        roundCapTotal: 40,
-        labels: zh,
-        nowMs,
-      }),
-      { kind: 'limit', text: '8/40' },
-    );
+  it('labels qty/cap as this round when the round has qty', () => {
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 8, roundCapTotal: 40, labels: zh }), '本轮 8/40');
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 8, roundCapTotal: 40, labels: en }), 'round 8/40');
   });
 
   it('returns null when cap is not positive', () => {
+    assert.equal(formatSushiStickyRoundLimit({ linesQtyTotal: 3, roundCapTotal: 0, labels: zh }), null);
+  });
+});
+
+describe('formatSushiSendGuidanceMessage', () => {
+  const zh = SUSHI_ROUND_MESSAGES.zh;
+
+  it('tells the table the kitchen has not got unsent dishes', () => {
     assert.equal(
-      resolveSushiStickyStatusFragment({
-        status: 'collecting',
-        cooldownUntil: null,
-        submitDeadlineAt: null,
-        linesQtyTotal: 3,
-        roundCapTotal: 0,
-        labels: zh,
-        nowMs,
-      }),
-      null,
-    );
-  });
-
-  it('pending_confirm wins over limit and uses short sticky copy', () => {
-    const deadline = new Date(nowMs + 45_000).toISOString();
-    assert.deepEqual(
-      resolveSushiStickyStatusFragment({
-        status: 'pending_confirm',
-        cooldownUntil: null,
-        submitDeadlineAt: deadline,
-        linesQtyTotal: 8,
-        roundCapTotal: 40,
-        labels: zh,
-        nowMs,
-      }),
-      { kind: 'pending', text: '45s 后送厨' },
-    );
-  });
-
-  it('active cooldown wins over limit and hides limit on same slot', () => {
-    const until = new Date(nowMs + 12_000).toISOString();
-    assert.deepEqual(
-      resolveSushiStickyStatusFragment({
-        status: 'cooldown',
-        cooldownUntil: until,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: zh,
-        nowMs,
-      }),
-      { kind: 'cooldown', text: '冷却 12s' },
+      formatSushiSendGuidanceMessage({ kind: 'unsent', qty: 3, full: false, cap: 5 }, zh),
+      '本桌 3 道菜，厨房还没收到',
     );
     assert.equal(
-      resolveSushiStickyStatusFragment({
-        status: 'cooldown',
-        cooldownUntil: until,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: en,
-        nowMs,
-      })?.text,
-      'wait 12s',
+      formatSushiSendGuidanceMessage({ kind: 'unsent', qty: 5, full: true, cap: 5 }, zh),
+      '本轮已满 5/5，先送厨再点',
     );
   });
 
-  it('expired cooldown falls back to limit slot', () => {
-    const until = new Date(nowMs - 1_000).toISOString();
-    assert.deepEqual(
-      resolveSushiStickyStatusFragment({
-        status: 'cooldown',
-        cooldownUntil: until,
-        submitDeadlineAt: null,
-        linesQtyTotal: 0,
-        roundCapTotal: 40,
-        labels: zh,
-        nowMs,
-      }),
-      { kind: 'limit', text: '每轮最多 40' },
-    );
+  it('covers countdown, failed and sent', () => {
+    assert.equal(formatSushiSendGuidanceMessage({ kind: 'countdown', seconds: 18 }, zh), '18 秒后自动送厨 · 同桌还能加');
+    assert.equal(formatSushiSendGuidanceMessage({ kind: 'failed' }, zh), zh.guidanceFailed);
+    assert.equal(formatSushiSendGuidanceMessage({ kind: 'sent', seconds: 90 }, zh), '已送厨 · 90 秒后可点下一轮');
+  });
+});
+
+describe('resolveSushiCartSubmitLabel', () => {
+  const roundT = SUSHI_ROUND_MESSAGES.zh;
+  const placeOrder = MENU_PAGE_MESSAGES.zh.placeOrder;
+
+  it('names what the cart submit actually does', () => {
+    assert.equal(resolveSushiCartSubmitLabel({ hasFree: true, hasPaid: false, roundT, placeOrder }), '加入本轮');
+    assert.equal(resolveSushiCartSubmitLabel({ hasFree: false, hasPaid: true, roundT, placeOrder }), placeOrder);
+    assert.equal(resolveSushiCartSubmitLabel({ hasFree: true, hasPaid: true, roundT, placeOrder }), '下单并加入本轮');
+    assert.equal(resolveSushiCartSubmitLabel({ hasFree: false, hasPaid: false, roundT, placeOrder }), placeOrder);
   });
 });
 

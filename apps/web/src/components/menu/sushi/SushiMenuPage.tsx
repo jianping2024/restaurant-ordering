@@ -15,6 +15,7 @@ import {
 import {
   messageForGuestRoundQtyPreview,
   messageForSushiRoundError,
+  resolveSushiCartSubmitLabel,
   SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
@@ -116,11 +117,16 @@ import {
 } from '@/lib/table-order-round/kitchen-send-success-ui';
 import type { TableOrderRoundStatus } from '@/lib/table-order-round/types';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
+import { SushiSendGuidanceStrip } from '@/components/menu/sushi/SushiSendGuidance';
+import { useSushiSendGuidance } from '@/lib/table-order-round/use-sushi-send-guidance';
 import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
 import { CustomerMenuPeerFloats } from '@/components/menu/CustomerMenuPeerFloats';
 import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemDetailSheet';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
-import { buildTableRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
+import {
+  buildRoundPaidSentLines,
+  buildTableRoundReviewGroups,
+} from '@/lib/table-order-round/own-review-lines';
 import { sushiFreeItemDisplayQty } from '@/lib/table-order-round/client-api';
 import { customerTableSessionRealtimeEnabled } from '@/lib/customer-table-session-realtime-enabled';
 import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTableSessionRealtimeLazy';
@@ -601,9 +607,29 @@ export function SushiMenuPage({
         restaurantSlug: restaurant.slug,
         tableId,
         roundOwnQty: round.ownReviewQty,
+        roundTableQty: round.tableReviewQty,
       }),
-    [activeSession, cart, recentOrders, restaurant.slug, round.ownReviewQty, sessionResolved, tableId],
+    [
+      activeSession,
+      cart,
+      recentOrders,
+      restaurant.slug,
+      round.ownReviewQty,
+      round.tableReviewQty,
+      sessionResolved,
+      tableId,
+    ],
   );
+  const sendGuidance = useSushiSendGuidance({
+    snapshot: round.snapshot,
+    tableReviewQty: round.tableReviewQty,
+  });
+  const cartSubmitLabel = resolveSushiCartSubmitLabel({
+    hasFree: cart.some((c) => isSushiRoundFreeMenuPrice(c.price)),
+    hasPaid: cart.some((c) => !isSushiRoundFreeMenuPrice(c.price)),
+    roundT,
+    placeOrder: t.placeOrder,
+  });
 
   const roundStatus = round.snapshot.round?.status;
   const inTableCooldown =
@@ -621,13 +647,6 @@ export function SushiMenuPage({
   );
   const hideGuestNoticeChrome =
     isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible || !!detailMenuItemId;
-
-  const [countdownTick, setCountdownTick] = useState(0);
-  useEffect(() => {
-    if (!countdownActive && !round.peerNotifyOpen) return;
-    const id = setInterval(() => setCountdownTick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [countdownActive, round.peerNotifyOpen]);
 
   const [reviewBusyLineId, setReviewBusyLineId] = useState<string | null>(null);
 
@@ -717,12 +736,18 @@ export function SushiMenuPage({
     ],
   );
 
-  const countdownSeconds = useMemo(() => {
-    void countdownTick;
-    const deadline = round.snapshot.round?.submit_deadline_at;
-    if (!deadline) return 0;
-    return Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000));
-  }, [countdownTick, round.snapshot.round?.submit_deadline_at]);
+  /** Peer notify reads the same live countdown as the guidance strip. */
+  const countdownSeconds = sendGuidance?.kind === 'countdown' ? sendGuidance.seconds : 0;
+  const roundPaidSentLines = useMemo(() => {
+    const status = round.snapshot.round?.status;
+    const activeForReview =
+      status === 'collecting' || status === 'pending_confirm' || status === 'finalize_failed';
+    return buildRoundPaidSentLines({
+      orders: recentOrders,
+      roundStartedAt: activeForReview ? round.snapshot.round?.created_at : null,
+      lang,
+    });
+  }, [lang, recentOrders, round.snapshot.round?.created_at, round.snapshot.round?.status]);
 
 
   const formatCountLabel = useCallback(
@@ -883,6 +908,7 @@ export function SushiMenuPage({
         }
         setCart(paidCart);
         if (paidCart.length > 0) {
+          // Free lines are in the round even if the paid append below fails.
           signalSubmitFeedback(roundT.placedInRound);
         }
       }
@@ -973,7 +999,8 @@ export function SushiMenuPage({
       restartSubmitCooldown();
       completeGuestOrderSubmit({
         clearCart: clearSubmitCart,
-        signalSubmitted: () => signalSubmitFeedback(t.orderSuccess),
+        signalSubmitted: () =>
+          signalSubmitFeedback(freeCart.length > 0 ? roundT.placedMixed : t.orderSuccess),
       });
     } catch {
       showToast(t.submitFailed, 'error');
@@ -1099,6 +1126,7 @@ export function SushiMenuPage({
       {!isDemo ? (
         <SushiRoundStickyBar
           snapshot={round.snapshot}
+          unsentQty={round.tableReviewQty}
           labels={roundT}
           lang={lang}
           dietaryFilter={
@@ -1242,13 +1270,19 @@ export function SushiMenuPage({
         {...footer}
         cartAddFeedbackKey={cartAddFeedbackKey}
         submitFeedback={submitFeedback}
+        guidance={
+          sendGuidance ? <SushiSendGuidanceStrip guidance={sendGuidance} lang={lang} /> : null
+        }
         labels={{
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,
           viewOrdered: t.viewOrdered,
-          viewRoundReview: roundT.viewRoundReview,
+          viewRoundReview:
+            sendGuidance?.kind === 'unsent'
+              ? formatCountLabel(roundT.goToSend, sendGuidance.qty)
+              : roundT.viewRoundReview,
           roundReviewCount: (count) => formatCountLabel(roundT.roundReviewCount, count),
-          placeOrder: t.placeOrder,
+          placeOrder: cartSubmitLabel,
           orderedCount: (count) => formatCountLabel(t.orderedCount, count),
           footerTotal: t.footerTotal,
         }}
@@ -1309,6 +1343,7 @@ export function SushiMenuPage({
         onSubmit={submitCart}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}
+        submitActionLabel={cartSubmitLabel}
       />
 
       <SushiRoundReviewDrawer
@@ -1317,14 +1352,17 @@ export function SushiMenuPage({
         labels={{
           title: roundT.reviewTitle,
           empty: roundT.reviewEmpty,
+          notYet: roundT.reviewNotYet,
           continueOrdering: t.continueOrdering,
           sendRound: roundT.sendRound,
-          countdownBanner: roundT.reviewCountdownBanner,
+          paidSentTitle: roundT.reviewPaidSentTitle,
         }}
+        paidSentLines={roundPaidSentLines}
+        guidance={sendGuidance}
+        lang={lang}
         canSend={canSendRound}
         sendBusy={roundBusy}
         countdownActive={countdownActive}
-        countdownSeconds={countdownSeconds}
         busyLineId={reviewBusyLineId}
         onClose={() => setRoundReviewOpen(false)}
         onSend={() => handleSendRound()}

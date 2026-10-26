@@ -152,7 +152,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 ### 7.2 同桌提示
 
-- 其他已开菜单的手机：轻弹窗一次（`submit_request_id` 去重）；核单顶部 + sticky 显示倒计时
+- 其他已开菜单的手机：轻弹窗一次（`submit_request_id` 去重）；底栏送厨引导条 + 核单顶部提示显示倒计时（§12.2）
 - 他人本轮下单：菜单内容区左上角侧边飘窗（唯一组件 `CustomerMenuPeerFloats`，与经典模式同桌即时下单共用；贴菜单壳左缘，与「本桌 N 人」那一行的左侧边齐，不跟菜卡 `px-4` 内容缩进；手机/桌面同一套；菜名×数量；按时间从上到下，先到的在上；显示约 10 秒后 CSS 渐隐消失）
 
 ### 7.3 超时与 finalize
@@ -240,17 +240,17 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 | 元素 | 行为 |
 |------|------|
-| 顶栏 | `本桌 N 人 ·` 后**唯一短句槽**（sole `resolveSushiStickyStatusFragment`；固定一行高度，不另起第二行）：pending → `{seconds}s 后送厨`；冷却中 → `冷却 {seconds}s`；否则空篮 `每轮最多 M`（英 `max M` / 葡 `máx. M`）/ 有份 `x/M`。人数与状态短句不截断；素食筛选芯片文案 sole `dietaryFilterVegetarian`（短形如 `Veg.` / 中文 `素食`）。**无**送厨按钮 |
-| pending_confirm | sticky 短倒计时（同上槽）+ 核单顶长提示（`reviewCountdownBanner`）；同桌轻弹窗一次；不锁篮 |
-| 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
+| 顶栏 | `本桌 N 人 ·` 后**唯一短句槽**（sole `formatSushiStickyRoundLimit`；固定一行高度，不另起第二行）：无未送厨份数（含已送厨冷却中）`每轮最多 M`（英 `max M` / 葡 `máx. M`）/ 有未送厨份数（`tableReviewQty`）`本轮 x/M`（英 `round x/M`）。**只**表份数；倒计时 / 冷却 / 未送厨状态只在底栏送厨引导（§12.2），不在此槽重复。人数与短句不截断；素食筛选芯片文案 sole `dietaryFilterVegetarian`（短形如 `Veg.` / 中文 `素食`）。**无**送厨按钮 |
+| pending_confirm | 底栏送厨引导倒计时 + 核单顶部同一提示（§12.2）；同桌轻弹窗一次；不锁篮 |
+| 底栏 | 与 classic 同一 `CustomerMenuFooter`（寿司另挂送厨引导条，§12.2）：购物车有菜 → 主按钮为提交文案（sole `resolveSushiCartSubmitLabel`：仅免费 **加入本轮** / 仅收费 **去下单** / 混合 **下单并加入本轮**，购物车抽屉提交按钮同文案）；本桌有未送厨免费菜（`tableReviewQty`，不限本机）→ **去送厨 · N 道**（打开核单，不直接送厨）；倒计时 / 送厨失败 → **查看本轮**；已送厨 → **查看已点**。左侧本轮图标为托盘（`CustomerRoundTrayIcon`，角标=本机本轮份数），不复用购物车图标 |
 | 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**加份前**本机预检桌上限 + 整餐单菜额度（sole `previewGuestRoundCartDraftGates`：已进篮 `lines_qty_total` + 本机草稿；看不见别机草稿）；**下单**才写入 round lines |
 | 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；提交前同一 `previewGuestRoundCartDraftGates`；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
-| 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
+| 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口）；左键：可送厨时 **先不送厨**，否则 **继续点餐**；顶部同底栏送厨引导提示（不显示「已送厨」态）；底部只读分组 **收费菜 · 已直接送厨**（sole `buildRoundPaidSentLines`：本轮 `created_at` 之后整桌收费菜单行，✓ 数量，不可改、不计入 N 道、不参与送厨；无活跃轮次则无此组） |
 | 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/购物车/已点/详情 + toast「本轮已送厨」；判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。加份前 sole `previewGuestRoundLineSetGates`（桌上限 + 整餐单菜）。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
-| 收费菜 | 同一购物车 + 即时 append |
-| Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |
+| 收费菜 | 同一购物车 + 即时 append；混合提交成功提示 `placedMixed`（收费菜已送厨 · 免费菜已加入本轮） |
+| Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示「厨房还没收到」时点去送厨）→ 下一轮（冷却倒计时） |
 
 Classic **不得**出现轮次 UI 组件。
 
@@ -265,6 +265,21 @@ Classic **不得**出现轮次 UI 组件。
 | 轮次上限校验 | 排除「正被写入的那一行」（同菜+同人+同备注）后加总；**禁止**按「同菜+同人」整坨排除（否则分行后 cap 算少） |
 | 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；本机预检 sole `previewGuestRoundCartDraftGates` / `previewGuestRoundLineSetGates`（不可替代服务端） |
 | 删行串行 | `delete_table_order_round_line` 同一把 session advisory lock |
+
+### 12.2 底栏送厨引导（防「以为下单就送厨了」）
+
+- **唯一状态**：sole `resolveSushiSendGuidance`（`lib/table-order-round/send-guidance.ts`），只看**整桌本轮**（status / `submit_deadline_at` / `cooldown_until` / `tableReviewQty` / `round_cap_total`），**不看**本机购物车——购物车有菜时本桌未送厨提示仍在。页面唯一 live 实例 `useSushiSendGuidance`（仅倒计时 / 冷却时 1s 本地时钟，非轮询）。
+- **唯一文案**：`formatSushiSendGuidanceMessage`；**唯一 UI**：`SushiSendGuidanceStrip`（底栏 dock 内、主行之上：两步 加入本轮 → 送厨 + 一行提示）与核单顶部 `SushiSendGuidanceNotice`（同一提示行）。
+
+| 状态 | 条件 | 第 2 步 | 提示（中文） |
+|------|------|---------|------|
+| unsent | collecting（或无 status 但有行）且 `tableReviewQty > 0` | 当前 · 送厨 | 本桌 N 道菜，厨房还没收到；满额时「本轮已满 x/M，先送厨再点」 |
+| countdown | pending_confirm | 当前 · `{s}s` | {s} 秒后自动送厨 · 同桌还能加 |
+| failed | finalize_failed | 当前 · ! | 送厨未成功，正在重试；一直不行请叫服务员 |
+| sent | cooldown 且未到 `cooldown_until` | ✓ 已送厨 | 已送厨 · {s} 秒后可点下一轮 |
+| — | 其它 | 不显示 | — |
+
+- 引导条高度 sole `--mesa-bottom-dock-extra`（`[data-mesa-bottom-dock-guidance]` 挂载时 4.5rem）：同时抬高菜单滚动底距与 toast 位置。Classic 不传 `guidance`，零变化。
 
 ---
 
@@ -332,3 +347,4 @@ Classic **不得**出现轮次 UI 组件。
 - [ ] classic 零回归
 - [ ] 员工代点绕过轮次
 - [ ] on-prem Realtime UAT
+- [ ] 底栏送厨引导：未送厨 / 倒计时 / 失败 / 已送厨四态；购物车有菜时未送厨提示不消失；送厨入口仍只在核单

@@ -36,3 +36,24 @@ export function CustomerOrderedBagIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Sushi table round (未送厨本轮) — tray outline, never the draft cart glyph. */
+export function CustomerRoundTrayIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M3.5 11.25h13a.75.75 0 0 1 .73.92l-.34 1.47a1.75 1.75 0 0 1-1.7 1.36H4.81a1.75 1.75 0 0 1-1.7-1.36l-.34-1.47a.75.75 0 0 1 .73-.92Z"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.75 11.25c0-2.35 1.9-4.25 4.25-4.25s4.25 1.9 4.25 4.25"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+      />
+      <path d="M10 5v2" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
+    </svg>
+  );
+}

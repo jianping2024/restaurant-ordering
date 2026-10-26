@@ -1,29 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { APPEND_CART_QTY_MAX } from '@/types';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
-import type { RoundReviewGroup } from '@/lib/table-order-round/own-review-lines';
+import type {
+  RoundReviewGroup,
+  RoundReviewPaidSentLine,
+} from '@/lib/table-order-round/own-review-lines';
+import type { SushiSendGuidance } from '@/lib/table-order-round/send-guidance';
+import { SushiSendGuidanceNotice } from '@/components/menu/sushi/SushiSendGuidance';
+import type { Language } from '@/types';
 
 type Labels = {
   title: string;
   empty: string;
+  /** Dismiss while the round can still be sent (先不送厨). */
+  notYet: string;
   continueOrdering: string;
   sendRound: string;
-  countdownBanner: string;
+  paidSentTitle: string;
 };
 
 type Props = {
   open: boolean;
   groups: RoundReviewGroup[];
   labels: Labels;
+  /** Read-only paid rows already sent this round (never sent again, not counted). */
+  paidSentLines: RoundReviewPaidSentLine[];
+  /** Same live guidance as the footer strip (unsent / countdown / failed). */
+  guidance: SushiSendGuidance | null;
+  lang: Language;
   canSend: boolean;
   sendBusy: boolean;
-  /** Countdown active — show banner; send button disabled. */
+  /** Countdown active — send button disabled. */
   countdownActive: boolean;
-  countdownSeconds: number;
   /** lineId currently waiting on upsert/delete. */
   busyLineId: string | null;
   onClose: () => void;
@@ -49,25 +60,18 @@ export function SushiRoundReviewDrawer({
   open,
   groups,
   labels,
+  paidSentLines,
+  guidance,
+  lang,
   canSend,
   sendBusy,
   countdownActive,
-  countdownSeconds,
   busyLineId,
   onClose,
   onSend,
   onOwnLineQtyChange,
 }: Props) {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    if (!open || !countdownActive) return;
-    const id = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [open, countdownActive]);
-
-  const banner = countdownActive
-    ? labels.countdownBanner.replace('{seconds}', String(Math.max(0, countdownSeconds)))
-    : null;
+  const notice = guidance && guidance.kind !== 'sent' ? guidance : null;
 
   return (
     <CustomerMenuBottomSheet
@@ -83,7 +87,7 @@ export function SushiRoundReviewDrawer({
             className="min-w-0 flex-1 whitespace-nowrap"
             onClick={onClose}
           >
-            {labels.continueOrdering}
+            {canSend ? labels.notYet : labels.continueOrdering}
           </Button>
           <Button
             type="button"
@@ -99,11 +103,7 @@ export function SushiRoundReviewDrawer({
         </div>
       }
     >
-      {banner ? (
-        <div className="mb-3 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-3 py-2.5 text-[13px] font-semibold tabular-nums text-brand-gold">
-          {banner}
-        </div>
-      ) : null}
+      {notice ? <SushiSendGuidanceNotice guidance={notice} lang={lang} className="mb-3" /> : null}
       {groups.length === 0 ? (
         <p className="text-brand-text-muted text-sm">{labels.empty}</p>
       ) : (
@@ -147,6 +147,27 @@ export function SushiRoundReviewDrawer({
           ))}
         </div>
       )}
+      {paidSentLines.length > 0 ? (
+        <section className="mt-4">
+          <BatchTimeDivider label={labels.paidSentTitle} />
+          <div className="space-y-2">
+            {paidSentLines.map((line) => (
+              <div
+                key={line.key}
+                className="flex items-center justify-between gap-3 text-sm text-brand-text-muted"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate">{line.label}</p>
+                  {line.note ? <p className="mt-0.5 truncate text-[12px]">{line.note}</p> : null}
+                </div>
+                <span className="shrink-0 text-[13px] font-semibold tabular-nums">
+                  ✓ {line.qty}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </CustomerMenuBottomSheet>
   );
 }

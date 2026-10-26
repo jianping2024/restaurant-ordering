@@ -291,7 +291,11 @@ sole dictionary is `menu_note_preset_groups` + `menu_note_presets` (seed via SQL
 
 ### Sushi roundReview cart badge
 
-sole `round.ownReviewQty` → footer `roundOwnQty` (本机本轮份数);整桌 `tableReviewQty`/`lines_qty_total` only sticky + round review UI — never wire `tableReviewQty` to cart icon badge.
+sole `round.ownReviewQty` → footer `roundOwnQty` (本机本轮份数, `CustomerRoundTrayIcon` badge — never the cart glyph);整桌 `tableReviewQty` only drives footer phase (`roundTableQty`) + send guidance + round review — never the badge.
+
+### Sushi send guidance
+
+sole state `resolveSushiSendGuidance` (table round only, never cart) via one `useSushiSendGuidance` per page → `SushiSendGuidanceStrip` (footer `guidance` slot, height `--mesa-bottom-dock-extra`) + 核单 `SushiSendGuidanceNotice`; copy `formatSushiSendGuidanceMessage`; sticky slot is round limit only (`formatSushiStickyRoundLimit`) — never countdown/cooldown there again; footer CTA `去送厨 · N` only opens 核单 (send stays sole in 核单); cart submit label sole `resolveSushiCartSubmitLabel`; paid rows in 核单 sole `buildRoundPaidSentLines` (read-only).
 
 ### Sushi free card qty
 

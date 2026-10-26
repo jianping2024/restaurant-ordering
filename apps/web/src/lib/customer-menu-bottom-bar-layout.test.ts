@@ -48,7 +48,7 @@ describe('customerMenuPageBottomPaddingClass', () => {
     assert.equal(cls, CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER);
     assert.equal(
       cls,
-      `pb-[calc(3.5rem+var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})+0.5rem)]`,
+      `pb-[calc(3.5rem+var(--mesa-bottom-dock-extra)+var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})+0.5rem)]`,
     );
     assert.equal(CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS, 'h-14');
   });
@@ -58,7 +58,7 @@ describe('customerMenuPageBottomPaddingClass', () => {
     const source = readFileSync(sourcePath, 'utf8');
     assert.match(
       source,
-      /'pb-\[calc\(3\.5rem\+var\(--mesa-customer-menu-bottom-safe\)\+0\.5rem\)\]'/,
+      /'pb-\[calc\(3\.5rem\+var\(--mesa-bottom-dock-extra\)\+var\(--mesa-customer-menu-bottom-safe\)\+0\.5rem\)\]'/,
     );
     assert.doesNotMatch(source, /pb-\[calc\(\$\{/);
   });

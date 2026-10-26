@@ -23,8 +23,13 @@ export type MenuPageFooterInput = {
   staffAssisted: StaffAssistedFlow | null;
   restaurantSlug: string;
   tableId: string;
-  /** Own unsent sushi-round qty; classic omits (0). */
+  /** Own unsent sushi-round qty (round icon badge); classic omits (0). */
   roundOwnQty?: number;
+  /**
+   * Whole-table unsent sushi-round qty; classic omits (0). Any unsent table qty
+   * keeps the round-review CTA (any guest may send) even when this device has none.
+   */
+  roundTableQty?: number;
 };
 
 export type MenuPageFooterView = {
@@ -45,13 +50,13 @@ export type MenuPageFooterView = {
 
 function deriveFooterPhase(
   cartQty: number,
-  roundOwnQty: number,
+  roundUnsentQty: number,
   submittedCount: number,
   /** Session billable € (incl. buffet-only open); sole money gate with billEnabled. */
   submittedTotal: number,
 ): MenuPageFooterPhase {
   if (cartQty > 0) return 'draft';
-  if (roundOwnQty > 0) return 'roundReview';
+  if (roundUnsentQty > 0) return 'roundReview';
   // Dish portions OR session money (buffet open with no dishes yet).
   if (submittedCount > 0 || submittedTotal > 0) return 'ordered';
   return 'idle';
@@ -76,7 +81,13 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
   const submittedCount = countSubmittedDishPortions(input.recentOrders);
   const submittedTotal = sumBillableSessionTotal(input.recentOrders);
   const roundOwnQty = Math.max(0, Math.floor(input.roundOwnQty ?? 0));
-  const phase = deriveFooterPhase(cartQty, roundOwnQty, submittedCount, submittedTotal);
+  const roundTableQty = Math.max(0, Math.floor(input.roundTableQty ?? 0));
+  const phase = deriveFooterPhase(
+    cartQty,
+    Math.max(roundOwnQty, roundTableQty),
+    submittedCount,
+    submittedTotal,
+  );
 
   const showBillCta = input.staffAssisted
     ? input.staffAssisted.showBillCta && !!input.activeSession

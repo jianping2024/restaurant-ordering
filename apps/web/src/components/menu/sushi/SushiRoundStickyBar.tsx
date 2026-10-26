@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
-import { isCooldownActive } from '@/lib/table-order-round/status';
 import {
-  resolveSushiStickyStatusFragment,
+  formatSushiStickyRoundLimit,
   type SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
 import type { Language } from '@/types';
@@ -28,37 +27,25 @@ type DietaryFilterProps = {
 
 export function SushiRoundStickyBar({
   snapshot,
+  unsentQty,
   labels,
   lang,
   dietaryFilter,
 }: {
   snapshot: RoundSnapshot;
+  /** Unsent table round qty (`tableReviewQty`): a sent round in cooldown shows the cap, not x/M. */
+  unsentQty: number;
   labels: Copy;
   lang: Language;
   dietaryFilter?: DietaryFilterProps | null;
 }) {
-  const [, setTick] = useState(0);
   const [allergenSheetOpen, setAllergenSheetOpen] = useState(false);
   const [draftExclude, setDraftExclude] = useState<AllergenCode[]>([]);
-  const round = snapshot.round;
-  const needsTick =
-    round?.status === 'pending_confirm' ||
-    (round?.status === 'cooldown' && isCooldownActive(round.status, round.cooldown_until));
-
-  useEffect(() => {
-    if (!needsTick) return;
-    const id = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, [needsTick]);
-
   const guests = snapshot.live_guest_count;
   const menuT = MENU_PAGE_MESSAGES[lang];
 
-  const statusFragment = resolveSushiStickyStatusFragment({
-    status: round?.status,
-    cooldownUntil: round?.cooldown_until,
-    submitDeadlineAt: round?.submit_deadline_at,
-    linesQtyTotal: snapshot.lines_qty_total,
+  const roundLimit = formatSushiStickyRoundLimit({
+    linesQtyTotal: unsentQty,
     roundCapTotal: snapshot.round_cap_total,
     labels,
   });
@@ -80,20 +67,12 @@ export function SushiRoundStickyBar({
       <div className="flex min-h-8 items-center justify-between gap-2.5">
         <p className="shrink-0 whitespace-nowrap text-[13px] leading-snug text-brand-text">
           <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
-          {statusFragment ? (
+          {roundLimit ? (
             <>
               <span aria-hidden className="mx-1.5 text-brand-text-muted">
                 ·
               </span>
-              <span
-                className={`text-[12px] tabular-nums ${
-                  statusFragment.kind === 'pending'
-                    ? 'font-semibold text-brand-gold'
-                    : 'text-brand-text-muted'
-                }`}
-              >
-                {statusFragment.text}
-              </span>
+              <span className="text-[12px] tabular-nums text-brand-text-muted">{roundLimit}</span>
             </>
           ) : null}
         </p>

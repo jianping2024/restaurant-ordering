@@ -162,8 +162,10 @@ describe('resolveDashboardOperationalContext', () => {
 describe('middlewareAllowsPathForCapabilities', () => {
   it('uses dashboard route permissions from capability set', () => {
     const frontdeskCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard'), true);
+    // Pirata frontdesk has no overview — landing is not /dashboard.
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard'), false);
     assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/guest-notice'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/menu'), true);
     assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/settings'), false);
 
     const cashierCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]);

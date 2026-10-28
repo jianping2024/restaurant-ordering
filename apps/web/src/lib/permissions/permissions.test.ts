@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it } from 'node:test';
 import { can, capabilitiesFromKeys } from '@/lib/permissions/can';
 import {
@@ -29,6 +31,105 @@ describe('permissions registry integrity', () => {
     for (const preset of ROLE_PRESET_KEYS) {
       for (const key of ROLE_TEMPLATES[preset]) {
         assert.equal(known.has(key), true, `${preset}: ${key}`);
+      }
+    }
+  });
+
+  it('ROLE_TEMPLATES matches Pirata frozen preset sets (2026-10-28)', () => {
+    const sorted = (keys: readonly string[]) => [...keys].sort();
+    assert.deepEqual(sorted(ROLE_TEMPLATES.kitchen), sorted([
+      'floor.kitchen_board.view',
+      'orders.kitchen_update',
+    ]));
+    assert.deepEqual(sorted(ROLE_TEMPLATES.waiter), sorted([
+      'dashboard.waiter_board.view',
+      'orders.append',
+      'orders.edit',
+      'orders.print_receipt',
+      'tables.open_session',
+      'tables.transfer',
+    ]));
+    assert.deepEqual(sorted(ROLE_TEMPLATES.cashier), sorted([
+      'checkout.apply_discount',
+      'checkout.assist_bill',
+      'checkout.confirm_payment',
+      'checkout.open_pending_tables',
+      'checkout.sync_bill',
+      'dashboard.checkout.view',
+      'dashboard.waiter_board.dining_headcount.view',
+      'dashboard.waiter_board.table_detail_amounts.view',
+      'dashboard.waiter_board.view',
+      'orders.append',
+      'orders.edit',
+      'orders.menu_decrement',
+      'orders.print_receipt',
+      'print_agent.receipt_printers.read',
+      'tables.checkout_close',
+      'tables.force_close',
+      'tables.manage',
+      'tables.merge',
+      'tables.open_session',
+      'tables.transfer',
+    ]));
+    assert.deepEqual(sorted(ROLE_TEMPLATES.frontdesk), sorted([
+      'checkout.apply_discount',
+      'checkout.assist_bill',
+      'checkout.confirm_payment',
+      'checkout.open_pending_tables',
+      'checkout.print_pre_bill',
+      'checkout.request_whole_table',
+      'checkout.sync_bill',
+      'dashboard.checkout.view',
+      'dashboard.guest_notice.view',
+      'dashboard.menu.view',
+      'dashboard.operation_logs.view',
+      'dashboard.orders.view',
+      'dashboard.tables.view',
+      'dashboard.waiter_board.dining_headcount.view',
+      'dashboard.waiter_board.table_detail_amounts.view',
+      'dashboard.waiter_board.view',
+      'orders.append',
+      'orders.edit',
+      'orders.menu_decrement',
+      'orders.print_receipt',
+      'print_agent.receipt_printers.read',
+      'tables.checkout_close',
+      'tables.force_close',
+      'tables.manage',
+      'tables.merge',
+      'tables.open_session',
+      'tables.transfer',
+    ]));
+    assert.deepEqual(sorted(ROLE_TEMPLATES.owner), sorted([
+      'dashboard.abnormal_ops.view',
+      'dashboard.operation_logs.view',
+      'dashboard.orders.view',
+      'dashboard.overview.view',
+      'dashboard.settings.view',
+      'dashboard.value_analytics.view',
+      'settings.buffet.manage',
+      'settings.features.manage',
+      'settings.profile.manage',
+      'settings.staff.manage',
+    ]));
+  });
+
+  it('cloud align migration SQL arrays match ROLE_TEMPLATES (one matrix)', () => {
+    const candidates = [
+      path.resolve(process.cwd(), 'supabase/migrations/20261028140000_cloud_roles_align_pirata_defaults.sql'),
+      path.resolve(process.cwd(), '../../supabase/migrations/20261028140000_cloud_roles_align_pirata_defaults.sql'),
+    ];
+    const file = candidates.find((p) => fs.existsSync(p));
+    assert.ok(file, 'migration file missing');
+    const sql = fs.readFileSync(file!, 'utf8');
+    const sorted = (keys: readonly string[]) => [...keys].sort();
+    for (const preset of ROLE_PRESET_KEYS) {
+      // Migration lists each preset's permissions jsonb at least once (insert + update share same arrays).
+      const all = [...sql.matchAll(new RegExp(`'${preset}'(?:::text)?[\\s\\S]*?'(\\[[\\s\\S]*?\\])'::jsonb`, 'g'))];
+      assert.ok(all.length >= 1, `migration missing ${preset}`);
+      for (const m of all) {
+        const parsed = JSON.parse(m[1]!) as string[];
+        assert.deepEqual(sorted(parsed), sorted(ROLE_TEMPLATES[preset]), preset);
       }
     }
   });

@@ -25,6 +25,15 @@ export {
   type PrintLocale,
 } from './create-restaurant';
 export {
+  ROLE_PRESET_KEYS,
+  ROLE_PRESET_DEFAULT_NAMES,
+  ROLE_TEMPLATES,
+  isRolePresetKey,
+  templatePermissions,
+  ensureRestaurantPresetRoles,
+  type RolePresetKey,
+} from './role-permission-templates';
+export {
   DEFAULT_PREMIUM_KEYS,
   PREMIUM_KEYS,
   PRO_TRIAL_DAYS,

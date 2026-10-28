@@ -45,32 +45,36 @@ describe('DASHBOARD_TOP_NAV_ORDER', () => {
 });
 
 describe('buildDashboardTopNavItems', () => {
-  it('lists frontdesk nav in master order (capability filter)', () => {
+  it('lists Pirata frontdesk nav in master order (capability filter)', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
     });
     assert.deepEqual(items.map((item) => item.id), [
       'waiterBoard',
-      'kitchenBoard',
       'checkout',
       'orders',
-      'dishHistory',
       'guestNotice',
       'tables',
       'menu',
-      'overview',
       'operationLogs',
     ]);
   });
 
   it('places kitchen in master order when board capability is present', () => {
     const items = buildDashboardTopNavItems({
-      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
+      capabilities: toCapabilitiesPayload(
+        capabilitiesFromKeys([
+          'dashboard.waiter_board.view',
+          'floor.kitchen_board.view',
+          'dashboard.checkout.view',
+        ]),
+      ),
       restaurantSlug: 'demo',
     });
     assert.equal(items[0]?.id, 'waiterBoard');
     assert.equal(items[1]?.id, 'kitchenBoard');
+    assert.equal(items[2]?.id, 'checkout');
   });
 
   it('omits kitchen top-nav entry without board capability', () => {
@@ -97,7 +101,7 @@ describe('buildDashboardTopNavItems', () => {
     assert.deepEqual(items.map((item) => item.id), [...DASHBOARD_TOP_NAV_ORDER]);
   });
 
-  it('lists owner-preset staff from capability template in master order', () => {
+  it('lists Pirata owner-preset staff nav (settings/analytics; no floor boards)', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
@@ -107,9 +111,10 @@ describe('buildDashboardTopNavItems', () => {
     assert.ok(ids.includes('settings'));
     assert.ok(ids.includes('valueAnalytics'));
     assert.ok(ids.includes('abnormalOps'));
-    assert.ok(ids.includes('waiterBoard'));
-    assert.ok(ids.includes('checkout'));
-    assert.ok(ids.includes('kitchenBoard'));
+    assert.ok(ids.includes('orders'));
+    assert.equal(ids.includes('waiterBoard'), false);
+    assert.equal(ids.includes('checkout'), false);
+    assert.equal(ids.includes('kitchenBoard'), false);
     // Filtered list stays a subsequence of the master order.
     let cursor = 0;
     for (const id of ids) {

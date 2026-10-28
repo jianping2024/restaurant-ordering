@@ -77,7 +77,7 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(waiterFlags.showOccupiedToolbar, true);
     assert.equal(waiterFlags.showTransfer, true);
-    assert.equal(waiterFlags.showMerge, true);
+    assert.equal(waiterFlags.showMerge, false);
     assert.equal(waiterFlags.showCallCheckout, false);
     assert.equal(waiterFlags.showForceClose, false);
 
@@ -104,7 +104,7 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: false,
     });
     assert.equal(flags.showCallCheckout, true);
-    assert.equal(flags.showForceClose, false);
+    assert.equal(flags.showForceClose, true);
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
   });

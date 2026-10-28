@@ -87,12 +87,27 @@ export type GuestTableManifestInput = {
   startUrl: string;
 };
 
-/** Per-table guest install identity — home-screen name is the table label. */
+/**
+ * Sole guest menu / table-window label: `店名 · 桌号`, or `店名` when no table.
+ * Used by document.title and guest-table manifest `name` (one formula).
+ */
+export function formatGuestTableWindowTitle(input: {
+  restaurantName: string;
+  tableDisplayName?: string | null;
+}): string {
+  const restaurant = input.restaurantName.trim() || PRODUCT_NAME;
+  const table = input.tableDisplayName?.trim();
+  return table ? `${restaurant} · ${table}` : restaurant;
+}
+
+/** Per-table guest install identity — home-screen short_name is the table label. */
 export function buildGuestTableManifest(input: GuestTableManifestInput): SiteManifest {
   const tableLabel = input.tableDisplayName.trim() || PRODUCT_NAME;
-  const restaurant = input.restaurantName.trim() || PRODUCT_NAME;
   return buildManifestShell({
-    name: `${restaurant} · ${tableLabel}`,
+    name: formatGuestTableWindowTitle({
+      restaurantName: input.restaurantName,
+      tableDisplayName: tableLabel,
+    }),
     short_name: tableLabel,
     start_url: input.startUrl,
   });

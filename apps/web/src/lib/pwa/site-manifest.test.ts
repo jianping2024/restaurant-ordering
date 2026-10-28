@@ -8,6 +8,7 @@ import {
   PWA_THEME_COLOR,
   buildGuestTableManifest,
   buildSiteManifest,
+  formatGuestTableWindowTitle,
 } from './site-manifest.ts';
 import {
   PWA_GUEST_TABLE_MANIFEST_PATH,
@@ -68,11 +69,36 @@ describe('guest table PWA manifest', () => {
     assert.notEqual(manifest.start_url, PWA_START_URL);
     assert.equal(manifest.short_name, 'T5');
     assert.equal(manifest.name, 'Demo Sushi · T5');
+    assert.equal(
+      manifest.name,
+      formatGuestTableWindowTitle({
+        restaurantName: 'Demo Sushi',
+        tableDisplayName: 'T5',
+      }),
+    );
     assert.equal(manifest.handle_links, 'not-preferred');
     assert.equal(manifest.display, 'standalone');
     assert.deepEqual(
       (manifest.icons ?? []).map((i) => i.src),
       Object.values(PWA_ICON_PATHS),
+    );
+  });
+
+  it('formatGuestTableWindowTitle is 店名 · 桌号, or 店名 alone without table', () => {
+    assert.equal(
+      formatGuestTableWindowTitle({
+        restaurantName: 'Washoku Sushi',
+        tableDisplayName: '1',
+      }),
+      'Washoku Sushi · 1',
+    );
+    assert.equal(
+      formatGuestTableWindowTitle({ restaurantName: 'Washoku Sushi' }),
+      'Washoku Sushi',
+    );
+    assert.equal(
+      formatGuestTableWindowTitle({ restaurantName: '  ', tableDisplayName: null }),
+      PRODUCT_NAME,
     );
   });
 });

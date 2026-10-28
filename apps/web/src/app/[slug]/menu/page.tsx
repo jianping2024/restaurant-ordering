@@ -14,6 +14,7 @@ import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 import { guestTableManifestHref } from '@/lib/pwa/guest-table-pwa-manifest';
+import { formatGuestTableWindowTitle } from '@/lib/pwa/site-manifest';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -85,8 +86,7 @@ export async function generateMetadata({
     .eq('slug', slug)
     .single();
 
-  const title = restaurant ? `${restaurant.name} — 菜单` : '菜单';
-  if (!restaurant) return { title };
+  if (!restaurant) return { title: '' };
 
   let manifestHref: string | null = null;
   let tableLabel: string | null = null;
@@ -104,6 +104,11 @@ export async function generateMetadata({
   } catch {
     // No service role → keep default staff site manifest.
   }
+
+  const title = formatGuestTableWindowTitle({
+    restaurantName: String(restaurant.name ?? ''),
+    tableDisplayName: tableLabel,
+  });
 
   if (!manifestHref || !tableLabel) {
     return { title };

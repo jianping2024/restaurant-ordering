@@ -25,7 +25,7 @@ describe('menuDecrementAllowedFromCaps', () => {
       menuDecrementAllowedFromCaps(capabilitiesFromKeys(['orders.menu_decrement'])),
       true,
     );
-    assert.equal(menuDecrementAllowedFromCaps(capabilitiesFromKeys(['orders.edit'])), false);
+    assert.equal(menuDecrementAllowedFromCaps(capabilitiesFromKeys(['orders.append'])), false);
   });
 });
 

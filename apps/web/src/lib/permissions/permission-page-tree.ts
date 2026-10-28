@@ -162,10 +162,6 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
       label: { source: 'action', labelKey: 'ordersAppend' },
     },
     {
-      permission: 'orders.edit',
-      label: { source: 'action', labelKey: 'ordersEdit' },
-    },
-    {
       permission: 'orders.menu_decrement',
       label: { source: 'action', labelKey: 'ordersMenuDecrement' },
     },

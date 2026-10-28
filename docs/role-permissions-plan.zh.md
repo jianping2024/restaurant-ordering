@@ -404,7 +404,7 @@ function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: Per
 | PermissionKey | 说明 | 当前谁有 |
 |---------------|------|----------|
 | `orders.append` | 服务员/前台加单（`waiter_flow`） | waiter, frontdesk + owner |
-| `orders.edit` | 服务员改单 | waiter, frontdesk + owner |
+| ~~`orders.edit`~~ | ~~服务员改单~~（**已删除**：从未在运行时校验；改已点行走楼面看板能力） | — |
 | `orders.kitchen_update` | 厨房更新菜品/订单状态 | kitchen + owner |
 | `orders.print_receipt` | 订单小票打印 | waiter + owner |
 
@@ -441,7 +441,7 @@ function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: Per
 | **owner** | 能力 `['*']`；侧栏默认 **`OWNER_NAV_DEFAULT`**（§4.1.2），可配 `owner_nav_preferences` |
 | **frontdesk** | §5.1 全部 dashboard **view**（含 `dashboard.waiter_board.view`，与现网内嵌服务员看板一致）+ §5.3–§5.6 操作项；**不含** `orders.kitchen_update`、`floor.kitchen_board.view`（楼面独立厨房页）；**不含** `floor.waiter_board.view`（`/{slug}/waiter` 楼面页，前台默认用 Dashboard 内嵌看板） |
 | **cashier** | `dashboard.checkout.view`, `checkout.confirm_payment`（`checkout.apply_discount` 默认关闭，可配置） |
-| **waiter** | `floor.waiter_board.view`, `tables.open_session`, `tables.transfer`, `tables.merge`, `orders.append`, `orders.edit`, `buffet.post_to_table`, `checkout.confirm_payment`, `orders.print_receipt`；**无** `tables.close_session` |
+| **waiter** | `floor.waiter_board.view`, `tables.open_session`, `tables.transfer`, `tables.merge`, `orders.append`, `buffet.post_to_table`, `checkout.confirm_payment`, `orders.print_receipt`；**无** `tables.close_session` |
 | **kitchen** | `floor.kitchen_board.view`, `orders.kitchen_update`, `tables.view`（RLS 只读桌位） |
 
 ---
@@ -495,7 +495,7 @@ function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: Per
 | GET | `/api/restaurants/[slug]/staff/kitchen/board` | `floor.kitchen_board.view` |
 | POST | `/api/restaurants/[slug]/staff/waiter/sessions/close` | **保留 403**（waiter 永不允许；frontdesk 走 Dashboard close API） |
 | PATCH | `/api/restaurants/[slug]/staff/kitchen/orders/[id]` | `orders.kitchen_update` |
-| PATCH | `/api/restaurants/[slug]/staff/waiter/orders/[id]` | `orders.edit` |
+| PATCH | `/api/restaurants/[slug]/staff/waiter/orders/[id]` | `dashboard.waiter_board.view`（原计划 `orders.edit` 已删） |
 | POST | `/api/restaurants/[slug]/order-receipt/print` | `orders.print_receipt` |
 
 #### 7.3.1 明确不在店内 RBAC 内的 API
@@ -560,7 +560,7 @@ function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: Per
 | 表 | RLS 角色范围 | 对应 permission（应用层） |
 |----|--------------|-------------------------|
 | `orders` SELECT | 全员 staff + cashier | 各读接口 |
-| `orders` UPDATE | kitchen, waiter | `orders.kitchen_update`, `orders.edit` |
+| `orders` UPDATE | kitchen, waiter | `orders.kitchen_update` |
 | `bill_splits` SELECT | cashier | `dashboard.checkout.view` |
 | `restaurant_tables` SELECT | kitchen, waiter, cashier | `tables.view` |
 | `restaurant_tables` ALL | owner | `settings.*` 桌位配置；frontdesk 写走 service role + `tables.manage` |

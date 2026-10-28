@@ -126,7 +126,6 @@ export const PERMISSIONS = {
 
   // Orders
   'orders.append': { group: 'orders', labelKey: 'ordersAppend' },
-  'orders.edit': { group: 'orders', labelKey: 'ordersEdit' },
   'orders.menu_decrement': { group: 'orders', labelKey: 'ordersMenuDecrement', dangerous: true },
   'orders.kitchen_update': { group: 'orders', labelKey: 'ordersKitchenUpdate' },
   'orders.serve_to_table': { group: 'orders', labelKey: 'ordersServeToTable' },

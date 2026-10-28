@@ -58,7 +58,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: '转台',
       tablesMerge: '并台',
       ordersAppend: '加菜',
-      ordersEdit: '改单',
+
       ordersMenuDecrement: '菜单减菜',
       ordersKitchenUpdate: '厨房改状态',
       ordersServeToTable: '上桌',
@@ -125,7 +125,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: 'Transfer',
       tablesMerge: 'Merge',
       ordersAppend: 'Add items',
-      ordersEdit: 'Edit order',
+
       ordersMenuDecrement: 'Menu decrement',
       ordersKitchenUpdate: 'Kitchen status',
       ordersServeToTable: 'Serve',
@@ -191,7 +191,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: 'Transferir',
       tablesMerge: 'Juntar',
       ordersAppend: 'Adicionar',
-      ordersEdit: 'Editar pedido',
+
       ordersMenuDecrement: 'Reduzir item',
       ordersKitchenUpdate: 'Estado cozinha',
       ordersServeToTable: 'Servir a mesa',
@@ -258,7 +258,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: 'Cambiar de mesa',
       tablesMerge: 'Unir mesas',
       ordersAppend: 'Añadir platos',
-      ordersEdit: 'Editar pedido',
+
       ordersMenuDecrement: 'Reducir desde la carta',
       ordersKitchenUpdate: 'Estado en cocina',
       ordersServeToTable: 'Servir a mesa',
@@ -326,7 +326,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: 'Changer de table',
       tablesMerge: 'Réunir des tables',
       ordersAppend: 'Ajouter des plats',
-      ordersEdit: 'Modifier la commande',
+
       ordersMenuDecrement: 'Retirer depuis la carte',
       ordersKitchenUpdate: 'Statut cuisine',
       ordersServeToTable: 'Servir a table',
@@ -394,7 +394,7 @@ const ROLE_PERMISSION_MESSAGES = {
       tablesTransfer: 'Tisch wechseln',
       tablesMerge: 'Tische zusammenlegen',
       ordersAppend: 'Nachbestellen',
-      ordersEdit: 'Bestellung ändern',
+
       ordersMenuDecrement: 'Über die Karte reduzieren',
       ordersKitchenUpdate: 'Küchenstatus',
       ordersServeToTable: 'Am Tisch servieren',

@@ -44,8 +44,7 @@ describe('permissions registry integrity', () => {
     assert.deepEqual(sorted(ROLE_TEMPLATES.waiter), sorted([
       'dashboard.waiter_board.view',
       'orders.append',
-      'orders.edit',
-      'orders.print_receipt',
+            'orders.print_receipt',
       'tables.open_session',
       'tables.transfer',
     ]));
@@ -60,8 +59,7 @@ describe('permissions registry integrity', () => {
       'dashboard.waiter_board.table_detail_amounts.view',
       'dashboard.waiter_board.view',
       'orders.append',
-      'orders.edit',
-      'orders.menu_decrement',
+            'orders.menu_decrement',
       'orders.print_receipt',
       'print_agent.receipt_printers.read',
       'tables.checkout_close',
@@ -89,8 +87,7 @@ describe('permissions registry integrity', () => {
       'dashboard.waiter_board.table_detail_amounts.view',
       'dashboard.waiter_board.view',
       'orders.append',
-      'orders.edit',
-      'orders.menu_decrement',
+            'orders.menu_decrement',
       'orders.print_receipt',
       'print_agent.receipt_printers.read',
       'tables.checkout_close',
@@ -114,23 +111,45 @@ describe('permissions registry integrity', () => {
     ]));
   });
 
-  it('cloud align migration SQL arrays match ROLE_TEMPLATES (one matrix)', () => {
-    const candidates = [
-      path.resolve(process.cwd(), 'supabase/migrations/20261028140000_cloud_roles_align_pirata_defaults.sql'),
-      path.resolve(process.cwd(), '../../supabase/migrations/20261028140000_cloud_roles_align_pirata_defaults.sql'),
-    ];
-    const file = candidates.find((p) => fs.existsSync(p));
-    assert.ok(file, 'migration file missing');
-    const sql = fs.readFileSync(file!, 'utf8');
+  it('cloud align + drop-orders.edit migrations match ROLE_TEMPLATES (one matrix)', () => {
+    const resolveMigration = (name: string) =>
+      [
+        path.resolve(process.cwd(), `supabase/migrations/${name}`),
+        path.resolve(process.cwd(), `../../supabase/migrations/${name}`),
+      ].find((p) => fs.existsSync(p));
+
+    const alignFile = resolveMigration('20261028140000_cloud_roles_align_pirata_defaults.sql');
+    assert.ok(alignFile, 'align migration file missing');
+    const dropFile = resolveMigration('20261028210000_drop_unused_orders_edit_permission.sql');
+    assert.ok(dropFile, 'drop orders.edit migration file missing');
+    const dropSql = fs.readFileSync(dropFile!, 'utf8');
+    assert.match(dropSql, /orders\.edit/);
+    assert.match(dropSql, /jsonb_agg/);
+
+    const sql = fs.readFileSync(alignFile!, 'utf8');
     const sorted = (keys: readonly string[]) => [...keys].sort();
+    const withoutDeadEdit = (keys: readonly string[]) =>
+      keys.filter((k) => k !== 'orders.edit');
     for (const preset of ROLE_PRESET_KEYS) {
-      // Migration lists each preset's permissions jsonb at least once (insert + update share same arrays).
+      // Align migration is historical (may still list dead orders.edit); live matrix =
+      // those arrays after 20261028210000 strips orders.edit.
       const all = [...sql.matchAll(new RegExp(`'${preset}'(?:::text)?[\\s\\S]*?'(\\[[\\s\\S]*?\\])'::jsonb`, 'g'))];
       assert.ok(all.length >= 1, `migration missing ${preset}`);
       for (const m of all) {
         const parsed = JSON.parse(m[1]!) as string[];
-        assert.deepEqual(sorted(parsed), sorted(ROLE_TEMPLATES[preset]), preset);
+        assert.deepEqual(
+          sorted(withoutDeadEdit(parsed)),
+          sorted(ROLE_TEMPLATES[preset]),
+          preset,
+        );
       }
+    }
+    for (const preset of ROLE_PRESET_KEYS) {
+      assert.equal(
+        ROLE_TEMPLATES[preset].includes('orders.edit' as never),
+        false,
+        `${preset} must not list dead orders.edit`,
+      );
     }
   });
 

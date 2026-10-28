@@ -373,7 +373,7 @@ sole `ROLE_TEMPLATES`（`@mesa/shared`，web 再导出）= Pirata 现场五套�
 
 ### 权限勾选文案
 
-角色权限编辑器唯一 IA 为 `ROLE_PERMISSION_PAGE_TREE`（产品页面树）；设置子页（含后厨大屏）只作为「餐厅设置」子节点出现一次，label 读 `settingsHub`/`nav`。开台与保存人数唯一 key 为 `tables.open_session`；楼面看板唯一 key 为 `dashboard.waiter_board.view`。
+角色权限编辑器唯一 IA 为 `ROLE_PERMISSION_PAGE_TREE`（产品页面树）；设置子页（含后厨大屏）只作为「餐厅设置」子节点出现一次，label 读 `settingsHub`/`nav`。开台与保存人数唯一 key 为 `tables.open_session`；楼面看板唯一 key 为 `dashboard.waiter_board.view`。勿恢复已删除的死 key `orders.edit`（从未运行时校验）。
 
 ### 桌台详情金额
 

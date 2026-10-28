@@ -29,7 +29,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
   waiter: [
     'dashboard.waiter_board.view',
     'orders.append',
-    'orders.edit',
     'orders.print_receipt',
     'tables.open_session',
     'tables.transfer',
@@ -45,7 +44,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
     'dashboard.waiter_board.table_detail_amounts.view',
     'dashboard.waiter_board.view',
     'orders.append',
-    'orders.edit',
     'orders.menu_decrement',
     'orders.print_receipt',
     'print_agent.receipt_printers.read',
@@ -74,7 +72,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
     'dashboard.waiter_board.table_detail_amounts.view',
     'dashboard.waiter_board.view',
     'orders.append',
-    'orders.edit',
     'orders.menu_decrement',
     'orders.print_receipt',
     'print_agent.receipt_printers.read',

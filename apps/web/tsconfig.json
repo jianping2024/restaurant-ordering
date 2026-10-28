@@ -48,7 +48,8 @@
     ".next-uat-guest-auth/types/**/*.ts",
     ".next-uat-settled/types/**/*.ts",
     ".next-uat-back-dock/types/**/*.ts",
-    ".next-uat-pirata-roles/types/**/*.ts"
+    ".next-uat-pirata-roles/types/**/*.ts",
+    ".next-uat-gtpwa4/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

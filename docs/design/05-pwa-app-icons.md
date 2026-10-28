@@ -14,7 +14,7 @@
 |---|---|
 | 产品名 | **FARVOO** |
 | 定位 | 葡萄牙餐厅点餐 SaaS（扫码点餐、厨房显示、分单结账） |
-| 主屏入口角色 | 服务员 `/waiter`、厨房 `/kitchen`、老板 `/dashboard` |
+| 主屏入口角色 | 店员壳 `/dashboard`；每桌客人点餐壳 `/{slug}/menu?table_id=…` |
 | 技术栈 | Next.js Web App（非 App Store 原生应用） |
 | 离线 | **不支持**离线；图标仅用于桌面快捷方式与全屏打开 |
 
@@ -26,12 +26,17 @@
   - 从浏览器 / 扫码打开同站 URL：manifest `handle_links: not-preferred`，应留在浏览器，不自动跳进已装 App。已安装用户若仍被劫持：`chrome://apps` 卸载重装，或在该应用设置里关闭「用应用打开链接」。
   - **在已装 App 内**点「打开点餐页 / 打开登录页」：不得再开第二个 App 窗。唯一写法 → `openHttpUrlPreferBrowser` + `PreferBrowserHttpLink`（非 standalone 新开浏览器标签；standalone 只复制链接并 toast 提示去浏览器粘贴）。
 - **实现唯一源：**
-  - manifest / 色 / 图标路径 → `lib/pwa/site-manifest.ts`（`PWA_START_URL=/dashboard`、`PWA_BACKGROUND_COLOR`、`PWA_ICON_PATHS`）
+  - manifest / 色 / 图标路径 → `lib/pwa/site-manifest.ts`（员工 `PWA_START_URL=/dashboard`；本桌客人 JSON `buildGuestTableManifest`；`PWA_BACKGROUND_COLOR`、`PWA_ICON_PATHS` 共用）
+  - 本桌客人路径+URL → `lib/pwa/guest-table-pwa-manifest.ts`（`PWA_GUEST_TABLE_MANIFEST_PATH` / `guestTableMenuStartUrl` / `guestTableManifestHref`；middleware + 菜单/路由；勿进客户端壳 SW）
+  - 本桌客人装机 HTTP → `app/mesa-pwa-guest-table.webmanifest/route.ts`（只用校验后的 slug+table_id 拼 `start_url`，不接受客户端任意 URL）；菜单页 `generateMetadata` 在解析到桌后把 `<link rel="manifest">` 指到该地址
   - standalone 检测 → `lib/pwa/install-display.ts`（`STANDALONE_DISPLAY_MEDIA_QUERIES`）
   - 冷启动品牌层 → `lib/pwa/launch-shell.ts`（`off→in→hold→out`；`PWA_LAUNCH_FADE_MS` / `HOLD` / `MARK_PX` 各一份）+ `app/layout.tsx` 唯一 DOM
   - **壳 SW（防二次冷启纯白）** → `lib/pwa/shell-sw.ts` 唯一生成脚本；`app/mesa-pwa-shell-sw.js/route.ts` 唯一 HTTP；`PwaShellSwRegister` 唯一注册。缓存名版本 = **`getWebAppBuildInfo().version`**（与 health / 设置页脚同一条；空则 `dev`）。导航 cache-then-network；`/_next/static` + `PWA_ICON_PATHS` cache-first；**永不**缓存 `/api/*`。发版换版本即废旧 `mesa-pwa-shell:*` cache。
   - App 内打开顾客/扫码 URL → `open-prefer-browser.ts` + `PreferBrowserHttpLink.tsx`
-- **冷启动入口：** `start_url` 为 `/dashboard`（未登录 middleware 进登录；已登录少一次 login→工作台跳转）。系统 splash 与 HTML 首绘壳共用 `PWA_BACKGROUND_COLOR`（`#0F0E0C`）；`layout` 给 `<html>` 同色 inline，减少 CSS 前纯白。HTML 到后品牌层短淡入淡出（无长 hold）。**首次**打开仍可能等首包；**再次**冷启靠壳 SW 立刻出缓存文档。网页未到前的系统页（尤其 iOS）仍可能是纯色——要系统级带图需另做 `apple-touch-startup-image`。
+- **冷启动入口：**
+  - **店员壳：** `start_url` 为 `/dashboard`（未登录 middleware 进登录；已登录少一次 login→工作台跳转）。在后台页「添加到主屏幕」用这份。
+  - **每桌客人壳：** 在 `/{slug}/menu?table_id=…` 装机；manifest `start_url` 即该桌点餐链接，图标短名用桌号 `display_name`。打开桌面图标直达本桌点餐，**不经登录**。每台 iPad 只在自己那桌页面装；旧的错误图标删掉重装。
+  - 系统 splash 与 HTML 首绘壳共用 `PWA_BACKGROUND_COLOR`（`#0F0E0C`）；`layout` 给 `<html>` 同色 inline，减少 CSS 前纯白。HTML 到后品牌层短淡入淡出（无长 hold）。**首次**打开仍可能等首包；**再次**冷启靠壳 SW 立刻出缓存文档。网页未到前的系统页（尤其 iOS）仍可能是纯色——要系统级带图需另做 `apple-touch-startup-image`。
 
 ---
 

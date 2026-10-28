@@ -3,12 +3,12 @@
  * Bottom bar tokens live in customer-menu-bottom-bar-layout.ts; this module
  * covers dual-pane chrome + notice/peer-float anchors on the content host.
  *
- * Sole width: phone `max-w-mobile`, `lg+` ~1088px — page root, footer dock,
- * and cart/ordered sheets all import this class (no parallel max-w-*).
+ * Sole width: fill the viewport up to ~1088px (`max-w-[68rem]`) — page root,
+ * footer dock, bill docks, and cart/ordered sheets. No parallel `max-w-mobile`
+ * / `lg:` widen pair (phone already fills via `w-full` under 430px).
  */
 
-export const CUSTOMER_MENU_SHELL_WIDTH_CLASS =
-  'w-full max-w-mobile lg:max-w-[68rem]';
+export const CUSTOMER_MENU_SHELL_WIDTH_CLASS = 'w-full max-w-[68rem]';
 
 /** Centered mobile shell used by menu page root and fixed overlays. */
 export const customerMenuShellRootClass = `${CUSTOMER_MENU_SHELL_WIDTH_CLASS} mx-auto`;

@@ -27,12 +27,12 @@ export const customerMenuItemDetailBackdropClass =
   'absolute inset-0 bg-transparent max-lg:pointer-events-none lg:bg-black/60 lg:backdrop-blur-sm lg:pointer-events-auto';
 
 /**
- * Detail panel — phone full-height shell width; lg+ modal card (not the wide menu shell).
+ * Detail panel — below lg: full-viewport height/width; lg+: modal card (not the menu shell).
  * Static Tailwind strings only (JIT).
  */
 export const customerMenuItemDetailPanelClass = [
   'relative flex w-full flex-col overflow-hidden overscroll-none bg-brand-bg',
-  'max-lg:h-full max-lg:max-w-mobile',
+  'max-lg:h-full',
   'lg:max-h-[min(90vh,40rem)] lg:w-full lg:max-w-lg lg:rounded-2xl lg:border lg:border-brand-border lg:shadow-2xl',
   'transition duration-300 ease-out',
 ].join(' ');

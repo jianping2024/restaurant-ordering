@@ -193,7 +193,7 @@ sole yield rule is the CSS `[data-guest-bill-page]:has(<text field>:focus) [data
 
 ### Guest bottom dock surface
 
-sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + menu shell width; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + `max-w-mobile`; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content.
+sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + `CUSTOMER_MENU_SHELL_WIDTH_CLASS`; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + same shell width; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content.
 
 ### By-item fraction unit (one cut per dish)
 
@@ -308,6 +308,10 @@ sole `countSubmittedDishPortions` (Σ dish qty, no buffet_base/voided) — never
 ### Sushi round guest free-qty preview
 
 sole UI gates `previewGuestRoundCartDraftGates` (菜卡/详情/购物车加份 + 下单前) + `previewGuestRoundLineSetGates` (核单 set); each runs round-cap then meal (cap helpers + `previewGuestRound*MealGate`; same `checkSushiLimitForCartLine` as append); never parallel used+delta or meal-only beside those for those paths; write authority still RPC upsert/delete + `resolveRoundLineMealLimitApply`.
+
+### Guest menu shell width
+
+sole `CUSTOMER_MENU_SHELL_WIDTH_CLASS` = `w-full max-w-[68rem]` (page root / menu footer / bill dock / bottom sheets / storefront hours sheet / sushi dietary sheet) — never a parallel `max-w-mobile` + `lg:max-w-[68rem]` pair or bare `max-w-mobile` on those surfaces; dish detail panel stays full-bleed below `lg` / `max-w-lg` dialog at `lg+` (not the menu shell).
 
 ### Guest menu edge floats (notice + peer float)
 

@@ -58,7 +58,7 @@
 
 **要点**
 
-- 壳宽唯一：`CUSTOMER_MENU_SHELL_WIDTH_CLASS`（`max-w-mobile` + `lg:max-w-[68rem]`）— 页面根、底栏、notice、cart/已点 sheet 同宽；详情 Dialog 面板用独立 `max-w-lg`，不跟宽壳
+- 壳宽唯一：`CUSTOMER_MENU_SHELL_WIDTH_CLASS`（`w-full max-w-[68rem]`）— 页面根、底栏、账单底栏、notice、cart/已点 sheet、店招详情层同宽；详情 Dialog 面板用独立 `max-w-lg`，不跟宽壳
 - 菜品图画幅合同：上传 sole `compressMenuImageForUpload` 将静态图 letterbox 成 `MENU_IMAGE_ASPECT_RATIO`（4:3）；本地菜图 same-origin，不写死 LAN host
 - 未开台/整桌结账中：门禁提示替代菜单网格；按菜仅本机占用时锁本机
 - 购物车 / 菜品详情为 **同页层**；详情 sole `CustomerMenuItemDetailSheet`

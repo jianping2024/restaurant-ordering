@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect } from 'react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { customerBottomDockSurfaceClass } from '@/lib/customer-menu-bottom-bar-layout';
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 
 export type GuestBillCallCheckoutDockAction = {
   label: string;
@@ -65,7 +66,7 @@ export function GuestBillBottomDock({
   return (
     <div
       data-guest-call-checkout-dock=""
-      className={`${customerBottomDockSurfaceClass} w-full max-w-mobile`}
+      className={`${customerBottomDockSurfaceClass} ${CUSTOMER_MENU_SHELL_WIDTH_CLASS}`}
     >
       <div className="space-y-2 px-4 py-3">
         {gateBanner}

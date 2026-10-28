@@ -38,9 +38,6 @@ const config: Config = {
         heading: ["var(--font-jost)", "var(--font-cjk-sans)"],
         body: ["var(--font-jost)", "var(--font-cjk-sans)"],
       },
-      maxWidth: {
-        mobile: "430px",
-      },
     },
   },
   plugins: [],

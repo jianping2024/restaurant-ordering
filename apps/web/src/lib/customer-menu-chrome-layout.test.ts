@@ -21,13 +21,10 @@ import {
 
 
 describe('customerMenuChromeLayout', () => {
-  it('uses sole shell width: phone max-w-mobile + lg widen', () => {
-    assert.match(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /max-w-mobile/);
-    assert.match(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /lg:max-w-\[68rem\]/);
-    assert.equal(
-      CUSTOMER_MENU_SHELL_WIDTH_CLASS,
-      'w-full max-w-mobile lg:max-w-[68rem]',
-    );
+  it('uses sole shell width: fill viewport up to 68rem', () => {
+    assert.equal(CUSTOMER_MENU_SHELL_WIDTH_CLASS, 'w-full max-w-[68rem]');
+    assert.doesNotMatch(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /max-w-mobile/);
+    assert.doesNotMatch(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /lg:max-w/);
     assert.ok(customerMenuShellRootClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 

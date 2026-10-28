@@ -14,6 +14,7 @@ import { mesaSelectionChipShellClass, mesaSelectionChipSoftClass } from '@/lib/m
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { Button } from '@/components/ui/Button';
 import { CustomerMenuTableGuestsLabel } from '@/components/menu/CustomerMenuTableGuestsChrome';
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 
 type Copy = (typeof SUSHI_ROUND_MESSAGES)[Language];
 
@@ -127,7 +128,7 @@ export function SushiRoundStickyBar({
             role="dialog"
             aria-modal="true"
             aria-labelledby="sushi-allergen-filter-title"
-            className="relative z-10 w-full max-w-mobile rounded-t-2xl border border-brand-border bg-brand-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4 lg:max-w-[68rem]"
+            className={`relative z-10 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} rounded-t-2xl border border-brand-border bg-brand-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4`}
           >
             <h2 id="sushi-allergen-filter-title" className="text-base font-semibold text-brand-text">
               {menuT.dietaryFilterAllergenTitle}

@@ -96,7 +96,7 @@ describe('customerMenuBottomBar dock stick', () => {
     );
     assert.match(
       dock,
-      /data-guest-call-checkout-dock=""\s*\n\s*className=\{`\$\{customerBottomDockSurfaceClass\} w-full max-w-mobile`\}/,
+      /data-guest-call-checkout-dock=""\s*\n\s*className=\{`\$\{customerBottomDockSurfaceClass\} \$\{CUSTOMER_MENU_SHELL_WIDTH_CLASS\}`\}/,
     );
     assert.match(bill, /<GuestBillBottomDock\b/);
     assert.match(submitted, /<GuestBillBottomDock\b/);

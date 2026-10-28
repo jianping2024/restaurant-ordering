@@ -31,6 +31,7 @@ import {
   type DishFeedbackReasonKey,
 } from '@/lib/dish-feedback-reasons';
 import { GuestBillBottomDock } from '@/components/menu/GuestBillBottomDock';
+import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import type {
   BillSplit,
   DishFeedbackVote,
@@ -168,7 +169,7 @@ function StaffBillDetailsView({
     [orders, liveSplit, collectedPayments],
   );
   return (
-    <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-24">
+    <div className={`min-h-screen bg-brand-bg ${customerMenuShellRootClass} pb-24`}>
       <CustomerOrderingHeader
         restaurantName={restaurant.name}
         displayName={displayName}
@@ -880,7 +881,7 @@ function GuestBillPage({
     {individualNotice}
     <div
       data-guest-bill-page=""
-      className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
+      className={`min-h-screen bg-brand-bg ${customerMenuShellRootClass} ${pagePadClass}`}
     >
       <CustomerOrderingHeader
         restaurantName={restaurant.name}

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useId, useState } from 'react';
 import type { Language } from '@/types';
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 import { MENU_IMAGE_UNOPTIMIZED } from '@/lib/menu-image';
 
 /** Display cover height — locked product range 150–180px. */
@@ -361,7 +362,7 @@ export function CustomerStorefrontBand({ model, lang }: Props) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={detailTitleId}
-            className="relative z-[1] w-full max-w-mobile rounded-t-2xl bg-brand-card px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-xl"
+            className={`relative z-[1] ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} rounded-t-2xl bg-brand-card px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-xl`}
           >
             <div className="mb-2 flex items-center justify-between">
               <h3 id={detailTitleId} className="text-sm font-semibold text-brand-ink">

@@ -20,6 +20,7 @@ describe('customerMenuItemDetailLayout', () => {
     assert.match(customerMenuItemDetailPanelClass, /max-lg:h-full/);
     assert.match(customerMenuItemDetailPanelClass, /lg:max-w-lg/);
     assert.match(customerMenuItemDetailPanelClass, /overscroll-none/);
+    assert.doesNotMatch(customerMenuItemDetailPanelClass, /max-w-mobile/);
     assert.doesNotMatch(customerMenuItemDetailPanelClass, /68rem/);
   });
 

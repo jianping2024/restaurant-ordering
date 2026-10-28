@@ -16,6 +16,7 @@ import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader
 import { GuestBillBottomDock } from '@/components/menu/GuestBillBottomDock';
 import { Button } from '@/components/ui/Button';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 
 export type BillCheckoutSubmittedCopy = {
   checkoutSubmittedHint: string;
@@ -113,7 +114,7 @@ export function BillCheckoutSubmittedScreen({
   return (
     <div
       data-guest-bill-page=""
-      className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]"
+      className={`min-h-screen bg-brand-bg ${customerMenuShellRootClass} pb-[calc(6rem+var(--mesa-customer-menu-bottom-safe))]`}
     >
       <CustomerOrderingHeader
         restaurantName={restaurantName}

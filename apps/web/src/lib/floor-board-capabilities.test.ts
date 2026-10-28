@@ -5,7 +5,7 @@ import { capabilitiesFromKeys } from '@/lib/permissions/can';
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('floorBoardCapabilities', () => {
-  it('derives desk powers from frontdesk/cashier templates', () => {
+  it('derives desk powers from Pirata frontdesk/cashier templates', () => {
     const frontdesk = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(frontdesk.canMenuDecrement, true);
     assert.equal(frontdesk.canCallCheckout, true);
@@ -22,26 +22,26 @@ describe('floorBoardCapabilities', () => {
     assert.equal(cashier.canCallCheckout, true);
     assert.equal(cashier.canTransfer, true);
     assert.equal(cashier.canMerge, true);
-    assert.equal(cashier.canForceClose, false);
+    assert.equal(cashier.canForceClose, true);
     assert.equal(cashier.canOpenTableSession, true);
     assert.equal(cashier.canViewDiningHeadcount, true);
     assert.equal(cashier.canViewTableDetailAmounts, true);
   });
 
-  it('derives transfer/merge/force-close for owner and transfer/merge for waiter', () => {
+  it('matches Pirata owner (settings-only floor) and waiter (transfer, no merge)', () => {
     const owner = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.owner]));
-    assert.equal(owner.canTransfer, true);
-    assert.equal(owner.canMerge, true);
-    assert.equal(owner.canForceClose, true);
+    assert.equal(owner.canTransfer, false);
+    assert.equal(owner.canMerge, false);
+    assert.equal(owner.canForceClose, false);
+    assert.equal(owner.canViewDiningHeadcount, false);
+    assert.equal(owner.canViewTableDetailAmounts, false);
 
     const waiter = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
     assert.equal(waiter.canTransfer, true);
-    assert.equal(waiter.canMerge, true);
+    assert.equal(waiter.canMerge, false);
     assert.equal(waiter.canForceClose, false);
-    assert.equal(waiter.canViewDiningHeadcount, true);
-    assert.equal(waiter.canViewTableDetailAmounts, true);
-    assert.equal(owner.canViewDiningHeadcount, true);
-    assert.equal(owner.canViewTableDetailAmounts, true);
+    assert.equal(waiter.canViewDiningHeadcount, false);
+    assert.equal(waiter.canViewTableDetailAmounts, false);
     assert.equal(
       floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.kitchen])).canViewDiningHeadcount,
       false,
@@ -76,7 +76,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(caps.canAssistBillCheckout, false);
     assert.equal(caps.canOpenCheckoutPendingTables, false);
     assert.equal(caps.canTransfer, true);
-    assert.equal(caps.canMerge, true);
+    assert.equal(caps.canMerge, false);
     assert.equal(caps.canForceClose, false);
   });
 });

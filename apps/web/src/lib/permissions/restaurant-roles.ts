@@ -1,13 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { ensureRestaurantPresetRoles } from '@mesa/shared';
 import { normalizeStoredPermissions } from '@/lib/permissions/resolve';
-import {
-  ROLE_PRESET_DEFAULT_NAMES,
-  ROLE_PRESET_KEYS,
-  templatePermissions,
-  type RolePresetKey,
-} from '@/lib/permissions/role-templates';
+import type { RolePresetKey } from '@/lib/permissions/role-templates';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import type { RestaurantRoleRow } from '@/lib/permissions/types';
+
+export { ensureRestaurantPresetRoles };
 
 type Admin = SupabaseClient;
 
@@ -23,39 +21,6 @@ function mapRoleRow(raw: Record<string, unknown>): RestaurantRoleRow {
     created_at: String(raw.created_at),
     updated_at: String(raw.updated_at),
   };
-}
-
-/** Ensure four preset roles exist for a restaurant (idempotent). */
-export async function ensureRestaurantPresetRoles(
-  admin: Admin,
-  restaurantId: string,
-): Promise<void> {
-  const { data: existing, error } = await admin
-    .from('restaurant_roles')
-    .select('preset_key')
-    .eq('restaurant_id', restaurantId)
-    .not('preset_key', 'is', null);
-
-  if (error) throw new Error(error.message);
-
-  const have = new Set(
-    (existing ?? [])
-      .map((r) => r.preset_key as string | null)
-      .filter((k): k is string => Boolean(k)),
-  );
-
-  const inserts = ROLE_PRESET_KEYS.filter((key) => !have.has(key)).map((key, index) => ({
-    restaurant_id: restaurantId,
-    name: ROLE_PRESET_DEFAULT_NAMES[key],
-    preset_key: key,
-    permissions: templatePermissions(key),
-    sort_order: index,
-  }));
-
-  if (inserts.length === 0) return;
-
-  const { error: insertError } = await admin.from('restaurant_roles').insert(inserts);
-  if (insertError) throw new Error(insertError.message);
 }
 
 export async function listRestaurantRoles(

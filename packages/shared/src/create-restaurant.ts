@@ -5,6 +5,7 @@ import {
 } from './buffet-service-mode';
 import { normalizeCountryCode } from './country-code';
 import { ensurePrintAgentStaff } from './print-agent-staff';
+import { ensureRestaurantPresetRoles } from './role-permission-templates';
 import { proTrialValidUntil } from './premium-tier';
 import { defaultRestaurantSlug } from './slug';
 
@@ -136,6 +137,19 @@ export async function createRestaurantWithOwner(
   }
 
   const restaurantId = restaurantRow.id as string;
+  try {
+    await ensureRestaurantPresetRoles(admin, restaurantId);
+  } catch (e) {
+    await admin.from('restaurants').delete().eq('id', restaurantId);
+    await admin.auth.admin.deleteUser(ownerId);
+    return {
+      ok: false,
+      error: 'role_preset_seed_failed',
+      status: 500,
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
+
   const { error: seedNotesError } = await admin.rpc('seed_default_menu_note_presets', {
     p_restaurant_id: restaurantId,
   });

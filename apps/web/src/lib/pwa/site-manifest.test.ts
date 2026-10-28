@@ -6,8 +6,16 @@ import {
   PWA_ICON_PATHS,
   PWA_START_URL,
   PWA_THEME_COLOR,
+  buildGuestTableManifest,
   buildSiteManifest,
 } from './site-manifest.ts';
+import {
+  PWA_GUEST_TABLE_MANIFEST_PATH,
+  guestTableManifestHref,
+  guestTableMenuStartUrl,
+} from './guest-table-pwa-manifest.ts';
+
+const TABLE_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
 
 describe('buildSiteManifest', () => {
   it('cold-starts at dashboard (logged-in skips login hop)', () => {
@@ -31,5 +39,40 @@ describe('buildSiteManifest', () => {
     assert.equal(PWA_BACKGROUND_COLOR, PWA_THEME_COLOR);
     assert.equal(manifest.theme_color, PWA_THEME_COLOR);
     assert.equal(manifest.background_color, PWA_BACKGROUND_COLOR);
+  });
+});
+
+describe('guest table PWA manifest', () => {
+  it('builds menu start_url and manifest href from slug + table_id only', () => {
+    assert.equal(
+      guestTableMenuStartUrl('demo', TABLE_ID),
+      `/demo/menu?table_id=${TABLE_ID}`,
+    );
+    assert.equal(
+      guestTableManifestHref('demo', TABLE_ID),
+      `${PWA_GUEST_TABLE_MANIFEST_PATH}?slug=demo&table_id=${TABLE_ID}`,
+    );
+    assert.equal(guestTableMenuStartUrl('', TABLE_ID), null);
+    assert.equal(guestTableMenuStartUrl('demo', 'not-a-uuid'), null);
+    assert.equal(guestTableManifestHref('demo', 'bad'), null);
+  });
+
+  it('guest install identity uses table label and guest start_url (not dashboard)', () => {
+    const startUrl = guestTableMenuStartUrl('demo', TABLE_ID)!;
+    const manifest = buildGuestTableManifest({
+      restaurantName: 'Demo Sushi',
+      tableDisplayName: 'T5',
+      startUrl,
+    });
+    assert.equal(manifest.start_url, startUrl);
+    assert.notEqual(manifest.start_url, PWA_START_URL);
+    assert.equal(manifest.short_name, 'T5');
+    assert.equal(manifest.name, 'Demo Sushi · T5');
+    assert.equal(manifest.handle_links, 'not-preferred');
+    assert.equal(manifest.display, 'standalone');
+    assert.deepEqual(
+      (manifest.icons ?? []).map((i) => i.src),
+      Object.values(PWA_ICON_PATHS),
+    );
   });
 });

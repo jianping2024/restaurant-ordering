@@ -8,6 +8,7 @@
  * cookie refresh still runs on /dashboard and other non-bypassed navigations.
  */
 
+import { PWA_GUEST_TABLE_MANIFEST_PATH } from '@/lib/pwa/guest-table-pwa-manifest';
 import { PWA_SHELL_SW_PATH } from '@/lib/pwa/shell-sw';
 
 const SESSION_BYPASS_PREFIXES = [
@@ -17,6 +18,8 @@ const SESSION_BYPASS_PREFIXES = [
   '/api/downloads',
   /** PWA shell SW script — path sole source: PWA_SHELL_SW_PATH. */
   PWA_SHELL_SW_PATH,
+  /** Per-table guest install manifest — path sole source: PWA_GUEST_TABLE_MANIFEST_PATH. */
+  PWA_GUEST_TABLE_MANIFEST_PATH,
 ] as const;
 
 /**

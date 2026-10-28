@@ -524,3 +524,7 @@ sole `clientIpFromRequest` — prefer `CF-Connecting-IP`, else rightmost `X-Forw
 ### PWA shell SW
 
 sole script `buildPwaShellServiceWorkerScript` + route `/mesa-pwa-shell-sw.js` + `PwaShellSwRegister`; cache version only via `getWebAppBuildInfo()` (never a parallel MESA_PWA_* version); never cache `/api/*`; not offline POS.
+
+### PWA guest table install
+
+sole JSON shape `buildGuestTableManifest` in `site-manifest.ts`; sole path + URL builders `PWA_GUEST_TABLE_MANIFEST_PATH` / `guestTableMenuStartUrl` / `guestTableManifestHref` in `guest-table-pwa-manifest.ts` (middleware + menu/route — keep out of client shell SW); sole HTTP `mesa-pwa-guest-table.webmanifest`; menu `generateMetadata` points install at that href — never a second start_url builder or client-supplied start_url.

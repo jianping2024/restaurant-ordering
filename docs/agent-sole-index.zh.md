@@ -528,3 +528,7 @@ sole script `buildPwaShellServiceWorkerScript` + route `/mesa-pwa-shell-sw.js` +
 ### PWA guest table install
 
 sole JSON shape `buildGuestTableManifest` in `site-manifest.ts`; sole path + URL builders `PWA_GUEST_TABLE_MANIFEST_PATH` / `guestTableMenuStartUrl` / `guestTableManifestHref` in `guest-table-pwa-manifest.ts` (middleware + menu/route — keep out of client shell SW); sole HTTP `mesa-pwa-guest-table.webmanifest`; menu `generateMetadata` points install at that href — never a second start_url builder or client-supplied start_url.
+
+### PWA guest window title
+
+sole label `formatGuestTableWindowTitle` (`店名 · 桌号` / no table → 店名) for menu `document.title` + guest manifest `name`; never append `— 菜单`; standalone clears `document.title` via sole `GuestTableStandaloneTitle` so Chrome does not show `name - title` twice.

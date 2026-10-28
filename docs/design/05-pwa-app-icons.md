@@ -29,6 +29,7 @@
   - manifest / 色 / 图标路径 → `lib/pwa/site-manifest.ts`（员工 `PWA_START_URL=/dashboard`；本桌客人 JSON `buildGuestTableManifest`；`PWA_BACKGROUND_COLOR`、`PWA_ICON_PATHS` 共用）
   - 本桌客人路径+URL → `lib/pwa/guest-table-pwa-manifest.ts`（`PWA_GUEST_TABLE_MANIFEST_PATH` / `guestTableMenuStartUrl` / `guestTableManifestHref`；middleware + 菜单/路由；勿进客户端壳 SW）
   - 本桌客人装机 HTTP → `app/mesa-pwa-guest-table.webmanifest/route.ts`（只用校验后的 slug+table_id 拼 `start_url`，不接受客户端任意 URL）；菜单页 `generateMetadata` 在解析到桌后把 `<link rel="manifest">` 指到该地址
+  - 客人窗口标题唯一文案 → `formatGuestTableWindowTitle`（`店名 · 桌号` / 无桌仅店名）；菜单页 `document.title` 与 guest manifest `name` 共用；**不要**再拼「— 菜单」。Chrome 已装窗标题是 `manifest.name - document.title`，故 `GuestTableStandaloneTitle` 在 standalone 下清空 `document.title`，栏上只留一截 `店名 · 桌号`
   - standalone 检测 → `lib/pwa/install-display.ts`（`STANDALONE_DISPLAY_MEDIA_QUERIES`）
   - 冷启动品牌层 → `lib/pwa/launch-shell.ts`（`off→in→hold→out`；`PWA_LAUNCH_FADE_MS` / `HOLD` / `MARK_PX` 各一份）+ `app/layout.tsx` 唯一 DOM
   - **壳 SW（防二次冷启纯白）** → `lib/pwa/shell-sw.ts` 唯一生成脚本；`app/mesa-pwa-shell-sw.js/route.ts` 唯一 HTTP；`PwaShellSwRegister` 唯一注册。缓存名版本 = **`getWebAppBuildInfo().version`**（与 health / 设置页脚同一条；空则 `dev`）。导航 cache-then-network；`/_next/static` + `PWA_ICON_PATHS` cache-first；**永不**缓存 `/api/*`。发版换版本即废旧 `mesa-pwa-shell:*` cache。

@@ -23,6 +23,7 @@ import {
   parseSushiRoundSettingsFromRestaurantRow,
   shouldRenderSushiRoundMenuPage,
 } from '@/lib/table-order-round/settings';
+import { GuestTableStandaloneTitle } from '@/components/pwa/GuestTableStandaloneTitle';
 
 const EMPTY_MENU_TIME_SLOTS: MenuTimeSlot[] = [];
 
@@ -113,6 +114,9 @@ export function MenuPage({
   const menuTimeSlots = catalog?.menuTimeSlots ?? EMPTY_MENU_TIME_SLOTS;
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
+  const standaloneTitle =
+    !isDemo && tableId ? <GuestTableStandaloneTitle /> : null;
+
   if (
     shouldRenderSushiRoundMenuPage({
       buffetServiceMode: restaurant.buffet_service_mode,
@@ -121,9 +125,32 @@ export function MenuPage({
     })
   ) {
     return (
-      <SushiMenuPage
+      <>
+        {standaloneTitle}
+        <SushiMenuPage
+          restaurant={restaurantWithNotice}
+          sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
+          menuItems={menuItems}
+          menuCategories={menuCategories}
+          recommendedItemIds={recommendedItemIds}
+          menuTimeSlots={menuTimeSlots}
+          notePresetCatalog={notePresetCatalog}
+          catalogReady={catalogReady}
+          tableId={tableId}
+          displayName={displayName}
+          orderCooldownSeconds={orderCooldownSeconds}
+          initialSessionContext={initialSessionContext}
+          isDemo={isDemo}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      {standaloneTitle}
+      <MenuOrderingController
         restaurant={restaurantWithNotice}
-        sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
         menuItems={menuItems}
         menuCategories={menuCategories}
         recommendedItemIds={recommendedItemIds}
@@ -135,28 +162,11 @@ export function MenuPage({
         orderCooldownSeconds={orderCooldownSeconds}
         initialSessionContext={initialSessionContext}
         isDemo={isDemo}
+        staffAssisted={staffAssisted}
+        presentationMode="page"
+        staffSubmitMode={staffAssisted ? 'navigate' : 'navigate'}
       />
-    );
-  }
-
-  return (
-    <MenuOrderingController
-      restaurant={restaurantWithNotice}
-      menuItems={menuItems}
-      menuCategories={menuCategories}
-      recommendedItemIds={recommendedItemIds}
-      menuTimeSlots={menuTimeSlots}
-      notePresetCatalog={notePresetCatalog}
-      catalogReady={catalogReady}
-      tableId={tableId}
-      displayName={displayName}
-      orderCooldownSeconds={orderCooldownSeconds}
-      initialSessionContext={initialSessionContext}
-      isDemo={isDemo}
-      staffAssisted={staffAssisted}
-      presentationMode="page"
-      staffSubmitMode={staffAssisted ? 'navigate' : 'navigate'}
-    />
+    </>
   );
 }
 

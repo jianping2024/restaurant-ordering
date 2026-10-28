@@ -12,6 +12,9 @@
 
 嵌套项须先勾父项（例如先有「结账请求」页，子按钮才有意义）。标「高危」的项在编辑页有敏感提示。
 
+截图目录：[`role-permissions-shots/`](./role-permissions-shots/)（本地 Washoku Sushi · 中文界面）。页级权限各配一张对应页；楼面子按钮共用「桌台详情」图；结账子按钮以「结账请求」列表为主（详情页本地曾报错，未收录）。「功能管理」本地截图时页面报错，暂缺图。
+
+
 ---
 
 ## 怎么读「菜单定位」
@@ -36,6 +39,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **数据概览**（`/dashboard`） |
 | **功能说明** | 查看当日营业汇总等概览卡片。未勾选时侧栏不出现该入口，直链会被拦住。 |
 
+![数据概览](./role-permissions-shots/01-overview.png)
+
 ---
 
 ## 2. 增值分析
@@ -46,6 +51,8 @@
 | **权限 key** | `dashboard.value_analytics.view` |
 | **菜单定位** | 顶栏 / 主导航 → **增值分析**（`/dashboard/value-analytics`） |
 | **功能说明** | 查看增值分析（时段、菜品消耗排行等）。另受套餐/会员能力约束：无 Pro 时可能只看到开通引导，不能当「有权限就能用」。 |
+
+![增值分析](./role-permissions-shots/02-value-analytics.png)
 
 ---
 
@@ -58,6 +65,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **异常操作**（`/dashboard/abnormal-operations`） |
 | **功能说明** | 查看异常操作审计列表。同样可能受套餐能力约束。 |
 
+![异常操作](./role-permissions-shots/03-abnormal-ops.png)
+
 ---
 
 ## 4. 操作记录
@@ -68,6 +77,8 @@
 | **权限 key** | `dashboard.operation_logs.view` |
 | **菜单定位** | 顶栏 / 主导航 → **操作记录**（`/dashboard/operation-logs`） |
 | **功能说明** | 查看店内业务操作记录。同样可能受套餐能力约束。 |
+
+![操作记录](./role-permissions-shots/04-operation-logs.png)
 
 ---
 
@@ -80,6 +91,8 @@
 | **菜单定位** | 顶栏 → **设置 / 餐厅设置**（`/dashboard/settings`）；各子 Tab 见下表 |
 | **功能说明** | 打开餐厅设置总入口。只勾此项、不勾任何子项时，进入设置会看到空提示（「请在角色权限中勾选需要的子权限」）。下列子项都挂在本入口下。 |
 
+![餐厅设置 · 基本资料（设置入口示例）](./role-permissions-shots/05-settings-profile.png)
+
 ### 5.1 基本资料
 
 | | |
@@ -88,6 +101,8 @@
 | **权限 key** | `settings.profile.manage` |
 | **菜单定位** | 餐厅设置 → **基本资料**（`/dashboard/settings`） |
 | **功能说明** | 改餐厅名称、地址、电话、Logo、门店定位与下单距离、店面封面/营业时间/简介等。 |
+
+![基本资料](./role-permissions-shots/05-settings-profile.png)
 
 ### 5.2 员工管理（高危）
 
@@ -98,6 +113,8 @@
 | **菜单定位** | 餐厅设置 → **员工管理**（`/dashboard/settings/staff`） |
 | **功能说明** | 新建/改/停用员工账号、重置密码、给员工绑角色。能改别人的登录方式，属敏感权限。 |
 
+![员工管理](./role-permissions-shots/06-settings-staff.png)
+
 ### 5.3 角色权限（高危）
 
 | | |
@@ -106,6 +123,10 @@
 | **权限 key** | `settings.roles.manage` |
 | **菜单定位** | 餐厅设置 → **角色权限**（`/dashboard/settings/roles`） |
 | **功能说明** | 新建/编辑/停用/删除角色，勾选本页全部能力。能改别人能干什么，属敏感权限。 |
+
+![角色权限列表](./role-permissions-shots/07-settings-roles-list.png)
+
+![编辑角色勾选树](./role-permissions-shots/08-settings-roles-edit.png)
 
 ### 5.4 功能管理
 
@@ -116,6 +137,8 @@
 | **菜单定位** | 餐厅设置 → **功能管理**（`/dashboard/settings/features`） |
 | **功能说明** | 开关店级可选功能（如风味提示、上桌流程、厨房「已出餐等待」分钟等）。关闭后对应行为不执行。 |
 
+> 截图暂缺：本地打开本页时运行时报错（`groupRestaurantFeaturesForFeatureSettings`），未收录界面图。
+
 ### 5.5 自助餐定价
 
 | | |
@@ -125,6 +148,8 @@
 | **菜单定位** | 餐厅设置 → **自助餐定价**（`/dashboard/settings/buffet`） |
 | **功能说明** | 配置自助餐方案、供餐时段、价目表与特殊日期；楼面开台按里斯本时间匹配价格。 |
 
+![自助餐定价](./role-permissions-shots/10-settings-buffet.png)
+
 ### 5.6 打印设置
 
 | | |
@@ -133,6 +158,8 @@
 | **权限 key** | `settings.print_assistant.manage` |
 | **菜单定位** | 餐厅设置 → **打印设置**（`/dashboard/settings/print-assistant`） |
 | **功能说明** | 结账出票与纸面选项、打印语言、下载/配对打印助手、档口映射到本机打印机等。下列两项是本页内的更细能力。 |
+
+![打印设置](./role-permissions-shots/11-settings-print.png)
 
 #### 5.6.1 打印设备管理（高危）
 
@@ -161,6 +188,8 @@
 | **菜单定位** | 餐厅设置 → **后厨大屏**（`/dashboard/settings/kitchen-screens`） |
 | **功能说明** | 编排后厨电视大屏：选已开启后厨流程的档口（每屏最多 4 个）。与「厨房看板」现场操作页是不同入口。 |
 
+![后厨大屏配置](./role-permissions-shots/12-settings-kitchen-screens.png)
+
 > **说明**：本机「系统日志」Tab 仅 local-perm 后台管理员可见，**不出现在角色权限勾选树里**，故本文不列。
 
 ---
@@ -173,6 +202,10 @@
 | **权限 key** | `dashboard.checkout.view` |
 | **菜单定位** | 顶栏 / 主导航 → **结账请求**（`/dashboard/checkout`） |
 | **功能说明** | 打开待结账 / 结账列表。子项控制页内关键按钮与相关 API。 |
+
+![结账请求](./role-permissions-shots/13-checkout.png)
+
+> 结账详情截图暂缺：打开详情时本地运行时报错（`isByItemPerTicketCheckoutPlan`）。下列子权限均在「结账请求 → 某桌详情」内；列表页见上图。
 
 ### 6.1 确认收款（高危）
 
@@ -219,6 +252,8 @@
 | **菜单定位** | 结账详情或楼面关台结账路径上的 **预结单 / 关台打印账单** |
 | **功能说明** | 允许打印预结单；在「关台结账」开启时，关台路径也可据此排队打账单。具体是否出纸还受打印设置开关影响。 |
 
+楼面桌台详情上也有「打印预结单」按钮（见下图「桌台详情」）。
+
 ### 6.6 待结账桌台
 
 | | |
@@ -248,6 +283,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **历史订单**（`/dashboard/orders`） |
 | **功能说明** | 查看历史订单列表与详情。 |
 
+![历史订单](./role-permissions-shots/15-orders.png)
+
 ---
 
 ## 8. 当日菜品
@@ -259,6 +296,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **当日菜品**（`/dashboard/dish-history`） |
 | **功能说明** | 按里斯本「今天」查看菜品点单/出餐历史分页列表。 |
 
+![当日菜品](./role-permissions-shots/16-dish-history.png)
+
 ---
 
 ## 9. 桌位配置（页入口）
@@ -269,6 +308,8 @@
 | **权限 key** | `dashboard.tables.view` |
 | **菜单定位** | 顶栏 / 主导航 → **桌位配置**（`/dashboard/tables`） |
 | **功能说明** | 打开桌位与分区配置页。增删改桌位另见子项。 |
+
+![桌位配置](./role-permissions-shots/17-tables.png)
 
 ### 9.1 桌位增删改（高危）
 
@@ -290,6 +331,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **菜单管理**（`/dashboard/menu`） |
 | **功能说明** | 管理分类、菜品、推荐菜、备注预设、上下架等。分类/菜品上绑定出品档口只需本权限；**维护档口本身**见下一项。 |
 
+![菜单管理](./role-permissions-shots/18-menu.png)
+
 ### 10.1 出品档口
 
 | | |
@@ -298,6 +341,8 @@
 | **权限 key** | `dashboard.menu.print_stations.manage` |
 | **菜单定位** | 菜单管理 → Tab **出品档口** |
 | **功能说明** | 新建/排序/编辑打印出品档口（厨房 / 酒水等窗口）。未勾时仍可在菜品上选用已有档口（有菜单管理权限时），但不能改档口定义。 |
+
+![出品档口](./role-permissions-shots/19-menu-stations.png)
 
 ---
 
@@ -310,6 +355,8 @@
 | **菜单定位** | 顶栏 / 主导航 → **顾客通知**（`/dashboard/guest-notice`） |
 | **功能说明** | 查看/处理顾客侧通知（如呼叫服务员等，以当前产品页为准）。 |
 
+![顾客通知](./role-permissions-shots/20-guest-notice.png)
+
 ---
 
 ## 12. 楼面看板（页入口）
@@ -320,6 +367,8 @@
 | **权限 key** | `dashboard.waiter_board.view` |
 | **菜单定位** | 顶栏 / 主导航 → **楼面看板**（`/dashboard/waiter`）；店主默认登录常落在此页 |
 | **功能说明** | 看全店桌台状态、进桌台详情。下列子项控制看板 KPI、金额显示与桌内操作按钮。 |
+
+![楼面看板](./role-permissions-shots/21-waiter-board.png)
 
 ### 12.1 看板人数汇总
 
@@ -347,6 +396,10 @@
 | **权限 key** | `tables.open_session` |
 | **菜单定位** | 楼面看板 → 桌台详情 → **开台 / 改人数**（自助餐人数面板） |
 | **功能说明** | 空台开台、已开台改用餐人数。结账锁定中不可改。 |
+
+楼面子操作（开台改人数、转台、并台、呼叫结账、关台、加菜等）集中在桌台详情：
+
+![桌台详情操作](./role-permissions-shots/22-waiter-table-detail.png)
 
 ### 12.4 转台（高危）
 
@@ -430,6 +483,10 @@
 | **权限 key** | `floor.kitchen_board.view` |
 | **菜单定位** | 顶栏快捷入口 **厨房看板**；页面 `/{slug}/kitchen`（及分屏 `/{slug}/kitchen/[screenId]`） |
 | **功能说明** | 进入后厨看板：按桌/按菜看待备餐、备餐托盘、已出餐轨等。与「后厨大屏」配置页不同：本项是现场操作屏。 |
+
+![厨房看板入口](./role-permissions-shots/23-kitchen.png)
+
+![厨房分屏工作台](./role-permissions-shots/24-kitchen-board.png)
 
 ### 13.1 厨房改状态
 

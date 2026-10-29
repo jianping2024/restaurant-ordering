@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import Image from 'next/image';
 import { APPEND_CART_QTY_MAX, type MenuItem, type Language } from '@/types';
 import {
@@ -28,6 +34,7 @@ import {
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
   menuItemCardQtyTextClass,
+  menuItemCardTiltFromPointer,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
@@ -211,8 +218,26 @@ export function MenuItemCard({
   });
   const openDetailAria = t.itemOpenDetailAria.replace('{name}', label);
 
+  // Hover tilt writes CSS vars straight onto the shell — no React re-render per move.
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') return;
+    const tilt = menuItemCardTiltFromPointer(
+      e.currentTarget.getBoundingClientRect(),
+      e.clientX,
+      e.clientY,
+    );
+    e.currentTarget.style.setProperty('--mesa-menu-card-tilt-x', tilt.x);
+    e.currentTarget.style.setProperty('--mesa-menu-card-tilt-y', tilt.y);
+  };
+  const onPointerLeave = (e: ReactPointerEvent<HTMLDivElement>) => {
+    e.currentTarget.style.removeProperty('--mesa-menu-card-tilt-x');
+    e.currentTarget.style.removeProperty('--mesa-menu-card-tilt-y');
+  };
+
   return (
     <div
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
       className={`${MENU_ITEM_CARD_SHELL_CLASS} ${
         item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
       }`}

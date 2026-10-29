@@ -46,7 +46,7 @@ export const MENU_ITEM_CARD_SHELL_CLASS =
 
 /** List thumb: size via `--mesa-menu-card-thumb`, top-aligned. */
 export const MENU_ITEM_CARD_THUMB_CLASS =
-  'relative flex h-[var(--mesa-menu-card-thumb)] w-[var(--mesa-menu-card-thumb)] shrink-0 items-center justify-center overflow-hidden rounded-[var(--mesa-menu-card-thumb-radius)] self-start';
+  'mesa-menu-item-card-thumb relative flex h-[var(--mesa-menu-card-thumb)] w-[var(--mesa-menu-card-thumb)] shrink-0 items-center justify-center overflow-hidden rounded-[var(--mesa-menu-card-thumb-radius)] self-start';
 
 /**
  * Name slot: 15px / 1.3 × 2 lines = 39px.
@@ -75,8 +75,35 @@ export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =
  */
 export const MENU_ITEM_CARD_PRICE_CLASS = 'min-w-0 truncate';
 
-/** Sole list action slot — never shrinks; the 36px gold circle stays fully visible. */
-export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center justify-end';
+/**
+ * Sole list action slot — never shrinks; the 36px gold circle stays fully visible.
+ * `mesa-menu-item-card-action` keeps the card press-sink off while the action is pressed.
+ */
+export const MENU_ITEM_CARD_ACTION_SLOT_CLASS =
+  'mesa-menu-item-card-action flex shrink-0 items-center justify-end';
+
+/** Max mouse-hover tilt (deg) — rotateX from vertical offset, rotateY from horizontal. */
+const MENU_ITEM_CARD_TILT_MAX_DEG = { x: 4, y: 5 } as const;
+
+/**
+ * Sole hover tilt for MenuItemCard: pointer position inside the card → CSS vars
+ * `--mesa-menu-card-tilt-x/y` (consumed by globals `.mesa-menu-item-card:hover`).
+ * Pointer above centre tilts the top edge back; right of centre turns right.
+ */
+export function menuItemCardTiltFromPointer(
+  rect: { left: number; top: number; width: number; height: number },
+  clientX: number,
+  clientY: number,
+): { x: string; y: string } {
+  const clamp = (v: number) => Math.min(0.5, Math.max(-0.5, v));
+  const dx = rect.width > 0 ? clamp((clientX - rect.left) / rect.width - 0.5) : 0;
+  const dy = rect.height > 0 ? clamp((clientY - rect.top) / rect.height - 0.5) : 0;
+  const deg = (v: number) => `${(Math.round(v * 100) / 100 || 0).toFixed(2)}deg`;
+  return {
+    x: deg(-dy * 2 * MENU_ITEM_CARD_TILT_MAX_DEG.x),
+    y: deg(dx * 2 * MENU_ITEM_CARD_TILT_MAX_DEG.y),
+  };
+}
 
 /**
  * Sole list gold circle — bare `+` (qty 0), collapsed qty number, and the pill's `+`

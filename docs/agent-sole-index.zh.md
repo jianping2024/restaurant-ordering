@@ -257,6 +257,10 @@ sole `isBillableSessionRowOnPaper` / `buildPaperBillableSessionItems` (`billable
 
 identity separate from actions (mobile stack / desktop identity-left + compact action cluster right); one cluster for €+thin toggle+text edit/delete (`gap-3`, extra air after toggle) — never `justify-between` price∥controls desert, never switch jammed on 编辑, never name∥price/toggle on one band, never list `⋯` overflow, never PT·EN·ZH one-line title.
 
+### Guest catalog card depth
+
+sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `--mesa-menu-card-hl/shade`; thumb well inset via `.mesa-menu-item-card-thumb::after`); press-sink skips `.mesa-menu-item-card-action`; mouse hover lift + tilt via sole `menuItemCardTiltFromPointer` → `--mesa-menu-card-tilt-x/y` (no React state); reduced-motion off. Gold `+` / qty pill keep their own look — never add depth chrome to the action.
+
 ### Guest menu catalog categories
 
 sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.

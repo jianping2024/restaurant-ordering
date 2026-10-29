@@ -20,6 +20,7 @@ import {
   MENU_ITEM_CARD_THUMB_PX_NARROW,
   MENU_ITEM_CARD_THUMB_PX_WIDE,
   menuItemCardQtyTextClass,
+  menuItemCardTiltFromPointer,
 } from './menu-item-card-layout';
 
 describe('menuItemCardLayout', () => {
@@ -33,7 +34,11 @@ describe('menuItemCardLayout', () => {
     assert.match(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /justify-between/);
     assert.doesNotMatch(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /6\.75rem/);
     assert.equal(MENU_ITEM_CARD_PRICE_CLASS, 'min-w-0 truncate');
-    assert.equal(MENU_ITEM_CARD_ACTION_SLOT_CLASS, 'flex shrink-0 items-center justify-end');
+    assert.equal(
+      MENU_ITEM_CARD_ACTION_SLOT_CLASS,
+      'mesa-menu-item-card-action flex shrink-0 items-center justify-end',
+    );
+    assert.match(MENU_ITEM_CARD_THUMB_CLASS, /^mesa-menu-item-card-thumb /);
   });
 
   it('shell is mesa-menu-item-card only — pad/radius live in globals container rules', () => {
@@ -76,5 +81,17 @@ describe('menuItemCardLayout', () => {
     assert.equal(CUSTOMER_MENU_ITEM_LIST_HOST_CLASS, 'mesa-menu-catalog-host');
     assert.equal(CUSTOMER_MENU_ITEM_LIST_CLASS, 'mesa-menu-item-list');
     assert.doesNotMatch(CUSTOMER_MENU_ITEM_LIST_CLASS, /lg:grid-cols|xl:grid-cols/);
+  });
+
+  it('hover tilt: centre is flat, corners hit ±max, outside the rect clamps', () => {
+    const rect = { left: 100, top: 50, width: 200, height: 100 };
+    assert.deepEqual(menuItemCardTiltFromPointer(rect, 200, 100), { x: '0.00deg', y: '0.00deg' });
+    assert.deepEqual(menuItemCardTiltFromPointer(rect, 300, 50), { x: '4.00deg', y: '5.00deg' });
+    assert.deepEqual(menuItemCardTiltFromPointer(rect, 100, 150), { x: '-4.00deg', y: '-5.00deg' });
+    assert.deepEqual(menuItemCardTiltFromPointer(rect, 900, -900), { x: '4.00deg', y: '5.00deg' });
+    assert.deepEqual(
+      menuItemCardTiltFromPointer({ left: 0, top: 0, width: 0, height: 0 }, 5, 5),
+      { x: '0.00deg', y: '0.00deg' },
+    );
   });
 });

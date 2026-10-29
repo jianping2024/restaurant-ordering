@@ -96,8 +96,13 @@ type Props = {
   onResumeOrderingClick: () => void;
   /** Individual-checkout plans: staff「解锁」for called, uncollected tickets. */
   ticketUnlock?: StaffTicketUnlock;
-  /** Take-away charge add (SettlementBar) + remove (table items ×); omitted without permission. */
-  takeaway?: {
+  /**
+   * Settlement-bar supply add + line remove: dine-in Take away **or** takeaway-session
+   * packaging (only one mode active). Omitted without permission.
+   */
+  supplyCharge?: {
+    addLabel: string;
+    removeLabel: string;
     onAdd: () => void;
     onRemove: (lineId: string) => void;
     removingLineId: string | null;
@@ -157,7 +162,7 @@ export function StaffCheckoutSplitEditor({
   onDiscountRateFocus,
   onResumeOrderingClick,
   ticketUnlock,
-  takeaway,
+  supplyCharge,
   onCollectPerson,
   onSplitPersisted,
   onRegisterPersist,
@@ -698,7 +703,8 @@ export function StaffCheckoutSplitEditor({
         stickyShellClass={stickyShellClass}
         onDiscountRateCommit={onDiscountRateCommit}
         onDiscountRateFocus={onDiscountRateFocus}
-        onAddTakeaway={takeaway?.onAdd}
+        onAddSupply={supplyCharge?.onAdd}
+        addSupplyLabel={supplyCharge?.addLabel}
         leading={
           showBackButton && onBack ? (
             <button
@@ -867,13 +873,13 @@ export function StaffCheckoutSplitEditor({
           orderItemsEmpty: checkoutT.orderItemsEmpty,
           orderItemsTotal: checkoutT.orderItemsTotal,
         }}
-        takeawayRemove={
-          takeaway
+        chargeRemove={
+          supplyCharge
             ? {
-                onRemove: takeaway.onRemove,
-                removingLineId: takeaway.removingLineId,
+                onRemove: supplyCharge.onRemove,
+                removingLineId: supplyCharge.removingLineId,
                 disabled: detailLocked || submitting,
-                label: checkoutT.takeawayRemove,
+                label: supplyCharge.removeLabel,
               }
             : undefined
         }

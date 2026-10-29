@@ -124,6 +124,8 @@ interface MenuManagerProps {
   canManagePrintStations?: boolean;
   /** Store feature menu_flavor_hints_enabled (default false). */
   flavorHintsEnabled?: boolean;
+  /** Store feature takeaway_ordering (default false). */
+  takeawayOrderingEnabled?: boolean;
   /** Slot choices for the dish form; empty → no time-slot field. */
   menuTimeSlots: MenuTimeSlot[];
 }
@@ -153,6 +155,9 @@ type ItemForm = {
   over_limit_unit_price: string;
   /** '' = all day. */
   time_slot_id: string;
+  /** UI sales mode: dine_in | sellable | packaging */
+  sales_mode: 'dine_in' | 'sellable' | 'packaging';
+  takeaway_price: string;
 };
 
 const defaultItemForm: ItemForm = {
@@ -179,6 +184,8 @@ const defaultItemForm: ItemForm = {
   per_person_qty_limit: '',
   over_limit_unit_price: '',
   time_slot_id: '',
+  sales_mode: 'dine_in',
+  takeaway_price: '',
 };
 
 type CategoryDraft = {
@@ -251,6 +258,7 @@ export function MenuManager({
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
   flavorHintsEnabled = false,
+  takeawayOrderingEnabled = false,
   menuTimeSlots,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
@@ -636,6 +644,14 @@ export function MenuManager({
       over_limit_unit_price:
         item.over_limit_unit_price != null ? String(item.over_limit_unit_price) : '',
       time_slot_id: item.time_slot_id ?? '',
+      sales_mode:
+        item.takeaway_role === 'sellable'
+          ? 'sellable'
+          : item.takeaway_role === 'packaging'
+            ? 'packaging'
+            : 'dine_in',
+      takeaway_price:
+        item.takeaway_price != null ? String(item.takeaway_price) : '',
     });
     setItemError('');
     resetImageUi();
@@ -681,6 +697,15 @@ export function MenuManager({
       setItemError(t.errItemCodeDuplicate);
       return;
     }
+    if (
+      takeawayOrderingEnabled &&
+      itemForm.sales_mode === 'sellable' &&
+      (!itemForm.takeaway_price ||
+        Number.isNaN(Number(itemForm.takeaway_price)) ||
+        Number(itemForm.takeaway_price) <= 0)
+    ) {
+      return setItemError(t.validTakeawayPrice);
+    }
 
     setItemSaving(true);
     setItemError('');
@@ -712,6 +737,17 @@ export function MenuManager({
         ? Number(itemForm.over_limit_unit_price)
         : null,
       time_slot_id: itemForm.time_slot_id || null,
+      takeaway_role: (takeawayOrderingEnabled
+        ? itemForm.sales_mode === 'sellable'
+          ? 'sellable'
+          : itemForm.sales_mode === 'packaging'
+            ? 'packaging'
+            : 'none'
+        : 'none') as 'none' | 'sellable' | 'packaging',
+      takeaway_price:
+        takeawayOrderingEnabled && itemForm.sales_mode === 'sellable'
+          ? Number(itemForm.takeaway_price)
+          : null,
     };
 
     try {
@@ -1825,6 +1861,60 @@ export function MenuManager({
               </select>
             </div>
           </div>
+
+          {takeawayOrderingEnabled ? (
+            <div className="rounded-xl border border-brand-border/80 bg-brand-bg/40 p-3 space-y-3">
+              <p className="text-sm font-medium text-brand-text">{t.salesModeLabel}</p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ['dine_in', t.salesModeDineIn],
+                    ['sellable', t.salesModeSellable],
+                    ['packaging', t.salesModePackaging],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() =>
+                      setItemForm((f) => ({
+                        ...f,
+                        sales_mode: mode,
+                        takeaway_price: mode === 'sellable' ? f.takeaway_price : '',
+                      }))
+                    }
+                    className={`rounded-lg border px-3 py-1.5 text-sm ${
+                      itemForm.sales_mode === mode
+                        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+                        : 'border-brand-border text-brand-text-muted'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {itemForm.sales_mode === 'sellable' ? (
+                <Input
+                  label={t.takeawayPrice}
+                  type="text"
+                  inputMode="decimal"
+                  lang="en"
+                  autoComplete="off"
+                  value={itemForm.takeaway_price}
+                  onChange={(e) =>
+                    setItemForm((f) => ({
+                      ...f,
+                      takeaway_price: normalizeDecimalInput(e.target.value),
+                    }))
+                  }
+                  placeholder="12.50"
+                />
+              ) : null}
+              {itemForm.sales_mode === 'packaging' ? (
+                <p className="text-[12px] text-brand-text-muted">{t.salesModePackagingHint}</p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="rounded-xl border border-brand-border/80 bg-brand-bg/40 p-3 space-y-3">
             <p className="text-[12px] text-brand-text-muted leading-snug">{t.sushiLimitHint}</p>

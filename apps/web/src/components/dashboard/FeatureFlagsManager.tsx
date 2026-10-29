@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -67,6 +68,7 @@ export function FeatureFlagsManager({
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
+  const [takeawayCloseConfirmOpen, setTakeawayCloseConfirmOpen] = useState(false);
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
   const [operationLogRetentionDays, setOperationLogRetentionDays] = useState(
     initialOperationLogRetentionDays,
@@ -141,7 +143,9 @@ export function FeatureFlagsManager({
 
       if (!res.ok) {
         if (json.error === 'migration_required') setError(t.migrationRequired);
-        else if (json.error === 'invalid_kitchen_ready_after_minutes') {
+        else if (json.error === 'takeaway_group_has_open_sessions') {
+          setError(t.takeawayCloseBlockedOpenSessions);
+        } else if (json.error === 'invalid_kitchen_ready_after_minutes') {
           setError(t.kitchenReadyAfterMinutesInvalid);
         } else if (json.error === 'invalid_operation_log_retention_days') {
           setError(t.operationLogRetentionDaysInvalid);
@@ -215,6 +219,10 @@ export function FeatureFlagsManager({
                     onChange={(e) => {
                       const key = def.key as RestaurantFeatureKey;
                       const checked = e.target.checked;
+                      if (key === 'takeaway_ordering' && !checked && flags.takeaway_ordering) {
+                        setTakeawayCloseConfirmOpen(true);
+                        return;
+                      }
                       setFlags((prev) => ({ ...prev, [key]: checked }));
                     }}
                     className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
@@ -463,6 +471,34 @@ export function FeatureFlagsManager({
           {t.save}
         </Button>
       </div>
+
+      <Modal
+        open={takeawayCloseConfirmOpen}
+        onClose={() => setTakeawayCloseConfirmOpen(false)}
+        title={t.takeawayCloseConfirmTitle}
+        size="sm"
+      >
+        <p className="text-sm text-brand-text-muted mb-4">{t.takeawayCloseConfirmBody}</p>
+        <div className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setTakeawayCloseConfirmOpen(false)}
+          >
+            {t.takeawayCloseConfirmCancel}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => {
+              setFlags((prev) => ({ ...prev, takeaway_ordering: false }));
+              setTakeawayCloseConfirmOpen(false);
+            }}
+          >
+            {t.takeawayCloseConfirmOk}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

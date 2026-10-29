@@ -191,6 +191,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       buffetServiceMode: restaurant.buffetServiceMode,
       staffAssisted: waiterFlow,
       sessionOrders: context.sessionOrders,
+      orderingChannel: context.session.ordering_channel,
     });
   } catch {
     await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });

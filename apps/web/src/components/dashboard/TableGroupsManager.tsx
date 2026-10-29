@@ -43,9 +43,15 @@ type GroupForm = {
   name: string;
   remarks: string;
   tableIds: string[];
+  isTakeaway: boolean;
 };
 
-const defaultForm = (): GroupForm => ({ name: '', remarks: '', tableIds: [] });
+const defaultForm = (): GroupForm => ({
+  name: '',
+  remarks: '',
+  tableIds: [],
+  isTakeaway: false,
+});
 
 interface Props {
   tables: RestaurantTableRow[];
@@ -59,6 +65,8 @@ interface Props {
   /** When set, parent renders the primary add action in the page toolbar. */
   onRegisterOpenCreate?: (openCreate: () => void) => void;
   hideAddButton?: boolean;
+  /** restaurants.feature_flags.takeaway_ordering */
+  takeawayOrderingEnabled?: boolean;
 }
 
 export function TableGroupsManager({
@@ -68,6 +76,7 @@ export function TableGroupsManager({
   onGroupsChange,
   onRegisterOpenCreate,
   hideAddButton = false,
+  takeawayOrderingEnabled = false,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tableGroups;
@@ -148,12 +157,18 @@ export function TableGroupsManager({
     onRegisterOpenCreate?.(openCreate);
   }, [onRegisterOpenCreate, openCreate]);
 
+  const existingTakeawayGroup = useMemo(
+    () => groups.find((g) => g.is_takeaway) ?? null,
+    [groups],
+  );
+
   const openEdit = (group: RestaurantTableGroup) => {
     setEditing(group);
     setForm({
       name: group.name,
       remarks: group.remarks || '',
       tableIds: [...(tableIdsByGroup[group.id] || [])],
+      isTakeaway: group.is_takeaway === true,
     });
     setFormError('');
     setModalOpen(true);
@@ -203,6 +218,7 @@ export function TableGroupsManager({
         name,
         remarks,
         table_ids: tableIds,
+        is_takeaway: takeawayOrderingEnabled ? form.isTakeaway : false,
       };
       const result = editing
         ? await updateTableGroupClient({ group_id: editing.id, ...payload })
@@ -353,7 +369,14 @@ export function TableGroupsManager({
                                 />
                               ) : null}
                               <div className="min-w-0 flex-1 space-y-1.5">
-                                <p className="font-medium text-brand-text">{row.name}</p>
+                                <p className="font-medium text-brand-text flex items-center gap-1.5">
+                                  {takeawayOrderingEnabled && row.is_takeaway ? (
+                                    <span aria-hidden className="text-brand-gold" title={t.takeawayGroupBadge}>
+                                      🥡
+                                    </span>
+                                  ) : null}
+                                  <span className="truncate">{row.name}</span>
+                                </p>
                                 {row.remarks ? (
                                   <p className="text-[12px] text-brand-text-muted truncate">{row.remarks}</p>
                                 ) : null}
@@ -469,6 +492,37 @@ export function TableGroupsManager({
               className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             />
           </div>
+          {takeawayOrderingEnabled ? (
+            <label
+              className={`flex items-start gap-3 rounded-lg border border-brand-border px-3 py-3 ${
+                existingTakeawayGroup && existingTakeawayGroup.id !== editing?.id
+                  ? 'opacity-60'
+                  : ''
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={form.isTakeaway}
+                disabled={
+                  Boolean(existingTakeawayGroup && existingTakeawayGroup.id !== editing?.id)
+                }
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, isTakeaway: e.target.checked }))
+                }
+                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              <span className="min-w-0">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.takeawayGroupToggle}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                  {existingTakeawayGroup && existingTakeawayGroup.id !== editing?.id
+                    ? t.takeawayGroupExists.replace('{name}', existingTakeawayGroup.name)
+                    : t.takeawayGroupHint}
+                </span>
+              </span>
+            </label>
+          ) : null}
           <div>
             <p className="text-[13px] text-brand-text-muted mb-2">{t.assignTables}</p>
             <div className="max-h-48 overflow-y-auto rounded-lg border border-brand-border divide-y divide-brand-border/60">

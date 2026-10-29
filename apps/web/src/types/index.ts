@@ -167,6 +167,13 @@ export interface MenuItem {
   is_vegetarian?: boolean;
   /** Menu time slot (`buffet_time_slots.id`); null/missing = served all day. */
   time_slot_id?: string | null;
+  /**
+   * In-store takeaway sales role: none | sellable | packaging.
+   * docs/instore-takeaway.zh.md
+   */
+  takeaway_role?: 'none' | 'sellable' | 'packaging';
+  /** Unit price when takeaway_role=sellable. */
+  takeaway_price?: number | null;
   /** Station slip prints name_pt (default true). docs/product/station-slip-multilang-names.zh.md */
   station_print_pt?: boolean;
   /** Station slip prints name_en (default false). */
@@ -193,8 +200,11 @@ export interface MenuCategory {
   print_station_id?: string | null;
 }
 
-/** `takeaway`: cashier open-price charge added at checkout (sole builder `buildTakeawayChargeItem`). */
-export type OrderItemKind = 'menu' | 'buffet_base' | 'takeaway';
+/**
+ * `takeaway`: cashier open-price charge (堂食打包费; sole builder `buildTakeawayChargeItem`).
+ * `packaging`: in-store takeaway supply line (外卖耗材; UI never shows the English kind name).
+ */
+export type OrderItemKind = 'menu' | 'buffet_base' | 'takeaway' | 'packaging';
 
 export interface OrderItem {
   id: string;         // menu_item.id, or synthetic e.g. buffet:<uuid>
@@ -482,6 +492,8 @@ export interface TableSession {
   opened_by_user_id?: string | null;
   /** Opener label stamped at open — sole board/history display source. */
   opened_by_name?: string | null;
+  /** Stamped at open: dine_in | takeaway (docs/instore-takeaway.zh.md). */
+  ordering_channel?: 'dine_in' | 'takeaway';
 }
 
 // 购物车条目

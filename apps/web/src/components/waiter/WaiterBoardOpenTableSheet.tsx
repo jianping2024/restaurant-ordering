@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { WaiterBoardOpenTableForm } from '@/components/waiter/WaiterBoardOpenTableForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -14,8 +14,11 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   openTableSheetLayout,
+  WaiterTablePrimaryButton,
   WaiterTableSecondaryButton,
+  buttonIcon,
 } from '@/components/waiter/waiter-table-detail-ui';
+import { WaiterTableIcon } from '@/components/waiter/waiter-table-detail-icons';
 
 type Props = {
   open: boolean;
@@ -28,6 +31,8 @@ type Props = {
   table: RestaurantTableRow | null;
   openTableDefaults: WaiterBoardOpenTableDefaults | null;
   lang: UILanguage;
+  /** When true: hide buffet/headcount; one 〔开台〕 button. */
+  isTakeawayTable?: boolean;
 };
 
 export function WaiterBoardOpenTableSheet({
@@ -41,18 +46,85 @@ export function WaiterBoardOpenTableSheet({
   table,
   openTableDefaults,
   lang,
+  isTakeawayTable = false,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
   const hasSeed = open && table != null && openTableDefaults != null;
-  const missingSeed = open && !hasSeed;
+  const missingSeed = open && !hasSeed && !isTakeawayTable;
 
   const sheetModel = useMemo(() => {
+    if (isTakeawayTable) return null;
     if (!hasSeed || !table || !openTableDefaults) return null;
     return buildIdleOpenTablePageModel(openTableDefaults, table);
-  }, [hasSeed, openTableDefaults, table]);
+  }, [hasSeed, isTakeawayTable, openTableDefaults, table]);
+
+  const [takeawaySubmitting, setTakeawaySubmitting] = useState(false);
+
+  const openTakeaway = useCallback(async () => {
+    setTakeawaySubmitting(true);
+    try {
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/open-takeaway`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_id: tableId }),
+        },
+      );
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        session_id?: string;
+      };
+      if (res.status === 409 && data.error === 'already_open') {
+        onStaleBoard();
+        onClose();
+        return;
+      }
+      if (!res.ok || !data.session_id) {
+        return;
+      }
+      onStaleBoard();
+      onClose();
+    } finally {
+      setTakeawaySubmitting(false);
+    }
+  }, [onClose, onStaleBoard, restaurant.slug, tableId]);
 
   const sheetBody = (() => {
+    if (isTakeawayTable) {
+      return (
+        <div className={openTableSheetLayout.stack}>
+          <p className="text-sm text-brand-text-muted text-center py-2">
+            {lang === 'zh'
+              ? '外卖桌：开台后按外卖价点单，无需人数/套餐。'
+              : 'Takeaway desk: open without guest count / buffet.'}
+          </p>
+          <div className={openTableSheetLayout.actionRow}>
+            <WaiterTableSecondaryButton
+              type="button"
+              onClick={onClose}
+              disabled={takeawaySubmitting}
+              className={openTableSheetLayout.actionButton}
+            >
+              {t.closeTableCancel}
+            </WaiterTableSecondaryButton>
+            <WaiterTablePrimaryButton
+              type="button"
+              onClick={() => void openTakeaway()}
+              disabled={takeawaySubmitting}
+              loading={takeawaySubmitting}
+              className={openTableSheetLayout.actionButton}
+              icon={<WaiterTableIcon className={buttonIcon.sm} />}
+            >
+              {lang === 'zh' ? '开台' : t.buffetConfirm}
+            </WaiterTablePrimaryButton>
+          </div>
+        </div>
+      );
+    }
+
     if (missingSeed || !sheetModel) {
       return (
         <div className={openTableSheetLayout.stack}>

@@ -5,9 +5,12 @@ import {
   groupOrdersBySession,
 } from '@/lib/analytics/analytics.repository';
 import {
+  filterQualifyingClosedSessions,
   loadClosedSessionRevenueBundleRpc,
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
+import { revenueByOrderingChannel } from '@/lib/analytics/revenue-ordering-channel';
+import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import {
   aggregateBuffetHeadcountForOrders,
@@ -145,6 +148,11 @@ export type DashboardTodayKpis = {
    * Per session: {@link liveSessionUncollectedAmount}.
    */
   diningUncollectedAmount: number;
+  /**
+   * When `takeaway_ordering` is on: collected revenue split by session channel
+   * (segment UI). Null when flag off — hide channel chrome.
+   */
+  revenueByChannel: { dine_in: number; takeaway: number } | null;
 };
 
 /** Single overview DTO: server aggregates; client only formats by language. */
@@ -290,6 +298,7 @@ export function computeTodayKpis(
     todayRevenue: number;
     revenueSessionCount: number;
     todayGuests: BuffetGuestHeadcount;
+    revenueByChannel: { dine_in: number; takeaway: number } | null;
   } | null,
   dining: Pick<
     DashboardTodayKpis,
@@ -304,6 +313,7 @@ export function computeTodayKpis(
     diningTableCount: dining.diningTableCount,
     diningGuests: dining.diningGuests,
     diningUncollectedAmount: dining.diningUncollectedAmount,
+    revenueByChannel: revenue?.revenueByChannel ?? null,
   };
 }
 
@@ -477,10 +487,12 @@ async function loadTodayRevenueKpis(
   startUtc: string,
   endExclusiveUtc: string,
   todayDateKey: string,
+  takeawayOrderingEnabled: boolean,
 ): Promise<{
   todayRevenue: number;
   revenueSessionCount: number;
   todayGuests: BuffetGuestHeadcount;
+  revenueByChannel: { dine_in: number; takeaway: number } | null;
 } | null> {
   const revenueBundleResult = await loadClosedSessionRevenueBundleRpc(
     admin,
@@ -492,18 +504,37 @@ async function loadTodayRevenueKpis(
 
   const { bundle } = revenueBundleResult;
   const sessionIds = bundle.sessions.map((session) => session.id);
-  if (sessionIds.length === 0) {
-    return todayRevenueFromBundle(bundle, todayDateKey);
-  }
+  const base =
+    sessionIds.length === 0
+      ? todayRevenueFromBundle(bundle, todayDateKey)
+      : await (async () => {
+          const itemOrdersResult = await fetchItemOrdersBySessionIds(
+            admin,
+            restaurantId,
+            sessionIds,
+          );
+          if (!itemOrdersResult.ok) return null;
+          return todayRevenueFromBundle(
+            bundle,
+            todayDateKey,
+            groupOrdersBySession(itemOrdersResult.rows),
+          );
+        })();
+  if (!base) return null;
 
-  const itemOrdersResult = await fetchItemOrdersBySessionIds(admin, restaurantId, sessionIds);
-  if (!itemOrdersResult.ok) return null;
+  const revenueByChannel = takeawayOrderingEnabled
+    ? (() => {
+        const qualifying = filterQualifyingClosedSessions(
+          bundle.sessions,
+          bundle.ordersBySession,
+          bundle.splitsBySession,
+        );
+        const split = revenueByOrderingChannel(bundle, qualifying, { dateKey: todayDateKey });
+        return { dine_in: split.dine_in, takeaway: split.takeaway };
+      })()
+    : null;
 
-  return todayRevenueFromBundle(
-    bundle,
-    todayDateKey,
-    groupOrdersBySession(itemOrdersResult.rows),
-  );
+  return { ...base, revenueByChannel };
 }
 
 export async function loadDashboardOverviewPrimary(
@@ -519,7 +550,7 @@ export async function loadDashboardOverviewPrimary(
     pendingCheckoutCount,
     pendingAbnormalCount,
     { count: pendingPrintCount },
-    todayRevenue,
+    flagsRow,
     diningFloor,
   ] = await Promise.all([
     countPendingCheckoutRequests(admin, restaurantId),
@@ -537,15 +568,22 @@ export async function loadDashboardOverviewPrimary(
       .eq('restaurant_id', restaurantId)
       .eq('status', 'pending')
       .gte('created_at', printJobMaxAgeCutoffIso(now)),
-    loadTodayRevenueKpis(
-      admin,
-      restaurantId,
-      todayWindow.startUtc,
-      todayWindow.endExclusiveUtc,
-      todayWindow.today,
-    ),
+    admin.from('restaurants').select('feature_flags').eq('id', restaurantId).maybeSingle(),
     loadDiningFloorKpis(admin, restaurantId),
   ]);
+
+  const takeawayOrderingEnabled = isRestaurantFeatureEnabled(
+    flagsRow.data?.feature_flags,
+    'takeaway_ordering',
+  );
+  const todayRevenue = await loadTodayRevenueKpis(
+    admin,
+    restaurantId,
+    todayWindow.startUtc,
+    todayWindow.endExclusiveUtc,
+    todayWindow.today,
+    takeawayOrderingEnabled,
+  );
 
   return {
     todayKpis: computeTodayKpis(todayRevenue, diningFloor),

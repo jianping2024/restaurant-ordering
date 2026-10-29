@@ -10,6 +10,7 @@ import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSel
 import { totalGuestsFromCounts, type BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { formatOverviewDate } from '@/lib/format-dashboard-date';
 import { DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS } from '@/lib/analytics/revenue-interval';
+import { revenueForChannelSegment } from '@/lib/analytics/revenue-ordering-channel';
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
@@ -18,7 +19,47 @@ import {
 } from '@/lib/dashboard-overview';
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
+import type { OrderingChannel } from '@/lib/instore-takeaway';
 import { Button } from '@/components/ui/Button';
+
+type RevenueChannelSegment = 'all' | OrderingChannel;
+
+function RevenueChannelTabs({
+  value,
+  onChange,
+  labels,
+}: {
+  value: RevenueChannelSegment;
+  onChange: (next: RevenueChannelSegment) => void;
+  labels: { all: string; dineIn: string; takeaway: string };
+}) {
+  const tabs: Array<{ id: RevenueChannelSegment; label: string }> = [
+    { id: 'all', label: labels.all },
+    { id: 'dine_in', label: labels.dineIn },
+    { id: 'takeaway', label: labels.takeaway },
+  ];
+  return (
+    <div className="mb-2 inline-flex rounded-lg border border-brand-border bg-brand-bg p-0.5 text-[12px]">
+      {tabs.map((tab) => {
+        const active = value === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onChange(tab.id)}
+            className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
+              active
+                ? 'bg-brand-gold/15 text-brand-gold'
+                : 'text-brand-text-muted hover:text-brand-text'
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /** Sole overview entry into the abnormal-ops list (same path as nav / route permission). */
 const ABNORMAL_OPERATIONS_HREF = '/dashboard/abnormal-operations';
@@ -147,6 +188,7 @@ export function DashboardOverviewPrimaryClient({
     diningTableCount,
     diningGuests,
     diningUncollectedAmount,
+    revenueByChannel,
   } = todayKpis;
   const diningGuestCount = totalGuestsFromCounts(diningGuests);
   const diningGuestDetail = formatBuffetGuestDetail(messages.bill.buffetGuestCounts, diningGuests);
@@ -155,15 +197,40 @@ export function DashboardOverviewPrimaryClient({
   const figureClass = DASHBOARD_METRIC_TYPE.figure;
   const moneyClass = DASHBOARD_METRIC_TYPE.money;
 
+  const [revenueChannel, setRevenueChannel] = useState<RevenueChannelSegment>('all');
   const [draftStartDate, setDraftStartDate] = useState(todayDateKey);
   const [draftEndDate, setDraftEndDate] = useState(todayDateKey);
   const [appliedStartDate, setAppliedStartDate] = useState(todayDateKey);
   const [appliedEndDate, setAppliedEndDate] = useState(todayDateKey);
 
   const [intervalRevenue, setIntervalRevenue] = useState(revenueAvailable ? todayRevenue : 0);
+  const [intervalChannelSplit, setIntervalChannelSplit] = useState<{
+    dine_in: number;
+    takeaway: number;
+  } | null>(revenueByChannel);
   const [intervalAvailable, setIntervalAvailable] = useState(revenueAvailable);
   const [intervalLoading, setIntervalLoading] = useState(false);
   const [intervalError, setIntervalError] = useState<string | null>(null);
+
+  const displayTodayCollected =
+    revenueByChannel != null
+      ? revenueForChannelSegment(
+          { ...revenueByChannel, total: todayRevenue },
+          revenueChannel,
+        )
+      : todayRevenue;
+  const displayIntervalRevenue =
+    intervalChannelSplit != null
+      ? revenueForChannelSegment(
+          { ...intervalChannelSplit, total: intervalRevenue },
+          revenueChannel,
+        )
+      : intervalRevenue;
+  const channelTabLabels = {
+    all: i18n.revenueChannelAll,
+    dineIn: i18n.revenueChannelDineIn,
+    takeaway: i18n.revenueChannelTakeaway,
+  };
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -204,8 +271,22 @@ export function DashboardOverviewPrimaryClient({
         }
         throw new Error(i18n.revenueIntervalError);
       }
-      const json = (await res.json()) as { startDate: string; endDate: string; revenueTotal: number };
+      const json = (await res.json()) as {
+        startDate: string;
+        endDate: string;
+        revenueTotal: number;
+        takeawayOrderingEnabled?: boolean;
+        dineInRevenue?: number | null;
+        takeawayRevenue?: number | null;
+      };
       setIntervalRevenue(json.revenueTotal);
+      setIntervalChannelSplit(
+        json.takeawayOrderingEnabled &&
+          typeof json.dineInRevenue === 'number' &&
+          typeof json.takeawayRevenue === 'number'
+          ? { dine_in: json.dineInRevenue, takeaway: json.takeawayRevenue }
+          : null,
+      );
       setIntervalAvailable(true);
       setAppliedStartDate(json.startDate);
       setAppliedEndDate(json.endDate);
@@ -227,15 +308,29 @@ export function DashboardOverviewPrimaryClient({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 ring-1 ring-brand-gold/25">
           <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayRevenue}</p>
+          {revenueByChannel ? (
+            <RevenueChannelTabs
+              value={revenueChannel}
+              onChange={setRevenueChannel}
+              labels={channelTabLabels}
+            />
+          ) : null}
           {revenueAvailable ? (
             <div className="flex flex-row flex-wrap items-end gap-x-2.5 gap-y-2">
               <div className="min-w-0">
                 <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold`}>
-                  €{todayRevenue.toFixed(2)}
+                  €{displayTodayCollected.toFixed(2)}
                 </p>
                 <p className="mt-1.5 text-[12px] text-brand-text-muted">
                   {i18n.todayRevenueCollected}
                 </p>
+                {revenueByChannel && revenueChannel === 'all' ? (
+                  <p className="mt-1 text-[11px] text-brand-text-muted tabular-nums">
+                    {i18n.revenueChannelCompare
+                      .replace('{dineIn}', revenueByChannel.dine_in.toFixed(2))
+                      .replace('{takeaway}', revenueByChannel.takeaway.toFixed(2))}
+                  </p>
+                ) : null}
               </div>
               {diningUncollectedAmount > 0 ? (
                 <>
@@ -345,13 +440,32 @@ export function DashboardOverviewPrimaryClient({
           </Button>
         </div>
 
+        {intervalChannelSplit ? (
+          <div className="mt-3">
+            <RevenueChannelTabs
+              value={revenueChannel}
+              onChange={setRevenueChannel}
+              labels={channelTabLabels}
+            />
+          </div>
+        ) : null}
+
         <p
           className={`${moneyClass} text-3xl sm:text-4xl mt-4 ${
             intervalAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
           }`}
         >
-          {intervalAvailable ? `€${intervalRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable}
+          {intervalAvailable
+            ? `€${displayIntervalRevenue.toFixed(2)}`
+            : i18n.todayRevenueUnavailable}
         </p>
+        {intervalAvailable && intervalChannelSplit && revenueChannel === 'all' ? (
+          <p className="mt-1 text-[11px] text-brand-text-muted tabular-nums">
+            {i18n.revenueChannelCompare
+              .replace('{dineIn}', intervalChannelSplit.dine_in.toFixed(2))
+              .replace('{takeaway}', intervalChannelSplit.takeaway.toFixed(2))}
+          </p>
+        ) : null}
 
         {intervalError ? (
           <p className="mt-2 text-[12px] text-brand-text-muted">{intervalError}</p>

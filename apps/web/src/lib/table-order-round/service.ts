@@ -545,6 +545,16 @@ export async function finalizeRound(params: {
 > {
   const { admin, restaurantId, sessionId, tableId, settings, force } = params;
 
+  const { data: sessionChannelRow } = await admin
+    .from('table_sessions')
+    .select('ordering_channel')
+    .eq('id', sessionId)
+    .eq('restaurant_id', restaurantId)
+    .maybeSingle();
+  if (sessionChannelRow?.ordering_channel === 'takeaway') {
+    return { ok: false, status: 409, error: 'takeaway_session_no_rounds' };
+  }
+
   const round = await loadActiveRound(admin, sessionId);
   if (!round) {
     return { ok: false, status: 404, error: 'round_not_found' };
@@ -701,6 +711,7 @@ export async function finalizeRound(params: {
       buffetServiceMode: params.buffetServiceMode ?? 'sushi',
       staffAssisted: false,
       sessionOrders: writeContext.context.sessionOrders,
+      orderingChannel: writeContext.context.session.ordering_channel,
     });
   } catch {
     await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });

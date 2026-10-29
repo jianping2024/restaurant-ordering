@@ -33,6 +33,7 @@ export async function createTableGroupClient(input: {
   name: string;
   remarks?: string | null;
   table_ids?: string[];
+  is_takeaway?: boolean;
 }) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'POST',
@@ -46,6 +47,7 @@ export async function updateTableGroupClient(input: {
   name: string;
   remarks?: string | null;
   table_ids?: string[];
+  is_takeaway?: boolean;
 }) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'PATCH',

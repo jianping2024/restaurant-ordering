@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     table_ids: Array.isArray(body.table_ids)
       ? body.table_ids.filter((id): id is string => typeof id === 'string')
       : [],
+    is_takeaway: body.is_takeaway === true,
   });
 
   if ('error' in result) return dashboardApiError(result);
@@ -78,6 +79,7 @@ export async function PATCH(req: Request) {
     table_ids: Array.isArray(body.table_ids)
       ? body.table_ids.filter((id): id is string => typeof id === 'string')
       : [],
+    is_takeaway: body.is_takeaway === true,
   });
   if ('error' in result) return dashboardApiError(result);
   return jsonGroups(result.payload);

@@ -171,6 +171,8 @@ export type MenuItemMutationInput = {
   over_limit_unit_price?: number | null;
   /** Null = all day. Always sent so an edit can clear a slot. */
   time_slot_id: string | null;
+  takeaway_role?: 'none' | 'sellable' | 'packaging';
+  takeaway_price?: number | null;
 };
 
 export type PrintStationInput = {

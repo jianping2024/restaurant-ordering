@@ -15,6 +15,7 @@ import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 import { guestTableManifestHref } from '@/lib/pwa/guest-table-pwa-manifest';
 import { formatGuestTableWindowTitle } from '@/lib/pwa/site-manifest';
+import { loadTableInTakeawayGroup } from '@/lib/instore-takeaway-server';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -48,6 +49,12 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   ]);
   if (!sessionContext) notFound();
 
+  const tableInTakeawayGroup = await loadTableInTakeawayGroup(
+    admin,
+    restaurant.id,
+    sessionContext.table_id,
+  );
+
   const staffAssisted = resolveStaffAssistedFlow(
     from,
     returnPath,
@@ -65,6 +72,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       restaurant={restaurant}
       tableId={sessionContext.table_id}
       displayName={sessionContext.display_name}
+      tableInTakeawayGroup={tableInTakeawayGroup}
       orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}
       initialSessionContext={sessionContext}
       initialMenuCatalog={initialMenuCatalog}

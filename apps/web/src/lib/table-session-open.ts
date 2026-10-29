@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SessionStatus } from '@/types';
 import { resolveStaffOperatorName } from '@/lib/order-history/resolve-staff-operator';
+import type { OrderingChannel } from '@/lib/instore-takeaway';
+import { resolveOrderingChannelForTable } from '@/lib/instore-takeaway-server';
 
 export type TableSessionRef = {
   id: string;
@@ -8,6 +10,8 @@ export type TableSessionRef = {
   opened_at: string;
   /** Snapshot at insert; null when existing row predated the column. */
   opened_by_name?: string | null;
+  /** Stamped at open; dine_in | takeaway. */
+  ordering_channel?: OrderingChannel;
 };
 
 type OpenSessionParams = {
@@ -57,7 +61,7 @@ export async function findActiveTableSession(
 ): Promise<TableSessionRef | null> {
   const { data, error } = await admin
     .from('table_sessions')
-    .select('id, status, opened_at, opened_by_name')
+    .select('id, status, opened_at, opened_by_name, ordering_channel')
     .eq('restaurant_id', restaurantId)
     .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
@@ -77,6 +81,10 @@ async function insertOpenTableSession(
     restaurantId: params.restaurant_id,
     openedByUserId: params.opened_by_user_id,
   });
+  const orderingChannel = await resolveOrderingChannelForTable(admin, {
+    restaurantId: params.restaurant_id,
+    tableId: params.table_id,
+  });
 
   const { data, error } = await admin
     .from('table_sessions')
@@ -86,8 +94,9 @@ async function insertOpenTableSession(
       status: 'open',
       opened_by_user_id: params.opened_by_user_id,
       opened_by_name: openedByName,
+      ordering_channel: orderingChannel,
     })
-    .select('id, status, opened_at, opened_by_name')
+    .select('id, status, opened_at, opened_by_name, ordering_channel')
     .single();
 
   if (error || !data) {

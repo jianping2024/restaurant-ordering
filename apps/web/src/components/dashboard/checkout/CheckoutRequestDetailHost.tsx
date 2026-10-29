@@ -38,6 +38,7 @@ import { useIndividualTicketUnlock } from '@/lib/use-individual-ticket-unlock';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
 import { CheckoutHeadcountAdjustModal } from '@/components/dashboard/checkout/CheckoutHeadcountAdjustModal';
+import { CheckoutPackagingModal, type PackagingCatalogItem } from '@/components/dashboard/checkout/CheckoutPackagingModal';
 import { CheckoutTakeawayModal } from '@/components/dashboard/checkout/CheckoutTakeawayModal';
 import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/components/dashboard/checkout/CollectPaymentModal';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
@@ -45,6 +46,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
 import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
+import { coerceCartPrice } from '@/lib/cart-totals';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { shouldPromptCheckoutZeroHeadcount } from '@/lib/checkout-zero-headcount-prompt';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
@@ -59,7 +61,12 @@ import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProv
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import { mintBrowserUuid } from '@/lib/browser-uuid';
+import { voidPackagingChargeInOrders } from '@/lib/checkout-packaging';
 import { voidTakeawayChargeInOrders } from '@/lib/checkout-takeaway';
+import {
+  requestAddCheckoutPackaging,
+  requestRemoveCheckoutPackaging,
+} from '@/lib/request-checkout-packaging';
 import {
   requestAddCheckoutTakeaway,
   requestRemoveCheckoutTakeaway,
@@ -285,9 +292,17 @@ export function CheckoutRequestDetailHost({
   const [headcountAdjustBusy, setHeadcountAdjustBusy] = useState(false);
   const [takeawayOpen, setTakeawayOpen] = useState(false);
   const [takeawayBusy, setTakeawayBusy] = useState(false);
-  const [removingTakeawayLineId, setRemovingTakeawayLineId] = useState<string | null>(null);
-  /** One idempotency key per take-away modal visit (retries replay, never double-add). */
+  const [packagingOpen, setPackagingOpen] = useState(false);
+  const [packagingBusy, setPackagingBusy] = useState(false);
+  const [packagingItems, setPackagingItems] = useState<PackagingCatalogItem[]>([]);
+  const [removingSupplyLineId, setRemovingSupplyLineId] = useState<string | null>(null);
+  /** Session stamp — hide dine-in TAKE AWAY charge on takeaway sessions. */
+  const [sessionOrderingChannel, setSessionOrderingChannel] = useState<'dine_in' | 'takeaway'>(
+    'dine_in',
+  );
+  /** One idempotency key per take-away / packaging modal visit (retries replay, never double-add). */
   const takeawayRequestId = useRef<string>('');
+  const packagingRequestId = useRef<string>('');
   const { printFiscalInvoiceAvailable } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
@@ -302,11 +317,24 @@ export function CheckoutRequestDetailHost({
   /** Session orders for this bill; null when unavailable. */
   const readSessionOrders = useCallback(async (): Promise<Order[] | null> => {
     if (!restaurantId || !request.session_id) return null;
-    const { data: orderRows, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .eq('session_id', request.session_id);
+    const [{ data: orderRows, error }, { data: sessionRow }] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*')
+        .eq('restaurant_id', restaurantId)
+        .eq('session_id', request.session_id),
+      supabase
+        .from('table_sessions')
+        .select('ordering_channel')
+        .eq('id', request.session_id)
+        .eq('restaurant_id', restaurantId)
+        .maybeSingle(),
+    ]);
+    if (sessionRow?.ordering_channel === 'takeaway') {
+      setSessionOrderingChannel('takeaway');
+    } else {
+      setSessionOrderingChannel('dine_in');
+    }
     if (error) return null;
     return (orderRows || []) as Order[];
   }, [restaurantId, request.session_id, supabase]);
@@ -468,6 +496,33 @@ export function CheckoutRequestDetailHost({
     setTakeawayOpen(true);
   }, []);
 
+  const openPackaging = useCallback(async () => {
+    packagingRequestId.current = mintBrowserUuid();
+    if (!restaurantId) {
+      setPackagingItems([]);
+      setPackagingOpen(true);
+      return;
+    }
+    const { data } = await supabase
+      .from('menu_items')
+      .select('id, name_pt, name_en, name_zh, price, emoji')
+      .eq('restaurant_id', restaurantId)
+      .eq('takeaway_role', 'packaging')
+      .eq('available', true)
+      .order('name_pt', { ascending: true });
+    setPackagingItems(
+      (data ?? []).map((row) => ({
+        id: row.id as string,
+        name_pt: String(row.name_pt || ''),
+        name_en: (row.name_en as string | null) ?? null,
+        name_zh: (row.name_zh as string | null) ?? null,
+        price: coerceCartPrice(row.price),
+        emoji: (row.emoji as string | null) ?? null,
+      })),
+    );
+    setPackagingOpen(true);
+  }, [restaurantId, supabase]);
+
   const confirmTakeaway = useCallback(
     async (lines: { amount: number; qty: number }[]) => {
       if (takeawayBusy) return;
@@ -492,45 +547,77 @@ export function CheckoutRequestDetailHost({
     [refreshBillAfterTakeaway, request.id, restaurantSlug, t, takeawayBusy],
   );
 
-  const removeTakeaway = useCallback(
+  const confirmPackaging = useCallback(
+    async (lines: { menuItemId: string; qty: number }[]) => {
+      if (packagingBusy) return;
+      setPackagingBusy(true);
+      try {
+        const result = await requestAddCheckoutPackaging({
+          slug: restaurantSlug,
+          billSplitId: request.id,
+          lines,
+          clientRequestId: packagingRequestId.current,
+        });
+        if (!result.ok) {
+          showToast(t.packagingFailed, 'error');
+          return;
+        }
+        setPackagingOpen(false);
+        await refreshBillAfterTakeaway();
+      } finally {
+        setPackagingBusy(false);
+      }
+    },
+    [packagingBusy, refreshBillAfterTakeaway, request.id, restaurantSlug, t],
+  );
+
+  const removeSupplyCharge = useCallback(
     async (lineId: string) => {
-      if (removingTakeawayLineId) return;
+      if (removingSupplyLineId) return;
       const priorOrders = sessionOrders;
-      const optimistic = voidTakeawayChargeInOrders(priorOrders, lineId);
+      const isPackaging = lineId.startsWith('packaging:');
+      const optimistic = isPackaging
+        ? voidPackagingChargeInOrders(priorOrders, lineId)
+        : voidTakeawayChargeInOrders(priorOrders, lineId);
       if (!optimistic) {
-        showToast(t.takeawayRemoveFailed, 'error');
+        showToast(isPackaging ? t.packagingRemoveFailed : t.takeawayRemoveFailed, 'error');
         return;
       }
       // Instant list update; lock collect / resume / discount until DELETE + bill refresh finish.
-      setRemovingTakeawayLineId(lineId);
+      setRemovingSupplyLineId(lineId);
       setSessionOrders(optimistic);
       try {
-        const result = await requestRemoveCheckoutTakeaway({
-          slug: restaurantSlug,
-          billSplitId: request.id,
-          lineId,
-        });
+        const result = isPackaging
+          ? await requestRemoveCheckoutPackaging({
+              slug: restaurantSlug,
+              billSplitId: request.id,
+              lineId,
+            })
+          : await requestRemoveCheckoutTakeaway({
+              slug: restaurantSlug,
+              billSplitId: request.id,
+              lineId,
+            });
         if (!result.ok) {
           setSessionOrders(priorOrders);
           showToast(
-            result.error === 'claimed_by_ticket' ? t.takeawayRemoveClaimed : t.takeawayRemoveFailed,
+            result.error === 'claimed_by_ticket'
+              ? isPackaging
+                ? t.packagingRemoveClaimed
+                : t.takeawayRemoveClaimed
+              : isPackaging
+                ? t.packagingRemoveFailed
+                : t.takeawayRemoveFailed,
             'error',
           );
           return;
         }
         await refreshBillAfterTakeaway();
       } finally {
-        setRemovingTakeawayLineId(null);
+        setRemovingSupplyLineId(null);
       }
     },
-    [
-      refreshBillAfterTakeaway,
-      removingTakeawayLineId,
-      request.id,
-      restaurantSlug,
-      sessionOrders,
-      t,
-    ],
+    [refreshBillAfterTakeaway, removingSupplyLineId, request.id, restaurantSlug, sessionOrders, t],
   );
 
   const confirmHeadcountAdjust = useCallback(
@@ -822,7 +909,8 @@ export function CheckoutRequestDetailHost({
     isCheckoutDetailLocked(processingKeys, request.id) ||
     discountApplying ||
     takeawayBusy ||
-    removingTakeawayLineId != null;
+    packagingBusy ||
+    removingSupplyLineId != null;
 
   return (
     <>
@@ -849,13 +937,23 @@ export function CheckoutRequestDetailHost({
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
         }
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-        takeaway={
+        supplyCharge={
           can(capabilities, 'checkout.confirm_payment')
-            ? {
-                onAdd: openTakeaway,
-                onRemove: (lineId) => void removeTakeaway(lineId),
-                removingLineId: removingTakeawayLineId,
-              }
+            ? sessionOrderingChannel === 'takeaway'
+              ? {
+                  addLabel: t.packagingAdd,
+                  removeLabel: t.packagingRemove,
+                  onAdd: () => void openPackaging(),
+                  onRemove: (lineId) => void removeSupplyCharge(lineId),
+                  removingLineId: removingSupplyLineId,
+                }
+              : {
+                  addLabel: t.takeawayAdd,
+                  removeLabel: t.takeawayRemove,
+                  onAdd: openTakeaway,
+                  onRemove: (lineId) => void removeSupplyCharge(lineId),
+                  removingLineId: removingSupplyLineId,
+                }
             : undefined
         }
         ticketUnlock={ticketUnlock}
@@ -987,6 +1085,25 @@ export function CheckoutRequestDetailHost({
           setTakeawayOpen(false);
         }}
         onConfirm={(lines) => confirmTakeaway(lines)}
+      />
+      <CheckoutPackagingModal
+        open={packagingOpen}
+        busy={packagingBusy}
+        lang={lang}
+        items={packagingItems}
+        labels={{
+          title: t.packagingTitle,
+          empty: t.packagingEmpty,
+          qty: t.takeawayQty,
+          total: t.takeawayTotal,
+          confirm: t.takeawayConfirm,
+          cancel: t.takeawayCancel,
+        }}
+        onClose={() => {
+          if (packagingBusy) return;
+          setPackagingOpen(false);
+        }}
+        onConfirm={(lines) => confirmPackaging(lines)}
       />
       <CollectPaymentModal
         open={collectPending != null}

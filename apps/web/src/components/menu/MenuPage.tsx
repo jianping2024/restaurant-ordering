@@ -24,6 +24,8 @@ import {
   shouldRenderSushiRoundMenuPage,
 } from '@/lib/table-order-round/settings';
 import { GuestTableStandaloneTitle } from '@/components/pwa/GuestTableStandaloneTitle';
+import { resolveTableOrderingChannel } from '@/lib/instore-takeaway';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 
 const EMPTY_MENU_TIME_SLOTS: MenuTimeSlot[] = [];
 
@@ -33,6 +35,8 @@ interface Props {
   initialMenuCatalog?: CustomerMenuCatalog | null;
   tableId: string;
   displayName: string;
+  /** Table currently in the restaurant's is_takeaway group. */
+  tableInTakeawayGroup?: boolean;
   orderCooldownSeconds: number;
   initialSessionContext?: CustomerSessionContext | null;
   isDemo?: boolean;
@@ -44,6 +48,7 @@ export function MenuPage({
   initialMenuCatalog = null,
   tableId,
   displayName,
+  tableInTakeawayGroup = false,
   orderCooldownSeconds,
   initialSessionContext = null,
   isDemo,
@@ -117,7 +122,17 @@ export function MenuPage({
   const standaloneTitle =
     !isDemo && tableId ? <GuestTableStandaloneTitle /> : null;
 
+  const orderingChannel = resolveTableOrderingChannel({
+    takeawayOrderingEnabled: isRestaurantFeatureEnabled(
+      restaurant.feature_flags,
+      'takeaway_ordering',
+    ),
+    tableInTakeawayGroup,
+    sessionChannel: initialSessionContext?.active_session?.ordering_channel,
+  });
+
   if (
+    orderingChannel !== 'takeaway' &&
     shouldRenderSushiRoundMenuPage({
       buffetServiceMode: restaurant.buffet_service_mode,
       sushiRoundOrderingEnabled: restaurant.sushi_round_ordering_enabled,
@@ -159,6 +174,7 @@ export function MenuPage({
         catalogReady={catalogReady}
         tableId={tableId}
         displayName={displayName}
+        tableInTakeawayGroup={tableInTakeawayGroup}
         orderCooldownSeconds={orderCooldownSeconds}
         initialSessionContext={initialSessionContext}
         isDemo={isDemo}

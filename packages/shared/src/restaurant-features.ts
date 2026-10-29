@@ -5,10 +5,11 @@ export type RestaurantFeatureKey =
   | 'kitchen_serve_to_table'
   | 'menu_flavor_hints_enabled'
   | 'open_table_receipt_print'
-  | 'quick_table_close';
+  | 'quick_table_close'
+  | 'takeaway_ordering';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
-export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen';
+export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen' | 'ordering';
 
 export type RestaurantFeatureFlags = Partial<Record<RestaurantFeatureKey, boolean>>;
 
@@ -16,7 +17,7 @@ export type ResolvedRestaurantFeatureFlags = Record<RestaurantFeatureKey, boolea
 
 export type RestaurantFeatureModuleDefinition = {
   id: RestaurantFeatureModuleId;
-  labelKey: 'moduleBilling' | 'moduleFlavor' | 'moduleKitchen';
+  labelKey: 'moduleBilling' | 'moduleFlavor' | 'moduleKitchen' | 'moduleOrdering';
   sortOrder: number;
 };
 
@@ -30,14 +31,16 @@ export type RestaurantFeatureDefinition = {
     | 'kitchenServeToTable'
     | 'menuFlavorHints'
     | 'openTableReceiptPrint'
-    | 'quickTableClose';
+    | 'quickTableClose'
+    | 'takeawayOrdering';
   descKey:
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
     | 'menuFlavorHintsDesc'
     | 'openTableReceiptPrintDesc'
-    | 'quickTableCloseDesc';
+    | 'quickTableCloseDesc'
+    | 'takeawayOrderingDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -52,6 +55,7 @@ export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinit
   { id: 'kitchen', labelKey: 'moduleKitchen', sortOrder: 15 },
   { id: 'billing', labelKey: 'moduleBilling', sortOrder: 20 },
   { id: 'flavor', labelKey: 'moduleFlavor', sortOrder: 25 },
+  { id: 'ordering', labelKey: 'moduleOrdering', sortOrder: 30 },
 ] as const;
 
 export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinition[] = [
@@ -96,6 +100,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'menuFlavorHints',
     descKey: 'menuFlavorHintsDesc',
+  },
+  {
+    key: 'takeaway_ordering',
+    moduleId: 'ordering',
+    defaultEnabled: false,
+    labelKey: 'takeawayOrdering',
+    descKey: 'takeawayOrderingDesc',
   },
 ] as const;
 

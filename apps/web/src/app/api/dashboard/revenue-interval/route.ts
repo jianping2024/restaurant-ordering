@@ -4,6 +4,7 @@ import {
   loadDashboardRevenueIntervalTotal,
   parseDashboardRevenueIntervalDates,
 } from '@/lib/analytics/revenue-interval';
+import { isRestaurantFeatureEnabled } from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
@@ -22,15 +23,18 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'invalid_date_range' }, { status: 400 });
   }
 
-  const result = await loadDashboardRevenueIntervalTotal({
-    admin: ctx.admin,
-    restaurantId: ctx.restaurantId,
-    startDate: parsed.startDate,
-    endDate: parsed.endDate,
-    startUtc: parsed.startUtc,
-    endExclusiveUtc: parsed.endExclusiveUtc,
-    dateKeys: parsed.dateKeys,
-  });
+  const [{ data: flagsRow }, result] = await Promise.all([
+    ctx.admin.from('restaurants').select('feature_flags').eq('id', ctx.restaurantId).maybeSingle(),
+    loadDashboardRevenueIntervalTotal({
+      admin: ctx.admin,
+      restaurantId: ctx.restaurantId,
+      startDate: parsed.startDate,
+      endDate: parsed.endDate,
+      startUtc: parsed.startUtc,
+      endExclusiveUtc: parsed.endExclusiveUtc,
+      dateKeys: parsed.dateKeys,
+    }),
+  ]);
 
   if (!result.ok) {
     const status = result.code === 'query_limit_exceeded' ? 503 : 500;
@@ -40,10 +44,17 @@ export async function GET(req: Request) {
     );
   }
 
+  const takeawayOrderingEnabled = isRestaurantFeatureEnabled(
+    flagsRow?.feature_flags,
+    'takeaway_ordering',
+  );
+
   return NextResponse.json({
     startDate: parsed.startDate,
     endDate: parsed.endDate,
     revenueTotal: result.revenueTotal,
+    takeawayOrderingEnabled,
+    dineInRevenue: takeawayOrderingEnabled ? result.dineInRevenue : null,
+    takeawayRevenue: takeawayOrderingEnabled ? result.takeawayRevenue : null,
   });
 }
-

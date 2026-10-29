@@ -28,6 +28,7 @@ import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
 } from '@/lib/menu-item-card-layout';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
+import { resolveTableOrderingChannel } from '@/lib/instore-takeaway';
 import {
   customerMenuNavTopCategories,
   resolveCustomerMenuCatalogView,
@@ -164,6 +165,8 @@ interface Props {
   catalogReady?: boolean;
   tableId: string;
   displayName: string;
+  /** Table currently in the restaurant's is_takeaway group (browse / open stamp). */
+  tableInTakeawayGroup?: boolean;
   orderCooldownSeconds: number;
   initialSessionContext?: CustomerSessionContext | null;
   isDemo?: boolean;
@@ -186,6 +189,7 @@ export function MenuOrderingController({
   catalogReady = true,
   tableId,
   displayName,
+  tableInTakeawayGroup = false,
   orderCooldownSeconds,
   initialSessionContext = null,
   isDemo,
@@ -300,6 +304,23 @@ export function MenuOrderingController({
     return withIndividualHold(gate, individualHold.hold);
   }, [activeSession, individualHold.hold, isDemo, refreshSessionContext, sessionResolved]);
 
+  const orderingChannel = useMemo(
+    () =>
+      resolveTableOrderingChannel({
+        takeawayOrderingEnabled: isRestaurantFeatureEnabled(
+          restaurant.feature_flags,
+          'takeaway_ordering',
+        ),
+        tableInTakeawayGroup: tableInTakeawayGroup === true,
+        sessionChannel: activeSession?.ordering_channel,
+      }),
+    [
+      restaurant.feature_flags,
+      tableInTakeawayGroup,
+      activeSession?.ordering_channel,
+    ],
+  );
+
   const catalogView = useMemo(
     () =>
       resolveCustomerMenuCatalogView({
@@ -309,6 +330,7 @@ export function MenuOrderingController({
         menuTimeSlotId,
         activeTopId: activeTopCategory,
         activeSubpath,
+        orderingChannel,
       }),
     [
       menuCategories,
@@ -317,6 +339,7 @@ export function MenuOrderingController({
       menuTimeSlotId,
       activeTopCategory,
       activeSubpath,
+      orderingChannel,
     ],
   );
   const currentTop = catalogView.currentTopId;

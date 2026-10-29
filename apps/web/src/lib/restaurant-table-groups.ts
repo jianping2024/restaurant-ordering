@@ -25,6 +25,8 @@ export type RestaurantTableGroup = {
   remarks: string | null;
   sort_order: number;
   created_at: string;
+  /** When true and takeaway_ordering is on, desks in this group are takeaway. */
+  is_takeaway: boolean;
 };
 
 export type RestaurantTableGroupMember = {
@@ -63,15 +65,24 @@ export function isValidTableGroupName(value: string): boolean {
 }
 
 export function compareTableGroups(
-  a: Pick<RestaurantTableGroup, 'sort_order' | 'created_at'>,
-  b: Pick<RestaurantTableGroup, 'sort_order' | 'created_at'>,
+  a: Pick<RestaurantTableGroup, 'sort_order' | 'created_at' | 'is_takeaway'>,
+  b: Pick<RestaurantTableGroup, 'sort_order' | 'created_at' | 'is_takeaway'>,
+  options?: { pinTakeawayLeft?: boolean },
 ): number {
+  if (options?.pinTakeawayLeft) {
+    const aPin = a.is_takeaway ? 0 : 1;
+    const bPin = b.is_takeaway ? 0 : 1;
+    if (aPin !== bPin) return aPin - bPin;
+  }
   if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
   return a.created_at.localeCompare(b.created_at);
 }
 
-export function sortTableGroups<T extends RestaurantTableGroup>(rows: T[]): T[] {
-  return [...rows].sort(compareTableGroups);
+export function sortTableGroups<T extends RestaurantTableGroup>(
+  rows: T[],
+  options?: { pinTakeawayLeft?: boolean },
+): T[] {
+  return [...rows].sort((a, b) => compareTableGroups(a, b, options));
 }
 
 export function buildTableGroupNameByTableId(
@@ -232,13 +243,16 @@ export function buildWaiterBoardSections(
   members: RestaurantTableGroupMember[],
   tables: RestaurantTableRow[],
   ungroupedLabel: string,
+  options?: { pinTakeawayLeft?: boolean },
 ): WaiterBoardSection[] {
   const tableIds = new Set(tables.map((t) => t.id));
   const assigned = new Set<string>();
   const tableIdsByGroup = groupTableIdsByGroupId(members);
   const sections: WaiterBoardSection[] = [];
 
-  for (const group of sortTableGroups(groups)) {
+  for (const group of sortTableGroups(groups, {
+    pinTakeawayLeft: options?.pinTakeawayLeft === true,
+  })) {
     const ids = (tableIdsByGroup[group.id] || []).filter((id) => tableIds.has(id));
     if (ids.length === 0) continue;
     ids.forEach((id) => assigned.add(id));

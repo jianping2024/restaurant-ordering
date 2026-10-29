@@ -16,8 +16,8 @@ type Props = {
   labels: Labels;
   className?: string;
   defaultOpen?: boolean;
-  /** Staff checkout: trash on take-away charge rows removes the line. */
-  takeawayRemove?: {
+  /** Staff checkout: trash on Take away / packaging supply rows. */
+  chargeRemove?: {
     onRemove: (lineId: string) => void;
     removingLineId: string | null;
     disabled: boolean;
@@ -31,7 +31,7 @@ export function CheckoutTableItemsSection({
   labels,
   className,
   defaultOpen = false,
-  takeawayRemove,
+  chargeRemove,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
@@ -66,16 +66,16 @@ export function CheckoutTableItemsSection({
                 <span className="text-brand-text text-sm font-semibold tabular-nums shrink-0">
                   €{line.lineTotal.toFixed(2)}
                 </span>
-                {takeawayRemove && line.takeawayLineId ? (
+                {chargeRemove && line.chargeLineId ? (
                   <RowRemoveIconButton
                     large
                     removable
-                    ariaLabel={takeawayRemove.label}
+                    ariaLabel={chargeRemove.label}
                     disabled={
-                      takeawayRemove.disabled ||
-                      takeawayRemove.removingLineId != null
+                      chargeRemove.disabled ||
+                      chargeRemove.removingLineId != null
                     }
-                    onRemove={() => takeawayRemove.onRemove(line.takeawayLineId!)}
+                    onRemove={() => chargeRemove.onRemove(line.chargeLineId!)}
                   />
                 ) : null}
               </div>

@@ -257,6 +257,10 @@ sole `isBillableSessionRowOnPaper` / `buildPaperBillableSessionItems` (`billable
 
 identity separate from actions (mobile stack / desktop identity-left + compact action cluster right); one cluster for €+thin toggle+text edit/delete (`gap-3`, extra air after toggle) — never `justify-between` price∥controls desert, never switch jammed on 编辑, never name∥price/toggle on one band, never list `⋯` overflow, never PT·EN·ZH one-line title.
 
+### Guest menu catalog categories
+
+sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.
+
 ### Customer recommended merchandising
 
 sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price, tap opens detail; do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` on the rail.

@@ -15,8 +15,8 @@ describe('CUSTOMER_MENU_TYPE', () => {
   });
 
   it('avoids repeating category size on active state modifier', () => {
-    assert.doesNotMatch(CUSTOMER_MENU_TYPE.categoryTopActive, /text-xs/);
-    assert.match(CUSTOMER_MENU_TYPE.categoryTop, /text-xs/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.categoryTopActive, /text-(xs|\[13px\])/);
+    assert.match(CUSTOMER_MENU_TYPE.categoryTop, /text-\[13px\]/);
   });
 
   it('keeps recommended name to one truncated line (no two-line reserve)', () => {

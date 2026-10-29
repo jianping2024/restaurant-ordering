@@ -80,6 +80,82 @@
   max-height: 100cqh;
 }
 
+/*
+ * Sole guest top-category rail key (CustomerMenuCategoryNav): raised 3D key —
+ * solid lip via box-shadow (no layout shift), :active sinks 3px. Gold face when
+ * selected. Per-theme face/edge/lip below; dark is the :root default.
+ */
+.mesa-category-key {
+  --mesa-key-face: 48 44 35;
+  --mesa-key-edge: 72 66 54;
+  --mesa-key-lip: 12 11 9;
+  --mesa-key-text: var(--color-brand-text-muted);
+  --mesa-key-active-edge: var(--color-brand-gold-dark);
+  --mesa-key-active-lip: 120 90 46;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(var(--mesa-key-edge));
+  background: rgb(var(--mesa-key-face));
+  color: rgb(var(--mesa-key-text));
+  box-shadow: 0 4px 0 rgb(var(--mesa-key-lip));
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out, background-color 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+[data-theme='light'] .mesa-category-key {
+  --mesa-key-face: 252 250 245;
+  --mesa-key-edge: 214 204 184;
+  --mesa-key-lip: 200 188 162;
+  --mesa-key-text: 74 64 50;
+  --mesa-key-active-lip: 84 60 24;
+}
+@media (hover: hover) {
+  .mesa-category-key:not(.mesa-category-key-active):hover {
+    color: rgb(var(--color-brand-text));
+  }
+}
+.mesa-category-key:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgb(var(--mesa-key-lip));
+}
+.mesa-category-key:focus-visible {
+  outline: 2px solid rgb(var(--color-brand-gold));
+  outline-offset: 2px;
+}
+.mesa-category-key-active {
+  border-color: rgb(var(--mesa-key-active-edge));
+  background: rgb(var(--color-brand-gold));
+  color: rgb(var(--color-on-gold));
+  box-shadow: 0 4px 0 rgb(var(--mesa-key-active-lip));
+}
+.mesa-category-key-active:active {
+  box-shadow: 0 1px 0 rgb(var(--mesa-key-active-lip));
+}
+/* Cart qty under this category — red so it reads on the gold selected face too. */
+.mesa-category-key-badge {
+  position: absolute;
+  top: -0.375rem;
+  right: -0.375rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: rgb(var(--color-status-danger-border));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  box-shadow: 0 0 0 1.5px rgb(var(--color-brand-bg));
+}
+@media (prefers-reduced-motion: reduce) {
+  .mesa-category-key {
+    transition: none;
+  }
+}
+
 /* Customer menu footer dock (h-14 + guidance strip + inset) — toasts float above, never on the CTA. */
 :root:has([data-mesa-bottom-dock-guidance]) {
   --mesa-bottom-dock-extra: 4.5rem;

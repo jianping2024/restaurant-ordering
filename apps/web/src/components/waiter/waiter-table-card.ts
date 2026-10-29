@@ -231,13 +231,15 @@ export function buildWaiterTableCard(
     nowMs?: number;
     lang?: UILanguage;
     kitchenEnabledStationIds?: readonly string[];
+    /** Sole within-band order for「已点」; empty → unknown ids after ranked (stable by key). */
+    menuBrowseRankByItemId?: ReadonlyMap<string, number>;
   } = {},
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalogOrders = sortOrdersForBillableCatalog(orders);
   const catalog = sortBillableSessionItemsForWaiterDetail(
     buildBillableSessionItems(catalogOrders),
-    catalogOrders,
+    options.menuBrowseRankByItemId ?? new Map(),
   );
   const serveEnabled = options.serveEnabled === true;
   const readyAfterMinutes =

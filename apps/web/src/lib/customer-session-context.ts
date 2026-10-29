@@ -11,6 +11,7 @@ import {
   type GuestOrderingNotice,
 } from '@/lib/guest-ordering-notice';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type {
   WaiterTableDetailData,
@@ -213,6 +214,7 @@ export function customerSessionContextFromWaiterDetail(
 
   const sessionMeta = detail.sessionMeta;
   const restaurantId = detail.orders[0]?.restaurant_id ?? '';
+  // Sole staff→menu session stamp: include open-time ordering_channel (never drop it).
   const active_session: TableSession | null = sessionMeta
     ? {
         id: sessionMeta.sessionId,
@@ -220,6 +222,7 @@ export function customerSessionContextFromWaiterDetail(
         table_id: table.id,
         status: sessionMeta.status,
         opened_at: sessionMeta.openedAt,
+        ordering_channel: normalizeOrderingChannel(sessionMeta.orderingChannel),
       }
     : null;
 

@@ -186,7 +186,9 @@ describe('resolveCustomerMenuCatalogView', () => {
     assert.deepEqual(takeaway.realTopCategories.map((c) => c.id), ['c-drinks']);
     assert.equal(takeaway.currentTopId, 'c-drinks');
     assert.deepEqual(takeaway.currentItems.map((r) => r.id), ['i-sell']);
+    assert.equal(takeaway.currentItems[0]?.price, 2.5);
     assert.deepEqual(takeaway.recommendedItems.map((r) => r.id), ['i-sell']);
+    assert.equal(takeaway.recommendedItems[0]?.price, 2.5);
 
     const dineIn = resolveCustomerMenuCatalogView({
       menuCategories: cats,

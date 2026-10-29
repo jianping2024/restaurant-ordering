@@ -6,6 +6,7 @@ import {
 } from '@/components/menu/MenuOrderingController';
 import { StaffOrderingShell } from '@/components/waiter/StaffOrderingShell';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
+import { customerSessionContextFromWaiterDetail } from '@/lib/customer-session-context';
 import {
   ensureCustomerMenuCatalog,
   peekCustomerMenuCatalogCache,
@@ -123,21 +124,20 @@ export function WaiterStaffOrderingPanel({
     skipGeoFence: true,
   }), [embeddedInDashboard, isDemo, restaurant.slug, tableId]);
 
+  /** Sole staff→menu session seed — includes open-stamped ordering_channel. */
   const initialSessionContext = useMemo((): CustomerSessionContext | null => {
-    if (!sessionMeta) return null;
-    return {
-      table_id: tableId,
-      display_name: displayName,
-      active_session: {
-        id: sessionMeta.sessionId,
-        restaurant_id: restaurant.id,
-        table_id: tableId,
-        status: sessionMeta.status,
-        opened_at: sessionMeta.openedAt,
+    return customerSessionContextFromWaiterDetail(tableId, {
+      table: {
+        id: tableId,
+        display_name: displayName,
+        sort_order: 0,
+        seat_min: 1,
+        seat_max: 1,
       },
-      recent_orders: orders,
-    };
-  }, [displayName, orders, restaurant.id, sessionMeta, tableId]);
+      sessionMeta,
+      orders,
+    });
+  }, [displayName, orders, sessionMeta, tableId]);
 
   const handleStaffAppendSuccess = (result: MenuOrderSubmitSuccess, submittedCart: CartItem[]) => {
     if (!catalog) return;

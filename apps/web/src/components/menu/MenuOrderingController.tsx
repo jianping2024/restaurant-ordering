@@ -28,7 +28,11 @@ import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
 } from '@/lib/menu-item-card-layout';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
-import { resolveTableOrderingChannel } from '@/lib/instore-takeaway';
+import {
+  menuItemVisibleForOrderingChannel,
+  menuItemWithChannelDisplayPrice,
+  resolveTableOrderingChannel,
+} from '@/lib/instore-takeaway';
 import {
   customerMenuNavTopCategories,
   resolveCustomerMenuCatalogView,
@@ -384,8 +388,9 @@ export function MenuOrderingController({
   const requestCartQtyChange = useCallback(
     async (menuItemId: string, rawNextQty: number) => {
       if (!catalogReady) return;
-      const item = menuItems.find((m) => m.id === menuItemId);
-      if (!item) return;
+      const raw = menuItems.find((m) => m.id === menuItemId);
+      if (!raw || !menuItemVisibleForOrderingChannel(raw, orderingChannel)) return;
+      const item = menuItemWithChannelDisplayPrice(raw, orderingChannel);
 
       const gate = await ensureGuestCanPlaceOrder();
       if (!gate.canPlace) {
@@ -464,6 +469,7 @@ export function MenuOrderingController({
       lang,
       limitGuestCount,
       menuItems,
+      orderingChannel,
       recentOrders,
       staffAssistedOrdering,
     ],
@@ -475,10 +481,12 @@ export function MenuOrderingController({
   };
 
   const treatZeroAsFree = buffetServiceMode === 'sushi';
-  const detailItem = useMemo(
-    () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
-    [detailMenuItemId, menuItems],
-  );
+  const detailItem = useMemo(() => {
+    if (!detailMenuItemId) return null;
+    const raw = menuItems.find((m) => m.id === detailMenuItemId);
+    if (!raw || !menuItemVisibleForOrderingChannel(raw, orderingChannel)) return null;
+    return menuItemWithChannelDisplayPrice(raw, orderingChannel);
+  }, [detailMenuItemId, menuItems, orderingChannel]);
   const detailCartEntry = detailItem
     ? cart.find((c) => c.menuItemId === detailItem.id)
     : undefined;
@@ -898,9 +906,11 @@ export function MenuOrderingController({
     const dialog = staffOverageDialog;
     if (!dialog) return;
     if (dialog.kind === 'first_cross') {
-      const item = menuItems.find((m) => m.id === dialog.menuItemId);
+      const raw = menuItems.find((m) => m.id === dialog.menuItemId);
       setStaffOverageDialog(null);
-      if (item) commitCartQty(item, dialog.nextQty);
+      if (raw && menuItemVisibleForOrderingChannel(raw, orderingChannel)) {
+        commitCartQty(menuItemWithChannelDisplayPrice(raw, orderingChannel), dialog.nextQty);
+      }
       return;
     }
     const fingerprint = appendCartFingerprint(cart, { catalog: notePresetCatalog, lang });
@@ -968,6 +978,7 @@ export function MenuOrderingController({
         restaurantName={restaurant.name}
         displayName={displayName}
         tableLabel={t.table}
+        takeawayBadgeLabel={orderingChannel === 'takeaway' ? t.takeawayBadge : null}
         staffAssisted={staffAssisted}
         showRestaurantName={staffAssisted != null}
         sticky

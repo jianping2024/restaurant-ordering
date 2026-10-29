@@ -102,6 +102,17 @@ export function menuItemUnitPriceForChannel(
   return Number(item.price) || 0;
 }
 
+/** Sole catalog/cart display row: same unit price as append for that channel. */
+export function menuItemWithChannelDisplayPrice<T extends MenuItemTakeawayFields>(
+  item: T,
+  channel: OrderingChannel,
+): T {
+  return {
+    ...item,
+    price: menuItemUnitPriceForChannel(item, channel),
+  };
+}
+
 export function filterMenuItemsForOrderingChannel<T extends MenuItemTakeawayFields>(
   items: readonly T[],
   channel: OrderingChannel,

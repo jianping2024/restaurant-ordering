@@ -155,13 +155,32 @@ describe('customerSessionContextFromWaiterDetail', () => {
         sessionId: 'session-1',
         openedAt: '2026-01-01T12:00:00.000Z',
         status: 'open',
+        orderingChannel: 'takeaway',
       },
       orders: [buffetOrder('session-1')],
     });
 
     assert.equal(ctx?.table_id, tableId);
     assert.equal(ctx?.active_session?.id, 'session-1');
+    assert.equal(ctx?.active_session?.ordering_channel, 'takeaway');
     assert.equal(ctx?.recent_orders.length, 1);
+  });
+
+  it('defaults missing session channel to dine_in on the bridge', () => {
+    const ctx = customerSessionContextFromWaiterDetail(tableId, {
+      table: {
+        id: tableId,
+        display_name: '005',
+        sort_order: 1,
+      },
+      sessionMeta: {
+        sessionId: 'session-1',
+        openedAt: '2026-01-01T12:00:00.000Z',
+        status: 'open',
+      },
+      orders: [],
+    });
+    assert.equal(ctx?.active_session?.ordering_channel, 'dine_in');
   });
 
   it('returns null when table id does not match', () => {

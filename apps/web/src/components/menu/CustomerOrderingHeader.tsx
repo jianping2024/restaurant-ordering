@@ -13,6 +13,8 @@ interface Props {
   restaurantName: string;
   displayName: string;
   tableLabel: string;
+  /** When set, show next to the table chip (session channel takeaway). */
+  takeawayBadgeLabel?: string | null;
   staffAssisted?: StaffAssistedFlow | null;
   /**
    * Sole header back control (guest or page-mode staff-assisted).
@@ -44,10 +46,19 @@ function CustomerTableIdentityBadge({
   );
 }
 
+function CustomerTakeawayChannelBadge({ label }: { label: string }) {
+  return (
+    <span className="shrink-0 rounded-full border border-brand-gold/50 bg-brand-gold/10 px-2.5 py-1 text-sm font-semibold text-brand-gold leading-tight">
+      {label}
+    </span>
+  );
+}
+
 export function CustomerOrderingHeader({
   restaurantName,
   displayName,
   tableLabel,
+  takeawayBadgeLabel = null,
   staffAssisted = null,
   backLink = null,
   sticky = false,
@@ -61,8 +72,13 @@ export function CustomerOrderingHeader({
       ? 'font-heading text-xl text-brand-ink truncate'
       : 'font-heading text-lg text-brand-ink truncate';
 
-  const tableBadge = (
-    <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
+  const tableBadges = (
+    <span className="flex shrink-0 items-center gap-1.5">
+      <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
+      {takeawayBadgeLabel ? (
+        <CustomerTakeawayChannelBadge label={takeawayBadgeLabel} />
+      ) : null}
+    </span>
   );
 
   return (
@@ -90,11 +106,11 @@ export function CustomerOrderingHeader({
               {showRestaurantName ? (
                 <h1 className={headingClass}>{restaurantName}</h1>
               ) : null}
-              {!isStaffAssisted ? tableBadge : null}
+              {!isStaffAssisted ? tableBadges : null}
             </div>
           </div>
           {isStaffAssisted ? (
-            tableBadge
+            tableBadges
           ) : (
             <AppearanceChromeGroup />
           )}

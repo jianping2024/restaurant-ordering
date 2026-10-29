@@ -1,5 +1,8 @@
 import { coerceCartQty } from '@/lib/cart-totals';
-import { filterMenuItemsForOrderingChannel } from '@/lib/instore-takeaway';
+import {
+  filterMenuItemsForOrderingChannel,
+  menuItemWithChannelDisplayPrice,
+} from '@/lib/instore-takeaway';
 import { isMenuItemServedInTimeSlot } from '@/lib/menu-time-slot';
 import type { MenuCategory, MenuItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -103,7 +106,10 @@ export function resolveCustomerMenuCatalogView(params: {
   orderingChannel?: 'dine_in' | 'takeaway';
 }): CustomerMenuCatalogView {
   const channel = params.orderingChannel ?? 'dine_in';
-  const channelItems = filterMenuItemsForOrderingChannel(params.menuItems, channel);
+  // Sole catalog display price: same channel unit price as append writes.
+  const channelItems = filterMenuItemsForOrderingChannel(params.menuItems, channel).map((item) =>
+    menuItemWithChannelDisplayPrice(item, channel),
+  );
   const servedItems = channelItems.filter((item) =>
     isMenuItemServedInTimeSlot(item, params.menuTimeSlotId),
   );

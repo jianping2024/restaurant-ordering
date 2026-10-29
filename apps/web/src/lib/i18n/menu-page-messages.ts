@@ -2,6 +2,8 @@ import type { Language } from '@/types';
 
 export const MENU_PAGE_MESSAGES: Record<Language, {
   table: string;
+  /** Pill next to table name when session channel is takeaway. */
+  takeawayBadge: string;
   noItems: string;
   orderedTitle: string;
   orderedDrawerTitle: string;
@@ -102,6 +104,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
 }> = {
   pt: {
     table: 'Mesa',
+    takeawayBadge: 'Takeaway',
     noItems: 'Sem pratos nesta categoria',
     orderedTitle: 'Pedidos feitos',
     orderedDrawerTitle: 'Pedidos feitos ({count})',
@@ -197,6 +200,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   },
   en: {
     table: 'Table',
+    takeawayBadge: 'Takeaway',
     noItems: 'No items in this category',
     orderedTitle: 'Ordered',
     orderedDrawerTitle: 'Ordered ({count})',
@@ -292,6 +296,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   },
   zh: {
     table: '桌号',
+    takeawayBadge: '外卖',
     noItems: '此分类暂无菜品',
     orderedTitle: '已点菜品',
     orderedDrawerTitle: '已点菜品 ({count})',
@@ -387,6 +392,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   },
   es: {
     table: 'Mesa',
+    takeawayBadge: 'Para llevar',
     noItems: 'No hay platos en esta categoría',
     orderedTitle: 'Ya pedido',
     orderedDrawerTitle: 'Ya pedido ({count})',
@@ -489,6 +495,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   },
   fr: {
     table: 'Table',
+    takeawayBadge: 'À emporter',
     noItems: 'Aucun plat dans cette catégorie',
     orderedTitle: 'Déjà commandé',
     orderedDrawerTitle: 'Déjà commandé ({count})',
@@ -595,6 +602,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   },
   de: {
     table: 'Tisch',
+    takeawayBadge: 'Mitnahme',
     noItems: 'Keine Gerichte in dieser Kategorie',
     orderedTitle: 'Bestellt',
     orderedDrawerTitle: 'Bestellt ({count})',

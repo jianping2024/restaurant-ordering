@@ -771,6 +771,7 @@ export function CheckoutRequestDetailHost({
     let rowIndex = pending.rowIndex;
     let amount = pending.amount;
     const personKey = checkoutPersonKey(row.id, rowIndex);
+    if (processingKeys.has(personKey)) return;
     setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
       // By-item: upsert current ticket only; modal amount is authoritative (no whole-table recalc).
@@ -862,6 +863,7 @@ export function CheckoutRequestDetailHost({
       };
       // Persist before React state so RSC remount / Fast Refresh cannot drop the ask.
       writePendingCheckoutPrintAsk(printAsk);
+      setCollectPending(null);
       setPrintAsk(printAsk);
       applyConfirmPaymentOutcome({
         billSplitId,
@@ -1153,9 +1155,7 @@ export function CheckoutRequestDetailHost({
         }}
         onConfirm={(input) => {
           if (!collectPending) return;
-          const pending = collectPending;
-          setCollectPending(null);
-          void confirmCollectedPerson(request, pending, input);
+          void confirmCollectedPerson(request, collectPending, input);
         }}
       />
     </>

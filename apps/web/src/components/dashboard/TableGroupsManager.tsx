@@ -345,26 +345,21 @@ export function TableGroupsManager({
                             ) : null}
                             <div className="min-w-0 flex-1 space-y-1.5">
                               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                <p className="font-medium text-brand-text flex items-center gap-1.5 min-w-0">
-                                  {takeawayOrderingEnabled && row.is_takeaway ? (
-                                    <span
-                                      aria-hidden
-                                      className="text-brand-gold shrink-0"
-                                      title={t.takeawayGroupBadge}
-                                    >
-                                      🥡
-                                    </span>
-                                  ) : null}
-                                  <span className="truncate">{row.name}</span>
+                                <p className="font-medium text-brand-text min-w-0 truncate">
+                                  {row.name}
                                 </p>
-                                {takeawayOrderingEnabled && row.is_takeaway ? (
-                                  <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-900">
-                                    {t.takeawayGroupBadge}
-                                  </span>
-                                ) : null}
                                 <span className="inline-flex rounded-full border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
                                   {t.tablesSummary.replace('{count}', String(preview.totalCount))}
                                 </span>
+                                {takeawayOrderingEnabled && row.is_takeaway ? (
+                                  <span
+                                    aria-hidden
+                                    className="text-brand-gold shrink-0 leading-none"
+                                    title={t.takeawayGroupBadge}
+                                  >
+                                    🥡
+                                  </span>
+                                ) : null}
                               </div>
                               {preview.totalCount === 0 ? (
                                 <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>

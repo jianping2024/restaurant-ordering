@@ -149,8 +149,9 @@ describe('resolveCustomerMenuCatalogView', () => {
     assert.ok(!allDayOnly.realTopCategories.some((c) => c.id === 'c-empty'));
   });
 
-  it('takeaway: hides categories with no sellable dishes; dine-in keeps them when they have dine-in dishes', () => {
+  it('takeaway: sellable+takeaway_only; dine-in hides packaging+takeaway_only', () => {
     const dineOnlyCat = cat({ id: 'c-dine-only', name_pt: 'Só sala', sort_order: 3 });
+    const takeawayOnlyCat = cat({ id: 'c-tw-only', name_pt: 'Só takeaway', sort_order: 5 });
     const empty = cat({ id: 'c-empty', name_pt: 'Vazio', sort_order: 4 });
     const dineDish = item({
       id: 'i-dine',
@@ -165,35 +166,44 @@ describe('resolveCustomerMenuCatalogView', () => {
       takeaway_role: 'sellable',
       takeaway_price: 2.5,
     });
+    const takeawayOnlyDish = item({
+      id: 'i-tw-only',
+      category_id: 'c-tw-only',
+      available: true,
+      takeaway_role: 'takeaway_only',
+      takeaway_price: 3.5,
+      price: 4,
+    });
     const packDish = item({
       id: 'i-pack',
       category_id: 'c-mains',
       available: true,
       takeaway_role: 'packaging',
     });
-    const cats = [mains, drinks, dineOnlyCat, empty];
-    const items = [dineDish, sellDish, packDish, frango];
+    const cats = [mains, drinks, dineOnlyCat, empty, takeawayOnlyCat];
+    const items = [dineDish, sellDish, takeawayOnlyDish, packDish, frango];
 
     const takeaway = resolveCustomerMenuCatalogView({
       menuCategories: cats,
       menuItems: items,
-      recommendedItemIds: ['i-sell', 'i-dine'],
+      recommendedItemIds: ['i-sell', 'i-dine', 'i-tw-only'],
       menuTimeSlotId: null,
       activeTopId: 'c-dine-only',
       activeSubpath: '',
       orderingChannel: 'takeaway',
     });
-    assert.deepEqual(takeaway.realTopCategories.map((c) => c.id), ['c-drinks']);
+    assert.deepEqual(takeaway.realTopCategories.map((c) => c.id), ['c-drinks', 'c-tw-only']);
     assert.equal(takeaway.currentTopId, 'c-drinks');
     assert.deepEqual(takeaway.currentItems.map((r) => r.id), ['i-sell']);
     assert.equal(takeaway.currentItems[0]?.price, 2.5);
-    assert.deepEqual(takeaway.recommendedItems.map((r) => r.id), ['i-sell']);
+    assert.deepEqual(takeaway.recommendedItems.map((r) => r.id), ['i-sell', 'i-tw-only']);
     assert.equal(takeaway.recommendedItems[0]?.price, 2.5);
+    assert.equal(takeaway.recommendedItems[1]?.price, 3.5);
 
     const dineIn = resolveCustomerMenuCatalogView({
       menuCategories: cats,
       menuItems: items,
-      recommendedItemIds: [],
+      recommendedItemIds: ['i-tw-only'],
       menuTimeSlotId: null,
       activeTopId: '',
       activeSubpath: '',
@@ -201,7 +211,9 @@ describe('resolveCustomerMenuCatalogView', () => {
     });
     assert.deepEqual(dineIn.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks', 'c-dine-only']);
     assert.ok(!dineIn.realTopCategories.some((c) => c.id === 'c-empty'));
-    assert.ok(!dineIn.currentItems.some((r) => r.id === 'i-pack'));
+    assert.ok(!dineIn.realTopCategories.some((c) => c.id === 'c-tw-only'));
+    assert.ok(!dineIn.currentItems.some((r) => r.id === 'i-pack' || r.id === 'i-tw-only'));
+    assert.deepEqual(dineIn.recommendedItems.map((r) => r.id), []);
   });
 });
 

@@ -447,7 +447,7 @@ type MenuItemInput = {
   over_limit_unit_price: number | null;
   /** Null = all day. Same-restaurant check is the composite FK. */
   time_slot_id: string | null;
-  takeaway_role: 'none' | 'sellable' | 'packaging';
+  takeaway_role: 'none' | 'sellable' | 'takeaway_only' | 'packaging';
   takeaway_price: number | null;
 };
 
@@ -465,7 +465,7 @@ function validateMenuItemInput(
     return { error: 'invalid_price', status: 400 };
   }
   if (
-    input.takeaway_role === 'sellable' &&
+    (input.takeaway_role === 'sellable' || input.takeaway_role === 'takeaway_only') &&
     (input.takeaway_price == null ||
       !Number.isFinite(input.takeaway_price) ||
       input.takeaway_price <= 0)
@@ -532,7 +532,10 @@ function buildMenuItemPayload(
     over_limit_unit_price: input.over_limit_unit_price,
     time_slot_id: input.time_slot_id,
     takeaway_role: input.takeaway_role,
-    takeaway_price: input.takeaway_role === 'sellable' ? input.takeaway_price : null,
+    takeaway_price:
+      input.takeaway_role === 'sellable' || input.takeaway_role === 'takeaway_only'
+        ? input.takeaway_price
+        : null,
   };
 }
 
@@ -1176,7 +1179,14 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     time_slot_id: timeSlotId,
     takeaway_role: (() => {
       const role = raw.takeaway_role;
-      if (role === 'sellable' || role === 'packaging' || role === 'none') return role;
+      if (
+        role === 'sellable' ||
+        role === 'packaging' ||
+        role === 'none' ||
+        role === 'takeaway_only'
+      ) {
+        return role;
+      }
       return 'none';
     })(),
     takeaway_price: (() => {

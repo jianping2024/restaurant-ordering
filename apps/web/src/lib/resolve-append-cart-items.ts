@@ -19,7 +19,8 @@ import type { Order, OrderItem } from '@/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import {
   isTakeawayPackagingItem,
-  isTakeawaySellableItem,
+  isDineInMenuItem,
+  isTakeawayMenuItem,
   menuItemUnitPriceForChannel,
   normalizeOrderingChannel,
   type OrderingChannel,
@@ -38,6 +39,7 @@ export type ResolveAppendCartError =
   | 'menu_item_off_time_slot'
   | 'menu_item_is_packaging'
   | 'menu_item_not_takeaway'
+  | 'menu_item_not_dine_in'
   | SushiLimitError;
 
 export type ResolveAppendCartSuccess = {
@@ -344,8 +346,11 @@ export async function resolveAppendCartItems(params: {
     if (isTakeawayPackagingItem(menu)) {
       return { ok: false, error: 'menu_item_is_packaging' };
     }
-    if (channel === 'takeaway' && !isTakeawaySellableItem(menu)) {
+    if (channel === 'takeaway' && !isTakeawayMenuItem(menu)) {
       return { ok: false, error: 'menu_item_not_takeaway' };
+    }
+    if (channel === 'dine_in' && !isDineInMenuItem(menu)) {
+      return { ok: false, error: 'menu_item_not_dine_in' };
     }
 
     const unitPrice = coerceCartPrice(

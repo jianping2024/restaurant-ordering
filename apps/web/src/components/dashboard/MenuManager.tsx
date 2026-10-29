@@ -82,6 +82,12 @@ import { RecommendedMenuItemsManager } from '@/components/dashboard/RecommendedM
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
+  normalizeTakeawayRole,
+  salesChannelsFromTakeawayRole,
+  takeawayRoleFromSalesChannels,
+  takeawayRoleNeedsTakeawayPrice,
+} from '@/lib/instore-takeaway';
+import {
   loadSavedMenuManagerTab,
   MENU_MANAGER_DEFAULT_TAB,
   menuManagerPath,
@@ -155,8 +161,10 @@ type ItemForm = {
   over_limit_unit_price: string;
   /** '' = all day. */
   time_slot_id: string;
-  /** UI sales mode: dine_in | sellable | packaging */
-  sales_mode: 'dine_in' | 'sellable' | 'packaging';
+  /** Sales channels: 堂食/外卖 multi-select; packaging exclusive. */
+  sales_dine_in: boolean;
+  sales_takeaway: boolean;
+  sales_packaging: boolean;
   takeaway_price: string;
 };
 
@@ -184,7 +192,9 @@ const defaultItemForm: ItemForm = {
   per_person_qty_limit: '',
   over_limit_unit_price: '',
   time_slot_id: '',
-  sales_mode: 'dine_in',
+  sales_dine_in: true,
+  sales_takeaway: false,
+  sales_packaging: false,
   takeaway_price: '',
 };
 
@@ -644,12 +654,14 @@ export function MenuManager({
       over_limit_unit_price:
         item.over_limit_unit_price != null ? String(item.over_limit_unit_price) : '',
       time_slot_id: item.time_slot_id ?? '',
-      sales_mode:
-        item.takeaway_role === 'sellable'
-          ? 'sellable'
-          : item.takeaway_role === 'packaging'
-            ? 'packaging'
-            : 'dine_in',
+      ...(() => {
+        const channels = salesChannelsFromTakeawayRole(item.takeaway_role);
+        return {
+          sales_dine_in: channels.dineIn,
+          sales_takeaway: channels.takeaway,
+          sales_packaging: channels.packaging,
+        };
+      })(),
       takeaway_price:
         item.takeaway_price != null ? String(item.takeaway_price) : '',
     });
@@ -697,9 +709,18 @@ export function MenuManager({
       setItemError(t.errItemCodeDuplicate);
       return;
     }
+    const salesRole = takeawayOrderingEnabled
+      ? takeawayRoleFromSalesChannels({
+          dineIn: itemForm.sales_dine_in,
+          takeaway: itemForm.sales_takeaway,
+          packaging: itemForm.sales_packaging,
+        })
+      : editingItem
+        ? normalizeTakeawayRole(editingItem.takeaway_role)
+        : ('none' as const);
     if (
       takeawayOrderingEnabled &&
-      itemForm.sales_mode === 'sellable' &&
+      takeawayRoleNeedsTakeawayPrice(salesRole) &&
       (!itemForm.takeaway_price ||
         Number.isNaN(Number(itemForm.takeaway_price)) ||
         Number(itemForm.takeaway_price) <= 0)
@@ -737,17 +758,14 @@ export function MenuManager({
         ? Number(itemForm.over_limit_unit_price)
         : null,
       time_slot_id: itemForm.time_slot_id || null,
-      takeaway_role: (takeawayOrderingEnabled
-        ? itemForm.sales_mode === 'sellable'
-          ? 'sellable'
-          : itemForm.sales_mode === 'packaging'
-            ? 'packaging'
-            : 'none'
-        : 'none') as 'none' | 'sellable' | 'packaging',
-      takeaway_price:
-        takeawayOrderingEnabled && itemForm.sales_mode === 'sellable'
-          ? Number(itemForm.takeaway_price)
-          : null,
+      takeaway_role: salesRole,
+      takeaway_price: takeawayRoleNeedsTakeawayPrice(salesRole)
+        ? Number(
+            takeawayOrderingEnabled
+              ? itemForm.takeaway_price
+              : (editingItem?.takeaway_price ?? itemForm.takeaway_price),
+          )
+        : null,
     };
 
     try {
@@ -1868,23 +1886,47 @@ export function MenuManager({
               <div className="flex flex-wrap gap-2">
                 {(
                   [
-                    ['dine_in', t.salesModeDineIn],
-                    ['sellable', t.salesModeSellable],
-                    ['packaging', t.salesModePackaging],
+                    ['dine_in', t.salesModeDineIn, itemForm.sales_dine_in],
+                    ['takeaway', t.salesModeSellable, itemForm.sales_takeaway],
+                    ['packaging', t.salesModePackaging, itemForm.sales_packaging],
                   ] as const
-                ).map(([mode, label]) => (
+                ).map(([chip, label, selected]) => (
                   <button
-                    key={mode}
+                    key={chip}
                     type="button"
                     onClick={() =>
-                      setItemForm((f) => ({
-                        ...f,
-                        sales_mode: mode,
-                        takeaway_price: mode === 'sellable' ? f.takeaway_price : '',
-                      }))
+                      setItemForm((f) => {
+                        if (chip === 'packaging') {
+                          return {
+                            ...f,
+                            sales_packaging: true,
+                            sales_dine_in: false,
+                            sales_takeaway: false,
+                            takeaway_price: '',
+                          };
+                        }
+                        let dineIn = f.sales_dine_in;
+                        let takeaway = f.sales_takeaway;
+                        if (f.sales_packaging) {
+                          dineIn = chip === 'dine_in';
+                          takeaway = chip === 'takeaway';
+                        } else if (chip === 'dine_in') {
+                          dineIn = !dineIn;
+                        } else {
+                          takeaway = !takeaway;
+                        }
+                        if (!dineIn && !takeaway) dineIn = true;
+                        return {
+                          ...f,
+                          sales_packaging: false,
+                          sales_dine_in: dineIn,
+                          sales_takeaway: takeaway,
+                          takeaway_price: takeaway ? f.takeaway_price : '',
+                        };
+                      })
                     }
                     className={`rounded-lg border px-3 py-1.5 text-sm ${
-                      itemForm.sales_mode === mode
+                      selected
                         ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
                         : 'border-brand-border text-brand-text-muted'
                     }`}
@@ -1893,7 +1935,7 @@ export function MenuManager({
                   </button>
                 ))}
               </div>
-              {itemForm.sales_mode === 'sellable' ? (
+              {itemForm.sales_takeaway ? (
                 <Input
                   label={t.takeawayPrice}
                   type="text"
@@ -1910,7 +1952,7 @@ export function MenuManager({
                   placeholder="12.50"
                 />
               ) : null}
-              {itemForm.sales_mode === 'packaging' ? (
+              {itemForm.sales_packaging ? (
                 <p className="text-[12px] text-brand-text-muted">{t.salesModePackagingHint}</p>
               ) : null}
             </div>

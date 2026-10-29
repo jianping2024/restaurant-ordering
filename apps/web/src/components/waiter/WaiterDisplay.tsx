@@ -450,7 +450,7 @@ function WaiterBoardInner({
   const boardSections = useMemo(
     () =>
       buildWaiterBoardSections(groups, members, tables, tableGroupsI18n.ungrouped, {
-        pinTakeawayLeft: takeawayOrderingEnabled,
+        pinTakeawayBeforeParty: takeawayOrderingEnabled,
       }),
     [groups, members, tables, tableGroupsI18n.ungrouped, takeawayOrderingEnabled],
   );

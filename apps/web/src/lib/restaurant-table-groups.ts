@@ -65,24 +65,15 @@ export function isValidTableGroupName(value: string): boolean {
 }
 
 export function compareTableGroups(
-  a: Pick<RestaurantTableGroup, 'sort_order' | 'created_at' | 'is_takeaway'>,
-  b: Pick<RestaurantTableGroup, 'sort_order' | 'created_at' | 'is_takeaway'>,
-  options?: { pinTakeawayLeft?: boolean },
+  a: Pick<RestaurantTableGroup, 'sort_order' | 'created_at'>,
+  b: Pick<RestaurantTableGroup, 'sort_order' | 'created_at'>,
 ): number {
-  if (options?.pinTakeawayLeft) {
-    const aPin = a.is_takeaway ? 0 : 1;
-    const bPin = b.is_takeaway ? 0 : 1;
-    if (aPin !== bPin) return aPin - bPin;
-  }
   if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
   return a.created_at.localeCompare(b.created_at);
 }
 
-export function sortTableGroups<T extends RestaurantTableGroup>(
-  rows: T[],
-  options?: { pinTakeawayLeft?: boolean },
-): T[] {
-  return [...rows].sort((a, b) => compareTableGroups(a, b, options));
+export function sortTableGroups<T extends RestaurantTableGroup>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => compareTableGroups(a, b));
 }
 
 /**
@@ -252,29 +243,39 @@ export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   });
 }
 
+/**
+ * Floor lane tabs (before 同行组). When `pinTakeawayBeforeParty`, the takeaway
+ * group is the last floor section so it sits immediately left of 同行组 —
+ * not leftmost among VIP/大厅 groups.
+ */
 export function buildWaiterBoardSections(
   groups: RestaurantTableGroup[],
   members: RestaurantTableGroupMember[],
   tables: RestaurantTableRow[],
   ungroupedLabel: string,
-  options?: { pinTakeawayLeft?: boolean },
+  options?: { pinTakeawayBeforeParty?: boolean },
 ): WaiterBoardSection[] {
   const tableIds = new Set(tables.map((t) => t.id));
   const assigned = new Set<string>();
   const tableIdsByGroup = groupTableIdsByGroupId(members);
   const sections: WaiterBoardSection[] = [];
+  const pinTakeawayBeforeParty = options?.pinTakeawayBeforeParty === true;
+  let takeawaySection: WaiterBoardSection | null = null;
 
-  for (const group of sortTableGroups(groups, {
-    pinTakeawayLeft: options?.pinTakeawayLeft === true,
-  })) {
+  for (const group of sortTableGroups(groups)) {
     const ids = (tableIdsByGroup[group.id] || []).filter((id) => tableIds.has(id));
     if (ids.length === 0) continue;
     ids.forEach((id) => assigned.add(id));
-    sections.push({
+    const section: WaiterBoardSection = {
       id: group.id,
       title: group.name,
       tableIds: sortTableIdsByRestaurantTableOrder(ids, tables),
-    });
+    };
+    if (pinTakeawayBeforeParty && group.is_takeaway === true) {
+      takeawaySection = section;
+      continue;
+    }
+    sections.push(section);
   }
 
   const ungrouped = tables.map((t) => t.id).filter((id) => !assigned.has(id));
@@ -284,6 +285,10 @@ export function buildWaiterBoardSections(
       title: ungroupedLabel,
       tableIds: ungrouped,
     });
+  }
+
+  if (takeawaySection) {
+    sections.push(takeawaySection);
   }
 
   return sections;

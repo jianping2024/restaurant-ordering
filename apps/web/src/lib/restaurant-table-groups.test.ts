@@ -113,6 +113,37 @@ describe('buildWaiterBoardSections', () => {
     );
     assert.equal(sections.some((s) => s.id === 'g-empty'), false);
   });
+
+  it('pins takeaway section last (left of 同行组) when flag on', () => {
+    const withTakeaway: RestaurantTableGroup[] = [
+      { ...groups[0], is_takeaway: true, sort_order: 0 },
+      { ...groups[1], sort_order: 1 },
+    ];
+    const extraTables = [...tables, { id: 't4', display_name: 'C-01', sort_order: 4 }];
+    const sections = buildWaiterBoardSections(
+      withTakeaway,
+      members,
+      extraTables,
+      '其他桌位',
+      { pinTakeawayBeforeParty: true },
+    );
+    assert.deepEqual(
+      sections.map((s) => s.id),
+      ['g2', '__ungrouped__', 'g1'],
+    );
+  });
+
+  it('keeps takeaway in sort_order when pin flag off', () => {
+    const withTakeaway: RestaurantTableGroup[] = [
+      { ...groups[0], is_takeaway: true, sort_order: 0 },
+      { ...groups[1], sort_order: 1 },
+    ];
+    const sections = buildWaiterBoardSections(withTakeaway, members, tables, '其他桌位');
+    assert.deepEqual(
+      sections.map((s) => s.id),
+      ['g1', 'g2'],
+    );
+  });
 });
 
 describe('sortWaiterTableCards', () => {

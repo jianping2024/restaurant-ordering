@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>店内外卖 · 静态设计稿（对照现有页）</title>
+  <style>
+    :root {
+      --bg: #f4f1ec;
+      --card: #fffdf9;
+      --border: #e6e0d6;
+      --text: #1c1917;
+      --muted: #78716c;
+      --gold: #b8860b;
+      --gold-soft: rgba(184, 134, 11, 0.38);
+      --ink: #292524;
+      --danger: #b91c1c;
+      --ok: #15803d;
+      --lane: #efeae3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .top {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(244, 241, 236, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 10px;
+    }
+    .top h1 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+    .top p { margin: 0 0 12px; font-size: 13px; color: var(--muted); max-width: 52rem; line-height: 1.45; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tabs button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .tabs button.on {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+      font-weight: 500;
+    }
+    main { padding: 20px; max-width: 1100px; margin: 0 auto 48px; }
+    .screen { display: none; }
+    .screen.on { display: block; }
+    .cap {
+      font-size: 12px; color: var(--muted); margin: 0 0 12px; line-height: 1.45;
+    }
+    .cap strong { color: var(--text); font-weight: 550; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+    }
+    .card + .card { margin-top: 14px; }
+    .row {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .row:first-child { padding-top: 0; }
+    .row h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+    .row p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .sw {
+      width: 44px; height: 26px; border-radius: 999px; background: #d6d3d1; position: relative; flex-shrink: 0;
+    }
+    .sw.on { background: var(--gold); }
+    .sw i {
+      position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+      border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    }
+    .sw.on i { left: 21px; }
+    .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block; }
+    .input, .select {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; font-size: 14px; background: #fff; color: var(--text);
+    }
+    .check {
+      display: flex; gap: 12px; align-items: flex-start;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: rgba(244,241,236,.55); padding: 12px 14px;
+    }
+    .check input { margin-top: 2px; accent-color: var(--gold); }
+    .check .t { font-size: 14px; font-weight: 550; }
+    .check .h { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+    .muted { color: var(--muted); font-size: 12px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 6px 10px; font-size: 13px; background: #fff;
+    }
+    .chip.on {
+      border-color: var(--gold);
+      background: rgba(184,134,11,.1);
+      color: #8a6508;
+      font-weight: 550;
+    }
+    .icon-bag {
+      width: 18px; height: 18px; display: inline-block; vertical-align: -3px;
+    }
+    .group-list { display: flex; flex-direction: column; gap: 10px; }
+    .group-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; background: #fff;
+    }
+    .group-item .name { font-weight: 550; font-size: 14px; }
+    .btn {
+      border: 1px solid var(--border); background: #fff; border-radius: 10px;
+      padding: 8px 12px; font-size: 13px; color: var(--text); cursor: default;
+    }
+    .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.ghost { background: transparent; }
+    .btn.danger { color: var(--danger); border-color: #fecaca; }
+    .board {
+      border: 1px solid var(--border); border-radius: 16px; background: #fff; overflow: hidden;
+    }
+    .lanes {
+      display: flex; gap: 8px; padding: 12px; overflow-x: auto; background: var(--lane);
+      border-bottom: 1px solid var(--border);
+    }
+    .lane {
+      flex: 0 0 auto; border-radius: 12px; padding: 8px 12px; background: #fff;
+      border: 1px solid transparent; min-width: 88px;
+    }
+    .lane.active { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(184,134,11,.25); }
+    .lane .l { font-size: 13px; font-weight: 550; display: flex; align-items: center; gap: 4px; }
+    .lane .m { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .tables {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px; padding: 14px;
+    }
+    .table-card {
+      border: 1px solid var(--border); border-radius: 14px; padding: 12px;
+      min-height: 88px; background: var(--card);
+    }
+    .table-card .n { font-weight: 650; font-size: 16px; }
+    .table-card .s { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .table-card.open { border-color: rgba(184,134,11,.45); }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .02em;
+      padding: 2px 6px; border-radius: 6px; background: rgba(184,134,11,.15); color: #8a6508;
+    }
+    .split {
+      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 14px;
+    }
+    @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+    .bill {
+      border: 1px solid var(--border); border-radius: 16px; background: #fff; padding: 14px;
+    }
+    .bill-line {
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 13px;
+    }
+    .bill-line:last-child { border-bottom: 0; }
+    .sticky-bar {
+      margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--lane);
+    }
+    .panel {
+      border: 1px solid var(--border); border-radius: 16px; background: #fff;
+      display: flex; flex-direction: column; min-height: 360px;
+    }
+    .panel-h {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-weight: 600; font-size: 15px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .panel-b { padding: 14px 16px; flex: 1; }
+    .panel-f {
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .supply {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .supply.on { border-color: var(--gold); background: rgba(184,134,11,.06); }
+    .supply.zero > div:first-child { opacity: .5; }
+    .qty {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); border-radius: 999px; padding: 4px 8px; background: #fff;
+    }
+    .qty b { min-width: 1.2em; text-align: center; font-size: 13px; }
+    .money { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--gold); }
+    .money.lg { font-size: 32px; letter-spacing: -.02em; }
+    .seg {
+      display: inline-flex; padding: 3px; border-radius: 999px; background: var(--lane); gap: 2px; margin-bottom: 12px;
+    }
+    .seg span {
+      padding: 6px 12px; border-radius: 999px; font-size: 13px; color: var(--muted);
+    }
+    .seg span.on { background: var(--ink); color: #fff; font-weight: 500; }
+    .note {
+      margin-top: 12px; font-size: 12px; color: var(--muted); line-height: 1.45;
+      padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px dashed var(--border);
+    }
+    .form-stack > * + * { margin-top: 12px; }
+    .ghosted { opacity: .45; pointer-events: none; }
+    .tag { font-size: 11px; color: var(--muted); }
+    .pick { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--lane); gap: 2px; flex-wrap: wrap; }
+    .pick span { padding: 7px 12px; border-radius: 10px; font-size: 13px; color: var(--muted); }
+    .pick span.on { background: #fff; color: var(--text); font-weight: 550; box-shadow: 0 0 0 1px var(--gold); }
+    .scrim { background: rgba(28,25,23,.45); border-radius: 16px; padding: 28px 16px; display: flex; justify-content: center; align-items: center; min-height: 300px; }
+    .dialog { background: var(--card); border-radius: 16px; padding: 18px; width: 100%; max-width: 380px; }
+    .dialog h4 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+    .dialog p { margin: 0 0 16px; font-size: 13px; color: var(--muted); line-height: 1.45; }
+    .dialog .acts { display: flex; justify-content: flex-end; gap: 8px; }
+    .btn.danger-fill { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .phone { width: 300px; max-width: 100%; border: 1px solid var(--border); border-radius: 26px; background: #fff; padding: 14px; }
+    .ph-head { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    .dish { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+    .plus { width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .ticket { width: 230px; background: #fff; border: 1px solid var(--border); padding: 14px 14px 18px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; line-height: 1.5; }
+    .ticket .big { font-size: 18px; font-weight: 700; }
+    .ticket hr { border: 0; border-top: 1px dashed #a8a29e; margin: 8px 0; }
+    .qr { width: 110px; height: 110px; margin: 10px auto 4px; background:
+      repeating-linear-gradient(90deg,#1c1917 0 6px,#fff 6px 11px), repeating-linear-gradient(0deg,#1c1917 0 6px,#fff 6px 11px); background-blend-mode: difference; border: 6px solid #fff; outline: 1px solid #1c1917; }
+    .flex { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+    .target { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; font-size: 14px; background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>店内外卖 · 静态设计稿</h1>
+    <p>对照现有功能开关 / 桌位分组 / 菜品表单 / 楼面看板 / 点餐页 / 出单 / 结账 / 今日营业额。最短路径：只在现有界面上加最少的控件，不新增入口与平行流程。点上方切换画面。</p>
+    <div class="tabs" id="tabs">
+      <button type="button" class="on" data-s="flags">1 功能开关</button>
+      <button type="button" data-s="groups">2 桌位分组</button>
+      <button type="button" data-s="dish">3 商品·销售方式</button>
+      <button type="button" data-s="supply">4 商品·外卖耗材</button>
+      <button type="button" data-s="board">5 楼面看板·开台</button>
+      <button type="button" data-s="guest">6 点餐页</button>
+      <button type="button" data-s="print">7 出单·小票</button>
+      <button type="button" data-s="checkout">8 结账·加耗材</button>
+      <button type="button" data-s="transfer">9 转台·并台</button>
+      <button type="button" data-s="revenue">10 今日营业额</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="screen on" id="flags">
+      <p class="cap">现有 <strong>功能设置</strong> 列表：新增一行「店内外卖」。说明只写能做什么，不写实现细节。</p>
+      <div class="card">
+        <div class="row">
+          <div>
+            <h3>店内外卖</h3>
+            <p>开启后可设外卖组、可外卖菜品和外卖耗材。</p>
+          </div>
+          <div class="sw on" aria-hidden="true"><i></i></div>
+        </div>
+        <div class="row">
+          <div><h3>…其它已有开关</h3><p>保持不动（示意）。</p></div>
+          <div class="sw" aria-hidden="true"><i></i></div>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <p class="cap">关闭时 · 无未结账外卖桌 → 现有 <strong>ConfirmModal</strong></p>
+          <div class="scrim"><div class="dialog">
+            <h4>关闭店内外卖？</h4>
+            <p>外卖组的桌台将变回堂食桌。</p>
+            <div class="acts"><button class="btn">取消</button><button class="btn danger-fill">确认关闭</button></div>
+          </div></div>
+        </div>
+        <div>
+          <p class="cap">关闭时 · 外卖组有未结账桌 → 不弹确认，直接提示，开关保持开启</p>
+          <div class="scrim"><div class="dialog">
+            <p style="margin:0;color:var(--text);font-size:14px">外卖组还有未结账的桌台</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="groups">
+      <p class="cap">现有桌位管理 → <strong>分组管理</strong>。列表<strong>只在外卖组那行</strong>显示外卖图标；开关只在编辑弹窗里。</p>
+      <div class="grid2">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <strong style="font-size:14px;">分组管理</strong>
+            <button type="button" class="btn primary">新建分组</button>
+          </div>
+          <div class="group-list">
+            <div class="group-item">
+              <div><div class="name" style="display:flex;align-items:center;gap:6px;color:#8a6508"><svg class="icon-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>外卖</div><div class="muted" style="margin-top:4px;">3 张桌</div></div>
+              <button class="btn">编辑</button>
+            </div>
+            <div class="group-item">
+              <div><div class="name">大厅</div><div class="muted" style="margin-top:4px;">8 张桌</div></div>
+              <button class="btn">编辑</button>
+            </div>
+            <div class="group-item">
+              <div><div class="name">露台</div><div class="muted" style="margin-top:4px;">4 张桌</div></div>
+              <button class="btn">编辑</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="cap">编辑弹窗（已有外卖组时，编辑「大厅」）</p>
+          <div class="scrim"><div class="dialog">
+            <h4>编辑分组</h4>
+            <span class="label">名称</span>
+            <input class="input" value="大厅" readonly style="margin-bottom:12px" />
+            <div class="row" style="padding:10px 0;border:0;opacity:.5">
+              <div><h3 style="display:flex;align-items:center;gap:6px"><svg class="icon-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>外卖组</h3><p>已有外卖组：外卖</p></div>
+              <div class="sw"><i></i></div>
+            </div>
+            <div class="acts" style="margin-top:8px"><button class="btn">取消</button><button class="btn primary">保存</button></div>
+          </div></div>
+          <p class="note">编辑「外卖」组本身时开关可用，说明为「组内桌台按外卖价点单，开台无人数/套餐」。组内有未结账桌时开关与组员增删不可用，提示原因。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="dish">
+      <p class="cap">现有菜品编辑表单：价格下方一组<strong>三选一「销售方式」</strong>（取代两个互斥开关）。选「可外卖」才出现外卖价。</p>
+      <div class="card form-stack" style="max-width:520px">
+        <div class="grid2">
+          <div><span class="label">价格</span><input class="input" value="12.50" readonly /></div>
+          <div><span class="label">税率</span><select class="select" disabled><option>13%</option></select></div>
+        </div>
+        <div>
+          <span class="label">销售方式</span>
+          <div class="pick"><span>仅堂食</span><span class="on">可外卖</span><span>外卖耗材</span></div>
+        </div>
+        <div><span class="label">外卖价（必填，大于 0）</span><input class="input" value="11.00" readonly /></div>
+      </div>
+      <div class="card" style="margin-top:14px;max-width:520px">
+        <div class="muted" style="margin-bottom:8px;">菜品列表行（信息行）</div>
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--border)">
+          <div><div style="font-weight:600;font-size:14px;">碎蛋鳕鱼</div><div class="muted" style="margin-top:4px;">€12.50 · 外卖 €11.00</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding-top:10px">
+          <div><div style="font-weight:600;font-size:14px;">小号餐盒</div><div class="muted" style="margin-top:4px;">€0.50 · 外卖耗材</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="supply">
+      <p class="cap">同一表单选「外卖耗材」：外卖价、时段、档口、口味、过敏原<strong>只隐藏不清空</strong>；商品编码必填。商品在推荐栏里时<strong>不允许</strong>选耗材（不是隐藏推荐）。</p>
+      <div class="grid2">
+        <div class="card form-stack">
+          <div><span class="label">商品编码（必填）</span><input class="input" value="BOX-S" readonly /></div>
+          <div><span class="label">中文名</span><input class="input" value="小号餐盒" readonly /></div>
+          <div class="grid2">
+            <div><span class="label">价格</span><input class="input" value="0.50" readonly /></div>
+            <div><span class="label">税率</span><select class="select" disabled><option>23%</option></select></div>
+          </div>
+          <div>
+            <span class="label">销售方式</span>
+            <div class="pick"><span>仅堂食</span><span>可外卖</span><span class="on">外卖耗材</span></div>
+            <div class="muted" style="margin-top:6px">不出现在点餐菜单；仅外卖结账时可添加</div>
+          </div>
+        </div>
+        <div>
+          <p class="cap">商品在推荐栏里时选「外卖耗材」→ 保存被拦</p>
+          <div class="card">
+            <div class="pick"><span>仅堂食</span><span>可外卖</span><span class="on">外卖耗材</span></div>
+            <div style="margin-top:8px;font-size:13px;color:var(--danger)">请先移出推荐</div>
+          </div>
+          <p class="note">改回其它销售方式后立刻回到点餐菜单，之前隐藏的时段、档口等配置原样生效。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="board">
+      <p class="cap">现有楼面看板分组行：外卖组<strong>固定最左</strong>、标题带图标；副文案与其它分组同为「n 桌」；卡片与堂食同格式。点空闲桌 → <strong>现有开台面板</strong>，外卖桌只剩〔开台〕。</p>
+      <div class="board">
+        <div class="lanes">
+          <div class="lane active"><div class="l"><svg class="icon-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>外卖</div><div class="m">3 桌</div></div>
+          <div class="lane"><div class="l">大厅</div><div class="m">5 桌</div></div>
+          <div class="lane"><div class="l">露台</div><div class="m">3 桌</div></div>
+        </div>
+        <div class="tables">
+          <div class="table-card open"><div class="n">外1</div><div class="s">用餐中 · €16.00</div></div>
+          <div class="table-card open"><div class="n">外2</div><div class="s">用餐中 · €9.50</div></div>
+          <div class="table-card"><div class="n">外3</div><div class="s">空闲</div></div>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <p class="cap">外卖桌开台面板（复用现有面板）</p>
+          <div class="scrim"><div class="dialog">
+            <h4>外3 · 开台</h4>
+            <p>外卖桌无需人数和套餐。</p>
+            <div class="acts"><button class="btn">取消</button><button class="btn primary">开台</button></div>
+          </div></div>
+        </div>
+        <div>
+          <p class="cap">对照：堂食桌开台面板（不变）</p>
+          <div class="scrim"><div class="dialog">
+            <h4>A1 · 开台</h4>
+            <span class="label">套餐 / 人数</span>
+            <div class="input" style="margin-bottom:12px">午市自助 · 成人 2 · 儿童 0</div>
+            <div class="acts"><button class="btn">取消</button><button class="btn primary">开台</button></div>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="guest">
+      <p class="cap">现有<strong>普通点餐页</strong>（寿司店的外卖桌也用它）。唯一新增：页头桌名旁「外卖」标签。只列可外卖菜品、显示外卖价；空分类隐藏。</p>
+      <div class="flex">
+        <div class="phone">
+          <div class="ph-head"><strong style="font-size:15px">外1</strong><span class="badge">外卖</span><span class="muted" style="margin-left:auto">中 · ☾</span></div>
+          <div style="display:flex;gap:6px;margin-bottom:10px"><span class="chip on">热菜</span><span class="chip">主食</span><span class="chip">饮料</span></div>
+          <div class="dish"><div><div style="font-weight:550">碎蛋鳕鱼</div><div class="money" style="font-size:13px">€11.00</div></div><div class="plus">+</div></div>
+          <div class="dish"><div><div style="font-weight:550">牛肉饭</div><div class="money" style="font-size:13px">€11.00</div></div><div class="plus">+</div></div>
+          <div class="dish"><div><div style="font-weight:550">可乐</div><div class="money" style="font-size:13px">€2.50</div></div><div class="plus">+</div></div>
+        </div>
+        <div style="flex:1;min-width:240px">
+          <p class="cap">下单时某菜已被改为不可外卖 → 现有 Toast，并从购物车移出</p>
+          <div class="card" style="font-size:13px">「碎蛋鳕鱼」暂不支持外卖，已从购物车移出</div>
+          <p class="note">复用普通点餐页，只在桌名旁多一个「外卖」标签；地理围栏、时段规则照常。寿司店外卖桌不出现轮次界面。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="print">
+      <p class="cap">档口小票与厨房屏：桌名旁「外卖」标记（按会话渠道，重打仍标）。外卖开台小票（开台小票开关开时）带扫码点餐二维码；堂食开台小票不变。</p>
+      <div class="flex">
+        <div>
+          <p class="cap">档口小票</p>
+          <div class="ticket">
+            <div class="big">外1 · 外卖</div>
+            <div>热菜档 · 19:42</div><hr />
+            <div>1 x 碎蛋鳕鱼</div><div>1 x 牛肉饭</div>
+          </div>
+        </div>
+        <div>
+          <p class="cap">外卖开台小票</p>
+          <div class="ticket" style="text-align:center">
+            <div class="big">外3 · 外卖</div>
+            <div>开台 19:40</div><hr />
+            <div class="qr"></div>
+            <div>扫码点餐</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:220px">
+          <p class="cap">厨房屏分组头</p>
+          <div class="card" style="font-size:14px;display:flex;align-items:center;gap:8px"><strong>外1</strong><span class="badge">外卖</span><span class="muted" style="margin-left:auto">最久 6 分</span></div>
+          <p class="note">小票版式以 farvoo-fatura 模板为准；二维码需 Print Agent 支持（待核实）。外卖耗材不进档口小票、不进厨房屏。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="checkout">
+      <p class="cap">现有结账底栏：外卖会话里「＋ Take away」<strong>同一位置</strong>换成「＋ 外卖耗材」；弹窗复用现有打包费弹窗外壳，改为列出耗材 + 步进器。堂食会话不变。</p>
+      <div class="split">
+        <div class="bill">
+          <div class="muted" style="margin-bottom:8px;">账单（外卖会话）</div>
+          <div class="bill-line"><span>牛肉饭 ×1</span><span>€11.00</span></div>
+          <div class="bill-line"><span>可乐 ×2</span><span>€5.00</span></div>
+          <div class="bill-line"><span>小号餐盒 ×2 <span class="badge">外卖耗材</span></span><span>€1.00</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:650;"><span>合计</span><span class="money">€17.00</span></div>
+          <div class="sticky-bar">
+            <button type="button" class="btn">＋ 外卖耗材</button>
+            <span class="muted">堂食会话此处仍是「＋ Take away」</span>
+            <button type="button" class="btn primary" style="margin-left:auto">收款</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><span>外卖耗材</span><span class="muted">×</span></div>
+          <div class="panel-b">
+            <div class="supply on"><div><div style="font-weight:550;font-size:14px;">小号餐盒</div><div class="muted">€0.50</div></div><div class="qty"><span>−</span><b>2</b><span>＋</span></div></div>
+            <div class="supply zero"><div><div style="font-weight:550;font-size:14px;">纸杯</div><div class="muted">€0.30</div></div><div class="qty"><span>−</span><b>0</b><span>＋</span></div></div>
+            <div class="supply zero"><div><div style="font-weight:550;font-size:14px;">大号餐盒</div><div class="muted">€0.80</div></div><div class="qty"><span>−</span><b>0</b><span>＋</span></div></div>
+            <div style="margin-top:12px;font-size:13px;color:var(--muted);">合计 <span class="money">€1.00</span></div>
+          </div>
+          <div class="panel-f"><button type="button" class="btn">取消</button><button type="button" class="btn primary">加入账单</button></div>
+        </div>
+      </div>
+      <p class="note">弹窗列出全部耗材；数量为 0 的行浅色，<strong>只提交数量 ≥ 1 的行</strong>；全部为 0 时「加入账单」禁用。店内没有耗材商品时不显示「＋ 外卖耗材」。可不加直接收款。耗材行可改可删，分单规则对齐现有打包费行。</p>
+    </section>
+
+    <section class="screen" id="transfer">
+      <p class="cap">现有转台 / 并台目标列表：<strong>不加新界面</strong>，只按渠道过滤目标——外卖会话只列外卖组空桌（并台列外卖组有单的桌），堂食会话不列外卖桌。</p>
+      <div class="grid2">
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px">外1（外卖）· 转到</div>
+          <div class="target"><span>外3</span><span class="muted">空闲</span></div>
+        </div>
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px">A2（堂食）· 转到</div>
+          <div class="target"><span>A4</span><span class="muted">空闲</span></div>
+          <div class="target"><span>B1</span><span class="muted">空闲</span></div>
+        </div>
+      </div>
+      <p class="note">外卖桌也不出现在同行组的可选桌里。接口同样校验，界面过滤只是第一道。</p>
+    </section>
+
+    <section class="screen" id="revenue">
+      <p class="cap">现有今日营业额卡：总开关开时加分段；选「全部」时大数字合计，下方小字只拆<strong>已收</strong>（两项之和 = 已收）。桌数/人数卡不变。</p>
+      <div class="grid2">
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">总开关开启</div>
+          <div class="muted" style="margin-bottom:8px;font-size:13px;">今日营业额</div>
+          <div class="seg"><span class="on">全部</span><span>堂食</span><span>外卖</span></div>
+          <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+            <div><div class="money lg">€1,240.00</div><div class="muted" style="margin-top:4px;">已收</div></div>
+            <div class="money lg" style="color:var(--gold-soft);padding-bottom:18px;">+</div>
+            <div><div class="money lg" style="color:var(--gold-soft);">€86.00</div><div class="muted" style="margin-top:4px;">未收</div></div>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:13px;color:var(--muted);">
+            堂食 <strong style="color:var(--text)">€980.00</strong> · 外卖 <strong style="color:var(--text)">€260.00</strong>
+          </div>
+        </div>
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">总开关关闭</div>
+          <div class="muted" style="margin-bottom:8px;font-size:13px;">今日营业额</div>
+          <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;">
+            <div><div class="money lg">€1,240.00</div><div class="muted" style="margin-top:4px;">已收</div></div>
+            <div class="money lg" style="color:var(--gold-soft);padding-bottom:18px;">+</div>
+            <div><div class="money lg" style="color:var(--gold-soft);">€86.00</div><div class="muted" style="margin-top:4px;">未收</div></div>
+          </div>
+          <p class="note" style="margin-top:14px;">无分段、无堂食·外卖对比行。</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="muted" style="margin-bottom:8px;">总开关开启 · 区间营业额（同一套分段）</div>
+        <div class="seg"><span class="on">全部</span><span>堂食</span><span>外卖</span></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><span class="chip">2026-10-01</span><span class="muted">—</span><span class="chip">2026-10-29</span><button class="btn">查询</button></div>
+        <div class="money lg">€28,450.00</div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:13px;color:var(--muted);">
+          堂食 <strong style="color:var(--text)">€22,100.00</strong> · 外卖 <strong style="color:var(--text)">€6,350.00</strong>
+        </div>
+      </div>
+      <p class="note">增值分析用同一「全部 / 堂食 / 外卖」分段筛指标，不另起第二套渠道控件。为什么用分段而不是多放大数字：现有卡已是「已收 + 未收」两个大数，再按渠道各放大数会变成四个，难扫一眼；分段满足「只看外卖」，「全部」下的小字满足对比。</p>
+    </section>
+  </main>
+
+  <script>
+    const tabs = document.getElementById('tabs');
+    tabs.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-s]');
+      if (!btn) return;
+      tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === btn));
+      document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === btn.dataset.s));
+    });
+  </script>
+</body>
+</html>

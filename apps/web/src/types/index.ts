@@ -171,8 +171,8 @@ export interface MenuItem {
    * In-store takeaway sales role: none | sellable | packaging.
    * docs/instore-takeaway.zh.md
    */
-  takeaway_role?: 'none' | 'sellable' | 'packaging';
-  /** Unit price when takeaway_role=sellable. */
+  takeaway_role?: 'none' | 'sellable' | 'takeaway_only' | 'packaging';
+  /** Unit price when takeaway_role is sellable or takeaway_only. */
   takeaway_price?: number | null;
   /** Station slip prints name_pt (default true). docs/product/station-slip-multilang-names.zh.md */
   station_print_pt?: boolean;

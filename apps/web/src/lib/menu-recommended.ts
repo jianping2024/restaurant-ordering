@@ -102,7 +102,7 @@ export function resolveCustomerMenuCatalogView(params: {
   menuTimeSlotId: string | null;
   activeTopId: string;
   activeSubpath: string;
-  /** dine_in | takeaway — filters packaging always; takeaway keeps sellable only. */
+  /** dine_in | takeaway — packaging never; dine_in = none|sellable; takeaway = sellable|takeaway_only. */
   orderingChannel?: 'dine_in' | 'takeaway';
 }): CustomerMenuCatalogView {
   const channel = params.orderingChannel ?? 'dine_in';

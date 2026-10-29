@@ -86,6 +86,7 @@ import {
   buildWholeTableCheckoutPayload,
   isWholeTableSplit,
 } from '@/lib/checkout-split-intent';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 type Props = {
   request: BillSplit;
@@ -300,6 +301,8 @@ export function CheckoutRequestDetailHost({
   const [sessionOrderingChannel, setSessionOrderingChannel] = useState<'dine_in' | 'takeaway'>(
     'dine_in',
   );
+  /** False until this bill's session row (or no-session path) has stamped the channel. */
+  const [sessionChannelReady, setSessionChannelReady] = useState(false);
   /** One idempotency key per take-away / packaging modal visit (retries replay, never double-add). */
   const takeawayRequestId = useRef<string>('');
   const packagingRequestId = useRef<string>('');
@@ -316,7 +319,11 @@ export function CheckoutRequestDetailHost({
 
   /** Session orders for this bill; null when unavailable. */
   const readSessionOrders = useCallback(async (): Promise<Order[] | null> => {
-    if (!restaurantId || !request.session_id) return null;
+    if (!restaurantId || !request.session_id) {
+      setSessionOrderingChannel('dine_in');
+      setSessionChannelReady(true);
+      return null;
+    }
     const [{ data: orderRows, error }, { data: sessionRow }] = await Promise.all([
       supabase
         .from('orders')
@@ -330,10 +337,11 @@ export function CheckoutRequestDetailHost({
         .eq('restaurant_id', restaurantId)
         .maybeSingle(),
     ]);
-    if (sessionRow?.ordering_channel === 'takeaway') {
-      setSessionOrderingChannel('takeaway');
-    } else {
-      setSessionOrderingChannel('dine_in');
+    // Only stamp when the session row is present — a null row must not overwrite
+    // takeaway already stamped from the waiter table model.
+    if (sessionRow) {
+      setSessionOrderingChannel(normalizeOrderingChannel(sessionRow.ordering_channel));
+      setSessionChannelReady(true);
     }
     if (error) return null;
     return (orderRows || []) as Order[];
@@ -369,7 +377,15 @@ export function CheckoutRequestDetailHost({
   }, [readSessionOrders, restaurantId, supabase]);
 
   useEffect(() => {
+    setSessionChannelReady(false);
+    setZeroHeadcountPromptOpen(false);
+    setHeadcountAdjustOpen(false);
+    setAcknowledgedZeroHeadcount(false);
+  }, [request.id]);
+
+  useEffect(() => {
     setOrdersReady(false);
+    setSessionChannelReady(false);
     let cancelled = false;
     void loadSessionOrders().then(() => {
       if (cancelled) return;
@@ -388,6 +404,12 @@ export function CheckoutRequestDetailHost({
       .then((model) => {
         if (cancelled) return;
         setTableBuffetModel(model);
+        // Same stamp the board uses — prefer this over a second client select race.
+        const channel = model.detail?.sessionMeta?.orderingChannel;
+        if (channel != null) {
+          setSessionOrderingChannel(normalizeOrderingChannel(channel));
+          setSessionChannelReady(true);
+        }
         setBuffetModelReady(true);
       })
       .catch(() => {
@@ -406,27 +428,39 @@ export function CheckoutRequestDetailHost({
   );
   const restaurantHasActiveBuffets = activeBuffets.length > 0;
   const guestCountConfirmed = isBillGuestCountConfirmed(sessionOrders);
+  /** Prefer board sessionMeta (same load as buffet list); fall back to orders-path stamp. */
+  const orderingChannelForPrompt = useMemo(() => {
+    const fromModel = tableBuffetModel?.detail?.sessionMeta?.orderingChannel;
+    if (fromModel != null) return normalizeOrderingChannel(fromModel);
+    return sessionOrderingChannel;
+  }, [sessionOrderingChannel, tableBuffetModel]);
 
   useEffect(() => {
-    if (!ordersReady || !buffetModelReady) return;
-    if (zeroHeadcountPromptOpen || headcountAdjustOpen) return;
-    if (
-      !shouldPromptCheckoutZeroHeadcount({
-        restaurantHasActiveBuffets,
-        guestCountConfirmed,
-        acknowledgedZeroHeadcount,
-      })
-    ) {
+    if (!ordersReady || !buffetModelReady || !sessionChannelReady) return;
+    const shouldPrompt = shouldPromptCheckoutZeroHeadcount({
+      restaurantHasActiveBuffets,
+      guestCountConfirmed,
+      acknowledgedZeroHeadcount,
+      orderingChannel: orderingChannelForPrompt,
+    });
+    // Close if channel/headcount later says no (e.g. takeaway stamp arrived after a dine_in default flash).
+    // Do this even while adjust is open — takeaway must not keep either dialog.
+    if (!shouldPrompt) {
+      if (zeroHeadcountPromptOpen) setZeroHeadcountPromptOpen(false);
+      if (headcountAdjustOpen) setHeadcountAdjustOpen(false);
       return;
     }
+    if (headcountAdjustOpen || zeroHeadcountPromptOpen) return;
     setZeroHeadcountPromptOpen(true);
   }, [
     acknowledgedZeroHeadcount,
     buffetModelReady,
     guestCountConfirmed,
     headcountAdjustOpen,
+    orderingChannelForPrompt,
     ordersReady,
     restaurantHasActiveBuffets,
+    sessionChannelReady,
     zeroHeadcountPromptOpen,
   ]);
 
@@ -941,7 +975,7 @@ export function CheckoutRequestDetailHost({
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         supplyCharge={
           can(capabilities, 'checkout.confirm_payment')
-            ? sessionOrderingChannel === 'takeaway'
+            ? orderingChannelForPrompt === 'takeaway'
               ? {
                   addLabel: t.packagingAdd,
                   removeLabel: t.packagingRemove,
@@ -1057,6 +1091,7 @@ export function CheckoutRequestDetailHost({
               restaurantHasActiveBuffets,
               guestCountConfirmed: isBillGuestCountConfirmed(sessionOrders),
               acknowledgedZeroHeadcount,
+              orderingChannel: orderingChannelForPrompt,
             })
           ) {
             setZeroHeadcountPromptOpen(true);

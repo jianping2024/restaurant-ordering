@@ -282,7 +282,7 @@
 ### 已有功能
 
 - 顾客呼叫结账：整桌/均摊 → 会话 `billing`；按菜 → 只锁本机票，桌不进 `billing`（见 [`../guest-individual-checkout.zh.md`](../guest-individual-checkout.zh.md) §15）
-- 呼叫结账：不因开台人数为 0 拦截；结账台进详情时若有自助餐套餐且人数为 0 则软确认。账单页同行组并桌门禁仍在；账单页靠进页/回前台拉权威单（顾客端无 orders Realtime）
+- 呼叫结账：不因开台人数为 0 拦截；结账台进详情时若**堂食**会话有自助餐套餐且人数为 0 则软确认（**外卖**会话开台人数固定为 0，不弹）。账单页同行组并桌门禁仍在；账单页靠进页/回前台拉权威单（顾客端无 orders Realtime）
 - 员工楼面：`quick_table_close` 关 →「呼叫结账」进结账台；开 →「关台结账」settled 关台（与打印发票互斥）；顾客手机呼叫不受该开关影响
 - 结账台：仅列表+详情壳；三 tab（整桌/按菜/均摊）；队列空完回楼面
 - 按人确认收款：`confirm-payment`（可带 `client_request_id` 幂等），写入 `session_collected_payments`

@@ -238,7 +238,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 - **队列定义**：`bill_splits.status='requested'` 驱动结账台与 nav badge
 - **呼叫结账 RPC** 同时将 `table_sessions.status` 设为 `billing`
-- **开台人数**：呼叫结账（`checkout/request` / 按菜个人呼叫 / 员工 ensure-entry）**不再**因成人+儿童为 0 返回 `guest_count_required`。结账台进入详情且本店有自助餐套餐、人数为 0 时，弹「开台人数为 0，是否确认？」；确认后本单本次不再弹；选调整人数则结账中可改人数并刷新结账单
+- **开台人数**：呼叫结账（`checkout/request` / 按菜个人呼叫 / 员工 ensure-entry）**不再**因成人+儿童为 0 返回 `guest_count_required`。**堂食**结账台进入详情且本店有自助餐套餐、人数为 0 时，弹「开台人数为 0，是否确认？」；确认后本单本次不再弹；选调整人数则结账中可改人数并刷新结账单。**外卖**会话（开台渠道 `takeaway`）不弹、不进调整人数（开台人数固定为 0、不按人数收费）
 - **同行组前置**：本桌若在同行组且组内成员数 > 1，则 `party_merge_required`；账单页提示先并桌并禁用「呼叫结账」；不在组或组内仅剩 1 桌时可呼叫
 
 ### 收款规则

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>分组管理 · 最短路径设计稿</title>
+  <style>
+    :root {
+      --bg: #f4f1ec;
+      --card: #fffdf9;
+      --border: #e6e0d6;
+      --text: #1c1917;
+      --muted: #78716c;
+      --gold: #b8860b;
+      --ink: #1e293b;
+      --nav: #1e3a5f;
+      --danger: #b91c1c;
+      --chip: #f5f2ed;
+    }
+    * { box-boxing: border-box; box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .top {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(244, 241, 236, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 10px;
+    }
+    .top h1 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+    .top p { margin: 0 0 12px; font-size: 13px; color: var(--muted); max-width: 56rem; line-height: 1.5; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tabs button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .tabs button.on {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+      font-weight: 500;
+    }
+    main { padding: 20px; max-width: 1080px; margin: 0 auto 64px; }
+    .screen { display: none; }
+    .screen.on { display: block; }
+    .cap {
+      font-size: 12px; color: var(--muted); margin: 0 0 14px; line-height: 1.5;
+    }
+    .cap strong { color: var(--text); font-weight: 600; }
+
+    /* Fake chrome */
+    .dash {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(28,25,23,0.04);
+    }
+    .dash-nav {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #faf8f5;
+    }
+    .logo { font-weight: 700; letter-spacing: 0.04em; font-size: 14px; margin-right: 8px; }
+    .nav-pill {
+      border: 0; background: transparent; color: var(--muted);
+      padding: 7px 12px; border-radius: 999px; font-size: 13px;
+    }
+    .nav-pill.on { background: var(--nav); color: #fff; font-weight: 500; }
+    .dash-body { padding: 16px 18px 20px; }
+    .subrow {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .subtabs { display: flex; gap: 18px; }
+    .subtabs span {
+      font-size: 14px; color: var(--muted); padding-bottom: 6px; border-bottom: 2px solid transparent;
+    }
+    .subtabs span.on {
+      color: var(--text); font-weight: 600; border-bottom-color: var(--nav);
+    }
+    .btn-primary {
+      border: 0; background: var(--nav); color: #fff;
+      border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+
+    /* Dense list */
+    .group-list {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .group-row {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .group-row:last-child { border-bottom: 0; }
+    .group-row.expanded { background: #faf8f4; }
+    .handle {
+      width: 22px; height: 36px; margin-top: 2px;
+      display: grid; place-items: center;
+      color: #a8a29e; cursor: grab; user-select: none;
+      letter-spacing: -1px; font-size: 11px; line-height: 1;
+    }
+    .title-line {
+      display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .title-line h3 { margin: 0; font-size: 15px; font-weight: 600; }
+    .count {
+      font-size: 12px; color: var(--muted);
+      background: var(--chip); border: 1px solid var(--border);
+      border-radius: 999px; padding: 1px 8px;
+    }
+    .badge {
+      font-size: 11px; color: #92400e;
+      background: #fef3c7; border: 1px solid #fde68a;
+      border-radius: 999px; padding: 1px 7px;
+    }
+    .remarks { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip {
+      font-size: 11px; color: var(--text);
+      background: var(--chip); border: 1px solid var(--border);
+      border-radius: 7px; padding: 2px 7px; font-variant-numeric: tabular-nums;
+    }
+    .actions {
+      display: flex; gap: 4px; align-items: center; padding-top: 2px;
+    }
+    .icon-btn {
+      border: 1px solid transparent; background: transparent;
+      color: var(--muted); border-radius: 8px;
+      padding: 6px 8px; font-size: 12px; cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--chip); color: var(--text); border-color: var(--border); }
+    .icon-btn.danger { color: var(--danger); }
+    .icon-btn.danger:hover { background: #fef2f2; border-color: #fecaca; }
+    .hint {
+      margin: 10px 2px 0; font-size: 12px; color: var(--muted); line-height: 1.45;
+    }
+
+    /* Expanded inline reorder */
+    .member-board {
+      margin-top: 10px;
+      border: 1px dashed #d6d0c6;
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+    }
+    .member-board p {
+      margin: 0 0 8px; font-size: 12px; color: var(--muted);
+    }
+    .member {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 8px;
+      border: 1px solid transparent;
+    }
+    .member:hover { background: var(--chip); border-color: var(--border); }
+    .member .nm { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .member .ord { font-size: 11px; color: #a8a29e; width: 18px; }
+
+    /* Compare old */
+    .old-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; margin-bottom: 12px;
+      display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+      min-height: 108px;
+    }
+    .old-card .left { flex: 1; min-width: 0; }
+    .old-card .old-actions { display: flex; gap: 10px; white-space: nowrap; font-size: 13px; color: var(--muted); }
+    .old-card .old-actions .d { color: var(--danger); }
+    .strike { text-decoration: line-through; opacity: 0.45; }
+
+    /* Modal */
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+      display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+    }
+    .backdrop.on { display: flex; }
+    .modal {
+      width: min(640px, 100%);
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 18px 18px 16px;
+      max-height: min(90vh, 760px);
+      overflow: auto;
+    }
+    .modal h2 { margin: 0 0 14px; font-size: 17px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .field input, .field textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; font-size: 14px; background: #fff; color: var(--text);
+    }
+    .section-title {
+      font-size: 13px; font-weight: 600; margin: 14px 0 8px;
+    }
+    .selected-list {
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff;
+    }
+    .sel-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .sel-row:last-child { border-bottom: 0; }
+    .sel-row .x {
+      margin-left: auto; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px;
+    }
+    .pool {
+      margin-top: 8px; max-height: 140px; overflow: auto;
+      border: 1px solid var(--border); border-radius: 10px; background: #fff;
+    }
+    .pool label {
+      display: flex; gap: 8px; align-items: flex-start;
+      padding: 8px 10px; border-bottom: 1px solid rgba(230,224,214,0.7);
+      font-size: 13px; cursor: pointer;
+    }
+    .pool label:last-child { border-bottom: 0; }
+    .pool small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .foot {
+      display: flex; justify-content: space-between; gap: 12px; margin-top: 16px;
+    }
+    .btn-outline {
+      min-width: 7rem; border: 1px solid var(--border); background: #fff;
+      border-radius: 10px; padding: 12px 16px; font-size: 14px; cursor: pointer;
+    }
+    .btn-gold {
+      min-width: 7rem; border: 0; background: #1c1917; color: #f5e6c8;
+      border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .path {
+      display: grid; gap: 8px; margin: 0 0 16px;
+    }
+    .path div {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: 13px; line-height: 1.45;
+      padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px solid var(--border);
+    }
+    .path b { color: #15803d; font-weight: 600; min-width: 4.5rem; }
+    .path .bad b { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>分组管理 · 最短路径设计稿</h1>
+    <p>
+      目标：一眼看完组内桌位、少弹一层窗、操作贴在手上。能力不变（组顺序 / 组内桌顺序 / 改名备注分配 / 外卖组 / 删除）。
+      这是静态稿，不接真实数据。
+    </p>
+    <div class="tabs">
+      <button type="button" class="on" data-tab="list">A · 新列表（主方案）</button>
+      <button type="button" data-tab="expand">A2 · 展开调桌序</button>
+      <button type="button" data-tab="edit">B · 编辑弹窗（桌序并入）</button>
+      <button type="button" data-tab="compare">对照 · 现状痛点</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- A list -->
+    <section class="screen on" id="list">
+      <p class="cap">
+        <strong>主列表改成一行信息带：</strong>手柄 · 名称 · 桌数 · 全部桌号 chip（可折行，不再 +N）· 右侧只留「编辑 / 删除」。
+        「调整顺序」文字链去掉 —— 组间仍拖左侧手柄；组内桌序见 A2 / B。
+      </p>
+      <div class="path">
+        <div><b>看桌位</b><span>打开页即可看全组桌号，不必点进编辑或「调整顺序」。</span></div>
+        <div><b>改组序</b><span>拖左侧手柄（与现网一致）。</span></div>
+        <div><b>改桌序</b><span>点行展开（A2）或在编辑里拖已选列表（B）—— 二选一落地，不并留两条。</span></div>
+        <div><b>改归属</b><span>仍走编辑弹窗勾选桌位（与现网一致）。</span></div>
+      </div>
+
+      <div class="dash">
+        <div class="dash-nav">
+          <span class="logo">FARVOO</span>
+          <button class="nav-pill">厨房看板</button>
+          <button class="nav-pill on">桌位配置</button>
+          <button class="nav-pill">结账请求</button>
+          <button class="nav-pill">菜单管理</button>
+        </div>
+        <div class="dash-body">
+          <div class="subrow">
+            <div class="subtabs">
+              <span>桌位配置</span>
+              <span class="on">分组管理</span>
+            </div>
+            <button class="btn-primary" type="button">+ 新增分组</button>
+          </div>
+
+          <div class="group-list">
+            <div class="group-row">
+              <div class="handle" title="拖动调整分组顺序">⋮⋮</div>
+              <div>
+                <div class="title-line">
+                  <h3>VIP1</h3>
+                  <span class="count">11 张桌</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">A-01</span><span class="chip">A-02</span><span class="chip">A-03</span>
+                  <span class="chip">A-04</span><span class="chip">A-05</span><span class="chip">A-06</span>
+                  <span class="chip">A-07</span><span class="chip">A-08</span><span class="chip">A-09</span>
+                  <span class="chip">A-10</span><span class="chip">A-11</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="icon-btn" type="button" onclick="showTab('edit')">编辑</button>
+                <button class="icon-btn danger" type="button">删除</button>
+              </div>
+            </div>
+
+            <div class="group-row">
+              <div class="handle">⋮⋮</div>
+              <div>
+                <div class="title-line">
+                  <h3>VIP2</h3>
+                  <span class="count">10 张桌</span>
+                </div>
+                <div class="chips">
+                  <span class="chip">A-07</span><span class="chip">A-08</span><span class="chip">A-09</span>
+                  <span class="chip">A-10</span><span class="chip">A-11</span><span class="chip">A-12</span>
+                  <span class="chip">A-13</span><span class="chip">A-14</span><span class="chip">A-15</span>
+                  <span class="chip">A-16</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="icon-btn" type="button">编辑</button>
+                <button class="icon-btn danger" type="button">删除</button>
+              </div>
+            </div>
+
+            <div class="group-row">
+              <div class="handle">⋮⋮</div>
+              <div>
+                <div class="title-line">
+                  <h3>🥡 外卖UAT</h3>
+                  <span class="badge">外卖组</span>
+                  <span class="count">1 张桌</span>
+                </div>
+                <p class="remarks">uat</p>
+                <div class="chips"><span class="chip">A-20</span></div>
+              </div>
+              <div class="actions">
+                <button class="icon-btn" type="button">编辑</button>
+                <button class="icon-btn danger" type="button">删除</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint">拖动手柄调整分组在看板与列表中的顺序。要调整组内桌位顺序：点分组行展开，或在编辑里拖已选桌位。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- A2 expand -->
+    <section class="screen" id="expand">
+      <p class="cap">
+        <strong>组内桌序路径 A（推荐与稠密列表配套）：</strong>点分组行空白处展开，本组桌位变成可拖列表；保存即时写入（与现网「调整顺序」弹窗同一接口）。
+        不另开第二层 Modal。行上仍只有编辑 / 删除。
+      </p>
+      <div class="dash">
+        <div class="dash-nav">
+          <span class="logo">FARVOO</span>
+          <button class="nav-pill on">桌位配置</button>
+        </div>
+        <div class="dash-body">
+          <div class="subrow">
+            <div class="subtabs"><span>桌位配置</span><span class="on">分组管理</span></div>
+            <button class="btn-primary" type="button">+ 新增分组</button>
+          </div>
+          <div class="group-list">
+            <div class="group-row expanded">
+              <div class="handle">⋮⋮</div>
+              <div>
+                <div class="title-line">
+                  <h3>VIP1</h3>
+                  <span class="count">11 张桌</span>
+                  <span style="font-size:12px;color:var(--gold)">已展开 · 拖动下方调整桌序</span>
+                </div>
+                <div class="member-board">
+                  <p>组内顺序影响楼面看板与桌位列表。拖动手柄即可，无需另开窗口。</p>
+                  <div class="member"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">1</span><span class="nm">A-01</span></div>
+                  <div class="member"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">2</span><span class="nm">A-02</span></div>
+                  <div class="member"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">3</span><span class="nm">A-03</span></div>
+                  <div class="member"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">4</span><span class="nm">A-04</span></div>
+                  <div class="member"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">5</span><span class="nm">A-05</span></div>
+                  <div class="member" style="opacity:.55"><span class="handle" style="height:auto;margin:0">⋮⋮</span><span class="ord">…</span><span class="nm">A-06 … A-11</span></div>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="icon-btn" type="button">编辑</button>
+                <button class="icon-btn danger" type="button">删除</button>
+              </div>
+            </div>
+            <div class="group-row">
+              <div class="handle">⋮⋮</div>
+              <div>
+                <div class="title-line"><h3>VIP2</h3><span class="count">10 张桌</span></div>
+                <div class="chips">
+                  <span class="chip">A-07</span><span class="chip">A-08</span><span class="chip">A-09</span>
+                  <span class="chip">A-10</span><span class="chip">A-11</span><span class="chip">A-12</span>
+                  <span class="chip">A-13</span><span class="chip">A-14</span><span class="chip">A-15</span>
+                  <span class="chip">A-16</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="icon-btn" type="button">编辑</button>
+                <button class="icon-btn danger" type="button">删除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- B edit -->
+    <section class="screen" id="edit">
+      <p class="cap">
+        <strong>组内桌序路径 B（若不想做行展开）：</strong>编辑弹窗里，「已选桌位」改成可拖有序列表；下面再勾选未入组 / 其他组桌位。
+        这样「分配」和「排序」同屏完成，可删掉独立的「调整顺序」Modal。
+      </p>
+      <div class="dash" style="min-height: 420px; position: relative;">
+        <div class="dash-nav">
+          <span class="logo">FARVOO</span>
+          <button class="nav-pill on">桌位配置</button>
+        </div>
+        <div class="dash-body" style="opacity:0.35; pointer-events:none;">
+          <div class="subrow">
+            <div class="subtabs"><span>桌位配置</span><span class="on">分组管理</span></div>
+            <button class="btn-primary" type="button">+ 新增分组</button>
+          </div>
+          <div class="group-list">
+            <div class="group-row"><div class="handle">⋮⋮</div><div><div class="title-line"><h3>VIP1</h3></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="backdrop on" style="position:relative; inset:auto; margin-top:-380px; background:transparent; backdrop-filter:none; padding:0 0 24px;">
+        <div class="modal" style="box-shadow: 0 20px 50px rgba(0,0,0,0.18);">
+          <h2>编辑分组</h2>
+          <div class="field">
+            <label>分组名称 *</label>
+            <input value="VIP1" readonly />
+          </div>
+          <div class="field">
+            <label>备注</label>
+            <textarea rows="2" readonly></textarea>
+          </div>
+          <div class="section-title">本组桌位 · 拖动调整顺序</div>
+          <div class="selected-list">
+            <div class="sel-row"><span class="handle" style="height:auto;margin:0">⋮⋮</span> A-01 <button class="x" type="button">×</button></div>
+            <div class="sel-row"><span class="handle" style="height:auto;margin:0">⋮⋮</span> A-02 <button class="x" type="button">×</button></div>
+            <div class="sel-row"><span class="handle" style="height:auto;margin:0">⋮⋮</span> A-03 <button class="x" type="button">×</button></div>
+            <div class="sel-row"><span class="handle" style="height:auto;margin:0">⋮⋮</span> A-04 <button class="x" type="button">×</button></div>
+          </div>
+          <div class="section-title">从全部桌位勾选</div>
+          <div class="pool">
+            <label><input type="checkbox" checked disabled /><span>A-01<small>本组</small></span></label>
+            <label><input type="checkbox" disabled /><span>A-12<small>已在：VIP2</small></span></label>
+            <label><input type="checkbox" disabled /><span>A-18<small>未分组</small></span></label>
+          </div>
+          <div class="foot">
+            <button class="btn-outline" type="button">取消</button>
+            <button class="btn-gold" type="button">保存</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- compare -->
+    <section class="screen" id="compare">
+      <p class="cap"><strong>现状（对照）：</strong>卡片过高、桌号截到 6 个后 +N、组间拖动手柄与「调整顺序」文字链并存、编辑与排序分两个 Modal。</p>
+      <div class="path">
+        <div class="bad"><b>看全桌</b><span>列表只显示最多 6 个 chip +「+5」，要看全组得进编辑或调序窗。</span></div>
+        <div class="bad"><b>调桌序</b><span>列表点「调整顺序」→ 再开一层 Modal → 拖完关窗。与左侧组手柄语义容易混。</span></div>
+        <div class="bad"><b>视觉</b><span>每组一张大白卡，空白多，操作是一排小字链，显得碎。</span></div>
+      </div>
+      <div class="old-card">
+        <div class="left">
+          <div class="title-line"><h3 style="margin:0;font-size:15px">VIP1</h3></div>
+          <p class="remarks" style="margin-top:6px">11 张桌</p>
+          <div class="chips" style="margin-top:8px">
+            <span class="chip">A-01</span><span class="chip">A-02</span><span class="chip">A-03</span>
+            <span class="chip">A-04</span><span class="chip">A-05</span><span class="chip">A-06</span>
+            <span class="chip">+5</span>
+          </div>
+        </div>
+        <div class="old-actions">
+          <span>调整顺序</span><span>编辑</span><span class="d">删除</span>
+        </div>
+      </div>
+      <div class="old-card" style="opacity:0.7">
+        <div class="left">
+          <div class="title-line"><h3 style="margin:0;font-size:15px">VIP2</h3></div>
+          <p class="remarks" style="margin-top:6px">10 张桌</p>
+          <div class="chips" style="margin-top:8px">
+            <span class="chip">A-07</span><span class="chip">A-08</span><span class="chip">A-09</span>
+            <span class="chip">A-10</span><span class="chip">A-11</span><span class="chip">A-12</span>
+            <span class="chip">+4</span>
+          </div>
+        </div>
+        <div class="old-actions">
+          <span class="strike">调整顺序</span><span>编辑</span><span class="d">删除</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.tabs button').forEach((b) => {
+        b.classList.toggle('on', b.getAttribute('data-tab') === id);
+      });
+      document.querySelectorAll('.screen').forEach((s) => {
+        s.classList.toggle('on', s.id === id);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.tabs button').forEach((b) => {
+      b.addEventListener('click', () => showTab(b.getAttribute('data-tab')));
+    });
+  </script>
+</body>
+</html>

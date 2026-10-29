@@ -695,14 +695,9 @@ export const MESSAGES_FR = {
     "colActions": "Actions",
     "tablesSummary": "{count} table(s)",
     "tablesEmpty": "Aucune affectation",
-    "tablesOverflow": "+{count}",
-    "sortOrderHint": "Faites glisser la poignée pour définir l'ordre des groupes sur le plan de salle et dans les listes.",
-    "reorderMembers": "Réorganiser les tables",
-    "reorderMembersTitle": "Réorganiser les tables · {name}",
-    "reorderMembersHint": "Faites glisser la poignée pour définir l'ordre relatif des tables dans ce groupe ; cela affecte le plan de salle et la liste des tables.",
+    "sortOrderHint": "Faites glisser la poignée pour définir l'ordre des groupes ; l'ordre des tables du groupe se règle dans Modifier.",
     "nameLabel": "Nom du groupe *",
     "remarksLabel": "Remarques",
-    "assignTables": "Affecter des tables",
     "noTables": "Aucune table active",
     "modalAdd": "Ajouter un groupe",
     "modalEdit": "Modifier le groupe",
@@ -718,7 +713,10 @@ export const MESSAGES_FR = {
     "assignUngrouped": "Non regroupée",
     "assignInGroup": "Dans : {name}",
     "assignInThisGroup": "Ce groupe",
-    "assignMoveHint": "L'enregistrement déplacera la table de « {name} » vers ce groupe"
+    "assignMoveHint": "L'enregistrement déplacera la table de « {name} » vers ce groupe",
+    "selectedTablesTitle": "Tables de ce groupe",
+    "selectedTablesHint": "Faites glisser la poignée pour définir l'ordre des tables dans ce groupe ; cela affecte le plan de salle et la liste des tables.",
+    "assignTablesPool": "Choisir parmi toutes les tables"
   },
   "settings": {
     "nameEmpty": "Le nom du restaurant est obligatoire",

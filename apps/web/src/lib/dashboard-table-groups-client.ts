@@ -64,18 +64,6 @@ export async function reorderTableGroupsClient(orderedIds: string[]) {
   });
 }
 
-export async function reorderTableGroupMembersClient(groupId: string, orderedIds: string[]) {
-  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'reorder_members',
-      group_id: groupId,
-      ordered_ids: orderedIds,
-    }),
-  });
-}
-
 export async function deleteTableGroupClient(groupId: string) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'DELETE',

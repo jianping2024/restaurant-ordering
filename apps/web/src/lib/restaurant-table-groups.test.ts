@@ -178,7 +178,7 @@ describe('listGroupMemberTablesInOrder', () => {
 });
 
 describe('formatGroupMemberTablePreview', () => {
-  it('shows first N chips and overflow count', () => {
+  it('lists every member chip in table sort order', () => {
     const manyTables = Array.from({ length: 10 }, (_, i) => ({
       id: `t${i + 1}`,
       display_name: `A-${String(i + 1).padStart(2, '0')}`,
@@ -187,12 +187,11 @@ describe('formatGroupMemberTablePreview', () => {
     const preview = formatGroupMemberTablePreview(
       manyTables.map((t) => t.id),
       manyTables,
-      6,
     );
     assert.equal(preview.totalCount, 10);
-    assert.equal(preview.chips.length, 6);
-    assert.equal(preview.overflowCount, 4);
+    assert.equal(preview.chips.length, 10);
     assert.equal(preview.chips[0]?.display_name, 'A-01');
+    assert.equal(preview.chips[9]?.display_name, 'A-10');
   });
 });
 

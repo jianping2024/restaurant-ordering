@@ -166,6 +166,73 @@ async function replaceTableGroupMembersAdmin(
   return null;
 }
 
+/**
+ * Writes relative floor order for the given tables via restaurant_tables.sort_order.
+ * `orderedIds` is the desired order (must be the exact member set when called from
+ * reorder_members; create/update pass the saved table_ids list).
+ */
+async function applyMemberTableOrderAdmin(
+  admin: SupabaseClient,
+  restaurantId: string,
+  orderedIds: string[],
+): Promise<{ tables: RestaurantTableRow[] } | MutationError> {
+  if (orderedIds.length < 2) {
+    const tables = await loadActiveRestaurantTableRows(admin, restaurantId);
+    if ('error' in tables) return tables;
+    return { tables };
+  }
+
+  const { data: tableRows, error: tablesError } = await admin
+    .from('restaurant_tables')
+    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
+    .eq('restaurant_id', restaurantId)
+    .is('deleted_at', null)
+    .in('id', orderedIds);
+
+  if (tablesError) {
+    return { error: 'tables_query_failed', message: tablesError.message, status: 500 };
+  }
+
+  const siblings = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
+  const assignments = permuteSortOrderAssignments(siblings, orderedIds);
+  if (!assignments) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
+  }
+
+  const allTables = await loadActiveRestaurantTableRows(admin, restaurantId);
+  if ('error' in allTables) return allTables;
+  const restaurantMax =
+    allTables.length === 0 ? -1 : Math.max(...allTables.map((row) => row.sort_order));
+  const tempBase = restaurantMax + 1;
+
+  const persisted = await persistAssignedSortOrders(
+    admin,
+    'restaurant_tables',
+    restaurantId,
+    assignments,
+    tempBase,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
+  }
+
+  const tables = await loadActiveRestaurantTableRows(admin, restaurantId);
+  if ('error' in tables) return tables;
+  return { tables };
+}
+
+async function loadGroupsPayloadWithTables(
+  admin: SupabaseClient,
+  restaurantId: string,
+  orderedMemberIds: string[],
+): Promise<TableGroupsPayload | MutationError> {
+  const orderResult = await applyMemberTableOrderAdmin(admin, restaurantId, orderedMemberIds);
+  if ('error' in orderResult) return orderResult;
+  const groupsPayload = await loadRestaurantTableGroups(admin, restaurantId);
+  if ('error' in groupsPayload) return groupsPayload;
+  return { ...groupsPayload, tables: orderResult.tables };
+}
+
 function parseGroupFields(input: {
   name: string;
   remarks?: string | null;
@@ -247,7 +314,7 @@ export async function createTableGroup(
     return memberError;
   }
 
-  const payload = await loadRestaurantTableGroups(admin, restaurantId);
+  const payload = await loadGroupsPayloadWithTables(admin, restaurantId, fields.tableIds);
   if ('error' in payload) return payload;
   return { payload };
 }
@@ -325,7 +392,7 @@ export async function updateTableGroup(
   );
   if (memberError) return memberError;
 
-  const payload = await loadRestaurantTableGroups(admin, restaurantId);
+  const payload = await loadGroupsPayloadWithTables(admin, restaurantId, fields.tableIds);
   if ('error' in payload) return payload;
   return { payload };
 }
@@ -421,49 +488,16 @@ export async function reorderTableGroupMembers(
   if (memberTableIds.length === 0) {
     return { error: 'reorder_scope_mismatch', status: 400 };
   }
-
-  const { data: tableRows, error: tablesError } = await admin
-    .from('restaurant_tables')
-    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
-    .eq('restaurant_id', restaurantId)
-    .is('deleted_at', null)
-    .in('id', memberTableIds);
-
-  if (tablesError) {
-    return { error: 'tables_query_failed', message: tablesError.message, status: 500 };
-  }
-
-  const siblings = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
-  const assignments = permuteSortOrderAssignments(siblings, orderedIds);
-  if (!assignments) {
+  if (!orderedIdsMatchSiblingSet(
+    memberTableIds.map((id) => ({ id })),
+    orderedIds,
+  )) {
     return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
-  const allTables = await loadActiveRestaurantTableRows(admin, restaurantId);
-  if ('error' in allTables) return allTables;
-  const restaurantMax =
-    allTables.length === 0 ? -1 : Math.max(...allTables.map((row) => row.sort_order));
-  const tempBase = restaurantMax + 1;
-
-  const persisted = await persistAssignedSortOrders(
-    admin,
-    'restaurant_tables',
-    restaurantId,
-    assignments,
-    tempBase,
-  );
-  if ('error' in persisted) {
-    return { error: persisted.error, message: persisted.message, status: 500 };
-  }
-
-  const [groupsPayload, tables] = await Promise.all([
-    loadRestaurantTableGroups(admin, restaurantId),
-    loadActiveRestaurantTableRows(admin, restaurantId),
-  ]);
-  if ('error' in groupsPayload) return groupsPayload;
-  if ('error' in tables) return tables;
-
-  return { payload: { ...groupsPayload, tables } };
+  const payload = await loadGroupsPayloadWithTables(admin, restaurantId, orderedIds);
+  if ('error' in payload) return payload;
+  return { payload };
 }
 
 export async function deleteTableGroup(

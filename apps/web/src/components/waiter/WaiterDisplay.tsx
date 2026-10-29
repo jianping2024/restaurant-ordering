@@ -42,6 +42,7 @@ import {
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   tablePartyMemberTableIds,
   type TablePartyGroup,
@@ -436,9 +437,28 @@ function WaiterBoardInner({
     [checkoutPinnedCards],
   );
 
+  const takeawayOrderingEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'takeaway_ordering',
+  );
+  const takeawayTableIds = useMemo(() => {
+    if (!takeawayOrderingEnabled) return new Set<string>();
+    const takeawayGroupIds = new Set(
+      groups.filter((g) => g.is_takeaway).map((g) => g.id),
+    );
+    const ids = new Set<string>();
+    for (const m of members) {
+      if (takeawayGroupIds.has(m.group_id)) ids.add(m.table_id);
+    }
+    return ids;
+  }, [groups, members, takeawayOrderingEnabled]);
+
   const boardSections = useMemo(
-    () => buildWaiterBoardSections(groups, members, tables, tableGroupsI18n.ungrouped),
-    [groups, members, tables, tableGroupsI18n.ungrouped],
+    () =>
+      buildWaiterBoardSections(groups, members, tables, tableGroupsI18n.ungrouped, {
+        pinTakeawayLeft: takeawayOrderingEnabled,
+      }),
+    [groups, members, tables, tableGroupsI18n.ungrouped, takeawayOrderingEnabled],
   );
 
   const displayNameByTableId = useMemo(
@@ -886,6 +906,9 @@ function WaiterBoardInner({
         table={openTableSheetTable}
         openTableDefaults={openTableDefaults}
         lang={lang}
+        isTakeawayTable={
+          openTableTarget != null && takeawayTableIds.has(openTableTarget.tableId)
+        }
       />
     </div>
   );

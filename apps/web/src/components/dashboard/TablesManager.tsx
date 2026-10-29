@@ -32,6 +32,7 @@ import {
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
 import { removeTableQrCache } from '@/lib/table-menu-qr';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   loadSavedTablesManagerTab,
   saveTablesManagerTab,
@@ -41,7 +42,13 @@ import {
 } from '@/lib/tables-manager-tab-preference';
 
 interface TablesManagerProps {
-  restaurant: { id: string; slug: string; name: string; print_locale: 'zh' | 'en' | 'pt' | null };
+  restaurant: {
+    id: string;
+    slug: string;
+    name: string;
+    print_locale: 'zh' | 'en' | 'pt' | null;
+    feature_flags?: Record<string, unknown> | null;
+  };
   initialTables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
@@ -408,6 +415,10 @@ export function TablesManager({
           onGroupsChange={handleGroupsChange}
           onRegisterOpenCreate={registerOpenCreateGroup}
           hideAddButton
+          takeawayOrderingEnabled={isRestaurantFeatureEnabled(
+            restaurant.feature_flags,
+            'takeaway_ordering',
+          )}
         />
       ) : (
         <TablesTabPanel

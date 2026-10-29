@@ -127,7 +127,7 @@ export async function fetchClosedSessionsInWindow(
     restaurantId,
     startUtc,
     endExclusiveUtc,
-    'id, opened_at, closed_at, closed_reason, settled_payable_amount',
+    'id, opened_at, closed_at, closed_reason, settled_payable_amount, ordering_channel',
     { orderById: true },
   );
   if (!result.ok) return result;

@@ -22,6 +22,7 @@ export type DashboardMenu =
       canManagePrintStations: boolean;
       /** Store flag menu_flavor_hints_enabled (default false). */
       flavorHintsEnabled: boolean;
+      takeawayOrderingEnabled: boolean;
     }
   | { error: string; status: number };
 
@@ -103,6 +104,10 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     flavorHintsEnabled: isRestaurantFeatureEnabled(
       restaurantFlags?.feature_flags,
       'menu_flavor_hints_enabled',
+    ),
+    takeawayOrderingEnabled: isRestaurantFeatureEnabled(
+      restaurantFlags?.feature_flags,
+      'takeaway_ordering',
     ),
   };
 }

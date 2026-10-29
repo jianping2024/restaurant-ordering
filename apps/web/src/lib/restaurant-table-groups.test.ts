@@ -28,6 +28,7 @@ const groups: RestaurantTableGroup[] = [
     remarks: null,
     sort_order: 0,
     created_at: '2026-01-01T00:00:00.000Z',
+    is_takeaway: false,
   },
   {
     id: 'g2',
@@ -36,6 +37,7 @@ const groups: RestaurantTableGroup[] = [
     remarks: null,
     sort_order: 1,
     created_at: '2026-01-02T00:00:00.000Z',
+    is_takeaway: false,
   },
 ];
 
@@ -81,6 +83,7 @@ describe('buildWaiterBoardSections', () => {
       remarks: null,
       sort_order: 2,
       created_at: '2026-01-03T00:00:00.000Z',
+      is_takeaway: false,
     };
     const sections = buildWaiterBoardSections(
       [...groups, emptyGroup],

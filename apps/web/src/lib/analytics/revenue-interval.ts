@@ -10,6 +10,7 @@ import {
   loadClosedSessionRevenueBundle,
   revenueTrendFromQualifying,
 } from '@/lib/analytics/closed-session-revenue';
+import { revenueByOrderingChannel } from '@/lib/analytics/revenue-ordering-channel';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS = 12;
@@ -77,7 +78,15 @@ export async function loadDashboardRevenueIntervalTotal(params: {
   startUtc: string;
   endExclusiveUtc: string;
   dateKeys: string[];
-}): Promise<{ ok: true; revenueTotal: number } | { ok: false; code: string; message?: string }> {
+}): Promise<
+  | {
+      ok: true;
+      revenueTotal: number;
+      dineInRevenue: number;
+      takeawayRevenue: number;
+    }
+  | { ok: false; code: string; message?: string }
+> {
   const { admin, restaurantId, startUtc, endExclusiveUtc, dateKeys } = params;
 
   const bundleResult = await loadClosedSessionRevenueBundle(admin, restaurantId, startUtc, endExclusiveUtc);
@@ -91,7 +100,13 @@ export async function loadDashboardRevenueIntervalTotal(params: {
 
   const revenueTrend = revenueTrendFromQualifying(dateKeys, bundleResult.bundle, qualifying);
   const revenueTotal = auditMoney(revenueTrend.reduce((sum, p) => sum + p.revenue, 0));
+  const channelSplit = revenueByOrderingChannel(bundleResult.bundle, qualifying);
 
-  return { ok: true, revenueTotal };
+  return {
+    ok: true,
+    revenueTotal,
+    dineInRevenue: channelSplit.dine_in,
+    takeawayRevenue: channelSplit.takeaway,
+  };
 }
 

@@ -1,3 +1,4 @@
+import { filterMenuItemsForOrderingChannel } from '@/lib/instore-takeaway';
 import { isMenuItemServedInTimeSlot } from '@/lib/menu-time-slot';
 import type { MenuCategory, MenuItem } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -95,8 +96,12 @@ export function resolveCustomerMenuCatalogView(params: {
   menuTimeSlotId: string | null;
   activeTopId: string;
   activeSubpath: string;
+  /** dine_in | takeaway — filters packaging always; takeaway keeps sellable only. */
+  orderingChannel?: 'dine_in' | 'takeaway';
 }): CustomerMenuCatalogView {
-  const servedItems = params.menuItems.filter((item) =>
+  const channel = params.orderingChannel ?? 'dine_in';
+  const channelItems = filterMenuItemsForOrderingChannel(params.menuItems, channel);
+  const servedItems = channelItems.filter((item) =>
     isMenuItemServedInTimeSlot(item, params.menuTimeSlotId),
   );
 
@@ -118,8 +123,8 @@ export function resolveCustomerMenuCatalogView(params: {
       currentSubpath: '',
     }).length > 0;
   const shownInTimeSlot = (category: MenuCategory) =>
-    servedItems.length === params.menuItems.length ||
-    !hasItemsIn(params.menuItems, category.id) ||
+    servedItems.length === channelItems.length ||
+    !hasItemsIn(channelItems, category.id) ||
     hasItemsIn(servedItems, category.id);
 
   const realTopCategories = params.menuCategories

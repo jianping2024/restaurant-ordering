@@ -10,12 +10,17 @@ export function isTakeawayChargeItem(item: Pick<OrderItem, 'kind'>): boolean {
   return item.kind === 'takeaway';
 }
 
+/** Checkout takeaway-supply line (餐盒等); not a kitchen/catalog dish. */
+export function isPackagingChargeItem(item: Pick<OrderItem, 'kind'>): boolean {
+  return item.kind === 'packaging';
+}
+
 /**
  * Sole "this line is a menu_items dish" predicate: `id` is a menu uuid, kitchen-relevant,
- * counted as a dish. False for buffet headcount and take-away charges.
+ * counted as a dish. False for buffet headcount, take-away charges, and packaging supplies.
  */
 export function isMenuCatalogItem(item: Pick<OrderItem, 'kind'>): boolean {
-  return !isBuffetBaseItem(item) && !isTakeawayChargeItem(item);
+  return !isBuffetBaseItem(item) && !isTakeawayChargeItem(item) && !isPackagingChargeItem(item);
 }
 
 /** Kitchen remake lines: staff-only, €0, hidden from guest submitted list and billables. */

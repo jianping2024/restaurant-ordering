@@ -164,7 +164,7 @@ describe('takeaway line classification', () => {
     const orders = [orderWith([beer, line, takeaway(3.5, 'l2')])];
     assert.equal(sumBillableSessionTotal(orders), 4.5 + 5 + 3.5);
     const rows = checkoutLinesFromOrders(orders, 'zh');
-    const ids = rows.map((r) => r.takeawayLineId).filter(Boolean);
+    const ids = rows.map((r) => r.chargeLineId).filter(Boolean);
     assert.deepEqual(ids, ['takeaway:l1', 'takeaway:l2']);
 
     const removed = applyOrderItemDecrement(orders[0]!.items, 1, 'done');
@@ -189,7 +189,7 @@ describe('takeaway line classification', () => {
     assert.ok(next);
     assert.equal(sumBillableSessionTotal(next!), 4.5 + 55);
     const ids = checkoutLinesFromOrders(next!, 'zh')
-      .map((r) => r.takeawayLineId)
+      .map((r) => r.chargeLineId)
       .filter(Boolean);
     assert.deepEqual(ids, ['takeaway:keep']);
     assert.equal(voidTakeawayChargeInOrders(orders, 'takeaway:missing'), null);

@@ -39,6 +39,7 @@ describe('computeTodayKpis', () => {
         todayRevenue: 29.95,
         revenueSessionCount: 2,
         todayGuests: { adults: 5, children: 1 },
+        revenueByChannel: null,
       },
       emptyDining,
     );
@@ -49,6 +50,7 @@ describe('computeTodayKpis', () => {
     assert.equal(kpis.diningTableCount, 0);
     assert.deepEqual(kpis.diningGuests, { adults: 0, children: 0 });
     assert.equal(kpis.diningUncollectedAmount, 0);
+    assert.equal(kpis.revenueByChannel, null);
   });
 
   it('marks revenue unavailable when bundle load failed', () => {
@@ -64,6 +66,7 @@ describe('computeTodayKpis', () => {
     assert.equal(kpis.diningTableCount, 2);
     assert.deepEqual(kpis.diningGuests, { adults: 4, children: 1 });
     assert.equal(kpis.diningUncollectedAmount, 40);
+    assert.equal(kpis.revenueByChannel, null);
   });
 });
 

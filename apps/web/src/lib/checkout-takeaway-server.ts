@@ -9,6 +9,7 @@ import {
 import { writeAppendBatch } from '@/lib/append-write-batch';
 import type { AuditActor } from '@/lib/audit/types';
 import { buildTakeawayChargeItem, type TakeawayLineInput } from '@/lib/checkout-takeaway';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
 import { isTakeawayChargeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
@@ -78,6 +79,9 @@ export async function addCheckoutTakeawayLines(input: {
   const loaded = await loadCheckoutTakeawayTarget(admin, restaurantId, input.billSplitId);
   if (!loaded.ok) return loaded;
   const { tableId, displayName, session } = loaded.target;
+  if (normalizeOrderingChannel(session.ordering_channel) === 'takeaway') {
+    return { ok: false, status: 409, error: 'takeaway_charge_not_allowed_on_takeaway_session' };
+  }
 
   const claim = await claimAppendIdempotency({
     admin,

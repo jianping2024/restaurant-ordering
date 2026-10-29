@@ -16,6 +16,7 @@ import {
   loadClosedSessionRevenueBundle,
   revenueTrendFromQualifying,
 } from '@/lib/analytics/closed-session-revenue';
+import { revenueByOrderingChannel } from '@/lib/analytics/revenue-ordering-channel';
 import { buildCustomerTrend } from '@/lib/analytics/build-overview';
 import {
   aggregateMenuItemsFromOrders,
@@ -41,6 +42,10 @@ import { addCalendarDays, lisbonDayStartUtcIso } from '@/lib/lisbon-calendar';
 export type DailyStatMetrics = {
   businessDate: string;
   revenue: number;
+  /** Portion of revenue from dine_in sessions (legacy → all in dine_in). */
+  dineInRevenue: number;
+  /** Portion of revenue from takeaway sessions. */
+  takeawayRevenue: number;
   adultCount: number;
   childCount: number;
   customerCount: number;
@@ -54,12 +59,15 @@ function metricsFromTrends(
   revenueTrend: RevenueTrendPoint[],
   customerTrend: CustomerTrendPoint[],
   qualifyingSessionCount: number,
+  channelSplit: { dine_in: number; takeaway: number },
 ): DailyStatMetrics {
   const revenue = revenueTrend[0]?.revenue ?? 0;
   const customer = customerTrend[0];
   return {
     businessDate,
     revenue,
+    dineInRevenue: channelSplit.dine_in,
+    takeawayRevenue: channelSplit.takeaway,
     adultCount: customer?.adultCount ?? 0,
     childCount: customer?.childCount ?? 0,
     customerCount: customer?.customerCount ?? 0,
@@ -97,11 +105,15 @@ export async function computeRestaurantBusinessDayMetrics(
     bundle.splitsBySession,
   );
   const revenueTrend = revenueTrendFromQualifying(dateKeys, bundle, qualifying);
+  const channelSplit = revenueByOrderingChannel(bundle, qualifying, { dateKey: businessDate });
 
   if (qualifying.length === 0) {
     return {
       ok: true,
-      metrics: metricsFromTrends(businessDate, revenueTrend, [], 0),
+      metrics: metricsFromTrends(businessDate, revenueTrend, [], 0, {
+        dine_in: 0,
+        takeaway: 0,
+      }),
       topItems: [],
       allItems: [],
     };
@@ -129,7 +141,13 @@ export async function computeRestaurantBusinessDayMetrics(
 
   return {
     ok: true,
-    metrics: metricsFromTrends(businessDate, revenueTrend, customerTrend, qualifying.length),
+    metrics: metricsFromTrends(
+      businessDate,
+      revenueTrend,
+      customerTrend,
+      qualifying.length,
+      channelSplit,
+    ),
     topItems,
     allItems,
   };
@@ -145,6 +163,8 @@ export async function upsertDailyRestaurantStat(
     restaurant_id: restaurantId,
     business_date: metrics.businessDate,
     revenue: metrics.revenue,
+    dine_in_revenue: metrics.dineInRevenue,
+    takeaway_revenue: metrics.takeawayRevenue,
     adult_count: metrics.adultCount,
     child_count: metrics.childCount,
     customer_count: metrics.customerCount,

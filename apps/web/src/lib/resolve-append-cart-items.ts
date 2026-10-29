@@ -18,6 +18,13 @@ import { normalizeBuffetServiceMode } from '@mesa/shared';
 import type { Order, OrderItem } from '@/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import {
+  isTakeawayPackagingItem,
+  isTakeawaySellableItem,
+  menuItemUnitPriceForChannel,
+  normalizeOrderingChannel,
+  type OrderingChannel,
+} from '@/lib/instore-takeaway';
+import {
   APPEND_CART_MAX_LINES,
   APPEND_CART_QTY_MAX,
   APPEND_CART_QTY_MIN,
@@ -29,6 +36,8 @@ export type ResolveAppendCartError =
   | 'menu_item_not_found'
   | 'menu_item_unavailable'
   | 'menu_item_off_time_slot'
+  | 'menu_item_is_packaging'
+  | 'menu_item_not_takeaway'
   | SushiLimitError;
 
 export type ResolveAppendCartSuccess = {
@@ -60,6 +69,8 @@ type MenuItemRow = {
   station_print_en?: boolean | null;
   station_print_zh?: boolean | null;
   time_slot_id: string | null;
+  takeaway_role?: string | null;
+  takeaway_price?: number | string | null;
 };
 
 export type ParsedAppendCartLine = {
@@ -140,7 +151,7 @@ async function loadMenuItemsByIds(
     const { data, error } = await admin
       .from('menu_items')
       .select(
-        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price, station_print_pt, station_print_en, station_print_zh, time_slot_id',
+        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price, station_print_pt, station_print_en, station_print_zh, time_slot_id, takeaway_role, takeaway_price',
       )
       .eq('restaurant_id', restaurantId)
       .in('id', chunk);
@@ -254,6 +265,7 @@ function menuRowToOrderItem(
   categories: MenuCategoryForPrint[],
   /** Sushi mode only: freeze the free-allowance rule so billing needs no menu lookup. */
   limitRule: { per_person_qty_limit: number; over_limit_unit_price: number } | null,
+  unitPrice: number,
 ): OrderItem {
   const name_pt = (menu.name_pt || '').trim() || '—';
   return {
@@ -264,7 +276,7 @@ function menuRowToOrderItem(
     name_zh: menu.name_zh ?? undefined,
     qty,
     note,
-    price: coerceCartPrice(menu.price),
+    price: unitPrice,
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
     item_code: menu.item_code?.trim() || null,
     category_code_path: categoryCodePathFromLeaf(menu.category_id, categories),
@@ -294,10 +306,13 @@ export async function resolveAppendCartItems(params: {
   buffetServiceMode?: BuffetServiceMode | string | null;
   staffAssisted?: boolean;
   sessionOrders?: Array<Pick<Order, 'items' | 'status'>>;
+  /** Session stamp; default dine_in. */
+  orderingChannel?: OrderingChannel | string | null;
 }): Promise<ResolveAppendCartResult> {
   const parsed = parseAppendCartRawItems(params.rawItems);
   if (!parsed.ok) return parsed;
 
+  const channel = normalizeOrderingChannel(params.orderingChannel);
   const { lines } = parsed;
   const ids = lines.map((l) => l.menuItemId);
   const data = await loadMenuItemsByIds(params.admin, params.restaurantId, ids);
@@ -326,12 +341,28 @@ export async function resolveAppendCartItems(params: {
     if (!menu.available) {
       return { ok: false, error: 'menu_item_unavailable' };
     }
+    if (isTakeawayPackagingItem(menu)) {
+      return { ok: false, error: 'menu_item_is_packaging' };
+    }
+    if (channel === 'takeaway' && !isTakeawaySellableItem(menu)) {
+      return { ok: false, error: 'menu_item_not_takeaway' };
+    }
 
+    const unitPrice = coerceCartPrice(
+      menuItemUnitPriceForChannel(
+        {
+          price: coerceCartPrice(menu.price),
+          takeaway_role: menu.takeaway_role,
+          takeaway_price: menu.takeaway_price,
+        },
+        channel,
+      ),
+    );
     const limitFields = {
       per_person_qty_limit: menu.per_person_qty_limit,
       over_limit_unit_price:
         menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
-      price: coerceCartPrice(menu.price),
+      price: unitPrice,
     };
     const alreadyInBatch = batchQtyByItem.get(line.menuItemId) ?? 0;
     const checked = checkSushiLimitForCartLine({
@@ -355,7 +386,16 @@ export async function resolveAppendCartItems(params: {
       : null;
 
     items.push(
-      menuRowToOrderItem(menu, line.qty, line.note, batchId, addedAt, categories, limitRule),
+      menuRowToOrderItem(
+        menu,
+        line.qty,
+        line.note,
+        batchId,
+        addedAt,
+        categories,
+        limitRule,
+        unitPrice,
+      ),
     );
     batchQtyByItem.set(line.menuItemId, alreadyInBatch + line.qty);
   }

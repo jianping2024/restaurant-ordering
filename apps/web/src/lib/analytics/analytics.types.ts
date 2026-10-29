@@ -87,6 +87,8 @@ export type ClosedSessionRow = {
   closed_reason?: string | null;
   /** Settled checkout close billable payable snapshot. */
   settled_payable_amount?: number | null;
+  /** Stamped at open: dine_in | takeaway (legacy rows omit → treat as dine_in). */
+  ordering_channel?: string | null;
 };
 
 export type AnalyticsDailyRestaurantStatRow = {

@@ -34,7 +34,8 @@ import {
 } from '@/lib/table-order-round/settings';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTakeawayVatRatePatch, resolveTakeawayVatRate } from '@/lib/checkout-takeaway';
-import { isRestaurantSuspended } from '@mesa/shared';
+import { assertCanDisableTakeawayOrdering } from '@/lib/instore-takeaway-server';
+import { isRestaurantFeatureEnabled, isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
 import type { PermissionKey } from '@/lib/permissions/registry';
@@ -283,6 +284,17 @@ export async function PATCH(req: Request) {
 
   if (row?.suspended_at && isRestaurantSuspended(row.suspended_at)) {
     return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
+  }
+
+  if (
+    patch &&
+    patch.takeaway_ordering === false &&
+    isRestaurantFeatureEnabled(row?.feature_flags, 'takeaway_ordering')
+  ) {
+    const gate = await assertCanDisableTakeawayOrdering(admin, loaded.principal.restaurantId);
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: 409 });
+    }
   }
 
   const nextFlags = patch

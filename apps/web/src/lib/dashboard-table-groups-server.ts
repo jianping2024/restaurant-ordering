@@ -56,7 +56,7 @@ export async function loadRestaurantTableGroups(
     await Promise.all([
       admin
         .from('restaurant_table_groups')
-        .select('id, restaurant_id, name, remarks, sort_order, created_at')
+        .select('id, restaurant_id, name, remarks, sort_order, created_at, is_takeaway')
         .eq('restaurant_id', restaurantId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true }),
@@ -74,9 +74,33 @@ export async function loadRestaurantTableGroups(
   }
 
   return {
-    groups: sortTableGroups((groups || []) as RestaurantTableGroup[]),
+    groups: sortTableGroups(
+      ((groups || []) as RestaurantTableGroup[]).map((g) => ({
+        ...g,
+        is_takeaway: g.is_takeaway === true,
+      })),
+    ),
     members: (members || []) as RestaurantTableGroupMember[],
   };
+}
+
+async function takeawayGroupHasOpenSessions(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableIds: string[],
+): Promise<boolean | MutationError> {
+  if (tableIds.length === 0) return false;
+  const { data, error } = await admin
+    .from('table_sessions')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .in('table_id', tableIds)
+    .in('status', ['open', 'billing'])
+    .limit(1);
+  if (error) {
+    return { error: 'sessions_query_failed', message: error.message, status: 500 };
+  }
+  return (data || []).length > 0;
 }
 
 async function validateTableIds(
@@ -146,7 +170,10 @@ function parseGroupFields(input: {
   name: string;
   remarks?: string | null;
   table_ids?: string[];
-}): { name: string; remarks: string | null; tableIds: string[] } | MutationError {
+  is_takeaway?: boolean;
+}):
+  | { name: string; remarks: string | null; tableIds: string[]; isTakeaway: boolean }
+  | MutationError {
   const name = normalizeTableGroupName(input.name);
   if (!isValidTableGroupName(name)) {
     return { error: 'invalid_group_name', status: 400 };
@@ -158,19 +185,28 @@ function parseGroupFields(input: {
   if (input.table_ids && tableIds.length !== input.table_ids.length) {
     return { error: 'invalid_table_ids', status: 400 };
   }
-  return { name, remarks, tableIds };
+  return {
+    name,
+    remarks,
+    tableIds,
+    isTakeaway: input.is_takeaway === true,
+  };
 }
 
 export async function createTableGroup(
   admin: SupabaseClient,
   restaurantId: string,
-  input: { name: string; remarks?: string | null; table_ids?: string[] },
+  input: { name: string; remarks?: string | null; table_ids?: string[]; is_takeaway?: boolean },
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   const fields = parseGroupFields(input);
   if ('error' in fields) return fields;
 
   const existing = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in existing) return existing;
+
+  if (fields.isTakeaway && existing.groups.some((g) => g.is_takeaway)) {
+    return { error: 'takeaway_group_exists', status: 409 };
+  }
 
   const nextOrder = nextSortOrder(existing.groups);
 
@@ -181,13 +217,20 @@ export async function createTableGroup(
       name: fields.name,
       remarks: fields.remarks,
       sort_order: nextOrder,
+      is_takeaway: fields.isTakeaway,
     })
-    .select('id, restaurant_id, name, remarks, sort_order, created_at')
+    .select('id, restaurant_id, name, remarks, sort_order, created_at, is_takeaway')
     .single();
 
   if (error) {
+    const isDupTakeaway =
+      uniqueViolation(error) && String(error.message || '').includes('takeaway');
     return {
-      error: uniqueViolation(error) ? 'duplicate_group_name' : 'insert_failed',
+      error: isDupTakeaway
+        ? 'takeaway_group_exists'
+        : uniqueViolation(error)
+          ? 'duplicate_group_name'
+          : 'insert_failed',
       message: error.message,
       status: uniqueViolation(error) ? 409 : 500,
     };
@@ -213,7 +256,7 @@ export async function updateTableGroup(
   admin: SupabaseClient,
   restaurantId: string,
   groupId: string,
-  input: { name: string; remarks?: string | null; table_ids?: string[] },
+  input: { name: string; remarks?: string | null; table_ids?: string[]; is_takeaway?: boolean },
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   const id = parseTableIdParam(groupId);
   if (!id) return { error: 'invalid_group_id', status: 400 };
@@ -223,19 +266,52 @@ export async function updateTableGroup(
 
   const existing = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in existing) return existing;
-  if (!existing.groups.some((g) => g.id === id)) {
+  const current = existing.groups.find((g) => g.id === id);
+  if (!current) {
     return { error: 'group_not_found', status: 404 };
+  }
+
+  if (
+    fields.isTakeaway &&
+    existing.groups.some((g) => g.is_takeaway && g.id !== id)
+  ) {
+    return { error: 'takeaway_group_exists', status: 409 };
+  }
+
+  const currentMemberIds = existing.members
+    .filter((m) => m.group_id === id)
+    .map((m) => m.table_id);
+  const membersChanging =
+    currentMemberIds.length !== fields.tableIds.length ||
+    currentMemberIds.some((tid) => !fields.tableIds.includes(tid));
+  const unmarkingTakeaway = current.is_takeaway && !fields.isTakeaway;
+  if ((unmarkingTakeaway || (current.is_takeaway && membersChanging)) && currentMemberIds.length > 0) {
+    const open = await takeawayGroupHasOpenSessions(admin, restaurantId, currentMemberIds);
+    if (typeof open !== 'boolean') return open;
+    if (open) {
+      return { error: 'takeaway_group_has_open_sessions', status: 409 };
+    }
   }
 
   const { error } = await admin
     .from('restaurant_table_groups')
-    .update({ name: fields.name, remarks: fields.remarks })
+    .update({
+      name: fields.name,
+      remarks: fields.remarks,
+      is_takeaway: fields.isTakeaway,
+    })
     .eq('id', id)
     .eq('restaurant_id', restaurantId);
 
   if (error) {
+    const isDupTakeaway =
+      uniqueViolation(error) && String(error.message || '').includes('takeaway');
     return {
-      error: uniqueViolation(error) ? 'duplicate_group_name' : 'update_failed',
+      error: isDupTakeaway
+        ? 'takeaway_group_exists'
+        : uniqueViolation(error)
+          ? 'duplicate_group_name'
+          : 'update_failed',
       message: error.message,
       status: uniqueViolation(error) ? 409 : 500,
     };
@@ -397,6 +473,21 @@ export async function deleteTableGroup(
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   const id = parseTableIdParam(groupId);
   if (!id) return { error: 'invalid_group_id', status: 400 };
+
+  const existing = await loadRestaurantTableGroups(admin, restaurantId);
+  if ('error' in existing) return existing;
+  const group = existing.groups.find((g) => g.id === id);
+  if (!group) return { error: 'group_not_found', status: 404 };
+  if (group.is_takeaway) {
+    const tableIds = existing.members
+      .filter((m) => m.group_id === id)
+      .map((m) => m.table_id);
+    const open = await takeawayGroupHasOpenSessions(admin, restaurantId, tableIds);
+    if (typeof open !== 'boolean') return open;
+    if (open) {
+      return { error: 'takeaway_group_has_open_sessions', status: 409 };
+    }
+  }
 
   const { error } = await admin
     .from('restaurant_table_groups')

@@ -16,6 +16,7 @@ export type DashboardTables =
         slug: string;
         owner_id: string;
         print_locale: 'zh' | 'en' | 'pt' | null;
+        feature_flags?: Record<string, unknown> | null;
       };
       tables: RestaurantTableRow[];
       groups: RestaurantTableGroup[];
@@ -47,7 +48,7 @@ export async function loadDashboardTables(): Promise<DashboardTables> {
   const [restaurantResult, tablesResult, groupData, occupiedTableIds] = await Promise.all([
     ctx.admin
       .from('restaurants')
-      .select('id, name, slug, owner_id, print_locale')
+      .select('id, name, slug, owner_id, print_locale, feature_flags')
       .eq('id', ctx.restaurantId)
       .maybeSingle(),
     ctx.admin
@@ -95,6 +96,7 @@ export async function loadDashboardTables(): Promise<DashboardTables> {
       slug: string;
       owner_id: string;
       print_locale: 'zh' | 'en' | 'pt' | null;
+      feature_flags?: Record<string, unknown> | null;
     },
     tables,
     groups: groupData.groups,

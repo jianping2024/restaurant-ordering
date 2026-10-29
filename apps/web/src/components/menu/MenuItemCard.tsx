@@ -25,6 +25,7 @@ import {
   MENU_ITEM_CARD_GOLD_ACTION_CLASS,
   MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
+  MENU_ITEM_CARD_NAME_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_CLASS,
   MENU_ITEM_CARD_QTY_DECREMENT_CLASS,
@@ -33,6 +34,7 @@ import {
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
+  MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS,
   menuItemCardQtyTextClass,
   menuItemCardTiltFromPointer,
 } from '@/lib/menu-item-card-layout';
@@ -188,7 +190,8 @@ function MenuItemCardAction({
 
 /**
  * Sole catalog card: thumb left; right column min-height = thumb
- * (name → optional one-line flavor → price/action). List has no description.
+ * (name row ± veg badge → optional one-line flavor → price/action).
+ * List has no description.
  */
 export function MenuItemCard({
   item,
@@ -269,14 +272,12 @@ export function MenuItemCard({
           aria-label={openDetailAria}
           className="flex min-w-0 flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
         >
-          <h3 className={MENU_ITEM_CARD_NAME_CLASS}>
-            {label}
+          <div className={MENU_ITEM_CARD_NAME_ROW_CLASS}>
+            <h3 className={MENU_ITEM_CARD_NAME_CLASS}>{label}</h3>
             {item.is_vegetarian ? (
-              <span className="ml-1.5 align-middle rounded-full border border-emerald-600/35 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                {t.itemVegetarianBadge}
-              </span>
+              <span className={MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS}>{t.itemVegetarianBadge}</span>
             ) : null}
-          </h3>
+          </div>
           <MenuItemFlavorChips
             flavorCodes={item.flavor_codes}
             lang={lang}

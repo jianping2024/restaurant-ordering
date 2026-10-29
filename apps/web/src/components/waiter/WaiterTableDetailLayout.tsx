@@ -71,8 +71,12 @@ type BuffetPanelProps = {
   buffetPriceLoading: boolean;
   /** Session-write mutex — freeze headcount while another write is in flight. */
   sessionBusy?: boolean;
+  /** Takeaway: steppers locked (visible); no buffet charge. */
+  headcountLocked?: boolean;
+  lockedHint?: string | null;
   /**
    * Cold open only (`intent=open`). Occupied tables autosave headcount — no confirm row.
+   * Takeaway cold open still uses confirm → open-takeaway.
    */
   confirmOpen: {
     label: string;
@@ -148,13 +152,18 @@ export function WaiterTableBuffetPanel({
   resolvedByBuffetId,
   buffetPriceLoading,
   sessionBusy = false,
+  headcountLocked = false,
+  lockedHint = null,
   confirmOpen,
 }: BuffetPanelProps) {
   const confirmDisabled =
     !confirmOpen
     || confirmOpen.submitting
     || sessionBusy
-    || !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading);
+    || (
+      !headcountLocked
+      && !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading)
+    );
 
   return (
     <WaiterDetailCard>
@@ -167,7 +176,8 @@ export function WaiterTableBuffetPanel({
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}
           layout="detail"
-          disabled={sessionBusy}
+          disabled={sessionBusy || headcountLocked}
+          lockedHint={lockedHint}
         />
         {confirmOpen ? (
           <div className={waiterDetailLayout.buffetDetailSummaryRow}>

@@ -47,9 +47,12 @@ import {
 } from '@/lib/waiter-table-session-meta';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
+  BUFFET_NOT_ALLOWED_ON_TAKEAWAY_SESSION,
   BUFFET_OPEN_ALREADY_OPEN,
   type BuffetWaiterOpenIntent,
 } from '@/lib/buffet-waiter-open-intent';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
+import { resolveOrderingChannelForTable } from '@/lib/instore-takeaway-server';
 
 async function loadSessionSplitContinuation(
   admin: SupabaseClient,
@@ -167,6 +170,17 @@ export async function runBuffetWaiterOpenPipeline(
 
   if (intent === 'open' && existingSession) {
     return pipelineFailure(409, BUFFET_OPEN_ALREADY_OPEN, { code: BUFFET_OPEN_ALREADY_OPEN });
+  }
+
+  const orderingChannel = await resolveOrderingChannelForTable(admin, {
+    restaurantId,
+    tableId,
+    sessionChannel: existingSession?.ordering_channel ?? sessionRow?.ordering_channel ?? null,
+  });
+  if (normalizeOrderingChannel(orderingChannel) === 'takeaway') {
+    return pipelineFailure(409, BUFFET_NOT_ALLOWED_ON_TAKEAWAY_SESSION, {
+      code: BUFFET_NOT_ALLOWED_ON_TAKEAWAY_SESSION,
+    });
   }
 
   const checkout = isColdOpen

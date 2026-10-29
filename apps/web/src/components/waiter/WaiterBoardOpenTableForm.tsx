@@ -28,6 +28,10 @@ type Props = {
   onClose: () => void;
   onOpenTableSuccess: (model: WaiterTablePageModel) => void;
   onStaleBoard: () => void;
+  /** Takeaway desk: steppers disabled; confirm calls open-takeaway. */
+  headcountLocked?: boolean;
+  takeawaySubmitting?: boolean;
+  onTakeawayOpen?: () => Promise<void>;
 };
 
 export function WaiterBoardOpenTableForm({
@@ -38,6 +42,9 @@ export function WaiterBoardOpenTableForm({
   onClose,
   onOpenTableSuccess,
   onStaleBoard,
+  headcountLocked = false,
+  takeawaySubmitting = false,
+  onTakeawayOpen,
 }: Props) {
   const t = WAITER_TEXT[lang];
   const supabase = useMemo(() => createClient(), []);
@@ -90,9 +97,16 @@ export function WaiterBoardOpenTableForm({
     editorReady,
   });
 
-  const saveDisabled = submitting || !editorReady;
+  const busy = headcountLocked ? takeawaySubmitting : submitting;
+  const saveDisabled = headcountLocked
+    ? takeawaySubmitting
+    : submitting || !editorReady;
 
   const handleSubmit = useCallback(async () => {
+    if (headcountLocked) {
+      await onTakeawayOpen?.();
+      return;
+    }
     const result = await submit();
     if (result.kind === 'success') {
       onOpenTableSuccess(result.model);
@@ -103,7 +117,14 @@ export function WaiterBoardOpenTableForm({
       onStaleBoard();
       onClose();
     }
-  }, [onClose, onOpenTableSuccess, onStaleBoard, submit]);
+  }, [
+    headcountLocked,
+    onClose,
+    onOpenTableSuccess,
+    onStaleBoard,
+    onTakeawayOpen,
+    submit,
+  ]);
 
   return (
     <div className={openTableSheetLayout.stack}>
@@ -115,13 +136,16 @@ export function WaiterBoardOpenTableForm({
         resolvedByBuffetId={resolvedByBuffetId}
         priceLoading={priceLoading}
         layout="sheet"
+        disabled={headcountLocked}
+        hideEstimatedTotal={headcountLocked}
+        lockedHint={headcountLocked ? t.takeawayHeadcountLockedHint : null}
       />
 
       <div className={openTableSheetLayout.actionRow}>
         <WaiterTableSecondaryButton
           type="button"
           onClick={onClose}
-          disabled={submitting}
+          disabled={busy}
           className={openTableSheetLayout.actionButton}
         >
           {t.closeTableCancel}
@@ -130,11 +154,11 @@ export function WaiterBoardOpenTableForm({
           type="button"
           onClick={() => void handleSubmit()}
           disabled={saveDisabled}
-          loading={submitting}
+          loading={busy}
           className={openTableSheetLayout.actionButton}
           icon={<WaiterTableIcon className={buttonIcon.sm} />}
         >
-          {t.buffetConfirm}
+          {headcountLocked ? t.takeawayOpenConfirm : t.buffetConfirm}
         </WaiterTablePrimaryButton>
       </div>
     </div>

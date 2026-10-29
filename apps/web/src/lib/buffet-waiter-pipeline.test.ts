@@ -38,6 +38,7 @@ describe('buffet waiter session helpers', () => {
       status: 'open',
       opened_at: '2026-01-01T10:00:00.000Z',
       opened_by_name: null,
+      ordering_channel: 'dine_in',
     });
   });
 
@@ -48,6 +49,7 @@ describe('buffet waiter session helpers', () => {
       opened_at: '2026-01-01T10:00:00.000Z',
       status: 'open' as const,
       opened_by_name: 'qiantai1',
+      ordering_channel: 'takeaway' as const,
     };
     const meta = sessionMetaFromEnsuredSession(row, tableSessionRefFromRow(row));
     assert.deepEqual(meta, {
@@ -55,6 +57,7 @@ describe('buffet waiter session helpers', () => {
       openedAt: '2026-01-01T10:00:00.000Z',
       status: 'open',
       openedByName: 'qiantai1',
+      orderingChannel: 'takeaway',
     });
   });
 
@@ -64,12 +67,14 @@ describe('buffet waiter session helpers', () => {
       status: 'open',
       opened_at: '2026-01-01T11:00:00.000Z',
       opened_by_name: 'qiantai1',
+      ordering_channel: 'dine_in',
     });
     assert.deepEqual(meta, {
       sessionId: 'sess-new',
       openedAt: '2026-01-01T11:00:00.000Z',
       status: 'open',
       openedByName: 'qiantai1',
+      orderingChannel: 'dine_in',
     });
   });
 });

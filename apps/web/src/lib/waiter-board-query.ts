@@ -1,4 +1,5 @@
 import type { Order } from '@/types';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 
 export const ACTIVE_ORDER_STATUSES = ['pending', 'cooking', 'done'] as const;
@@ -10,6 +11,7 @@ export function sessionMetaByTableIdFromSessions(
     opened_at?: string | null;
     status?: string | null;
     opened_by_name?: string | null;
+    ordering_channel?: string | null;
   }>,
 ): Record<string, WaiterTableSessionMeta> {
   const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
@@ -29,6 +31,7 @@ export function sessionMetaByTableIdFromSessions(
         sessionId: sid,
         openedAt,
         status,
+        orderingChannel: normalizeOrderingChannel(s.ordering_channel),
         ...(openedByName ? { openedByName } : {}),
       };
     }

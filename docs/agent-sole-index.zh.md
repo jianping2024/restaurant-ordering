@@ -406,7 +406,7 @@ sole mutex `useWaiterDetailSessionBusy` (kind discriminant); CallCheckout/Settle
 
 ### Waiter detail ordered sort
 
-sole `sortBillableSessionItemsForWaiterDetail` (buffet headcount first, then on-paper, then €0; within each band latest catalog time desc).
+sole `sortBillableSessionItemsForWaiterDetail` (buffet headcount first, then on-paper, then €0; within each band `buildMenuCatalogBrowseRankByItemId` — category tree + dish sort_order; unknown/off-menu after ranked).
 
 ### Waiter detail ordered row
 

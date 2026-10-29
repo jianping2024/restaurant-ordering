@@ -360,61 +360,21 @@ export function buildPaperBillableSessionItems(orders: Order[]): BillableSession
   return buildBillableSessionItems(orders).filter(isBillableSessionRowOnPaper);
 }
 
-function bumpBillableCatalogLatest(
-  latest: Map<string, string>,
-  key: string,
-  candidate: string,
-): void {
-  const prev = latest.get(key);
-  if (prev == null || candidate > prev) latest.set(key, candidate);
-}
-
-/**
- * Latest physical-line time per billable catalog key (menu merge + `buffet:*`).
- * Waiter detail sorts charged rows by this descending.
- */
-export function collectBillableCatalogLatestAtByKey(orders: Order[]): Map<string, string> {
-  const latest = new Map<string, string>();
-  const catalogOrders = sortOrdersForBillableCatalog(orders);
-  const buffetSummaries = listActiveBuffetLineSummaries(orders);
-  const limitAllocations = allocateSessionSushiLimitedLines(orders);
-
-  for (const order of catalogOrders) {
-    const items = order.items || [];
-    for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
-      const item = items[itemIdx];
-      if (!item) continue;
-      const at = billableCatalogLineAnchorAt(order, itemIdx, item);
-
-      if (isBuffetBaseItem(item) && item.buffet_id) {
-        bumpBillableCatalogLatest(latest, `buffet:${item.buffet_id}`, at);
-        continue;
-      }
-
-      const mergeKey = billableMenuMergeKeyForLine(
-        order,
-        itemIdx,
-        item,
-        limitAllocations,
-        buffetSummaries,
-      );
-      if (!mergeKey) continue;
-      bumpBillableCatalogLatest(latest, mergeKey, at);
-    }
-  }
-
-  return latest;
+/** Menu id used for waiter「已点」browse-rank lookup (limited rows use id in `limited:` key). */
+function menuItemIdForWaiterOrderedSort(row: BillableSessionItem): string {
+  return menuItemIdFromLimitedBillableKey(row.key) ?? row.item.id;
 }
 
 /**
  * Sole waiter-detail ordered-items sort: buffet headcount first, then charged
- * money rows, then €0; within each band, latest catalog time descending.
+ * money rows, then €0; within each band, menu catalog browse order
+ * ({@link buildMenuCatalogBrowseRankByItemId}). Unknown / off-menu ids after ranked.
  */
 export function sortBillableSessionItemsForWaiterDetail(
   rows: readonly BillableSessionItem[],
-  orders: Order[],
+  menuBrowseRankByItemId: ReadonlyMap<string, number> = new Map(),
 ): BillableSessionItem[] {
-  const latestByKey = collectBillableCatalogLatestAtByKey(orders);
+  const unknown = Number.POSITIVE_INFINITY;
   return [...rows].sort((a, b) => {
     const headA = isBuffetBaseItem(a.item) ? 0 : 1;
     const headB = isBuffetBaseItem(b.item) ? 0 : 1;
@@ -422,9 +382,9 @@ export function sortBillableSessionItemsForWaiterDetail(
     const bandA = isBillableSessionRowOnPaper(a) ? 0 : 1;
     const bandB = isBillableSessionRowOnPaper(b) ? 0 : 1;
     if (bandA !== bandB) return bandA - bandB;
-    const tA = latestByKey.get(a.key) ?? '';
-    const tB = latestByKey.get(b.key) ?? '';
-    if (tA !== tB) return tA < tB ? 1 : -1;
+    const rankA = menuBrowseRankByItemId.get(menuItemIdForWaiterOrderedSort(a)) ?? unknown;
+    const rankB = menuBrowseRankByItemId.get(menuItemIdForWaiterOrderedSort(b)) ?? unknown;
+    if (rankA !== rankB) return rankA - rankB;
     return a.key.localeCompare(b.key);
   });
 }

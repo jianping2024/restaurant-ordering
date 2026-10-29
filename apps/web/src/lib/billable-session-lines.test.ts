@@ -488,7 +488,7 @@ describe('paper billable rows + waiter detail sort', () => {
     );
   });
 
-  it('sorts waiter detail: charged newest-first, then free', () => {
+  it('sorts waiter detail: charged then free by menu browse rank (not add time)', () => {
     const orders = [
       {
         id: 'o1',
@@ -526,17 +526,22 @@ describe('paper billable rows + waiter detail sort', () => {
       },
     ] as Order[];
 
+    const rank = new Map<string, number>([
+      ['old-paid', 0],
+      ['new-paid', 1],
+      ['free', 2],
+    ]);
     const sorted = sortBillableSessionItemsForWaiterDetail(
       buildBillableSessionItems(orders),
-      orders,
+      rank,
     );
     assert.deepEqual(
       sorted.map((r) => r.item.id),
-      ['new-paid', 'old-paid', 'free'],
+      ['old-paid', 'new-paid', 'free'],
     );
   });
 
-  it('sorts waiter detail: headcount first, then charged by time, then free by time', () => {
+  it('sorts waiter detail: headcount first, then charged/free by menu browse rank', () => {
     const orders = [
       {
         id: 'o1',
@@ -596,13 +601,19 @@ describe('paper billable rows + waiter detail sort', () => {
       },
     ] as Order[];
 
+    const rank = new Map<string, number>([
+      ['old-paid', 0],
+      ['new-paid', 1],
+      ['free-old', 2],
+      ['free-new', 3],
+    ]);
     const sorted = sortBillableSessionItemsForWaiterDetail(
       buildBillableSessionItems(orders),
-      orders,
+      rank,
     );
     assert.deepEqual(
       sorted.map((r) => r.item.id),
-      ['buffet:1', 'new-paid', 'old-paid', 'free-new', 'free-old'],
+      ['buffet:1', 'old-paid', 'new-paid', 'free-old', 'free-new'],
     );
   });
 });

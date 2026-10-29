@@ -54,7 +54,13 @@ import {
 } from '@/lib/waiter-table-detail-scope';
 import { patchWaiterTableModelAfterStaffAppend, buildOptimisticOrderAfterStaffAppend } from '@/lib/staff-order-append-optimistic-patch';
 import type { MenuOrderSubmitSuccess } from '@/lib/menu-order-submit';
-import type { CustomerMenuCatalog } from '@/lib/customer-menu-catalog-client-cache';
+import {
+  ensureCustomerMenuCatalog,
+  peekCustomerMenuCatalogCache,
+  type CustomerMenuCatalog,
+} from '@/lib/customer-menu-catalog-client-cache';
+import { getDemoMenuCatalog } from '@/lib/demo-menu-catalog';
+import { buildMenuCatalogBrowseRankByItemId } from '@/lib/menu-catalog-browse-rank';
 import { filterWaiterTableActionTargets } from '@/lib/waiter-table-occupancy';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
@@ -183,6 +189,16 @@ function WaiterTableDetailInner({
   const isCheckoutPending = sessionIsCheckoutPending(sessionMeta);
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
+  const [menuBrowseRankByItemId, setMenuBrowseRankByItemId] = useState<Map<string, number>>(
+    () => {
+      const seed = isDemo
+        ? getDemoMenuCatalog()
+        : peekCustomerMenuCatalogCache(restaurant.id);
+      return seed
+        ? buildMenuCatalogBrowseRankByItemId(seed.menuCategories, seed.menuItems)
+        : new Map();
+    },
+  );
 
   useEffect(() => {
     if (isDemo) return;
@@ -206,6 +222,39 @@ function WaiterTableDetailInner({
       cancelled = true;
     };
   }, [isDemo, orders, restaurant.id, supabase]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const applyCatalog = (catalog: CustomerMenuCatalog) => {
+      if (cancelled) return;
+      setMenuBrowseRankByItemId(
+        buildMenuCatalogBrowseRankByItemId(catalog.menuCategories, catalog.menuItems),
+      );
+    };
+
+    if (isDemo) {
+      applyCatalog(getDemoMenuCatalog());
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const cached = peekCustomerMenuCatalogCache(restaurant.id);
+    if (cached) applyCatalog(cached);
+
+    void ensureCustomerMenuCatalog({
+      restaurantId: restaurant.id,
+      slug: restaurant.slug,
+    })
+      .then(applyCatalog)
+      .catch(() => {
+        /* keep prior rank / empty map */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, restaurant.id, restaurant.slug]);
 
   const [operationType, setOperationType] = useState<'transfer' | 'merge' | null>(null);
   const [sourceTable, setSourceTable] = useState<string | null>(null);
@@ -347,6 +396,7 @@ function WaiterTableDetailInner({
           nowMs: Date.now(),
           lang,
           kitchenEnabledStationIds: restaurant.kitchen_enabled_station_ids ?? [],
+          menuBrowseRankByItemId,
         },
       ),
     [
@@ -359,6 +409,7 @@ function WaiterTableDetailInner({
       restaurant.kitchen_ready_after_minutes,
       restaurant.kitchen_enabled_station_ids,
       lang,
+      menuBrowseRankByItemId,
     ],
   );
 
@@ -408,11 +459,23 @@ function WaiterTableDetailInner({
           readyAfterMinutes:
             restaurant.kitchen_ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT,
           lang,
+          menuBrowseRankByItemId,
         });
         return isWaiterTableCardOccupied(c);
       })
       .map((row) => row.id);
-  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities, serveEnabled, lang]);
+  }, [
+    activeSessionByTableId,
+    demoTables,
+    initialOrders,
+    isDemo,
+    itemCodeByMenuId,
+    capabilities,
+    serveEnabled,
+    lang,
+    menuBrowseRankByItemId,
+    restaurant.kitchen_ready_after_minutes,
+  ]);
 
   const demoTargetCandidates = useMemo(() => {
     if (!isDemo || !operationType || !sourceTable) return [] as RestaurantTableRow[];

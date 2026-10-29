@@ -30,6 +30,15 @@ export type CheckoutDisplayLine = {
   chargeLineId?: string;
 };
 
+/** Sole count of removable supply rows (packaging / Take away) on a checkout dish list. */
+export function countCheckoutSupplyChargeLines(lines: readonly CheckoutDisplayLine[]): number {
+  let n = 0;
+  for (const line of lines) {
+    if (line.chargeLineId) n += 1;
+  }
+  return n;
+}
+
 /**
  * Sole checkout / bill / order-history money lines — same catalog as paper
  * ({@link buildPaperBillableSessionItems}: omits €0 free rows).

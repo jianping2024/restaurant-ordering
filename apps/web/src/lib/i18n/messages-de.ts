@@ -695,14 +695,9 @@ export const MESSAGES_DE = {
     "colActions": "Aktionen",
     "tablesSummary": "{count} Tisch(e)",
     "tablesEmpty": "Keine zugewiesen",
-    "tablesOverflow": "+{count}",
-    "sortOrderHint": "Ziehen Sie den Griff, um die Reihenfolge der Gruppen auf der Serviceübersicht und in Listen festzulegen.",
-    "reorderMembers": "Tische neu sortieren",
-    "reorderMembersTitle": "Tische neu sortieren · {name}",
-    "reorderMembersHint": "Ziehen Sie den Griff, um die relative Tischreihenfolge in dieser Gruppe festzulegen; wirkt sich auf die Serviceübersicht und die Tischliste aus.",
+    "sortOrderHint": "Ziehen Sie den Griff, um die Gruppenreihenfolge festzulegen; die Tischreihenfolge in der Gruppe stellen Sie unter Bearbeiten ein.",
     "nameLabel": "Gruppenname *",
     "remarksLabel": "Bemerkungen",
-    "assignTables": "Tische zuweisen",
     "noTables": "Keine aktiven Tische",
     "modalAdd": "Gruppe hinzufügen",
     "modalEdit": "Gruppe bearbeiten",
@@ -718,7 +713,10 @@ export const MESSAGES_DE = {
     "assignUngrouped": "Ohne Gruppe",
     "assignInGroup": "In: {name}",
     "assignInThisGroup": "Diese Gruppe",
-    "assignMoveHint": "Beim Speichern wird der Tisch von „{name}“ in diese Gruppe verschoben"
+    "assignMoveHint": "Beim Speichern wird der Tisch von „{name}“ in diese Gruppe verschoben",
+    "selectedTablesTitle": "Tische in dieser Gruppe",
+    "selectedTablesHint": "Ziehen Sie den Griff, um die relative Tischreihenfolge in dieser Gruppe festzulegen; wirkt sich auf die Serviceübersicht und die Tischliste aus.",
+    "assignTablesPool": "Aus allen Tischen auswählen"
   },
   "settings": {
     "nameEmpty": "Der Restaurantname ist erforderlich",

@@ -7,14 +7,12 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
-import { TableGroupMemberOrderModal } from '@/components/dashboard/TableGroupMemberOrderModal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
   createTableGroupClient,
   deleteTableGroupClient,
   mapTableGroupApiError,
-  reorderTableGroupMembersClient,
   reorderTableGroupsClient,
   updateTableGroupClient,
 } from '@/lib/dashboard-table-groups-client';
@@ -32,11 +30,7 @@ import {
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
-import {
-  applyOrderedSortOrders,
-  applyPermutedSortOrders,
-  moveIdInOrderedList,
-} from '@/lib/sort-order';
+import { applyOrderedSortOrders, moveIdInOrderedList } from '@/lib/sort-order';
 import { sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type GroupForm = {
@@ -87,7 +81,6 @@ export function TableGroupsManager({
   const [localTables, setLocalTables] = useState<RestaurantTableRow[]>(tables);
   const [error, setError] = useState('');
   const [groupReorderBusy, setGroupReorderBusy] = useState(false);
-  const [memberReorderBusy, setMemberReorderBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<RestaurantTableGroup | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -95,8 +88,6 @@ export function TableGroupsManager({
   const [form, setForm] = useState<GroupForm>(defaultForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
-  const [orderTarget, setOrderTarget] = useState<RestaurantTableGroup | null>(null);
-  const [orderError, setOrderError] = useState('');
 
   useEffect(() => {
     setLocalTables(tables);
@@ -116,12 +107,16 @@ export function TableGroupsManager({
     [sortedTables, groups, members, editing?.id],
   );
 
-  const orderTargetTables = useMemo(() => {
-    if (!orderTarget) return [];
-    return listGroupMemberTablesInOrder(tableIdsByGroup[orderTarget.id] || [], sortedTables);
-  }, [orderTarget, sortedTables, tableIdsByGroup]);
+  const selectedFormTables = useMemo(
+    () =>
+      form.tableIds
+        .map((id) => tableById.get(id))
+        .filter((row): row is RestaurantTableRow => !!row),
+    [form.tableIds, tableById],
+  );
 
   const canReorderGroups = groups.length >= 2;
+  const canReorderSelected = selectedFormTables.length >= 2;
 
   const assignStatusLabel = (tableId: string) => {
     const groupId = groupIdByTableId[tableId];
@@ -167,7 +162,9 @@ export function TableGroupsManager({
     setForm({
       name: group.name,
       remarks: group.remarks || '',
-      tableIds: [...(tableIdsByGroup[group.id] || [])],
+      tableIds: listGroupMemberTablesInOrder(tableIdsByGroup[group.id] || [], sortedTables).map(
+        (row) => row.id,
+      ),
       isTakeaway: group.is_takeaway === true,
     });
     setFormError('');
@@ -175,21 +172,11 @@ export function TableGroupsManager({
   };
 
   const closeModal = () => {
+    if (saving) return;
     setModalOpen(false);
     setEditing(null);
     setForm(defaultForm());
     setFormError('');
-  };
-
-  const openMemberOrder = (group: RestaurantTableGroup) => {
-    setOrderError('');
-    setOrderTarget(group);
-  };
-
-  const closeMemberOrder = () => {
-    if (memberReorderBusy) return;
-    setOrderTarget(null);
-    setOrderError('');
   };
 
   const toggleTable = (tableId: string) => {
@@ -199,6 +186,23 @@ export function TableGroupsManager({
         ? prev.tableIds.filter((id) => id !== tableId)
         : [...prev.tableIds, tableId],
     }));
+  };
+
+  const removeSelectedTable = (tableId: string) => {
+    setForm((prev) => ({
+      ...prev,
+      tableIds: prev.tableIds.filter((id) => id !== tableId),
+    }));
+  };
+
+  const onSelectedDragEnd = (result: DropResult) => {
+    if (!canReorderSelected || saving) return;
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    setForm((prev) => {
+      const next = moveIdInOrderedList(prev.tableIds, result.source.index, result.destination!.index);
+      return next ? { ...prev, tableIds: next } : prev;
+    });
   };
 
   const saveGroup = async () => {
@@ -227,8 +231,11 @@ export function TableGroupsManager({
         setFormError(mapTableGroupApiError(result.error, result.message, t));
         return;
       }
-      publish(result.data.groups, result.data.members);
-      closeModal();
+      publish(result.data.groups, result.data.members, result.data.tables);
+      setModalOpen(false);
+      setEditing(null);
+      setForm(defaultForm());
+      setFormError('');
     } catch {
       setFormError(t.saveFail);
     } finally {
@@ -267,33 +274,6 @@ export function TableGroupsManager({
     void commitGroupReorder(result.source.index, result.destination.index);
   };
 
-  const commitMemberReorder = async (fromIndex: number, toIndex: number) => {
-    if (!orderTarget) return;
-    const orderedIds = moveIdInOrderedList(
-      orderTargetTables.map((row) => row.id),
-      fromIndex,
-      toIndex,
-    );
-    if (!orderedIds || memberReorderBusy) return;
-
-    const previousTables = localTables;
-    const previousMembers = members;
-    const previousGroups = groups;
-    setOrderError('');
-    setLocalTables(applyPermutedSortOrders(localTables, orderedIds));
-    setMemberReorderBusy(true);
-    const result = await reorderTableGroupMembersClient(orderTarget.id, orderedIds);
-    setMemberReorderBusy(false);
-    if (!result.ok) {
-      setLocalTables(previousTables);
-      setMembers(previousMembers);
-      setGroups(previousGroups);
-      setOrderError(mapTableGroupApiError(result.error, result.message, t));
-      return;
-    }
-    publish(result.data.groups, result.data.members, result.data.tables);
-  };
-
   const runDelete = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
@@ -305,9 +285,6 @@ export function TableGroupsManager({
       return;
     }
     publish(result.data.groups, result.data.members);
-    if (orderTarget?.id === deleteTarget.id) {
-      closeMemberOrder();
-    }
     setDeleteTarget(null);
   };
 
@@ -338,11 +315,10 @@ export function TableGroupsManager({
                 <div
                   ref={droppableProvided.innerRef}
                   {...droppableProvided.droppableProps}
-                  className="space-y-2"
+                  className="rounded-xl border border-brand-border bg-brand-card overflow-hidden divide-y divide-brand-border/70"
                 >
                   {groups.map((row, index) => {
                     const preview = memberPreviewForGroup(row.id);
-                    const canReorderMembers = preview.totalCount >= 2;
                     const dragDisabled = !canReorderGroups || groupReorderBusy;
                     return (
                       <Draggable
@@ -355,70 +331,57 @@ export function TableGroupsManager({
                           <div
                             ref={draggableProvided.innerRef}
                             {...draggableProvided.draggableProps}
-                            className={`bg-brand-card border border-brand-border rounded-xl px-3 py-3 sm:px-4 flex flex-col gap-3 sm:flex-row sm:items-center transition-shadow ${
-                              snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 z-10' : ''
+                            className={`px-3 py-2.5 sm:px-4 flex items-start gap-2.5 transition-shadow ${
+                              snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 z-10 bg-brand-card' : ''
                             }`}
                             style={draggableProvided.draggableProps.style}
                           >
-                            <div className="flex items-start gap-3 min-w-0 flex-1">
-                              {canReorderGroups ? (
-                                <SortOrderDragHandle
-                                  label={t.sortOrderHint}
-                                  disabled={groupReorderBusy}
-                                  dragHandleProps={draggableProvided.dragHandleProps}
-                                />
-                              ) : null}
-                              <div className="min-w-0 flex-1 space-y-1.5">
-                                <p className="font-medium text-brand-text flex items-center gap-1.5">
+                            {canReorderGroups ? (
+                              <SortOrderDragHandle
+                                label={t.sortOrderHint}
+                                disabled={groupReorderBusy}
+                                dragHandleProps={draggableProvided.dragHandleProps}
+                              />
+                            ) : null}
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                <p className="font-medium text-brand-text flex items-center gap-1.5 min-w-0">
                                   {takeawayOrderingEnabled && row.is_takeaway ? (
-                                    <span aria-hidden className="text-brand-gold" title={t.takeawayGroupBadge}>
+                                    <span
+                                      aria-hidden
+                                      className="text-brand-gold shrink-0"
+                                      title={t.takeawayGroupBadge}
+                                    >
                                       🥡
                                     </span>
                                   ) : null}
                                   <span className="truncate">{row.name}</span>
                                 </p>
-                                {row.remarks ? (
-                                  <p className="text-[12px] text-brand-text-muted truncate">{row.remarks}</p>
+                                {takeawayOrderingEnabled && row.is_takeaway ? (
+                                  <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-900">
+                                    {t.takeawayGroupBadge}
+                                  </span>
                                 ) : null}
-                                {preview.totalCount === 0 ? (
-                                  <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
-                                ) : (
-                                  <div className="space-y-1.5">
-                                    <span className="text-[12px] text-brand-text-muted">
-                                      {t.tablesSummary.replace('{count}', String(preview.totalCount))}
-                                    </span>
-                                    <div className="flex flex-wrap gap-1">
-                                      {preview.chips.map((chip) => (
-                                        <span
-                                          key={chip.id}
-                                          className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
-                                        >
-                                          {chip.display_name}
-                                        </span>
-                                      ))}
-                                      {preview.overflowCount > 0 ? (
-                                        <span className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
-                                          {t.tablesOverflow.replace(
-                                            '{count}',
-                                            String(preview.overflowCount),
-                                          )}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                  </div>
-                                )}
+                                <span className="inline-flex rounded-full border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
+                                  {t.tablesSummary.replace('{count}', String(preview.totalCount))}
+                                </span>
                               </div>
+                              {preview.totalCount === 0 ? (
+                                <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                                  {preview.chips.map((chip) => (
+                                    <span
+                                      key={chip.id}
+                                      className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
+                                    >
+                                      {chip.display_name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <div className="flex flex-wrap items-center gap-1.5 sm:justify-end shrink-0">
-                              {canReorderMembers ? (
-                                <button
-                                  type="button"
-                                  onClick={() => openMemberOrder(row)}
-                                  className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1 whitespace-nowrap"
-                                >
-                                  {t.reorderMembers}
-                                </button>
-                              ) : null}
+                            <div className="flex items-center gap-0.5 shrink-0 pt-0.5">
                               <button
                                 type="button"
                                 onClick={() => openEdit(row)}
@@ -450,23 +413,6 @@ export function TableGroupsManager({
         </>
       )}
 
-      <TableGroupMemberOrderModal
-        open={!!orderTarget}
-        group={orderTarget}
-        tables={orderTargetTables}
-        error={orderError}
-        busy={memberReorderBusy}
-        labels={{
-          title: t.reorderMembersTitle,
-          hint: t.reorderMembersHint,
-          close: tm.cancel,
-        }}
-        onClose={closeMemberOrder}
-        onReorder={(fromIndex, toIndex) => {
-          void commitMemberReorder(fromIndex, toIndex);
-        }}
-      />
-
       <Modal
         open={modalOpen}
         onClose={closeModal}
@@ -488,7 +434,7 @@ export function TableGroupsManager({
               value={form.remarks}
               onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))}
               maxLength={TABLE_GROUP_REMARKS_MAX_LEN}
-              rows={3}
+              rows={2}
               className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             />
           </div>
@@ -523,9 +469,81 @@ export function TableGroupsManager({
               </span>
             </label>
           ) : null}
+
           <div>
-            <p className="text-[13px] text-brand-text-muted mb-2">{t.assignTables}</p>
-            <div className="max-h-48 overflow-y-auto rounded-lg border border-brand-border divide-y divide-brand-border/60">
+            <p className="text-[13px] font-medium text-brand-text mb-1">{t.selectedTablesTitle}</p>
+            <p className="text-[12px] text-brand-text-muted mb-2">{t.selectedTablesHint}</p>
+            {selectedFormTables.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-brand-border px-4 py-3 text-sm text-brand-text-muted">
+                {t.tablesEmpty}
+              </p>
+            ) : (
+              <DragDropContext onDragEnd={onSelectedDragEnd}>
+                <Droppable
+                  droppableId="table-group-selected-reorder"
+                  isDropDisabled={!canReorderSelected || saving}
+                >
+                  {(droppableProvided) => (
+                    <div
+                      ref={droppableProvided.innerRef}
+                      {...droppableProvided.droppableProps}
+                      className="max-h-48 overflow-y-auto rounded-lg border border-brand-border divide-y divide-brand-border/60"
+                    >
+                      {selectedFormTables.map((table, index) => {
+                        const dragDisabled = !canReorderSelected || saving;
+                        return (
+                          <Draggable
+                            key={table.id}
+                            draggableId={table.id}
+                            index={index}
+                            isDragDisabled={dragDisabled}
+                          >
+                            {(draggableProvided, snapshot) => (
+                              <div
+                                ref={draggableProvided.innerRef}
+                                {...draggableProvided.draggableProps}
+                                className={`flex items-center gap-2 px-3 py-2 bg-brand-card ${
+                                  snapshot.isDragging
+                                    ? 'shadow-lg ring-1 ring-brand-gold/40 z-10'
+                                    : ''
+                                }`}
+                                style={draggableProvided.draggableProps.style}
+                              >
+                                {canReorderSelected ? (
+                                  <SortOrderDragHandle
+                                    label={t.selectedTablesHint}
+                                    disabled={saving}
+                                    dragHandleProps={draggableProvided.dragHandleProps}
+                                  />
+                                ) : null}
+                                <span className="text-sm text-brand-text font-medium tabular-nums flex-1 min-w-0 truncate">
+                                  {table.display_name}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeSelectedTable(table.id)}
+                                  disabled={saving}
+                                  className="text-brand-text-muted hover:mesa-text-danger text-sm px-1.5 py-0.5 shrink-0"
+                                  aria-label={tm.remove}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {droppableProvided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
+          </div>
+
+          <div>
+            <p className="text-[13px] text-brand-text-muted mb-2">{t.assignTablesPool}</p>
+            <div className="max-h-40 overflow-y-auto rounded-lg border border-brand-border divide-y divide-brand-border/60">
               {assignPickerTables.length === 0 ? (
                 <p className="px-4 py-3 text-sm text-brand-text-muted">{t.noTables}</p>
               ) : (

@@ -695,14 +695,9 @@ export const MESSAGES_ES = {
     "colActions": "Acciones",
     "tablesSummary": "{count} mesa(s)",
     "tablesEmpty": "Ninguna asignada",
-    "tablesOverflow": "+{count}",
-    "sortOrderHint": "Arrastre el asa para definir el orden de los grupos en el panel de sala y en las listas.",
-    "reorderMembers": "Reordenar mesas",
-    "reorderMembersTitle": "Reordenar mesas · {name}",
-    "reorderMembersHint": "Arrastre el asa para definir el orden relativo de las mesas en este grupo; afecta al panel de sala y a la lista de mesas.",
+    "sortOrderHint": "Arrastre el asa para ordenar los grupos; el orden de mesas del grupo se ajusta en Editar.",
     "nameLabel": "Nombre del grupo *",
     "remarksLabel": "Observaciones",
-    "assignTables": "Asignar mesas",
     "noTables": "No hay mesas activas",
     "modalAdd": "Añadir grupo",
     "modalEdit": "Editar grupo",
@@ -718,7 +713,10 @@ export const MESSAGES_ES = {
     "assignUngrouped": "Sin grupo",
     "assignInGroup": "En: {name}",
     "assignInThisGroup": "Este grupo",
-    "assignMoveHint": "Al guardar se moverá de “{name}” a este grupo"
+    "assignMoveHint": "Al guardar se moverá de “{name}” a este grupo",
+    "selectedTablesTitle": "Mesas de este grupo",
+    "selectedTablesHint": "Arrastre el asa para definir el orden de las mesas en este grupo; afecta al panel de sala y a la lista de mesas.",
+    "assignTablesPool": "Elegir entre todas las mesas"
   },
   "settings": {
     "nameEmpty": "El nombre del restaurante es obligatorio",

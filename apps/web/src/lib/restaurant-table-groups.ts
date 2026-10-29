@@ -176,30 +176,23 @@ export function listGroupMemberTablesInOrder(
   return sortedGroupMemberTableRows(tableIds, tables);
 }
 
-export const TABLE_GROUP_MEMBER_PREVIEW_MAX = 6;
-
 export type GroupMemberTablePreview = {
   chips: { id: string; display_name: string }[];
-  overflowCount: number;
   totalCount: number;
 };
 
-/** Compact list summary: ordered display names, capped for the group index row. */
+/** List summary: all member display names in restaurant_tables.sort_order. */
 export function formatGroupMemberTablePreview(
   tableIds: string[],
   tables: readonly Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>[],
-  maxVisible = TABLE_GROUP_MEMBER_PREVIEW_MAX,
 ): GroupMemberTablePreview {
   const rows = sortedGroupMemberTableRows(tableIds, tables);
-  const totalCount = rows.length;
-  const chips = rows.slice(0, maxVisible).map((row) => ({
-    id: row.id,
-    display_name: row.display_name,
-  }));
   return {
-    chips,
-    overflowCount: Math.max(0, totalCount - chips.length),
-    totalCount,
+    chips: rows.map((row) => ({
+      id: row.id,
+      display_name: row.display_name,
+    })),
+    totalCount: rows.length,
   };
 }
 

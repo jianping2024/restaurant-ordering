@@ -7,10 +7,9 @@
  * Horizontal inset lives solely on `STAFF_SHELL_CONTENT_CLASS` (same as main).
  *
  * Layout end-state (no header overflow-clip):
- * - brand grows (`flex-1`) with a logo floor (`min-w-[7rem]`) + `overflow-hidden`
- *   so the store name truncates and FARVOO never paints over nav
- * - right cluster is width-capped (`max-w-[calc(100%-7rem)]`, same 7rem floor) and
- *   may shrink; desktop nav scrolls inside via sole `.mesa-chip-scroll` + `max-w-full`
+ * - brand is `shrink-0`: FARVOO + full restaurant name (never truncate / never clip to 0)
+ * - right cluster takes remaining width (`min-w-0 flex-1`); desktop nav scrolls inside
+ *   via sole `.mesa-chip-scroll` + `max-w-full`
  * - hamburger + trailing stay shrink-0 inside the cluster
  * - row width uses sole `STAFF_SHELL_CONTENT_CLASS` (same column as DashboardShell)
  *
@@ -34,40 +33,31 @@ export const STAFF_TOP_BAR_TOTAL_HEIGHT =
  */
 export const STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS = 'max-w-[5.5rem]';
 
-/**
- * FARVOO wordmark floor (≥ measured sm logo ~103px) — keep the literal `7rem`
- * in sync with `rightClusterClassName` `max-w-[calc(100%-7rem)]` (one floor, two class strings).
- */
-export const STAFF_TOP_BAR_BRAND_MIN_CLASS = 'min-w-[7rem]';
-
 export const staffTopBarChrome = {
   headerClassName:
     'sticky top-0 z-30 min-w-0 shrink-0 border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
   /**
-   * Content row. Brand absorbs spare width; cluster is capped so the logo floor holds.
+   * Content row. Brand keeps intrinsic FARVOO + full store name; cluster fills the rest.
    * Width + X-pad = sole `STAFF_SHELL_CONTENT_CLASS` (no second pl/pr here).
    */
   rowClassName: [
     STAFF_SHELL_CONTENT_CLASS,
     'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2',
   ].join(' '),
-  /** Logo + restaurant name — grow slot with logo floor; overflow clips the name, not the wordmark. */
-  brandClassName: [
-    'flex flex-1 items-baseline overflow-hidden',
-    STAFF_TOP_BAR_BRAND_MIN_CLASS,
-  ].join(' '),
+  /** Logo + restaurant name — intrinsic width; never shrink under the nav cluster. */
+  brandClassName: 'flex shrink-0 items-baseline',
   /**
-   * Store name beside FARVOO — mockup ink-soft + display face.
+   * Store name beside FARVOO — full string, one line, never truncate.
    * Sole staff-chrome restaurant label class (ProductTopBarBrand only).
    */
   restaurantNameClassName:
-    'min-w-0 truncate font-heading text-base font-medium text-brand-text sm:text-lg',
+    'shrink-0 whitespace-nowrap font-heading text-base font-medium text-brand-text sm:text-lg',
   /**
-   * Nav + hamburger + trailing. Cap leaves the brand logo floor; desktop nav
-   * scrolls inside (`.mesa-chip-scroll`), never competes past this width.
+   * Nav + hamburger + trailing. Fills leftover width; desktop nav scrolls inside
+   * (`.mesa-chip-scroll`), never squeezes the brand/store name.
    */
   rightClusterClassName:
-    'ml-auto flex min-w-0 max-w-[calc(100%-7rem)] shrink items-center self-stretch',
+    'ml-auto flex min-w-0 flex-1 shrink items-center self-stretch',
 } as const;
 
 /**

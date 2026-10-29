@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
-import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
+import {
+  countCheckoutSupplyChargeLines,
+  type CheckoutDisplayLine,
+} from '@/lib/checkout-session-lines';
 
 type Labels = {
   orderItemsCount: string;
@@ -34,12 +37,31 @@ export function CheckoutTableItemsSection({
   chargeRemove,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
+  /**
+   * null = not primed. Do not prime on an empty list (orders still loading), or
+   * hydrate 0→N supply would look like “just added” and force-open on enter.
+   */
+  const prevSupplyCountRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const next = countCheckoutSupplyChargeLines(lines);
+    if (prevSupplyCountRef.current === null) {
+      if (lines.length === 0) return;
+      prevSupplyCountRef.current = next;
+      return;
+    }
+    if (next > prevSupplyCountRef.current) {
+      setOpen(true);
+    }
+    prevSupplyCountRef.current = next;
+  }, [lines]);
 
   return (
     <div className={`rounded-lg border border-brand-border/60 overflow-hidden${className ? ` ${className}` : ''}`}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[13px] text-brand-text-muted hover:bg-brand-border/20 transition-colors"
       >
         <span>{labels.orderItemsCount.replace('{n}', String(lines.length))}</span>

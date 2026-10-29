@@ -3,14 +3,27 @@ import { describe, it } from 'node:test';
 import { shouldPromptCheckoutZeroHeadcount } from './checkout-zero-headcount-prompt';
 
 describe('shouldPromptCheckoutZeroHeadcount', () => {
-  it('prompts only when buffet restaurant, headcount not confirmed, and not acknowledged', () => {
+  it('prompts only when dine-in, buffet restaurant, headcount not confirmed, and not acknowledged', () => {
     assert.equal(
       shouldPromptCheckoutZeroHeadcount({
         restaurantHasActiveBuffets: true,
         guestCountConfirmed: false,
         acknowledgedZeroHeadcount: false,
+        orderingChannel: 'dine_in',
       }),
       true,
+    );
+  });
+
+  it('skips takeaway sessions even with buffet and zero headcount', () => {
+    assert.equal(
+      shouldPromptCheckoutZeroHeadcount({
+        restaurantHasActiveBuffets: true,
+        guestCountConfirmed: false,
+        acknowledgedZeroHeadcount: false,
+        orderingChannel: 'takeaway',
+      }),
+      false,
     );
   });
 
@@ -20,6 +33,7 @@ describe('shouldPromptCheckoutZeroHeadcount', () => {
         restaurantHasActiveBuffets: false,
         guestCountConfirmed: false,
         acknowledgedZeroHeadcount: false,
+        orderingChannel: 'dine_in',
       }),
       false,
     );
@@ -31,6 +45,7 @@ describe('shouldPromptCheckoutZeroHeadcount', () => {
         restaurantHasActiveBuffets: true,
         guestCountConfirmed: true,
         acknowledgedZeroHeadcount: false,
+        orderingChannel: 'dine_in',
       }),
       false,
     );
@@ -42,6 +57,7 @@ describe('shouldPromptCheckoutZeroHeadcount', () => {
         restaurantHasActiveBuffets: true,
         guestCountConfirmed: false,
         acknowledgedZeroHeadcount: true,
+        orderingChannel: 'dine_in',
       }),
       false,
     );

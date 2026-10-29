@@ -86,8 +86,8 @@ function itemsForCategoryScope(params: {
 /**
  * Sole customer menu category + item selection (classic + sushi).
  * Recommended dishes are a content rail, not a category.
- * Time slot: only dishes served in `menuTimeSlotId` (see `lib/menu-time-slot`); a category
- * whose dishes all belong to other slots is hidden (truly empty categories stay as before).
+ * After channel + time-slot filters, a category appears in nav only when it still has
+ * at least one dish in `servedItems` (empty shells / channel-emptied / slot-emptied hidden).
  */
 export function resolveCustomerMenuCatalogView(params: {
   menuCategories: readonly MenuCategory[];
@@ -115,20 +115,16 @@ export function resolveCustomerMenuCatalogView(params: {
       childrenByParent.set(parentId, list);
     });
 
-  const hasItemsIn = (items: readonly MenuItem[], categoryId: string) =>
+  const hasServedItemsIn = (categoryId: string) =>
     itemsForCategoryScope({
-      menuItems: items,
+      menuItems: servedItems,
       childrenByParent,
       currentTop: categoryId,
       currentSubpath: '',
     }).length > 0;
-  const shownInTimeSlot = (category: MenuCategory) =>
-    servedItems.length === channelItems.length ||
-    !hasItemsIn(channelItems, category.id) ||
-    hasItemsIn(servedItems, category.id);
 
   const realTopCategories = params.menuCategories
-    .filter((c) => !c.parent_id && c.active && shownInTimeSlot(c))
+    .filter((c) => !c.parent_id && c.active && hasServedItemsIn(c.id))
     .sort((a, b) => a.sort_order - b.sort_order);
   const recommendedItems = visibleRecommendedMenuItems(servedItems, params.recommendedItemIds);
   const defaultTop = realTopCategories[0]?.id || '';
@@ -136,7 +132,7 @@ export function resolveCustomerMenuCatalogView(params: {
   const currentTopId = knownTops.has(params.activeTopId) ? params.activeTopId : defaultTop;
 
   const subCategories = params.menuCategories
-    .filter((c) => c.parent_id === currentTopId && c.active && shownInTimeSlot(c))
+    .filter((c) => c.parent_id === currentTopId && c.active && hasServedItemsIn(c.id))
     .sort((a, b) => a.sort_order - b.sort_order);
   const currentSubpath = subCategories.some((c) => c.id === params.activeSubpath)
     ? params.activeSubpath

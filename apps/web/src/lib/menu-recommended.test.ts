@@ -126,7 +126,7 @@ describe('resolveCustomerMenuCatalogView', () => {
     };
 
     const atLunch = resolveCustomerMenuCatalogView({ ...args, menuTimeSlotId: 'lunch' });
-    assert.deepEqual(atLunch.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks', 'c-empty']);
+    assert.deepEqual(atLunch.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks']);
     assert.deepEqual(atLunch.subCategories.map((c) => c.id), ['c-fish']);
     assert.deepEqual(atLunch.recommendedItems.map((r) => r.id), ['i-lunch', 'i-vinho']);
     assert.deepEqual(atLunch.currentItems.map((r) => r.id).sort(), ['i-frango', 'i-lunch']);
@@ -134,7 +134,7 @@ describe('resolveCustomerMenuCatalogView', () => {
     const atDinner = resolveCustomerMenuCatalogView({ ...args, menuTimeSlotId: 'dinner' });
     assert.deepEqual(
       atDinner.realTopCategories.map((c) => c.id),
-      ['c-mains', 'c-drinks', 'c-dinner', 'c-empty'],
+      ['c-mains', 'c-drinks', 'c-dinner'],
     );
     assert.deepEqual(atDinner.subCategories.map((c) => c.id), []);
     assert.deepEqual(atDinner.recommendedItems.map((r) => r.id), ['i-dinner', 'i-vinho']);
@@ -146,6 +146,60 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuTimeSlotId: null,
     });
     assert.equal(allDayOnly.currentTopId, 'c-mains');
+    assert.ok(!allDayOnly.realTopCategories.some((c) => c.id === 'c-empty'));
+  });
+
+  it('takeaway: hides categories with no sellable dishes; dine-in keeps them when they have dine-in dishes', () => {
+    const dineOnlyCat = cat({ id: 'c-dine-only', name_pt: 'Só sala', sort_order: 3 });
+    const empty = cat({ id: 'c-empty', name_pt: 'Vazio', sort_order: 4 });
+    const dineDish = item({
+      id: 'i-dine',
+      category_id: 'c-dine-only',
+      available: true,
+      takeaway_role: 'none',
+    });
+    const sellDish = item({
+      id: 'i-sell',
+      category_id: 'c-drinks',
+      available: true,
+      takeaway_role: 'sellable',
+      takeaway_price: 2.5,
+    });
+    const packDish = item({
+      id: 'i-pack',
+      category_id: 'c-mains',
+      available: true,
+      takeaway_role: 'packaging',
+    });
+    const cats = [mains, drinks, dineOnlyCat, empty];
+    const items = [dineDish, sellDish, packDish, frango];
+
+    const takeaway = resolveCustomerMenuCatalogView({
+      menuCategories: cats,
+      menuItems: items,
+      recommendedItemIds: ['i-sell', 'i-dine'],
+      menuTimeSlotId: null,
+      activeTopId: 'c-dine-only',
+      activeSubpath: '',
+      orderingChannel: 'takeaway',
+    });
+    assert.deepEqual(takeaway.realTopCategories.map((c) => c.id), ['c-drinks']);
+    assert.equal(takeaway.currentTopId, 'c-drinks');
+    assert.deepEqual(takeaway.currentItems.map((r) => r.id), ['i-sell']);
+    assert.deepEqual(takeaway.recommendedItems.map((r) => r.id), ['i-sell']);
+
+    const dineIn = resolveCustomerMenuCatalogView({
+      menuCategories: cats,
+      menuItems: items,
+      recommendedItemIds: [],
+      menuTimeSlotId: null,
+      activeTopId: '',
+      activeSubpath: '',
+      orderingChannel: 'dine_in',
+    });
+    assert.deepEqual(dineIn.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks', 'c-dine-only']);
+    assert.ok(!dineIn.realTopCategories.some((c) => c.id === 'c-empty'));
+    assert.ok(!dineIn.currentItems.some((r) => r.id === 'i-pack'));
   });
 });
 
@@ -161,7 +215,7 @@ describe('customerMenuNavTopCategories', () => {
     });
     assert.deepEqual(
       customerMenuNavTopCategories(withRec, (c) => c.name_pt).map((c) => c.id),
-      ['c-mains', 'c-drinks'],
+      ['c-drinks'],
     );
     assert.deepEqual(withRec.recommendedItems.map((row) => row.id), ['i-vinho']);
 

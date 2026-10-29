@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 
-/** Logo + restaurant name — FARVOO ink wordmark + ink-soft store name (floor mockup). */
+/** Logo + restaurant name — FARVOO ink wordmark + full store name (never truncated). */
 export function ProductTopBarBrand({
   href,
   restaurantName,
@@ -12,16 +12,11 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex min-w-0 w-full items-baseline gap-2 sm:gap-2.5">
+    <div className="flex items-baseline gap-2 sm:gap-2.5">
       <Link href={href} className="shrink-0 leading-none">
         <ProductLogo size="sm" tone="ink" />
       </Link>
-      <span
-        className={staffTopBarChrome.restaurantNameClassName}
-        title={restaurantName}
-      >
-        {restaurantName}
-      </span>
+      <span className={staffTopBarChrome.restaurantNameClassName}>{restaurantName}</span>
     </div>
   );
 }

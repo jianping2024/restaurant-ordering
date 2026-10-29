@@ -4,6 +4,11 @@ import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 export type WaiterTableDetailActionFlags = {
   /** Buffet open / guest-count panel (production only, not during checkout). */
   showBuffetPanel: boolean;
+  /**
+   * Takeaway desk / takeaway session: show headcount UI but steppers frozen;
+   * open uses open-takeaway; no buffet autosave.
+   */
+  buffetHeadcountLocked: boolean;
   /** Occupied-table toolbar: continue ordering, transfer, merge, etc. */
   showOccupiedToolbar: boolean;
   /** Capability-gated transfer button. */
@@ -36,6 +41,11 @@ export function resolveWaiterTableDetailActions(input: {
   hasActiveBuffets: boolean;
   /** Feature quick_table_close — mutual with call-checkout button. */
   quickTableClose?: boolean;
+  /**
+   * True when this desk opens as takeaway (group + flag) or the live session
+   * is already stamped takeaway — sole UI lock for buffet headcount.
+   */
+  takeawayHeadcountLock?: boolean;
 }): WaiterTableDetailActionFlags {
   const {
     caps,
@@ -44,13 +54,16 @@ export function resolveWaiterTableDetailActions(input: {
     hasOpenSession,
     hasActiveBuffets,
     quickTableClose = false,
+    takeawayHeadcountLock = false,
   } = input;
   const openAndEditable = hasOpenSession && !isCheckoutPending;
   const mayDeskCheckout = caps.canCallCheckout && openAndEditable;
+  const showBuffetPanel =
+    hasActiveBuffets && !isDemo && !isCheckoutPending && caps.canOpenTableSession;
 
   return {
-    showBuffetPanel:
-      hasActiveBuffets && !isDemo && !isCheckoutPending && caps.canOpenTableSession,
+    showBuffetPanel,
+    buffetHeadcountLocked: showBuffetPanel && takeawayHeadcountLock,
     showOccupiedToolbar: hasOpenSession,
     showTransfer: caps.canTransfer && openAndEditable,
     showMerge: caps.canMerge && openAndEditable,

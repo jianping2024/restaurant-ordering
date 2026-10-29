@@ -83,6 +83,9 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
 import { isCheckoutPending as sessionIsCheckoutPending } from '@/lib/waiter-board-session';
+import { buildTakeawayTableIdSet } from '@/lib/restaurant-table-groups';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
+import { postWaiterOpenTakeawayClient } from '@/lib/waiter-open-takeaway-client';
 import {
   WaiterTableBackToBoardFooter,
   WaiterTableDetailContentSkeleton,
@@ -833,6 +836,24 @@ function WaiterTableDetailInner({
     restaurant.feature_flags,
     'quick_table_close',
   );
+  const takeawayOrderingEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'takeaway_ordering',
+  );
+  const takeawayTableIds = useMemo(
+    () =>
+      buildTakeawayTableIdSet(
+        takeawayOrderingEnabled,
+        waiterBoard?.groups ?? [],
+        waiterBoard?.members ?? [],
+      ),
+    [takeawayOrderingEnabled, waiterBoard?.groups, waiterBoard?.members],
+  );
+  const isTakeawayDesk = takeawayTableIds.has(tableId);
+  const sessionIsTakeaway =
+    normalizeOrderingChannel(sessionMeta?.orderingChannel) === 'takeaway';
+  const takeawayHeadcountLock =
+    sessionIsTakeaway || (!hasOpenSession && isTakeawayDesk);
   const detailActions = resolveWaiterTableDetailActions({
     caps: floorCaps,
     isDemo,
@@ -840,7 +861,30 @@ function WaiterTableDetailInner({
     hasOpenSession,
     hasActiveBuffets: activeBuffets.length > 0,
     quickTableClose,
+    takeawayHeadcountLock,
   });
+
+  const [takeawayOpenSubmitting, setTakeawayOpenSubmitting] = useState(false);
+  const openTakeawayFromDetail = useCallback(async () => {
+    setTakeawayOpenSubmitting(true);
+    try {
+      const result = await postWaiterOpenTakeawayClient({
+        restaurantSlug: restaurant.slug,
+        tableId,
+      });
+      if (!result.ok) {
+        if (result.alreadyOpen) {
+          await refresh();
+          return;
+        }
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      await refresh();
+    } finally {
+      setTakeawayOpenSubmitting(false);
+    }
+  }, [refresh, restaurant.slug, t.actionFailed, tableId]);
 
   const {
     submitting: buffetSubmitting,
@@ -855,7 +899,11 @@ function WaiterTableDetailInner({
     activeBuffetIds,
     hasOpenSession,
     editorReady: buffetEditorReady,
-    autosave: detailActions.showBuffetPanel && hasOpenSession && !detailSessionBusy,
+    autosave:
+      detailActions.showBuffetPanel
+      && hasOpenSession
+      && !detailSessionBusy
+      && !detailActions.buffetHeadcountLocked,
     onZeroHeadcountHeld: () => setClearHeadcountConfirmOpen(true),
     onSuccess: applyModel,
     onStaleConflict: () => {
@@ -1067,7 +1115,7 @@ function WaiterTableDetailInner({
                 guestSnapshot={guestSnapshot}
                 onSetGuestCount={(buffetId, which, value) => {
                   whenDetailActionsArmed(() => {
-                    if (detailSessionBusy) return;
+                    if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
                     setBuffetGuestCount(buffetId, which, value);
                     scheduleBuffetAutosave();
                   });
@@ -1075,15 +1123,34 @@ function WaiterTableDetailInner({
                 resolvedByBuffetId={resolvedByBuffetId}
                 buffetPriceLoading={buffetPriceLoading}
                 sessionBusy={detailSessionBusy}
+                headcountLocked={detailActions.buffetHeadcountLocked}
+                lockedHint={
+                  detailActions.buffetHeadcountLocked
+                    ? t.takeawayHeadcountLockedHint
+                    : null
+                }
                 confirmOpen={
                   hasOpenSession
                     ? null
                     : {
-                        label: t.buffetConfirm,
+                        label: detailActions.buffetHeadcountLocked
+                          ? t.takeawayOpenConfirm
+                          : t.buffetConfirm,
                         submitting:
-                          buffetSubmitting || detailSessionBusyKind === 'buffet_open',
+                          detailActions.buffetHeadcountLocked
+                            ? takeawayOpenSubmitting
+                              || detailSessionBusyKind === 'buffet_open'
+                            : buffetSubmitting
+                              || detailSessionBusyKind === 'buffet_open',
                         onConfirm: () =>
                           whenDetailActionsArmed(() => {
+                            if (detailActions.buffetHeadcountLocked) {
+                              if (!tryBeginDetailSessionBusy('buffet_open')) return;
+                              void openTakeawayFromDetail().finally(() => {
+                                endDetailSessionBusy();
+                              });
+                              return;
+                            }
                             if (!tryBeginDetailSessionBusy('buffet_open')) return;
                             void submitBuffetOpen().finally(() => {
                               endDetailSessionBusy();

@@ -88,7 +88,7 @@ async function loadWaiterBoardOccupancyCore(
   const [{ data: sessions }, checkoutRequested, partyLoaded] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, ordering_channel')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     fetchCheckoutRequestedBoard(admin, restaurantId),
@@ -242,7 +242,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
         .is('deleted_at', null),
       admin
         .from('restaurant_table_groups')
-        .select('id, restaurant_id, name, remarks, sort_order, created_at')
+        .select('id, restaurant_id, name, remarks, sort_order, created_at, is_takeaway')
         .eq('restaurant_id', restaurantId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true }),
@@ -301,7 +301,7 @@ export async function fetchWaiterTableActionTargets(
     await Promise.all([
       admin
         .from('table_sessions')
-        .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
+        .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, ordering_channel')
         .eq('restaurant_id', restaurantId)
         .in('status', ['open', 'billing']),
       admin

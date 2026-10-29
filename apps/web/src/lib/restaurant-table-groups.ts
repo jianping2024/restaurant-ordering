@@ -85,6 +85,27 @@ export function sortTableGroups<T extends RestaurantTableGroup>(
   return [...rows].sort((a, b) => compareTableGroups(a, b, options));
 }
 
+/**
+ * Sole set of takeaway desk table ids for floor open/detail UI.
+ * Empty when takeaway_ordering is off or no is_takeaway group.
+ */
+export function buildTakeawayTableIdSet(
+  takeawayOrderingEnabled: boolean,
+  groups: readonly Pick<RestaurantTableGroup, 'id' | 'is_takeaway'>[],
+  members: readonly Pick<RestaurantTableGroupMember, 'group_id' | 'table_id'>[],
+): Set<string> {
+  if (!takeawayOrderingEnabled) return new Set();
+  const takeawayGroupIds = new Set(
+    groups.filter((g) => g.is_takeaway === true).map((g) => g.id),
+  );
+  if (takeawayGroupIds.size === 0) return new Set();
+  const ids = new Set<string>();
+  for (const m of members) {
+    if (takeawayGroupIds.has(m.group_id)) ids.add(m.table_id);
+  }
+  return ids;
+}
+
 export function buildTableGroupNameByTableId(
   groups: RestaurantTableGroup[],
   members: RestaurantTableGroupMember[],

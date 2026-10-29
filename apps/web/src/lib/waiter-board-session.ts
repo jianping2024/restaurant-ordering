@@ -1,5 +1,6 @@
 import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
+import type { OrderingChannel } from '@/lib/instore-takeaway';
 import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
 import type { Order } from '@/types';
 
@@ -11,6 +12,8 @@ export type WaiterTableSessionMeta = {
   status: 'open' | 'billing';
   /** From table_sessions.opened_by_name (stamped at open) — sole board opener label. */
   openedByName?: string | null;
+  /** From table_sessions.ordering_channel — dine_in when missing (legacy). */
+  orderingChannel?: OrderingChannel;
   /**
    * Title-badge relation for this active session (merge target / transferred-in).
    * Sole board field — loaded in occupancy; merge wins over transfer.

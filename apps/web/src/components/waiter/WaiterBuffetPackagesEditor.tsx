@@ -29,8 +29,12 @@ type Props = {
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   priceLoading: boolean;
   layout?: 'sheet' | 'detail';
-  /** Freeze headcount steppers (detail session-write mutex). */
+  /** Freeze headcount steppers (session-write mutex or takeaway lock). */
   disabled?: boolean;
+  /** Takeaway open sheet: hide “预计合计” (no buffet charge). */
+  hideEstimatedTotal?: boolean;
+  /** Shown under package rows when headcount is locked (takeaway). */
+  lockedHint?: string | null;
 };
 
 /** Estimated-total line for open-table sheet footer. */
@@ -70,6 +74,8 @@ export function WaiterBuffetPackagesEditor({
   priceLoading,
   layout = 'sheet',
   disabled = false,
+  hideEstimatedTotal = false,
+  lockedHint = null,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
@@ -107,12 +113,18 @@ export function WaiterBuffetPackagesEditor({
           );
         })}
 
-        <BuffetPackagesEstimatedTotal
-          lang={lang}
-          guestSnapshot={guestSnapshot}
-          resolvedByBuffetId={resolvedByBuffetId}
-          className={openTableSheetLayout.total}
-        />
+        {lockedHint ? (
+          <p className="text-sm text-brand-text-muted text-center py-1">{lockedHint}</p>
+        ) : null}
+
+        {hideEstimatedTotal ? null : (
+          <BuffetPackagesEstimatedTotal
+            lang={lang}
+            guestSnapshot={guestSnapshot}
+            resolvedByBuffetId={resolvedByBuffetId}
+            className={openTableSheetLayout.total}
+          />
+        )}
       </div>
     );
   }
@@ -152,6 +164,9 @@ export function WaiterBuffetPackagesEditor({
           </div>
         );
       })}
+      {lockedHint ? (
+        <p className="text-sm text-brand-text-muted text-center">{lockedHint}</p>
+      ) : null}
     </div>
   );
 }

@@ -38,6 +38,7 @@ import {
   type WaiterTableSessionMeta,
 } from '@/lib/waiter-board-session';
 import {
+  buildTakeawayTableIdSet,
   buildWaiterBoardSections,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
@@ -441,17 +442,10 @@ function WaiterBoardInner({
     restaurant.feature_flags,
     'takeaway_ordering',
   );
-  const takeawayTableIds = useMemo(() => {
-    if (!takeawayOrderingEnabled) return new Set<string>();
-    const takeawayGroupIds = new Set(
-      groups.filter((g) => g.is_takeaway).map((g) => g.id),
-    );
-    const ids = new Set<string>();
-    for (const m of members) {
-      if (takeawayGroupIds.has(m.group_id)) ids.add(m.table_id);
-    }
-    return ids;
-  }, [groups, members, takeawayOrderingEnabled]);
+  const takeawayTableIds = useMemo(
+    () => buildTakeawayTableIdSet(takeawayOrderingEnabled, groups, members),
+    [groups, members, takeawayOrderingEnabled],
+  );
 
   const boardSections = useMemo(
     () =>

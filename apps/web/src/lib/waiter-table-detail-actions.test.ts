@@ -23,12 +23,26 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: true,
     });
     assert.equal(flags.showBuffetPanel, true);
+    assert.equal(flags.buffetHeadcountLocked, false);
     assert.equal(flags.showOccupiedToolbar, true);
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
     assert.equal(flags.showCallCheckout, true);
     assert.equal(flags.showCheckoutClose, false);
     assert.equal(flags.showForceClose, true);
+  });
+
+  it('locks buffet headcount on takeaway without hiding the panel', () => {
+    const flags = resolveWaiterTableDetailActions({
+      caps: desk,
+      isDemo: false,
+      isCheckoutPending: false,
+      hasOpenSession: true,
+      hasActiveBuffets: true,
+      takeawayHeadcountLock: true,
+    });
+    assert.equal(flags.showBuffetPanel, true);
+    assert.equal(flags.buffetHeadcountLocked, true);
   });
 
   it('swaps call-checkout for settled close when quick_table_close is on', () => {

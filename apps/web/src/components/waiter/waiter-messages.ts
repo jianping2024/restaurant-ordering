@@ -56,6 +56,8 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: '成人 €{adultPrice}/人 · 儿童 €{childPrice}/人',
     buffetEstimatedTotal: '预计合计：€{total}',
     buffetConfirm: '确认开台',
+    takeawayOpenConfirm: '开台',
+    takeawayHeadcountLockedHint: '外卖桌不按人数收费，费用按点的菜计算；人数不可改。',
     buffetClearHeadcountTitle: '人数改为 0？',
     buffetClearHeadcountMessage:
       '该桌自助餐人数将清零，人头费会从账单中移除。确定吗？',
@@ -200,6 +202,9 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adult €{adultPrice}/person · Child €{childPrice}/person',
     buffetEstimatedTotal: 'Estimated total: €{total}',
     buffetConfirm: 'Confirm open table',
+    takeawayOpenConfirm: 'Open table',
+    takeawayHeadcountLockedHint:
+      'Takeaway desks are not charged by headcount — bill by dishes ordered; guest count cannot be changed.',
     buffetClearHeadcountTitle: 'Set headcount to 0?',
     buffetClearHeadcountMessage:
       'This table\'s buffet headcount will be cleared and the cover charge removed from the bill. Continue?',
@@ -345,6 +350,9 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/pessoa · Crianca €{childPrice}/pessoa',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar abertura',
+    takeawayOpenConfirm: 'Abrir mesa',
+    takeawayHeadcountLockedHint:
+      'Mesas de takeaway não cobram por pessoa — a conta é pelos pratos; o número de pessoas não pode ser alterado.',
     buffetClearHeadcountTitle: 'Pôr 0 pessoas?',
     buffetClearHeadcountMessage:
       'O número de pessoas do buffet desta mesa fica a 0 e o valor por pessoa sai da conta. Continuar?',
@@ -491,6 +499,9 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/persona · Niño €{childPrice}/persona',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar apertura',
+    takeawayOpenConfirm: 'Abrir mesa',
+    takeawayHeadcountLockedHint:
+      'Las mesas para llevar no cobran por persona — la cuenta es por platos; no se puede cambiar el número de comensales.',
     buffetClearHeadcountTitle: '¿Poner 0 comensales?',
     buffetClearHeadcountMessage:
       'Los comensales del buffet de esta mesa quedarán en 0 y el precio por persona saldrá de la cuenta. ¿Continuar?',
@@ -645,6 +656,9 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulte €{adultPrice}/pers. · Enfant €{childPrice}/pers.',
     buffetEstimatedTotal: 'Total estimé : €{total}',
     buffetConfirm: 'Confirmer l’ouverture',
+    takeawayOpenConfirm: 'Ouvrir la table',
+    takeawayHeadcountLockedHint:
+      'Les tables à emporter ne facturent pas au nombre de personnes — le total suit les plats ; le nombre ne peut pas être modifié.',
     buffetClearHeadcountTitle: 'Mettre 0 couvert ?',
     buffetClearHeadcountMessage:
       'Le nombre de couverts buffet de cette table passera à 0 et le prix par personne sera retiré de l’addition. Continuer ?',
@@ -799,6 +813,9 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Erwachsene €{adultPrice}/Person · Kinder €{childPrice}/Person',
     buffetEstimatedTotal: 'Voraussichtliche Summe: €{total}',
     buffetConfirm: 'Öffnen bestätigen',
+    takeawayOpenConfirm: 'Tisch öffnen',
+    takeawayHeadcountLockedHint:
+      'Takeaway-Tische berechnen nicht nach Personen — Betrag nach Gerichten; Personenanzahl nicht änderbar.',
     buffetClearHeadcountTitle: 'Personenzahl auf 0 setzen?',
     buffetClearHeadcountMessage:
       'Die Buffet-Personenzahl dieses Tisches wird auf 0 gesetzt und der Personenpreis von der Rechnung entfernt. Fortfahren?',

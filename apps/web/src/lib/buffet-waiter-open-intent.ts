@@ -1,3 +1,6 @@
+/** Reject buffet open/save when the desk/session is takeaway (use open-takeaway instead). */
+export const BUFFET_NOT_ALLOWED_ON_TAKEAWAY_SESSION = 'buffet_not_allowed_on_takeaway_session';
+
 /** Sole open vs save-headcount discriminant for POST …/staff/waiter/buffet (cold open vs occupied autosave). */
 export type BuffetWaiterOpenIntent = 'open' | 'save';
 

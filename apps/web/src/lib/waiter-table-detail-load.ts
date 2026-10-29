@@ -79,7 +79,7 @@ async function loadTableAndSession(
       .maybeSingle(),
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name, ordering_channel')
       .eq('restaurant_id', restaurantId)
       .eq('table_id', tableId)
       .in('status', ['open', 'billing'])

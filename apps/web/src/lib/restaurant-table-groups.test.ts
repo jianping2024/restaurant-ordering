@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  buildTakeawayTableIdSet,
   buildTableGroupIdByTableId,
   buildTableGroupNameByTableId,
   buildWaiterBoardSections,
@@ -46,6 +47,25 @@ const members: RestaurantTableGroupMember[] = [
   { group_id: 'g1', table_id: 't2', restaurant_id: 'r1' },
   { group_id: 'g2', table_id: 't3', restaurant_id: 'r1' },
 ];
+
+describe('buildTakeawayTableIdSet', () => {
+  it('returns member table ids of the is_takeaway group when flag on', () => {
+    const withTakeaway: RestaurantTableGroup[] = [
+      { ...groups[0], is_takeaway: true },
+      groups[1],
+    ];
+    const ids = buildTakeawayTableIdSet(true, withTakeaway, members);
+    assert.deepEqual([...ids].sort(), ['t1', 't2']);
+  });
+
+  it('returns empty when takeaway ordering is off', () => {
+    const withTakeaway: RestaurantTableGroup[] = [
+      { ...groups[0], is_takeaway: true },
+      groups[1],
+    ];
+    assert.equal(buildTakeawayTableIdSet(false, withTakeaway, members).size, 0);
+  });
+});
 
 describe('isValidTableGroupName', () => {
   it('rejects reserved labels', () => {

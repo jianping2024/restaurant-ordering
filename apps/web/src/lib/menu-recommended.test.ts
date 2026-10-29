@@ -233,6 +233,30 @@ describe('customerMenuNavTopCategories', () => {
     );
   });
 
+  it('sums cart qty per top category including sub-category dishes', () => {
+    const view = resolveCustomerMenuCatalogView({
+      menuCategories: [mains, drinks, fish],
+      menuItems: [bacalhau, frango, vinho],
+      recommendedItemIds: [],
+      menuTimeSlotId: null,
+      activeTopId: '',
+      activeSubpath: '',
+    });
+    const rows = customerMenuNavTopCategories(view, (c) => c.name_pt, [
+      { menuItemId: 'i-bacalhau', qty: 2 },
+      { menuItemId: 'i-frango', qty: 1 },
+      { menuItemId: 'i-unknown', qty: 5 },
+      { menuItemId: 'i-vinho', qty: 0 },
+    ]);
+    assert.deepEqual(
+      rows.map((r) => [r.id, r.cartQty]),
+      [
+        ['c-mains', 3],
+        ['c-drinks', 0],
+      ],
+    );
+  });
+
   it('caps the dashboard list at 12', () => {
     assert.equal(MENU_RECOMMENDED_ITEMS_MAX, 12);
   });

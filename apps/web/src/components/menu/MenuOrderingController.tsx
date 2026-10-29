@@ -1009,8 +1009,10 @@ export function MenuOrderingController({
           !isEmbedded && !staffAssisted,
           restaurant,
         )}
-        topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
-          getMenuCategoryLabel(cat, lang),
+        topCategories={customerMenuNavTopCategories(
+          catalogView,
+          (cat) => getMenuCategoryLabel(cat, lang),
+          cart,
         )}
         activeTopId={currentTop}
         onSelectTop={(id) => {

@@ -11,6 +11,7 @@ import {
   customerMenuCategoryRailClass,
   customerMenuCategoryRailPageScrollClass,
 } from '@/lib/customer-menu-chrome-layout';
+import { formatCustomerMenuFooterBadgeCount } from '@/lib/customer-menu-bottom-bar-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   mesaSelectionChipShellClass,
@@ -21,6 +22,8 @@ import { CUSTOMER_MENU_ITEM_LIST_HOST_CLASS } from '@/lib/menu-item-card-layout'
 export type CustomerMenuCategoryOption = {
   id: string;
   label: string;
+  /** Top rail only: cart qty under this category (badge hidden at 0). */
+  cartQty?: number;
 };
 
 /** `pane` = nested dual scroll (default). `page` = outer storefront scroll owns vertical scroll. */
@@ -44,13 +47,12 @@ type Props = {
   children: ReactNode;
 };
 
+/** 3D key face/lip colors per theme live in globals `.mesa-category-key`. */
 function railItemClass(active: boolean): string {
   return [
-    'relative w-full px-1.5 py-3 text-center',
+    'mesa-category-key relative w-full px-1 py-2 text-center',
     CUSTOMER_MENU_TYPE.categoryTop,
-    active
-      ? `bg-brand-bg text-brand-gold ${CUSTOMER_MENU_TYPE.categoryTopActive}`
-      : 'text-brand-text-muted hover:text-brand-text',
+    active ? `mesa-category-key-active ${CUSTOMER_MENU_TYPE.categoryTopActive}` : '',
   ].join(' ');
 }
 
@@ -97,8 +99,10 @@ export function CustomerMenuCategoryNav({
         }
         aria-label="categories"
       >
+        <div className="flex flex-col gap-2.5 px-1.5 pb-3 pt-2.5">
         {topCategories.map((cat) => {
           const active = cat.id === activeTopId;
+          const badge = formatCustomerMenuFooterBadgeCount(cat.cartQty ?? 0);
           return (
             <button
               key={cat.id}
@@ -109,16 +113,12 @@ export function CustomerMenuCategoryNav({
               onClick={() => onSelectTop(cat.id)}
               className={railItemClass(active)}
             >
-              {active ? (
-                <span
-                  aria-hidden
-                  className="absolute inset-y-[20%] left-0 w-[3px] rounded-r-sm bg-brand-gold"
-                />
-              ) : null}
               <span className="line-clamp-2 break-words [overflow-wrap:anywhere]">{cat.label}</span>
+              {badge ? <span className="mesa-category-key-badge">{badge}</span> : null}
             </button>
           );
         })}
+        </div>
       </nav>
 
       <div

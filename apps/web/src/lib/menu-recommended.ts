@@ -1,3 +1,4 @@
+import { coerceCartQty } from '@/lib/cart-totals';
 import { filterMenuItemsForOrderingChannel } from '@/lib/instore-takeaway';
 import { isMenuItemServedInTimeSlot } from '@/lib/menu-time-slot';
 import type { MenuCategory, MenuItem } from '@/types';
@@ -31,6 +32,8 @@ export type CustomerMenuCatalogView = {
   subCategories: MenuCategory[];
   currentSubpath: string;
   currentItems: MenuItem[];
+  /** Served dish id → nav top category id (rail cart-qty badge). */
+  topCategoryIdByItemId: ReadonlyMap<string, string>;
 };
 
 function collectDescendantIds(
@@ -126,6 +129,15 @@ export function resolveCustomerMenuCatalogView(params: {
   const realTopCategories = params.menuCategories
     .filter((c) => !c.parent_id && c.active && hasServedItemsIn(c.id))
     .sort((a, b) => a.sort_order - b.sort_order);
+  const topCategoryIdByItemId = new Map<string, string>();
+  realTopCategories.forEach((top) => {
+    itemsForCategoryScope({
+      menuItems: servedItems,
+      childrenByParent,
+      currentTop: top.id,
+      currentSubpath: '',
+    }).forEach((item) => topCategoryIdByItemId.set(item.id, top.id));
+  });
   const recommendedItems = visibleRecommendedMenuItems(servedItems, params.recommendedItemIds);
   const defaultTop = realTopCategories[0]?.id || '';
   const knownTops = new Set<string>(realTopCategories.map((c) => c.id));
@@ -150,15 +162,25 @@ export function resolveCustomerMenuCatalogView(params: {
       currentTop: currentTopId,
       currentSubpath,
     }),
+    topCategoryIdByItemId,
   };
 }
 
+/** Rail options; `cartQty` = this table-device's cart qty under that top category. */
 export function customerMenuNavTopCategories(
   view: CustomerMenuCatalogView,
   labelForCategory: (category: MenuCategory) => string,
-): { id: string; label: string }[] {
+  cart: readonly { menuItemId: string; qty: unknown }[] = [],
+): { id: string; label: string; cartQty: number }[] {
+  const qtyByTop = new Map<string, number>();
+  cart.forEach((line) => {
+    const topId = view.topCategoryIdByItemId.get(line.menuItemId);
+    if (!topId) return;
+    qtyByTop.set(topId, (qtyByTop.get(topId) ?? 0) + coerceCartQty(line.qty));
+  });
   return view.realTopCategories.map((cat) => ({
     id: cat.id,
     label: labelForCategory(cat),
+    cartQty: qtyByTop.get(cat.id) ?? 0,
   }));
 }

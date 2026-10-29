@@ -1172,8 +1172,10 @@ export function SushiMenuPage({
       <CustomerMenuStorefrontScroll restaurant={restaurant} lang={lang} enabled={!isDemo}>
       <CustomerMenuCategoryNav
         scrollMode={customerMenuCategoryScrollModeForStorefront(!isDemo, restaurant)}
-        topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
-          getMenuCategoryLabel(cat, lang),
+        topCategories={customerMenuNavTopCategories(
+          catalogView,
+          (cat) => getMenuCategoryLabel(cat, lang),
+          cart,
         )}
         activeTopId={currentTop}
         onSelectTop={(id) => {

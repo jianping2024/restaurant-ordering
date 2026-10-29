@@ -1,7 +1,7 @@
 /** Typography tokens for the customer menu ordering surface (list, cart, footer, drawers). */
 export const CUSTOMER_MENU_TYPE = {
   /** Left rail primary category label (narrow column). */
-  categoryTop: 'text-xs leading-snug',
+  categoryTop: 'text-[13px] leading-snug',
   categoryTopActive: 'font-semibold',
   categorySub: 'text-sm',
 

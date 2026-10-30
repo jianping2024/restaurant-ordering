@@ -8,7 +8,6 @@ import type { RoundSnapshot } from '@/lib/table-order-round/types';
 import {
   deleteRoundLineClient,
   fetchRoundSnapshot,
-  finalizeRoundClient,
   ownLineNote,
   ownLineQty,
   ownLinesQtyTotal,
@@ -38,7 +37,7 @@ export type RoundCartCommitItem = {
   note: string;
 };
 
-/** Sole customer hook: Realtime → GET; cart 下单 upserts own lines; countdown finalize. */
+/** Sole customer hook: Realtime → GET; cart 下单 upserts own lines; deadline → GET settle. */
 export function useTableOrderRound(params: {
   slug: string;
   restaurantId: string;
@@ -247,35 +246,23 @@ export function useTableOrderRound(params: {
     [applySnapshot, guestClientId, slug, tableId],
   );
 
-  const finalize = useCallback(async () => {
-    if (!guestClientId) return;
-    const result = await finalizeRoundClient({
-      slug,
-      tableId,
-      guestClientId,
-      settings: settingsRef.current,
-    });
-    if (!result.ok) return result;
-    applySnapshot(result.snapshot);
-    return result;
-  }, [applySnapshot, guestClientId, slug, tableId]);
-
-  // Client timer is acceleration only while this page is open. Due settle sole path is
-  // server `settleDueTableOrderRoundSubmit` (arm after submit-request + in-process sweep + GET).
+  // Deadline is a one-shot GET: the snapshot read runs the sole due settle
+  // (`settleDueTableOrderRoundSubmit`, also armed server-side after submit-request). If another
+  // settler holds the append, the round row update arrives via Realtime → refresh.
   useEffect(() => {
     if (!enabled || snapshot.round?.status !== 'pending_confirm') return;
     const deadline = snapshot.round.submit_deadline_at;
     if (!deadline) return;
     const ms = new Date(deadline).getTime() - Date.now();
     if (ms <= 0) {
-      void finalize();
+      void refresh();
       return;
     }
     const timer = setTimeout(() => {
-      void finalize();
+      void refresh();
     }, ms + 200);
     return () => clearTimeout(timer);
-  }, [enabled, finalize, snapshot.round?.status, snapshot.round?.submit_deadline_at]);
+  }, [enabled, refresh, snapshot.round?.status, snapshot.round?.submit_deadline_at]);
 
   /** When table cooldown ends (or snapshot still shows expired cooldown), refresh so GET settles → empty basket. */
   const cooldownUntil = snapshot.round?.status === 'cooldown' ? snapshot.round.cooldown_until : null;
@@ -326,7 +313,6 @@ export function useTableOrderRound(params: {
     setOwnRoundLineQty,
     commitCartToRound,
     submitRequest,
-    finalize,
     refresh,
     peerNotifyOpen,
     setPeerNotifyOpen,

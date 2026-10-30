@@ -166,38 +166,6 @@ export async function submitRoundRequestClient(params: {
   return { ok: true, snapshot };
 }
 
-export async function finalizeRoundClient(params: {
-  slug: string;
-  tableId: string;
-  guestClientId: string;
-  settings: SushiRoundSettings;
-  latitude?: number | null;
-  longitude?: number | null;
-}): Promise<{ ok: true; snapshot: RoundApiSnapshot } | { ok: false; error: string; status: number }> {
-  const res = await fetch(`/api/restaurants/${params.slug}/table-order-round/finalize`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      table_id: params.tableId,
-      guest_client_id: params.guestClientId,
-      latitude: params.latitude ?? undefined,
-      longitude: params.longitude ?? undefined,
-    }),
-  });
-  const json = await readJson(res);
-  if (!res.ok) {
-    return {
-      ok: false,
-      error: typeof json.error === 'string' ? json.error : 'finalize_failed',
-      status: res.status,
-    };
-  }
-  const snapshot = parseSnapshot(json, params.settings);
-  if (!snapshot) return { ok: false, error: 'invalid_snapshot', status: 500 };
-  return { ok: true, snapshot };
-}
-
 /**
  * Free-item card/detail qty: sole cart-draft number (0 when not in cart).
  * Round lines are edited only in 核单 — never fall back to ownRoundQty here.

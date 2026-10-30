@@ -619,10 +619,7 @@ export async function finalizeRound(params: {
   tableId: string;
   settings: SushiRoundSettings;
   sessionOrders: Array<{ items?: OrderItem[] | null; status: string }>;
-  /** When true, skip deadline gate (internal only — prefer deadline path). */
-  force?: boolean;
   buffetServiceMode?: BuffetServiceMode | string | null;
-  displayName?: string;
 }): Promise<
   ServiceResult<{
     snapshot: RoundSnapshot;
@@ -632,7 +629,7 @@ export async function finalizeRound(params: {
     idempotent_replay?: boolean;
   }>
 > {
-  const { admin, restaurantId, sessionId, tableId, settings, force } = params;
+  const { admin, restaurantId, sessionId, tableId, settings } = params;
 
   const { data: sessionChannelRow } = await admin
     .from('table_sessions')
@@ -692,10 +689,8 @@ export async function finalizeRound(params: {
     return { ok: false, status: 409, error: 'round_not_pending_confirm' };
   }
 
-  if (!force && round.status === 'pending_confirm') {
-    if (!isSubmitDeadlinePassed(round.submit_deadline_at)) {
-      return { ok: false, status: 409, error: 'finalize_not_ready' };
-    }
+  if (round.status === 'pending_confirm' && !isSubmitDeadlinePassed(round.submit_deadline_at)) {
+    return { ok: false, status: 409, error: 'finalize_not_ready' };
   }
 
   const lines = await loadRoundLines(admin, round.id);
@@ -812,15 +807,12 @@ export async function finalizeRound(params: {
     return { ok: false, status: 400, error: resolved.error };
   }
 
-  let displayName = params.displayName;
-  if (!displayName) {
-    const { data: tableRow } = await admin
-      .from('restaurant_tables')
-      .select('display_name')
-      .eq('id', tableId)
-      .maybeSingle();
-    displayName = (tableRow?.display_name as string) || '';
-  }
+  const { data: tableRow } = await admin
+    .from('restaurant_tables')
+    .select('display_name')
+    .eq('id', tableId)
+    .maybeSingle();
+  const displayName = (tableRow?.display_name as string) || '';
 
   const writeResult = await writeAppendBatch({
     admin,

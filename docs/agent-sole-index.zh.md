@@ -376,7 +376,7 @@ sole SQL `settle_expired_table_order_round_cooldown` (GET `getRoundSnapshot` + u
 
 ### Sushi round due-submit settle
 
-sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound`); triggers = submit-request arm + lazy in-process sweep (first submit/GET round) + GET snapshot + optional client finalize while page open — never a second due-submit branch, never instrumentation/crypto pull, never a second Vercel cron beside nightly-close.
+sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound`); triggers = submit-request arm held by `waitUntil` (Vercel; no-op on long-lived Node) + lazy in-process sweep (long-lived Node only, skipped when `VERCEL`) + GET snapshot (client deadline = one GET, no finalize API) — never post-response timer work without `waitUntil` on Vercel (frozen instance strands the append claim → everyone `append_in_progress`), never a guest finalize POST, never a second due-submit branch, never instrumentation/crypto pull, never a second Vercel cron beside nightly-close.
 
 ## 厨房 / 楼面 / 权限
 

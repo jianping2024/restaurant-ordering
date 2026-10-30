@@ -167,6 +167,8 @@ interface Props {
   notePresetCatalog?: MenuNotePresetCatalog;
   /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
   catalogReady?: boolean;
+  /** From catalog `guestListMotionEnabled` (Pro list add-on × store switch). */
+  guestListMotionEnabled?: boolean;
   tableId: string;
   displayName: string;
   /** Table currently in the restaurant's is_takeaway group (browse / open stamp). */
@@ -191,6 +193,7 @@ export function MenuOrderingController({
   menuTimeSlots,
   notePresetCatalog = { groups: [] },
   catalogReady = true,
+  guestListMotionEnabled = false,
   tableId,
   displayName,
   tableInTakeawayGroup = false,
@@ -366,6 +369,7 @@ export function MenuOrderingController({
     restaurant.feature_flags,
     'menu_flavor_hints_enabled',
   );
+  const listMotionEnabled = guestListMotionEnabled;
   const limitGuestCount = sessionGuestCountForLimits(recentOrders);
   const staffAssistedOrdering = !!staffAssisted;
 
@@ -1074,6 +1078,7 @@ export function MenuOrderingController({
                   limitHint={limitHint}
                   treatZeroAsFree={treatZeroAsFree}
                   flavorHintsEnabled={flavorHintsEnabled}
+                  listMotionEnabled={listMotionEnabled}
                   onOpenDetail={() => {
                     setCartOpen(false);
                     setOrderedOpen(false);

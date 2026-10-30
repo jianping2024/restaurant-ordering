@@ -117,6 +117,7 @@ export function MenuPage({
   const recommendedItemIds = catalog?.recommendedItemIds ?? [];
   const notePresetCatalog = catalog?.notePresetCatalog ?? { groups: [] };
   const menuTimeSlots = catalog?.menuTimeSlots ?? EMPTY_MENU_TIME_SLOTS;
+  const guestListMotionEnabled = catalog?.guestListMotionEnabled === true;
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
   const standaloneTitle =
@@ -163,6 +164,7 @@ export function MenuPage({
           menuTimeSlots={menuTimeSlots}
           notePresetCatalog={notePresetCatalog}
           catalogReady={catalogReady}
+          guestListMotionEnabled={guestListMotionEnabled}
           tableId={tableId}
           displayName={displayName}
           orderCooldownSeconds={orderCooldownSeconds}
@@ -185,6 +187,7 @@ export function MenuPage({
         menuTimeSlots={menuTimeSlots}
         notePresetCatalog={notePresetCatalog}
         catalogReady={catalogReady}
+        guestListMotionEnabled={guestListMotionEnabled}
         tableId={tableId}
         displayName={displayName}
         tableInTakeawayGroup={tableInTakeawayGroup}

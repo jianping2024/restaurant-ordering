@@ -220,17 +220,25 @@ export function FeatureFlagsManager({
             <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
               {features.map((def) => {
                 const proLocked = def.premiumKey != null && proLockedFeatureKeys.includes(def.key);
+                const parentKey = def.requiresFeatureKey;
+                const parentOff =
+                  parentKey != null &&
+                  (!flags[parentKey] || proLockedFeatureKeys.includes(parentKey));
+                const locked = proLocked || parentOff;
+                const nested = parentKey != null;
                 return (
                 <label
                   key={def.key}
                   className={`flex items-start gap-3 px-4 py-4 select-none transition-colors ${
-                    proLocked ? 'cursor-default opacity-80' : 'cursor-pointer hover:bg-brand-border/20'
+                    nested ? 'pl-8' : ''
+                  } ${
+                    locked ? 'cursor-default opacity-80' : 'cursor-pointer hover:bg-brand-border/20'
                   }`}
                 >
                   <input
                     type="checkbox"
-                    disabled={proLocked}
-                    checked={flags[def.key] && !proLocked}
+                    disabled={locked}
+                    checked={flags[def.key] && !locked}
                     onChange={(e) => {
                       const key = def.key as RestaurantFeatureKey;
                       const checked = e.target.checked;
@@ -238,7 +246,13 @@ export function FeatureFlagsManager({
                         setTakeawayCloseConfirmOpen(true);
                         return;
                       }
-                      setFlags((prev) => ({ ...prev, [key]: checked }));
+                      setFlags((prev) => {
+                        const next = { ...prev, [key]: checked };
+                        if (key === 'menu_dish_video_enabled' && !checked) {
+                          next.menu_dish_list_video_enabled = false;
+                        }
+                        return next;
+                      });
                     }}
                     className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                   />

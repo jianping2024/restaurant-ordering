@@ -406,10 +406,14 @@ export async function PATCH(req: Request) {
   }
 
   if (
-    patch?.menu_dish_video_enabled !== undefined &&
-    patch.menu_dish_video_enabled !== isRestaurantFeatureEnabled(row?.feature_flags, 'menu_dish_video_enabled')
+    (patch?.menu_dish_video_enabled !== undefined &&
+      patch.menu_dish_video_enabled !==
+        isRestaurantFeatureEnabled(row?.feature_flags, 'menu_dish_video_enabled')) ||
+    (patch?.menu_dish_list_video_enabled !== undefined &&
+      patch.menu_dish_list_video_enabled !==
+        isRestaurantFeatureEnabled(row?.feature_flags, 'menu_dish_list_video_enabled'))
   ) {
-    // Guest catalog strips/keeps video urls by this switch — refresh it now.
+    // Guest catalog strips/keeps video urls + list-motion gate — refresh it now.
     await invalidateCustomerMenuCatalog(loaded.principal.restaurantId);
   }
 

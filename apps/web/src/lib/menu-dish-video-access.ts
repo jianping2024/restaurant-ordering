@@ -14,21 +14,33 @@ export type DishVideoAccess = {
   pro: boolean;
   /** Pro + staff capability `dashboard.menu.video.manage` → may generate/change videos. */
   canManage: boolean;
-  /** Pro + store switch `menu_dish_video_enabled` → guests see videos. */
+  /** Pro + store switch `menu_dish_video_enabled` → guests see rail/detail videos. */
   guestVisible: boolean;
+  /**
+   * Parent guestVisible + Pro `menu_dish_list_video` grant + store switch
+   * `menu_dish_list_video_enabled` → list cards may play rail video.
+   */
+  guestListVisible: boolean;
 };
 
-/** Sole dish-video gate: Pro grant × capability × store switch. */
+/** Sole dish-video gate: Pro grant × capability × store switch (parent + list child). */
 export async function resolveDishVideoAccess(
   restaurant: DishVideoGateRestaurant,
   capabilities: Capabilities | null,
 ): Promise<DishVideoAccess> {
   const entitledKeys = await loadRestaurantProEntitledKeys(restaurant.id);
   const pro = resolvePremiumGate(restaurant, 'menu_dish_video', entitledKeys).ok;
+  const guestVisible =
+    pro && isRestaurantFeatureEnabled(restaurant.feature_flags, 'menu_dish_video_enabled');
+  const listPro = resolvePremiumGate(restaurant, 'menu_dish_list_video', entitledKeys).ok;
   return {
     pro,
     canManage: pro && capabilities != null && can(capabilities, 'dashboard.menu.video.manage'),
-    guestVisible: pro && isRestaurantFeatureEnabled(restaurant.feature_flags, 'menu_dish_video_enabled'),
+    guestVisible,
+    guestListVisible:
+      guestVisible &&
+      listPro &&
+      isRestaurantFeatureEnabled(restaurant.feature_flags, 'menu_dish_list_video_enabled'),
   };
 }
 

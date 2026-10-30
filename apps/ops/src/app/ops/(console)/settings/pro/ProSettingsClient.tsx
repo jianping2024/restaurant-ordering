@@ -15,6 +15,7 @@ const PREMIUM_LABELS: Record<PremiumKey, string> = {
   abnormal_ops: '异常操作',
   operation_logs: '操作记录',
   menu_dish_video: '菜品动图',
+  menu_dish_list_video: '点餐列表动图',
 };
 
 type FeatureDraft = Record<PremiumKey, { priceMonthEur: string; priceYearEur: string; active: boolean }>;

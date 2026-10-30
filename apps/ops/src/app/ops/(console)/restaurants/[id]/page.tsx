@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import {
   normalizeBuffetServiceMode,
   normalizeCountryCode,
-  normalizePremiumKeyGrants,
+  sanitizePremiumKeyGrants,
   parseProFeatureProduct,
   parseSubscriptionBaseProduct,
   type BuffetServiceMode,
@@ -78,7 +78,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
       .eq('id', 'default')
       .maybeSingle(),
   ]);
-  const featureKeys = normalizePremiumKeyGrants((grantRows ?? []).map((g) => g.feature_key));
+  const featureKeys = sanitizePremiumKeyGrants((grantRows ?? []).map((g) => g.feature_key));
   const products = (productRows ?? [])
     .map((p) => parseProFeatureProduct(p))
     .filter((p): p is ProFeatureProduct => p != null);

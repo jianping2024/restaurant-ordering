@@ -141,6 +141,7 @@ type Props = {
   menuTimeSlots: MenuTimeSlot[];
   notePresetCatalog?: import('@/lib/menu-note-presets').MenuNotePresetCatalog;
   catalogReady?: boolean;
+  guestListMotionEnabled?: boolean;
   tableId: string;
   displayName: string;
   orderCooldownSeconds: number;
@@ -157,6 +158,7 @@ export function SushiMenuPage({
   menuTimeSlots,
   notePresetCatalog = { groups: [] },
   catalogReady = true,
+  guestListMotionEnabled = false,
   tableId,
   displayName,
   orderCooldownSeconds,
@@ -1238,6 +1240,7 @@ export function SushiMenuPage({
                   limitHint={limitHint}
                   treatZeroAsFree
                   flavorHintsEnabled={flavorHintsEnabled}
+                  listMotionEnabled={guestListMotionEnabled}
                   onOpenDetail={() => {
                     setCartOpen(false);
                     setOrderedOpen(false);

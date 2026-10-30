@@ -20,6 +20,7 @@ describe('parseCustomerMenuCatalogApiBody', () => {
       recommendedItemIds: ['a'],
       notePresetCatalog: { groups: [] },
       menuTimeSlots: [],
+      guestListMotionEnabled: true,
     });
     assert.equal(isCustomerMenuCatalogUnchanged(body), false);
     if (isCustomerMenuCatalogUnchanged(body)) throw new Error('expected full');
@@ -29,6 +30,7 @@ describe('parseCustomerMenuCatalogApiBody', () => {
     assert.deepEqual(body.recommendedItemIds, ['a']);
     assert.deepEqual(body.notePresetCatalog, { groups: [] });
     assert.deepEqual(body.menuTimeSlots, []);
+    assert.equal(body.guestListMotionEnabled, true);
   });
 
   it('rejects missing version', () => {

@@ -66,6 +66,7 @@ export const MESSAGES = {
         abnormalOps: '异常操作',
         operationLogs: '操作记录',
         menuDishVideo: '菜品动图',
+        menuDishListVideo: '点餐列表动图',
       },
     },
     buffetAdmin: {
@@ -937,6 +938,9 @@ export const MESSAGES = {
       moduleMenuDisplay: '菜单展示',
       menuDishVideo: '菜品动图',
       menuDishVideoDesc: '开启后，推荐位和菜品详情播放菜品动图（静音循环；客人开了省流量或减少动态效果时自动显示图片）。动图在菜单编辑上传图片时生成。Pro 功能。',
+      menuDishListVideo: '点餐列表动图',
+      menuDishListVideoDesc:
+        '附加项：开启后，点餐列表缩略图也播放动图（复用推荐栏小动图；未露在屏幕上的卡片不播放）。须先打开上方「菜品动图」。Pro 功能。',
       proLockedHint: '需开通 Pro',
       moduleOrdering: '点餐',
       kitchenServeToTable: '上桌',
@@ -1932,7 +1936,7 @@ export const MESSAGES = {
   },
   en: {
     nav: { overview: 'Overview', tables: 'Tables', checkout: 'Checkout', printAssistant: 'Print', menu: 'Menu', buffet: 'Buffet', orders: 'Orders', dishHistory: 'Dishes', settings: 'Settings', abnormalOps: 'Abnormal', operationLogs: 'Ops log', valueAnalytics: 'Value', viewKitchen: 'Kitchen', viewWaiter: 'Waiter', guestNotice: 'Notice', logout: 'Log out', systemSettings: 'System', moreMenu: 'More', settingsMenu: 'Settings', accountMenu: 'Account & preferences', appearance: 'Appearance', appearanceSettings: 'Appearance', language: 'Language', languageSettings: 'Language', darkMode: 'Dark mode', changePassword: 'Change password', mainNav: 'Main navigation', restaurantSettings: 'Restaurant settings' },
-    premiumUpgrade: { proBadge: 'Pro', title: 'Upgrade to Pro', desc: '"{feature}" is a Pro feature. Contact us to upgrade or renew.', contactHint: 'Reach us via:', backToDashboard: 'Back to dashboard', features: { valueAnalytics: 'Value analytics', abnormalOps: 'Abnormal operations', operationLogs: 'Operation logs', menuDishVideo: 'Dish motion videos' } },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Upgrade to Pro', desc: '"{feature}" is a Pro feature. Contact us to upgrade or renew.', contactHint: 'Reach us via:', backToDashboard: 'Back to dashboard', features: { valueAnalytics: 'Value analytics', abnormalOps: 'Abnormal operations', operationLogs: 'Operation logs', menuDishVideo: 'Dish motion videos', menuDishListVideo: 'Menu list motion videos' } },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
       subtitle: 'Buffet products, time slots, price grid, and special dates; floor board uses Lisbon date and time.',
@@ -2578,6 +2582,9 @@ export const MESSAGES = {
       moduleMenuDisplay: 'Menu display',
       menuDishVideo: 'Dish motion videos',
       menuDishVideoDesc: 'When on, the recommended rail and dish detail play dish motion videos (muted loop; guests on data saver or reduced motion see the photo). Videos are made when a photo is uploaded in the menu editor. Pro feature.',
+      menuDishListVideo: 'Menu list motion videos',
+      menuDishListVideoDesc:
+        'Add-on: when on, ordering-list thumbs also play motion video (reuses the recommended-rail clip; off-screen cards stay still). Requires dish motion videos above. Pro feature.',
       proLockedHint: 'Requires Pro',
       moduleOrdering: 'Ordering',
       kitchenServeToTable: 'Serve to table',
@@ -3320,7 +3327,7 @@ export const MESSAGES = {
   },
   pt: {
     nav: { overview: 'Inicio', tables: 'Mesas', checkout: 'Fechar', printAssistant: 'Impressao', menu: 'Menu', buffet: 'Buffet', orders: 'Pedidos', dishHistory: 'Pratos', settings: 'Configuracoes', abnormalOps: 'Anomalias', operationLogs: 'Registos', valueAnalytics: 'Valor', viewKitchen: 'Cozinha', viewWaiter: 'Sala', guestNotice: 'Avisos', logout: 'Sair', systemSettings: 'Sistema', moreMenu: 'Mais', settingsMenu: 'Definicoes', accountMenu: 'Conta e preferencias', appearance: 'Aparencia', appearanceSettings: 'Aparencia', language: 'Idioma', languageSettings: 'Idioma', darkMode: 'Modo escuro', changePassword: 'Alterar senha', mainNav: 'Navegacao principal', restaurantSettings: 'Definicoes do restaurante' },
-    premiumUpgrade: { proBadge: 'Pro', title: 'Ativar Pro', desc: '"{feature}" e uma funcao Pro. Contacte-nos para ativar ou renovar.', contactHint: 'Contacte-nos:', backToDashboard: 'Voltar ao painel', features: { valueAnalytics: 'Analise de valor', abnormalOps: 'Operacoes anormais', operationLogs: 'Registo de operacoes', menuDishVideo: 'Vídeos animados dos pratos' } },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Ativar Pro', desc: '"{feature}" e uma funcao Pro. Contacte-nos para ativar ou renovar.', contactHint: 'Contacte-nos:', backToDashboard: 'Voltar ao painel', features: { valueAnalytics: 'Analise de valor', abnormalOps: 'Operacoes anormais', operationLogs: 'Registo de operacoes', menuDishVideo: 'Vídeos animados dos pratos', menuDishListVideo: 'Vídeos animados na lista' } },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
       subtitle: 'Produtos buffet, horarios, grelha de precos e datas especiais; garcom usa data/hora de Lisboa.',
@@ -3966,6 +3973,9 @@ export const MESSAGES = {
       moduleMenuDisplay: 'Apresentação do menu',
       menuDishVideo: 'Vídeos animados dos pratos',
       menuDishVideoDesc: 'Quando ativo, os destaques e o detalhe do prato mostram vídeos animados (sem som, em ciclo; com poupança de dados ou movimento reduzido o cliente vê a foto). Os vídeos são criados ao carregar a foto no editor do menu. Função Pro.',
+      menuDishListVideo: 'Vídeos animados na lista',
+      menuDishListVideoDesc:
+        'Extra: quando ativo, as miniaturas da lista de pedidos também mostram o vídeo (reutiliza o clip da faixa recomendada; cartões fora do ecrã ficam estáticos). Requer os vídeos animados acima. Função Pro.',
       proLockedHint: 'Requer Pro',
       kitchenServeToTable: 'Servir a mesa',
       kitchenServeToTableDesc: 'Ativo: a equipa de sala pode marcar pratos prontos como servidos a mesa.',

@@ -39,6 +39,7 @@ import {
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
 import { VegetarianMark } from '@/components/menu/VegetarianMark';
+import { DishMotionVideo } from '@/components/menu/DishMotionVideo';
 
 interface Props {
   item: MenuItem;
@@ -50,6 +51,11 @@ interface Props {
   treatZeroAsFree?: boolean;
   /** Store feature menu_flavor_hints_enabled. */
   flavorHintsEnabled?: boolean;
+  /**
+   * Pro list-motion add-on + store switch: play rail video on the list thumb
+   * (same asset as recommended rail; visibility-gated inside DishMotionVideo).
+   */
+  listMotionEnabled?: boolean;
   onOpenDetail: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
@@ -200,12 +206,15 @@ export function MenuItemCard({
   incrementDisabled,
   treatZeroAsFree = false,
   flavorHintsEnabled = false,
+  listMotionEnabled = false,
   onOpenDetail,
   onIncrement,
   onDecrement,
 }: Props) {
   const label = formatMenuCatalogItemLabel(item, lang);
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
+  const listMotionSrc =
+    listMotionEnabled && item.rail_video_url ? item.rail_video_url : null;
   const t = MENU_PAGE_MESSAGES[lang];
   const actionLabels: ActionLabels = {
     add: t.itemAdd,
@@ -262,6 +271,7 @@ export function MenuItemCard({
         ) : (
           item.emoji
         )}
+        {listMotionSrc ? <DishMotionVideo layer="rail" src={listMotionSrc} /> : null}
         {item.is_vegetarian ? <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} /> : null}
       </button>
 

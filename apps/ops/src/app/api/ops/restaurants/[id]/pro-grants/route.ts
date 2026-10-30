@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { normalizePremiumKeyGrants, type PremiumKey } from '@mesa/shared';
+import { sanitizePremiumKeyGrants, type PremiumKey } from '@mesa/shared';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -20,7 +20,7 @@ export async function GET(_req: Request, context: RouteContext) {
   }
 
   return NextResponse.json({
-    featureKeys: normalizePremiumKeyGrants((data ?? []).map((row) => row.feature_key)),
+    featureKeys: sanitizePremiumKeyGrants((data ?? []).map((row) => row.feature_key)),
   });
 }
 
@@ -37,10 +37,10 @@ export async function PUT(req: Request, context: RouteContext) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const featureKeys = normalizePremiumKeyGrants(body.featureKeys);
   if (!Array.isArray(body.featureKeys)) {
     return NextResponse.json({ error: 'feature_keys_required' }, { status: 400 });
   }
+  const featureKeys = sanitizePremiumKeyGrants(body.featureKeys);
 
   const { data: restaurant, error: fetchError } = await admin
     .from('restaurants')
@@ -82,6 +82,19 @@ export async function PUT(req: Request, context: RouteContext) {
     restaurantId: id,
     metadata: { featureKeys },
   });
+
+  // Guest catalog carries list-motion gate from grants — bump doorbell version.
+  const { data: verRow } = await admin
+    .from('restaurants')
+    .select('menu_catalog_version')
+    .eq('id', id)
+    .maybeSingle();
+  const nextVer = Number(verRow?.menu_catalog_version ?? 0) + 1;
+  await admin.from('restaurants').update({ menu_catalog_version: nextVer }).eq('id', id);
+  await admin.from('menu_catalog_signals').upsert(
+    { restaurant_id: id, version: nextVer, bumped_at: new Date().toISOString() },
+    { onConflict: 'restaurant_id' },
+  );
 
   return NextResponse.json({ ok: true, featureKeys });
 }

@@ -12,6 +12,7 @@ import {
   quoteProFeaturesEur,
   quoteRestaurantSubscriptionEur,
   quoteSubscriptionBaseEur,
+  sanitizePremiumKeyGrants,
   PRO_TRIAL_DAYS,
 } from './premium-tier';
 import {
@@ -120,6 +121,7 @@ describe('premium-tier', () => {
       'abnormal_ops',
       'operation_logs',
       'menu_dish_video',
+      'menu_dish_list_video',
     ]);
     assert.deepEqual(normalizePremiumKeys([]), []);
     assert.deepEqual(normalizePremiumKeys(['value_analytics']), ['value_analytics']);
@@ -128,6 +130,7 @@ describe('premium-tier', () => {
       'abnormal_ops',
       'operation_logs',
       'menu_dish_video',
+      'menu_dish_list_video',
     ]);
   });
 
@@ -135,6 +138,14 @@ describe('premium-tier', () => {
     assert.deepEqual(normalizePremiumKeyGrants(null), []);
     assert.deepEqual(normalizePremiumKeyGrants([]), []);
     assert.deepEqual(normalizePremiumKeyGrants(['value_analytics', 'nope']), ['value_analytics']);
+  });
+
+  it('sanitizePremiumKeyGrants drops list video without parent dish video', () => {
+    assert.deepEqual(sanitizePremiumKeyGrants(['menu_dish_list_video']), []);
+    assert.deepEqual(sanitizePremiumKeyGrants(['menu_dish_list_video', 'menu_dish_video']), [
+      'menu_dish_video',
+      'menu_dish_list_video',
+    ]);
   });
 
   it('quoteProFeaturesEur sums active list prices', () => {

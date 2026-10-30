@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import {
   canUsePremiumFeature,
-  normalizePremiumKeyGrants,
+  sanitizePremiumKeyGrants,
   RESTAURANT_FEATURE_DEFINITIONS,
   type PremiumKey,
   type RestaurantFeatureKey,
@@ -36,7 +36,7 @@ async function loadRestaurantProEntitledKeysUncached(restaurantId: string): Prom
     .eq('restaurant_id', restaurantId);
 
   if (error || !data) return [];
-  return normalizePremiumKeyGrants(data.map((row) => row.feature_key));
+  return sanitizePremiumKeyGrants(data.map((row) => row.feature_key));
 }
 
 /** Process-wide cache of per-restaurant Pro feature grants. */

@@ -5,6 +5,7 @@ export type RestaurantFeatureKey =
   | 'bill_receipt_print'
   | 'bill_sync_to_fiscal'
   | 'kitchen_serve_to_table'
+  | 'menu_dish_list_video_enabled'
   | 'menu_dish_video_enabled'
   | 'menu_flavor_hints_enabled'
   | 'open_table_receipt_print'
@@ -32,6 +33,7 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrint'
     | 'billSyncToFiscal'
     | 'kitchenServeToTable'
+    | 'menuDishListVideo'
     | 'menuDishVideo'
     | 'menuFlavorHints'
     | 'openTableReceiptPrint'
@@ -41,6 +43,7 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
+    | 'menuDishListVideoDesc'
     | 'menuDishVideoDesc'
     | 'menuFlavorHintsDesc'
     | 'openTableReceiptPrintDesc'
@@ -48,6 +51,8 @@ export type RestaurantFeatureDefinition = {
     | 'takeawayOrderingDesc';
   /** Pro commercial key: toggle locked unless restaurant has effective Pro + feature grant. */
   premiumKey?: PremiumKey;
+  /** When set, this flag is forced off whenever the parent store flag is off. */
+  requiresFeatureKey?: RestaurantFeatureKey;
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -116,6 +121,15 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     labelKey: 'menuDishVideo',
     descKey: 'menuDishVideoDesc',
     premiumKey: 'menu_dish_video',
+  },
+  {
+    key: 'menu_dish_list_video_enabled',
+    moduleId: 'menuDisplay',
+    defaultEnabled: false,
+    labelKey: 'menuDishListVideo',
+    descKey: 'menuDishListVideoDesc',
+    premiumKey: 'menu_dish_list_video',
+    requiresFeatureKey: 'menu_dish_video_enabled',
   },
   {
     key: 'takeaway_ordering',
@@ -256,6 +270,19 @@ export function applyBillingCheckoutModeExclusions(
   return next;
 }
 
+/** Parent store flag off → dependent child flags forced off (e.g. list motion under dish video). */
+export function applyFeatureFlagParentExclusions(
+  flags: ResolvedRestaurantFeatureFlags,
+): ResolvedRestaurantFeatureFlags {
+  const next = { ...flags };
+  for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
+    const parent = def.requiresFeatureKey;
+    if (!parent) continue;
+    if (!next[parent]) next[def.key] = false;
+  }
+  return next;
+}
+
 export function parseFeatureFlagsPatch(body: unknown): RestaurantFeatureFlags | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const flags = (body as Record<string, unknown>).flags;
@@ -297,9 +324,8 @@ export function mergeRestaurantFeatureFlagsJsonb(
   for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
     base[def.key] = patch[def.key] ?? normalized[def.key];
   }
-  const exclusive = applyBillingCheckoutModeExclusions(
-    normalizeRestaurantFeatureFlags(base),
-    patch,
+  const exclusive = applyFeatureFlagParentExclusions(
+    applyBillingCheckoutModeExclusions(normalizeRestaurantFeatureFlags(base), patch),
   );
   for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
     base[def.key] = exclusive[def.key];

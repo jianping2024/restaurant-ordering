@@ -234,8 +234,8 @@ restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | owner |
 restaurants.plan: basic | pro  
 restaurants.pro_valid_until: timestamptz nullable — Pro membership expiry (Ops: Lisbon calendar day → that day 23:59:59.999 Europe/Lisbon, same as license_valid_until); effective Pro also requires license_valid_until when set  
 subscription_base_product (id: text PK 'default', price_month_eur: numeric >=0, price_year_eur: numeric >=0, updated_at: timestamptz) — platform base subscription list price (EUR); store quote = base + Pro grants  
-pro_feature_products (feature_key: text PK [value_analytics|abnormal_ops|operation_logs|menu_dish_video], price_month_eur: numeric >=0, price_year_eur: numeric >=0, active: boolean, updated_at: timestamptz) — platform Pro add-on price catalog (EUR)  
-restaurant_pro_feature_grants (restaurant_id: uuid FK -> restaurants.id, feature_key: text, created_at: timestamptz; PK (restaurant_id, feature_key)) — per-restaurant Pro feature entitlements (usable only when Pro effective)  
+pro_feature_products (feature_key: text PK [value_analytics|abnormal_ops|operation_logs|menu_dish_video|menu_dish_list_video], price_month_eur: numeric >=0, price_year_eur: numeric >=0, active: boolean, updated_at: timestamptz) — platform Pro add-on price catalog (EUR); list video requires dish-video grant  
+restaurant_pro_feature_grants (restaurant_id: uuid FK -> restaurants.id, feature_key: text, created_at: timestamptz; PK (restaurant_id, feature_key)) — per-restaurant Pro feature entitlements (usable only when Pro effective; sanitize drops list without dish video)  
 platform_pro_settings (id: text PK default 'default', premium_keys: jsonb, wechat_url: text nullable, whatsapp_url: text nullable, updated_at: timestamptz) — legacy singleton; do not use for new gates (pricing+grants tables above)  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  

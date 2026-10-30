@@ -9,10 +9,24 @@ export const PRO_TRIAL_DAYS = 90;
 
 export type RestaurantPlan = 'basic' | 'pro';
 
-export const PREMIUM_KEYS = ['value_analytics', 'abnormal_ops', 'operation_logs', 'menu_dish_video'] as const;
+export const PREMIUM_KEYS = [
+  'value_analytics',
+  'abnormal_ops',
+  'operation_logs',
+  'menu_dish_video',
+  'menu_dish_list_video',
+] as const;
 export type PremiumKey = (typeof PREMIUM_KEYS)[number];
 
 export const DEFAULT_PREMIUM_KEYS: readonly PremiumKey[] = [...PREMIUM_KEYS];
+
+/**
+ * Child Pro add-on → required parent grant.
+ * Persist/API must drop the child when the parent is absent (no orphan billable grants).
+ */
+export const PREMIUM_KEY_REQUIRES_PARENT: Partial<Record<PremiumKey, PremiumKey>> = {
+  menu_dish_list_video: 'menu_dish_video',
+};
 
 export type ProBillingPeriod = 'month' | 'year';
 
@@ -74,6 +88,19 @@ export function normalizePremiumKeyGrants(raw: unknown): PremiumKey[] {
     }
   }
   return out;
+}
+
+/**
+ * Sole persist-safe grant list: normalize then drop children whose parent grant is missing.
+ */
+export function sanitizePremiumKeyGrants(raw: unknown): PremiumKey[] {
+  const keys = new Set(normalizePremiumKeyGrants(raw));
+  for (const [child, parent] of Object.entries(PREMIUM_KEY_REQUIRES_PARENT) as Array<
+    [PremiumKey, PremiumKey]
+  >) {
+    if (!keys.has(parent)) keys.delete(child);
+  }
+  return PREMIUM_KEYS.filter((key) => keys.has(key));
 }
 
 /**

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设计图 · 点餐列表动图（菜品动图附加项）</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --card: #ffffff;
+      --bg: #f4f4f5;
+      --gold: #c4a35a;
+      --gold-soft: rgba(196, 163, 90, 0.16);
+      --ok: #059669;
+      --danger: #b91c1c;
+      --rail: #0f1419;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    header.page {
+      padding: 28px 32px 12px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    header.page h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    header.page p { margin: 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+    .rules {
+      margin: 16px 32px 0;
+      max-width: 1180px;
+      margin-left: auto;
+      margin-right: auto;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .rule {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .rule strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .rule span { color: var(--muted); }
+    main {
+      max-width: 1180px;
+      margin: 20px auto 48px;
+      padding: 0 32px;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1fr 1.15fr;
+    }
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+    }
+    section.panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+    }
+    .panel-h {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .panel-h h2 { margin: 0; font-size: 15px; }
+    .panel-h .tag {
+      font-size: 11px;
+      color: var(--muted);
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 3px 8px;
+    }
+    .panel-b { padding: 16px; }
+    .module {
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      margin: 0 0 10px;
+      text-transform: none;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+    }
+    .row:hover { background: #fafafa; }
+    .row.parent { border-color: var(--line); background: #fcfcfc; }
+    .row.child {
+      margin: 8px 0 0 28px;
+      border: 1px dashed #d6d3d1;
+      background: #fff;
+      position: relative;
+    }
+    .row.child::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: -8px;
+      bottom: 50%;
+      width: 14px;
+      border-left: 2px solid #d6d3d1;
+      border-bottom: 2px solid #d6d3d1;
+      border-bottom-left-radius: 8px;
+    }
+    .check {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      border-radius: 4px;
+      border: 1.5px solid #9ca3af;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      background: #fff;
+    }
+    .check.on {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #111;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .check.lock {
+      opacity: 0.45;
+      background: #e5e7eb;
+    }
+    .copy { min-width: 0; flex: 1; }
+    .copy .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .pro {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #92400e;
+      background: var(--gold-soft);
+      border: 1px solid rgba(196,163,90,.45);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+    .copy .desc { margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+    .hint {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      font-size: 12.5px;
+      color: #92400e;
+    }
+    .states {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .state {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 650;
+      border-radius: 999px;
+      padding: 2px 8px;
+      color: #065f46;
+      background: #d1fae5;
+    }
+    .pill.off { color: #9f1239; background: #ffe4e6; }
+    .pill.lock { color: #6b7280; background: #f3f4f6; }
+
+    /* Guest phone mock */
+    .phone-wrap { display: flex; justify-content: center; }
+    .phone {
+      width: 360px;
+      background: var(--rail);
+      color: #f5f5f4;
+      border-radius: 28px;
+      padding: 14px 12px 18px;
+      border: 1px solid #27272a;
+      box-shadow: 0 18px 40px rgba(0,0,0,.28);
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #a8a29e;
+      padding: 4px 8px 10px;
+    }
+    .rail {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+      padding: 0 4px 12px;
+    }
+    .poster {
+      width: 112px;
+      flex: 0 0 auto;
+    }
+    .poster .thumb {
+      width: 112px;
+      height: 84px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: #292524;
+    }
+    .poster .cap {
+      margin-top: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .poster .price { font-size: 11px; color: var(--gold); }
+    .section-label {
+      font-size: 12px;
+      color: #a8a29e;
+      padding: 4px 8px 8px;
+    }
+    .list {
+      display: grid;
+      gap: 10px;
+      padding: 0 4px;
+    }
+    .card {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      background: #1c1917;
+      border: 1px solid #292524;
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .card.dim { opacity: 0.42; }
+    .thumb88 {
+      width: 88px;
+      height: 88px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: #292524;
+      flex: 0 0 auto;
+    }
+    .motion {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, transparent 30%, rgba(255,255,255,.18) 48%, transparent 66%),
+        radial-gradient(circle at 30% 40%, #78716c, #44403c 55%, #1c1917);
+      background-size: 220% 100%, cover;
+      animation: sheen 2.4s linear infinite;
+    }
+    .motion.pause { animation: none; filter: saturate(0.7); }
+    .still {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 35% 35%, #a8a29e, #57534e 48%, #292524);
+    }
+    .badge {
+      position: absolute;
+      left: 6px;
+      bottom: 6px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(0,0,0,.55);
+      color: #fde68a;
+      border: 1px solid rgba(253,230,138,.35);
+    }
+    .badge.stop {
+      color: #e7e5e4;
+      border-color: rgba(231,229,228,.25);
+    }
+    @keyframes sheen {
+      0% { background-position: 120% 0, 0 0; }
+      100% { background-position: -40% 0, 0 0; }
+    }
+    .meta h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .meta .sub { margin-top: 4px; font-size: 11px; color: #a8a29e; }
+    .foot {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .money { color: var(--gold); font-weight: 650; font-size: 13px; }
+    .plus {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #111;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .offscreen-note {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 11px;
+      color: #a8a29e;
+    }
+    footer.note {
+      max-width: 1180px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header class="page">
+    <h1>点餐列表动图 · 设计图</h1>
+    <p>
+      「菜品动图」仍是 Pro 总闸；本图新增店内附加项「点餐列表动图」。
+      打开后，客人点餐列表缩略图也播动图；滑出屏幕的卡片停播，只留静图。
+    </p>
+  </header>
+
+  <div class="rules">
+    <div class="rule">
+      <strong>Pro</strong>
+      <span>仍用现有「菜品动图」资格。不新增第二个 Pro 产品名。</span>
+    </div>
+    <div class="rule">
+      <strong>店开关</strong>
+      <span>父项：推荐栏 + 详情。子项：点餐列表。父关 → 子不可开。</span>
+    </div>
+    <div class="rule">
+      <strong>素材</strong>
+      <span>列表复用推荐栏那份小动图，不再单独生成第三份文件。</span>
+    </div>
+    <div class="rule">
+      <strong>播放</strong>
+      <span>露在屏上才播；打开详情时列表让路；关开关只停播，不删已有动图。</span>
+    </div>
+  </div>
+
+  <main>
+    <section class="panel" aria-label="功能设置">
+      <div class="panel-h">
+        <h2>功能设置 · 菜单展示</h2>
+        <span class="tag">店主 / 有权限员工</span>
+      </div>
+      <div class="panel-b">
+        <p class="module">菜单展示</p>
+
+        <div class="row parent">
+          <div class="check on" aria-hidden="true">✓</div>
+          <div class="copy">
+            <div class="title">菜品动图 <span class="pro">PRO</span></div>
+            <div class="desc">开启后，推荐位和菜品详情播放菜品动图（静音循环）。动图在菜单编辑上传图片时生成。</div>
+          </div>
+        </div>
+
+        <div class="row child">
+          <div class="check on" aria-hidden="true">✓</div>
+          <div class="copy">
+            <div class="title">点餐列表动图 <span class="pro">PRO</span></div>
+            <div class="desc">附加项：开启后，点餐列表缩略图也播放动图。未露在屏幕上的卡片不播放，节省流量与性能。需先打开上方「菜品动图」。</div>
+          </div>
+        </div>
+
+        <div class="hint">
+          父项关闭时：子项灰掉、不可勾选；保存时子项一律按关闭处理。
+        </div>
+
+        <div class="states">
+          <div class="state"><span class="pill">父开 · 子开</span> 推荐 / 详情 / 列表都可播（列表仅可见卡）</div>
+          <div class="state"><span class="pill">父开 · 子关</span> 仅推荐 + 详情；列表始终静图</div>
+          <div class="state"><span class="pill off">父关</span> 全站客人端静图；子项 <span class="pill lock">锁定</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="客人点餐页">
+      <div class="panel-h">
+        <h2>客人点餐页（父开 · 子开）</h2>
+        <span class="tag">列表附加生效</span>
+      </div>
+      <div class="panel-b phone-wrap">
+        <div class="phone">
+          <div class="topbar">
+            <span>桌号 A-01</span>
+            <span>中 · 深色</span>
+          </div>
+
+          <div class="section-label">推荐（沿用现有动图）</div>
+          <div class="rail">
+            <div class="poster">
+              <div class="thumb"><div class="motion"></div><span class="badge">播</span></div>
+              <div class="cap">101 Blue Lagoonx</div>
+              <div class="price">€3.95</div>
+            </div>
+            <div class="poster">
+              <div class="thumb"><div class="motion"></div><span class="badge">播</span></div>
+              <div class="cap">102 Mojito Classic</div>
+              <div class="price">€3.95</div>
+            </div>
+            <div class="poster">
+              <div class="thumb"><div class="motion"></div><span class="badge">播</span></div>
+              <div class="cap">103 Pina Colada</div>
+              <div class="price">€3.95</div>
+            </div>
+          </div>
+
+          <div class="section-label">点餐列表（本需求新增）</div>
+          <div class="list">
+            <article class="card">
+              <div class="thumb88"><div class="motion"></div><span class="badge">播</span></div>
+              <div class="meta">
+                <h3>101 Blue Lagoonx</h3>
+                <div class="sub">露在屏幕上 · 播放</div>
+                <div class="foot"><span class="money">€3.95</span><span class="plus">+</span></div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="thumb88"><div class="motion"></div><span class="badge">播</span></div>
+              <div class="meta">
+                <h3>102 Mojito Classic</h3>
+                <div class="sub">露在屏幕上 · 播放</div>
+                <div class="foot"><span class="money">€3.95</span><span class="plus">+</span></div>
+              </div>
+            </article>
+            <article class="card dim">
+              <div class="thumb88"><div class="still"></div><span class="badge stop">停</span></div>
+              <div class="meta">
+                <h3>115 Caipirinha</h3>
+                <div class="sub">滑出屏幕 / 被挡住 · 不播</div>
+                <div class="foot"><span class="money">€7.50</span><span class="plus">+</span></div>
+              </div>
+            </article>
+          </div>
+          <div class="offscreen-note">示意：第三张代表「掩藏不播放」——仍显示静图，不拉流、不循环</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="note">
+    文件：<code>docs/design/mockups/2026-10-30-menu-list-dish-motion.html</code>
+    · 本页为设计示意，不是线上页面。确认方案后再改产品代码。
+  </footer>
+</body>
+</html>

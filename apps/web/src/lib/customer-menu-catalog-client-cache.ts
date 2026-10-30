@@ -11,6 +11,8 @@ export type CustomerMenuCatalog = {
   notePresetCatalog: MenuNotePresetCatalog;
   /** Slot windows for `menu_items.time_slot_id`. */
   menuTimeSlots: MenuTimeSlot[];
+  /** Sole guest list-card motion gate (from resolveDishVideoAccess.guestListVisible). */
+  guestListMotionEnabled: boolean;
 };
 
 /** Full catalog payload from GET menu-catalog (version + body). */
@@ -26,8 +28,8 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-/** v6: catalog carries `menuTimeSlots` (dish time slots). */
-const CACHE_SCHEMA_VERSION = 6;
+/** v7: catalog carries `guestListMotionEnabled` (list-card Pro motion). */
+const CACHE_SCHEMA_VERSION = 7;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -75,6 +77,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (!Array.isArray(parsed.catalog.recommendedItemIds)) return null;
     if (!isMenuNotePresetCatalog(parsed.catalog.notePresetCatalog)) return null;
     if (!Array.isArray(parsed.catalog.menuTimeSlots)) return null;
+    if (typeof parsed.catalog.guestListMotionEnabled !== 'boolean') return null;
     return parsed;
   } catch {
     return null;
@@ -192,6 +195,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     recommendedItemIds: row.recommendedItemIds as string[],
     notePresetCatalog: row.notePresetCatalog,
     menuTimeSlots: row.menuTimeSlots as MenuTimeSlot[],
+    guestListMotionEnabled: row.guestListMotionEnabled === true,
   };
 }
 
@@ -252,6 +256,7 @@ export function ensureCustomerMenuCatalog(params: {
         recommendedItemIds: body.recommendedItemIds,
         notePresetCatalog: body.notePresetCatalog,
         menuTimeSlots: body.menuTimeSlots,
+        guestListMotionEnabled: body.guestListMotionEnabled,
       });
     })
     .finally(() => {

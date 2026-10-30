@@ -5,9 +5,11 @@ import {
   lisbonCalendarDateInputValue,
   todayLisbonCalendarDate,
   PREMIUM_KEYS,
+  PREMIUM_KEY_REQUIRES_PARENT,
   quoteProFeaturesEur,
   quoteRestaurantSubscriptionEur,
   quoteSubscriptionBaseEur,
+  sanitizePremiumKeyGrants,
   type LicenseExtendPeriod,
   type PremiumKey,
   type ProFeatureProduct,
@@ -20,6 +22,7 @@ const PREMIUM_LABELS: Record<PremiumKey, string> = {
   abnormal_ops: '异常操作',
   operation_logs: '操作记录',
   menu_dish_video: '菜品动图',
+  menu_dish_list_video: '点餐列表动图',
 };
 
 type Props = {
@@ -38,7 +41,9 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
   const [plan, setPlan] = useState(initial.plan === 'pro' ? 'pro' : 'basic');
   const [proValidUntil, setProValidUntil] = useState(initial.proValidUntil);
   const [proDate, setProDate] = useState(lisbonCalendarDateInputValue(initial.proValidUntil));
-  const [featureKeys, setFeatureKeys] = useState<Set<PremiumKey>>(new Set(initial.featureKeys));
+  const [featureKeys, setFeatureKeys] = useState<Set<PremiumKey>>(
+    () => new Set(sanitizePremiumKeyGrants(initial.featureKeys)),
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -78,7 +83,7 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-      return next;
+      return new Set(sanitizePremiumKeyGrants(Array.from(next)));
     });
   };
 
@@ -216,7 +221,7 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
         <h2 className="text-lg font-medium">本店 Pro 功能包</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          只有有效 Pro 且勾选的项，店内才能用。未勾选的入口会锁定。点餐列表动图等店内附加开关仍在店「功能管理」。
+          只有有效 Pro 且勾选的项，店内才能用。未勾选的入口会锁定。点餐列表动图须先勾「菜品动图」；店内开关仍在「功能管理」。
         </p>
 
         <form onSubmit={saveGrants} className="mt-4 space-y-3">
@@ -225,12 +230,14 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
             const month = product?.priceMonthEur ?? 0;
             const year = product?.priceYearEur ?? 0;
             const inactive = product != null && !product.active;
+            const parentKey = PREMIUM_KEY_REQUIRES_PARENT[key];
+            const parentMissing = parentKey != null && !featureKeys.has(parentKey);
             return (
               <label key={key} className="flex items-start gap-2 text-sm">
                 <input
                   type="checkbox"
                   className="mt-1"
-                  disabled={readOnly || loading || inactive}
+                  disabled={readOnly || loading || inactive || parentMissing}
                   checked={featureKeys.has(key)}
                   onChange={() => toggleKey(key)}
                 />
@@ -240,6 +247,7 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
                   <span className="mt-0.5 block text-xs text-zinc-500">
                     月 €{month.toFixed(2)} · 年 €{year.toFixed(2)}
                     {inactive ? ' · 价目已停售' : ''}
+                    {parentMissing ? ' · 须先勾菜品动图' : ''}
                   </span>
                 </span>
               </label>

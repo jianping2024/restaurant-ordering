@@ -1022,7 +1022,7 @@ export function SushiMenuPage({
     setInitiatorConfirmOpen(true);
   };
 
-  /** Sole kitchen-send success → back to menu (核单/确认/同桌提示/购物车/已点/详情). */
+  /** Sole kitchen-send success → back to menu (核单/确认/同桌提示/购物车抽屉/已点/详情). Cart drafts stay; only clearSubmitCart clears after本机下单. */
   const dismissToMenuAfterKitchenSend = useCallback(() => {
     setRoundReviewOpen(false);
     setInitiatorConfirmOpen(false);
@@ -1030,12 +1030,6 @@ export function SushiMenuPage({
     setCartOpen(false);
     setOrderedOpen(false);
     setDetailMenuItemId(null);
-    // Drop local free drafts; next round counts only from a settled empty snapshot.
-    setCart((prev) => {
-      const next = prev.filter((c) => !isSushiRoundFreeMenuPrice(c.price));
-      cartRef.current = next;
-      return next;
-    });
   }, [setRoundPeerNotifyOpen]);
 
   const handleConfirmSendRound = async () => {

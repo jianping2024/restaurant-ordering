@@ -22,7 +22,7 @@ type MenuManagerMessages = ReturnType<typeof getMessages>['menuManager'];
 
 /**
  * Sole batch dish-video confirm panel: current-page eligible candidates + one shared effect.
- * List rows stay checkbox-free; open only from the menu toolbar.
+ * Open only from the menu toolbar. Confirm row lives in Modal `footer` (not in the scroll body).
  */
 export function DishVideoBatchModal({
   open,
@@ -62,7 +62,26 @@ export function DishVideoBatchModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title={t.dishVideoBatchModalTitle} size="md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t.dishVideoBatchModalTitle}
+      size="md"
+      footer={
+        <ModalConfirmActions
+          cancelLabel={t.cancel}
+          confirmLabel={
+            selectedCount === 0
+              ? t.dishVideoBatchConfirm
+              : t.dishVideoBatchConfirmN.replace('{n}', String(selectedCount))
+          }
+          onCancel={onClose}
+          onConfirm={() => onConfirm(selectedIds, effect)}
+          confirmDisabled={selectedCount === 0}
+          confirmVariant="gold"
+        />
+      }
+    >
       <div className="space-y-4">
         <p className="text-sm text-brand-text-muted">
           {t.dishVideoBatchModalHint.replace('{n}', String(candidates.length))}
@@ -115,7 +134,7 @@ export function DishVideoBatchModal({
         {candidates.length === 0 ? (
           <p className="text-sm text-brand-text-muted py-6 text-center">{t.dishVideoBatchEmpty}</p>
         ) : (
-          <ul className="max-h-[min(50vh,22rem)] overflow-y-auto divide-y divide-brand-border/60 -mx-1 px-1">
+          <ul className="divide-y divide-brand-border/60 -mx-1 px-1">
             {candidates.map((item) => {
               const checked = selectedSet.has(item.id);
               const label = formatMenuCatalogItemLabel(item, lang);
@@ -137,20 +156,6 @@ export function DishVideoBatchModal({
             })}
           </ul>
         )}
-
-        <ModalConfirmActions
-          cancelLabel={t.cancel}
-          confirmLabel={
-            selectedCount === 0
-              ? t.dishVideoBatchConfirm
-              : t.dishVideoBatchConfirmN.replace('{n}', String(selectedCount))
-          }
-          onCancel={onClose}
-          onConfirm={() => onConfirm(selectedIds, effect)}
-          confirmDisabled={selectedCount === 0}
-          confirmVariant="gold"
-          divided
-        />
       </div>
     </Modal>
   );

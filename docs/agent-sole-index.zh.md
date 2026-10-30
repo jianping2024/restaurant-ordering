@@ -504,6 +504,10 @@ sole `resolveRecommendedAgentVersion` + Farvoo Fiscal Agent (`fiscal-agent-v*` /
 
 sole mint `resolveBillSyncItemCode` → `BF########A`|`C` (buffet uuid + guest); never bare `BF########` shared by adult/child.
 
+### Station ticket order_time
+
+sole ISO `earliestOrderItemAddedAtIso` (auto batch via `stationTicketOrderTimeIso` filter; kitchen prep via selected lines) → `formatStationTicketOrderTime` — never stamp prep slips with bare `orders.created_at` beside the line `added_at`.
+
 ### Print fiscal invoice
 
 sole staff path `runStaffPrintFiscalInvoice` (enqueue `auto_issue` bill_sync_jobs → wait success; NO table close); UI label sole `checkout.printInvoice`（打印发票）; gate sole `mayFiscalBillQueue` = `checkout.sync_bill`∧`tables.checkout_close` (+ feature `bill_sync_to_fiscal`); buyer NIF sole `@/lib/pt-nif` + copy `bill.nifInvalid` (modal + `POST …/bill-syncs` `parsePortugueseNif`); do not keep `maySyncAndCheckoutClose` / sync-and-close / `checkout.syncBill` compound close beside it, never a parallel NIF regex beside `pt-nif`.

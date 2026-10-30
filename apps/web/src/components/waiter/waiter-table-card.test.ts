@@ -52,6 +52,7 @@ describe('buildWaiterTableCard', () => {
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 20.5);
     assert.equal(card.mealsTotal, 20.5);
+    assert.equal(card.orderedDishQty, 2);
   });
 
   it('ignores voided items and inflated total_amount when computing sessionTotal', () => {

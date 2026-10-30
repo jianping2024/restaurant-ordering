@@ -6,6 +6,7 @@ import {
   menuItemIdFromLimitedBillableKey,
   sortBillableSessionItemsForWaiterDetail,
   sortOrdersForBillableCatalog,
+  sumBillableMenuCatalogQty,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
@@ -72,6 +73,8 @@ export interface WaiterTableCardData {
   sessionTotal: number;
   /** Non-buffet billable total for ordered-items money chrome (饮食). */
   mealsTotal: number;
+  /** Sole dish-portion count for floor card meta (`×N`); menu catalog only. */
+  orderedDishQty: number;
   updatedAt: string;
 }
 
@@ -301,6 +304,7 @@ export function buildWaiterTableCard(
     buffetOrderedTitle: formatWaiterOrderedBuffetTitle(orders, lang),
     sessionTotal: sumBillableSessionTotal(orders),
     mealsTotal: sumBillableNonBuffetTotal(orders),
+    orderedDishQty: sumBillableMenuCatalogQty(orders),
     updatedAt: latestOrderTimestamp(orders),
   };
 }

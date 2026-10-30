@@ -30,6 +30,7 @@ function summary(overrides: Partial<WaiterBoardTableSummary> = {}): WaiterBoardT
     displayName: '002',
     buffetHeadcount: null,
     sessionTotal: 0,
+    orderedDishQty: 0,
     hasBuffet: false,
     occupied: false,
     seatMin: 2,
@@ -98,13 +99,59 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.idleHint, null);
     assert.equal(chipText(view, 'seats'), '2–4 座');
     assert.equal(chipText(view, 'time'), '2时00分');
+    assert.equal(chipText(view, 'dishes'), '×0');
     assert.deepEqual(
       view.metaChips.map((c) => c.kind),
-      ['seats', 'time'],
+      ['seats', 'time', 'dishes'],
     );
     assert.equal(view.amountText, '€89.90');
     assert.equal(view.ctaLabel, '详情');
     assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
+  });
+
+  it('dining card shows ordered dish qty as ×N after time (incl. zero)', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary({ orderedDishQty: 12, sessionTotal: 40 }),
+      boardState: 'dining',
+      action: { kind: 'navigate', href: '/waiter/t1' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'open',
+      },
+      checkoutRequestedAt: null,
+      lang: 'zh',
+      nowMs,
+      showAmounts: true,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.deepEqual(
+      view.metaChips.map((c) => c.kind),
+      ['seats', 'time', 'dishes'],
+    );
+    assert.equal(chipText(view, 'dishes'), '×12');
+  });
+
+  it('checkout card also shows ×N after time', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary({ orderedDishQty: 3, sessionTotal: 40 }),
+      boardState: 'checkout',
+      action: { kind: 'navigate', href: '/checkout/t1' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'billing',
+      },
+      checkoutRequestedAt: '2026-07-05T19:30:00.000Z',
+      lang: 'zh',
+      nowMs,
+      showAmounts: true,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(chipText(view, 'dishes'), '×3');
+    assert.ok(view.metaChips.map((c) => c.kind).includes('dishes'));
   });
 
   it('dining card hides amountText when showAmounts is false (slot still empty, not idle hint)', () => {
@@ -270,6 +317,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       checkoutRequestedAt: null,
       lang: 'zh',
       nowMs: Date.parse('2026-07-05T20:00:00.000Z'),
+      showAmounts: true,
       labels: LABELS,
       statusLabels: STATUS,
     });

@@ -52,6 +52,7 @@ const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
   if (kind === 'seats') return <WaiterSeatCapacityIcon className={CHIP_ICON} />;
   if (kind === 'time') return <WaiterClockIcon className={CHIP_ICON} />;
+  // dishes: text-only `×N` (no icon — product choice).
   return null;
 }
 

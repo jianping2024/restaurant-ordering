@@ -25,6 +25,7 @@ function buildIdleBoardSummary(table: RestaurantTableRow): WaiterBoardTableSumma
     seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
     buffetHeadcount: null,
     sessionTotal: 0,
+    orderedDishQty: 0,
     hasBuffet: false,
     occupied: false,
     updatedAt: new Date(0).toISOString(),

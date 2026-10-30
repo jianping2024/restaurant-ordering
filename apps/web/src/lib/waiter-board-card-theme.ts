@@ -57,8 +57,8 @@ export const waiterBoardType = {
    */
   cardBadgeStack: 'flex flex-col items-center gap-1',
   /**
-   * Sole meta row — seats ± time, always one line. No wrap: second chip must not
-   * grow card height when dining halls replace idle-only halls.
+   * Sole meta row — seats ± time ± dishes (`×N`), always one line. No wrap: extra
+   * chips must not grow card height when dining halls replace idle-only halls.
    */
   cardMeta:
     'mt-1.5 flex h-4 min-w-0 flex-nowrap items-center gap-x-2.5 overflow-hidden text-xs leading-none text-brand-text',

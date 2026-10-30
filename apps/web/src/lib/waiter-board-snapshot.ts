@@ -19,6 +19,8 @@ export type WaiterBoardTableSummary = {
   seatMax: number;
   buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
+  /** Sole dish-portion count for board meta (`×N`); from waiter card. */
+  orderedDishQty: number;
   hasBuffet: boolean;
   occupied: boolean;
   updatedAt: string;
@@ -44,6 +46,7 @@ export function buildWaiterBoardTableSummaries(
       seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
       buffetHeadcount: card.buffetHeadcount,
       sessionTotal: card.sessionTotal,
+      orderedDishQty: card.orderedDishQty,
       hasBuffet: card.hasBuffet,
       occupied: isWaiterTableCardOccupied(card),
       updatedAt: card.updatedAt,

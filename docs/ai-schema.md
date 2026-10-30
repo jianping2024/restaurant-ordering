@@ -211,7 +211,7 @@ Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant
 
 ## Storage
 
-Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies on `storage.objects`; path `{restaurant_id}/{menu_item_id}.{ext}`.
+Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies on `storage.objects`; path `{restaurant_id}/{menu_item_id}.{ext}`. Also holds dish motion videos (`video/mp4`, `{restaurant_id}/{menu_item_id}/{key}-detail|rail.mp4`); a non-NULL `allowed_mime_types` must include `video/mp4` (20261030210000).
 
 ## Realtime (`supabase_realtime` publication)
 

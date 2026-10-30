@@ -1,9 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -20,16 +19,14 @@ import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { DEFAULT_DISH_VIDEO_EFFECT } from '@/lib/menu-dish-video';
+import { dishVideoEncodingSupported, encodeDishVideos } from '@/lib/menu-dish-video-encode';
+import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
-  compressMenuImageForUpload,
-  MENU_IMAGE_ACCEPT,
-  MENU_IMAGE_ASPECT_CLASS,
-  MENU_IMAGE_OBJECT_FIT_CLASS,
-  MENU_IMAGE_UNOPTIMIZED,
-  MENU_IMAGE_WELL_BG_CLASS,
-  resolveMenuImageDisplayUrl,
-  validateMenuImageFile,
-} from '@/lib/menu-image';
+  EMPTY_MENU_ITEM_PHOTO_DRAFT,
+  MenuItemPhotoField,
+  type MenuItemPhotoDraft,
+} from '@/components/dashboard/MenuItemPhotoField';
 import {
   buildMenuNotePresetEditorGroups,
   menuNotePresetLocalizedName,
@@ -129,6 +126,10 @@ interface MenuManagerProps {
   initialTab?: MenuManagerTab;
   /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
   canManagePrintStations?: boolean;
+  /** Pro `menu_dish_video` + `dashboard.menu.video.manage`. */
+  canManageDishVideo?: boolean;
+  /** Pro `menu_dish_video` effective (list ▶ badge, photo-change loss warning). */
+  dishVideoPro?: boolean;
   /** Store feature menu_flavor_hints_enabled (default false). */
   flavorHintsEnabled?: boolean;
   /** Store feature takeaway_ordering (default false). */
@@ -268,6 +269,8 @@ export function MenuManager({
   initialNotePresets,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
+  canManageDishVideo = false,
+  dishVideoPro = false,
   flavorHintsEnabled = false,
   takeawayOrderingEnabled = false,
   menuTimeSlots,
@@ -340,10 +343,9 @@ export function MenuManager({
   const [itemForm, setItemForm] = useState<ItemForm>(defaultItemForm);
   const [itemSaving, setItemSaving] = useState(false);
   const [itemError, setItemError] = useState('');
-  const [pendingImage, setPendingImage] = useState<File | null>(null);
-  const [stripImage, setStripImage] = useState(false);
-  const [objectPreviewUrl, setObjectPreviewUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoDraft, setPhotoDraft] = useState<MenuItemPhotoDraft>(EMPTY_MENU_ITEM_PHOTO_DRAFT);
+  /** Remounts MenuItemPhotoField per modal open (fresh pick / effect / encode state). */
+  const [photoFieldKey, setPhotoFieldKey] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false });
   const [confirmLoading, setConfirmLoading] = useState(false);
   const MAX_CATEGORY_DEPTH = MAX_MENU_CATEGORY_DEPTH;
@@ -487,21 +489,6 @@ export function MenuManager({
     if (categoryPanelMode === 'none') setCategoryError('');
   }, [categoryPanelMode]);
 
-  useEffect(() => {
-    if (!pendingImage) {
-      setObjectPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      return;
-    }
-    const url = URL.createObjectURL(pendingImage);
-    setObjectPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return url;
-    });
-  }, [pendingImage]);
-
   const categoryDraftFromRow = (category: MenuCategory): CategoryDraft => ({
     name_pt: category.name_pt || '',
     name_en: category.name_en || '',
@@ -603,9 +590,8 @@ export function MenuManager({
   }, [itemListFilterValue, dishSearch]);
 
   const resetImageUi = () => {
-    setPendingImage(null);
-    setStripImage(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setPhotoDraft(EMPTY_MENU_ITEM_PHOTO_DRAFT);
+    setPhotoFieldKey((k) => k + 1);
   };
 
   const closeItemModal = () => {
@@ -671,26 +657,56 @@ export function MenuManager({
     setItemModalOpen(true);
   };
 
-  const onPickImage = async (fileList: FileList | null) => {
-    const file = fileList?.[0];
-    if (!file) return;
-    const compressedFile = await compressMenuImageForUpload(file);
-    const msg = validateMenuImageFile(compressedFile, {
-      imageTooLarge: t.imageTooLarge,
-      imageTypeInvalid: t.imageTypeInvalid,
-    });
-    if (msg) {
-      setItemError(msg);
-      return;
+  const itemsMissingDishVideo = useMemo(
+    () => (canManageDishVideo ? items.filter((item) => item.image_url && !item.video_url) : []),
+    [canManageDishVideo, items],
+  );
+  const [dishVideoBatch, setDishVideoBatch] = useState<{ done: number; total: number } | null>(null);
+  const [dishVideoBatchNote, setDishVideoBatchNote] = useState('');
+  /** Client-only probe (SSR has no WebCodecs) — avoids a hydration mismatch on the toolbar. */
+  const [dishVideoEncodeReady, setDishVideoEncodeReady] = useState(false);
+  useEffect(() => {
+    setDishVideoEncodeReady(dishVideoEncodingSupported());
+  }, []);
+
+  /** One-click: default effect for every dish that has a photo but no video (sequential, same save API). */
+  const runDishVideoBatch = async () => {
+    const todo = itemsMissingDishVideo;
+    if (todo.length === 0 || dishVideoBatch) return;
+    setDishVideoBatchNote('');
+    let ok = 0;
+    let failed = 0;
+    for (let i = 0; i < todo.length; i++) {
+      setDishVideoBatch({ done: i, total: todo.length });
+      const item = todo[i];
+      try {
+        const photoUrl = resolveMenuImageDisplayUrl(item.image_url);
+        if (!photoUrl) throw new Error('no_photo');
+        const photo = await (await fetch(photoUrl)).blob();
+        const encoded = await encodeDishVideos(photo, DEFAULT_DISH_VIDEO_EFFECT);
+        const result = await setMenuItemImageClient(item.id, {
+          video: { ...encoded, effect: DEFAULT_DISH_VIDEO_EFFECT },
+        });
+        if (!result.ok) throw new Error(result.error);
+        const row = result.data.item;
+        setItems((prev) => prev.map((x) => (x.id === row.id ? row : x)));
+        ok++;
+      } catch {
+        failed++;
+      }
     }
-    setItemError('');
-    setStripImage(false);
-    setPendingImage(compressedFile);
+    setDishVideoBatch(null);
+    setDishVideoBatchNote(
+      failed === 0
+        ? t.dishVideoBatchDone.replace('{n}', String(ok))
+        : t.dishVideoBatchPartial.replace('{ok}', String(ok)).replace('{failed}', String(failed)),
+    );
   };
 
   const isImageError = itemError === t.imageTooLarge || itemError === t.imageTypeInvalid;
 
   const saveItem = async () => {
+    if (photoDraft.busy) return;
     if (!itemForm.name_pt.trim()) return setItemError(t.ptNameRequired);
     if (!itemForm.price || Number.isNaN(Number(itemForm.price))) return setItemError(t.validPrice);
     const vatRate = parseMenuVatRate(itemForm.vat_rate);
@@ -779,15 +795,9 @@ export function MenuManager({
       }
 
       let row = saved.data.item;
-      if (stripImage && !pendingImage) {
-        const imageResult = await setMenuItemImageClient(row.id, { stripImage: true });
-        if (!imageResult.ok) {
-          setItemError(mapMenuItemApiError(imageResult.error, imageResult.message, t));
-          return;
-        }
-        row = imageResult.data.item;
-      } else if (pendingImage) {
-        const imageResult = await setMenuItemImageClient(row.id, { file: pendingImage });
+      const { file, stripImage, video, stripVideo } = photoDraft;
+      if (file || stripImage || video || stripVideo) {
+        const imageResult = await setMenuItemImageClient(row.id, { file, stripImage, video, stripVideo });
         if (!imageResult.ok) {
           setItemError(mapMenuItemApiError(imageResult.error, imageResult.message, t));
           return;
@@ -1128,12 +1138,6 @@ export function MenuManager({
         )
       : [];
 
-  const itemModalPreviewSrc =
-    objectPreviewUrl ||
-    (!stripImage && editingItem?.image_url
-      ? resolveMenuImageDisplayUrl(editingItem.image_url)
-      : null);
-
   const openCategoryEdit = (category: MenuCategory) => {
     setSelectedCategoryId(category.id);
     setCategoryDraft(categoryDraftFromRow(category));
@@ -1464,6 +1468,24 @@ export function MenuManager({
               <Button type="button" size="sm" onClick={openItemCreateModal}>
                 + {t.addItem}
               </Button>
+              {dishVideoBatch || (itemsMissingDishVideo.length > 0 && dishVideoEncodeReady) ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  loading={dishVideoBatch != null}
+                  onClick={() => void runDishVideoBatch()}
+                >
+                  {dishVideoBatch
+                    ? t.dishVideoBatchRunning
+                        .replace('{done}', String(dishVideoBatch.done))
+                        .replace('{total}', String(dishVideoBatch.total))
+                    : `▶ ${t.dishVideoBatch.replace('{n}', String(itemsMissingDishVideo.length))}`}
+                </Button>
+              ) : null}
+              {dishVideoBatchNote ? (
+                <span className="text-[13px] text-brand-text-muted">{dishVideoBatchNote}</span>
+              ) : null}
               {visibleItems.length > 0 ? (
                 <>
                   <span className="h-4 w-px bg-brand-border shrink-0" aria-hidden />
@@ -1616,7 +1638,10 @@ export function MenuManager({
                                     dragHandleProps={draggableProvided.dragHandleProps}
                                   />
                                 ) : null}
-                                <MenuItemListThumb item={item} />
+                                <MenuItemListThumb
+                                  item={item}
+                                  videoBadgeLabel={dishVideoPro && item.video_url ? t.dishVideoBadge : undefined}
+                                />
                               </div>
                               <div className="flex-1 min-w-0 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
                                 <div className="min-w-0 flex-1">
@@ -1735,50 +1760,17 @@ export function MenuManager({
 
       <Modal open={itemModalOpen} onClose={closeItemModal} title={editingItem ? t.modalEdit : t.modalAdd} size="xl">
         <div className="space-y-4">
-          <div className="rounded-xl border-2 border-dashed border-brand-gold/35 bg-brand-bg/40 p-4 space-y-3">
-            <div><span className="text-brand-gold mr-2" aria-hidden>📷</span><span className="text-sm text-brand-text font-medium">{t.dishPhoto}</span></div>
-            <p className="text-[13px] text-brand-text-muted">{t.dishPhotoHint}</p>
-            {isImageError && <p className="mesa-alert-danger text-[13px] px-3 py-2">{itemError}</p>}
-            <input ref={fileInputRef} type="file" accept={MENU_IMAGE_ACCEPT} className="hidden" onChange={(e) => onPickImage(e.target.files)} />
-            <div className="flex flex-wrap items-center gap-3 min-h-[5.5rem]">
-              {itemModalPreviewSrc ? (
-                <div className={`relative w-24 ${MENU_IMAGE_ASPECT_CLASS} rounded-xl overflow-hidden ${MENU_IMAGE_WELL_BG_CLASS} border border-brand-border shrink-0`}>
-                  {itemModalPreviewSrc.startsWith('blob:') ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={itemModalPreviewSrc} alt="" className={`w-full h-full ${MENU_IMAGE_OBJECT_FIT_CLASS}`} />
-                  ) : (
-                    <Image
-                      src={itemModalPreviewSrc}
-                      alt=""
-                      fill
-                      className={MENU_IMAGE_OBJECT_FIT_CLASS}
-                      sizes="96px"
-                      unoptimized={MENU_IMAGE_UNOPTIMIZED}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-xl border border-brand-border bg-brand-card/80 flex items-center justify-center text-2xl text-brand-text-muted shrink-0">-</div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>{t.pickImage}</Button>
-                {itemModalPreviewSrc && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setStripImage(true);
-                      setPendingImage(null);
-                      if (fileInputRef.current) fileInputRef.current.value = '';
-                    }}
-                  >
-                    {t.removeImage}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          <MenuItemPhotoField
+            key={photoFieldKey}
+            t={t}
+            proBadgeLabel={getMessages(lang).premiumUpgrade.proBadge}
+            existing={editingItem}
+            canManageDishVideo={canManageDishVideo}
+            dishVideoPro={dishVideoPro}
+            imageError={isImageError ? itemError : null}
+            onImageError={setItemError}
+            onDraftChange={setPhotoDraft}
+          />
 
           <div>
             <label className="text-sm text-brand-text-muted font-medium block mb-2">{t.icon}</label>
@@ -2155,8 +2147,11 @@ export function MenuManager({
 
           {itemError && !isImageError && <p className="mesa-alert-danger text-sm px-4 py-2">{itemError}</p>}
 
+          {photoDraft.busy ? (
+            <p className="text-xs text-brand-text-muted">{t.dishVideoSaveWaiting}</p>
+          ) : null}
           <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
-            <Button onClick={saveItem} loading={itemSaving} className="flex-1">{editingItem ? t.saveEdit : t.addItem}</Button>
+            <Button onClick={saveItem} loading={itemSaving} disabled={photoDraft.busy} className="flex-1">{editingItem ? t.saveEdit : t.addItem}</Button>
             <Button variant="outline" onClick={closeItemModal} className="w-full sm:w-auto">{t.cancel}</Button>
           </div>
         </div>

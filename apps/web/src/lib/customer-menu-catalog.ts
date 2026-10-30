@@ -1,6 +1,9 @@
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { mapCustomerMenuCatalogImageUrls } from '@/lib/menu-image';
+import {
+  DISH_VIDEO_GATE_RESTAURANT_COLUMNS,
+  type DishVideoGateRestaurant,
+} from '@/lib/menu-dish-video';
 import type { MenuCategory, MenuItem } from '@/types';
 import {
   buildMenuNotePresetCatalog,
@@ -56,9 +59,14 @@ export type CustomerMenuCatalogRows = {
   menuTimeSlots: MenuTimeSlot[];
 };
 
+/** Cached shape: display rows + the restaurant fields the dish-video gate needs (never sent to guests). */
+export type CustomerMenuCatalogCached = CustomerMenuCatalogRows & {
+  dishVideoGate: DishVideoGateRestaurant | null;
+};
+
 async function loadCustomerMenuCatalogUncached(
   restaurantId: string,
-): Promise<CustomerMenuCatalogRows> {
+): Promise<CustomerMenuCatalogCached> {
   const admin = createAdminClient();
   const [
     { data: menuItems },
@@ -66,6 +74,7 @@ async function loadCustomerMenuCatalogUncached(
     { data: recommended },
     noteDictionary,
     menuTimeSlots,
+    { data: dishVideoGate },
   ] = await Promise.all([
     admin
       .from('menu_items')
@@ -86,6 +95,7 @@ async function loadCustomerMenuCatalogUncached(
       .order('sort_order'),
     listMenuNotePresetDictionary(admin, restaurantId),
     loadMenuTimeSlots(admin, restaurantId),
+    admin.from('restaurants').select(DISH_VIDEO_GATE_RESTAURANT_COLUMNS).eq('id', restaurantId).maybeSingle(),
   ]);
 
   if ('error' in noteDictionary) {
@@ -101,6 +111,7 @@ async function loadCustomerMenuCatalogUncached(
       noteDictionary.presets,
     ),
     menuTimeSlots,
+    dishVideoGate: (dishVideoGate as DishVideoGateRestaurant | null) ?? null,
   };
 }
 
@@ -115,15 +126,4 @@ export function loadCustomerMenuCatalog(restaurantId: string) {
     revalidate: 60,
     tags: [customerMenuCatalogTag(restaurantId)],
   })(restaurantId);
-}
-
-/**
- * Sole customer-facing catalog for SSR + GET menu-catalog: cached rows + display image URLs.
- * Do not call {@link loadCustomerMenuCatalog} + {@link mapCustomerMenuCatalogImageUrls} beside this.
- */
-export async function loadCustomerMenuCatalogForDisplay(
-  restaurantId: string,
-): Promise<CustomerMenuCatalogRows> {
-  const catalog = await loadCustomerMenuCatalog(restaurantId);
-  return mapCustomerMenuCatalogImageUrls(catalog);
 }

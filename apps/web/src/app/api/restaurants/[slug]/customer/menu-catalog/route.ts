@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import {
-  loadCustomerMenuCatalogForDisplay,
-  loadCustomerMenuCatalogVersion,
-} from '@/lib/customer-menu-catalog';
+import { loadCustomerMenuCatalogVersion } from '@/lib/customer-menu-catalog';
+import { loadCustomerMenuCatalogForDisplay } from '@/lib/customer-menu-catalog-display';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { CUSTOMER_READ_NO_STORE_HEADERS } from '@/lib/customer-read-http-headers';
 

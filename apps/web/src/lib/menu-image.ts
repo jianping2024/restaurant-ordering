@@ -9,6 +9,13 @@ import { getPublishedSupabaseUrl, isSupabaseBrowserSameOrigin } from '@/lib/supa
 /** 与 storage bucket file_size_limit 一致（1MB） */
 export const MENU_IMAGE_MAX_BYTES = 1048576;
 
+/**
+ * Sole Cache-Control for every `menu-images` upload (dish photo, dish videos, storefront
+ * logo/cover): one year. Safe because each upload gets a new random object key, so a
+ * replaced file is a new URL and a cached copy can never go stale.
+ */
+export const MENU_STORAGE_CACHE_CONTROL = '31536000';
+
 export const MENU_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 
 /**
@@ -266,15 +273,24 @@ export function resolveMenuImageDisplayUrl(url: string | null | undefined): stri
   return `/storage/v1/object/public/menu-images/${storagePath}`;
 }
 
-/** Normalize catalog rows through {@link resolveMenuImageDisplayUrl} (sole display shape). */
+/**
+ * Normalize catalog rows through {@link resolveMenuImageDisplayUrl} (sole display shape) —
+ * photo plus the dish motion videos stored in the same bucket.
+ */
 export function mapCustomerMenuCatalogImageUrls<
-  T extends { menuItems: Array<{ image_url?: string | null }> },
+  T extends {
+    menuItems: Array<{ image_url?: string | null; video_url?: string | null; rail_video_url?: string | null }>;
+  },
 >(catalog: T): T {
   return {
     ...catalog,
     menuItems: catalog.menuItems.map((item) => ({
       ...item,
       image_url: resolveMenuImageDisplayUrl(item.image_url),
+      ...(item.video_url !== undefined ? { video_url: resolveMenuImageDisplayUrl(item.video_url) } : {}),
+      ...(item.rail_video_url !== undefined
+        ? { rail_video_url: resolveMenuImageDisplayUrl(item.rail_video_url) }
+        : {}),
     })),
   };
 }

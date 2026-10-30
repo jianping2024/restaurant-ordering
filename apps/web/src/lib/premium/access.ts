@@ -4,7 +4,9 @@ import { cache } from 'react';
 import {
   canUsePremiumFeature,
   normalizePremiumKeys,
+  RESTAURANT_FEATURE_DEFINITIONS,
   type PremiumKey,
+  type RestaurantFeatureKey,
 } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NAV_PREMIUM_KEY } from '@/lib/premium/catalog';
@@ -88,6 +90,17 @@ export function navItemProLocked(
   if (!premiumKey) return false;
   const gate = resolvePremiumGate(restaurant, premiumKey, settings, now);
   return !gate.ok;
+}
+
+/** Feature-settings toggles whose `premiumKey` is not effective for this restaurant. */
+export function computePremiumLockedFeatureKeys(
+  restaurant: RestaurantTierFields,
+  settings: PlatformProSettings,
+  now = new Date(),
+): RestaurantFeatureKey[] {
+  return RESTAURANT_FEATURE_DEFINITIONS.filter(
+    (def) => def.premiumKey && !resolvePremiumGate(restaurant, def.premiumKey, settings, now).ok,
+  ).map((def) => def.key);
 }
 
 export type PremiumLoaderError = {

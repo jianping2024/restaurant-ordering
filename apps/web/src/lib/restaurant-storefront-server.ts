@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   MENU_IMAGE_MAX_BYTES,
+  MENU_STORAGE_CACHE_CONTROL,
   pathFromMenuImagePublicUrl,
   toMenuImagePublicRef,
 } from '@/lib/menu-image';
@@ -88,7 +89,7 @@ export async function setRestaurantStorefrontImage(
     const { error: uploadError } = await admin.storage.from('menu-images').upload(path, buffer, {
       upsert: false,
       contentType: file.type,
-      cacheControl: '3600',
+      cacheControl: MENU_STORAGE_CACHE_CONTROL,
     });
     if (uploadError) {
       return { error: 'upload_failed', message: uploadError.message, status: 500 };

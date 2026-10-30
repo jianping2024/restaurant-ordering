@@ -7,6 +7,7 @@ const PREMIUM_LABELS: Record<PremiumKey, string> = {
   value_analytics: '增值分析',
   abnormal_ops: '异常操作',
   operation_logs: '操作记录',
+  menu_dish_video: '菜品动图',
 };
 
 type Props = {

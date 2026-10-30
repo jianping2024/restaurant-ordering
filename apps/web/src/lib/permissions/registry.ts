@@ -47,6 +47,12 @@ export const PERMISSIONS = {
     labelKey: 'dashboardMenuPrintStations',
     requires: ['dashboard.menu.view'],
   },
+  /** Generate / change dish motion videos in the dish form (also needs Pro `menu_dish_video`). */
+  'dashboard.menu.video.manage': {
+    group: 'dashboard_nav',
+    labelKey: 'menuDishVideoManage',
+    requires: ['dashboard.menu.view'],
+  },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
   /** Dining KPI A/C wings only. Table-card headcount stays on the board itself. */
   'dashboard.waiter_board.dining_headcount.view': {

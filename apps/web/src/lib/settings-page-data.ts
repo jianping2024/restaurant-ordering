@@ -41,7 +41,7 @@ async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Rest
   const { data, error } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, owner_id, logo_url, cover_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, business_hours, storefront_intro, suspended_at, suspension_reason, created_at',
+      'id, name, slug, owner_id, logo_url, cover_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, pro_valid_until, license_valid_until, print_locale, country_code, feature_flags, buffet_service_mode, business_hours, storefront_intro, suspended_at, suspension_reason, created_at',
     )
     .eq('id', restaurantId)
     .maybeSingle();

@@ -22,6 +22,7 @@ import {
   customerMenuItemDetailPanelExitedClass,
 } from '@/lib/customer-menu-item-detail-layout';
 import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import { DishMotionVideo } from '@/components/menu/DishMotionVideo';
 import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
@@ -183,6 +184,7 @@ export function CustomerMenuItemDetailSheet({
             ) : (
               <div className="flex h-full w-full items-center justify-center text-7xl">{item.emoji}</div>
             )}
+            {imageSrc ? <DishMotionVideo key={item.id} src={item.video_url} /> : null}
             <MenuItemFlavorChips
               flavorCodes={item.flavor_codes}
               lang={lang}

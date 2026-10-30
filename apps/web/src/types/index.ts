@@ -157,6 +157,12 @@ export interface MenuItem {
   category_zh?: Category | null;
   emoji: string;
   image_url?: string | null;
+  /** Pro dish motion video (960×720 mp4) for the guest detail hero; set/cleared with rail_video_url + video_effect. */
+  video_url?: string | null;
+  /** Pro dish motion video (480×360 mp4) for the guest recommended rail poster. */
+  rail_video_url?: string | null;
+  /** Motion template the staff picked — see `DISH_VIDEO_EFFECTS`. */
+  video_effect?: string | null;
   /** Enabled note-preset group ids; guest sees all active presets in these groups. */
   note_preset_group_ids?: string[];
   /** EU allergen codes this dish contains; empty = unmarked (not allergen-free). */

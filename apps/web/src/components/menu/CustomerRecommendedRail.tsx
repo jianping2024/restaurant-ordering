@@ -14,6 +14,7 @@ import {
 import { formatMenuCatalogItemLabel, formatMenuItemOpenDetailAria } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { VegetarianMark } from '@/components/menu/VegetarianMark';
+import { DishMotionVideo } from '@/components/menu/DishMotionVideo';
 
 type Props = {
   items: MenuItem[];
@@ -97,6 +98,7 @@ export function CustomerRecommendedRail({
                     {item.emoji}
                   </span>
                 )}
+                {imageSrc ? <DishMotionVideo src={item.rail_video_url} /> : null}
                 {item.is_vegetarian ? (
                   <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} />
                 ) : null}

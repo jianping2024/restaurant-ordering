@@ -1,15 +1,18 @@
+import type { PremiumKey } from './premium-tier';
+
 /** Known restaurant feature keys — extend this union when adding toggles. */
 export type RestaurantFeatureKey =
   | 'bill_receipt_print'
   | 'bill_sync_to_fiscal'
   | 'kitchen_serve_to_table'
+  | 'menu_dish_video_enabled'
   | 'menu_flavor_hints_enabled'
   | 'open_table_receipt_print'
   | 'quick_table_close'
   | 'takeaway_ordering';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
-export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen' | 'ordering';
+export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen' | 'menuDisplay' | 'ordering';
 
 export type RestaurantFeatureFlags = Partial<Record<RestaurantFeatureKey, boolean>>;
 
@@ -17,7 +20,7 @@ export type ResolvedRestaurantFeatureFlags = Record<RestaurantFeatureKey, boolea
 
 export type RestaurantFeatureModuleDefinition = {
   id: RestaurantFeatureModuleId;
-  labelKey: 'moduleBilling' | 'moduleFlavor' | 'moduleKitchen' | 'moduleOrdering';
+  labelKey: 'moduleBilling' | 'moduleFlavor' | 'moduleKitchen' | 'moduleMenuDisplay' | 'moduleOrdering';
   sortOrder: number;
 };
 
@@ -29,6 +32,7 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrint'
     | 'billSyncToFiscal'
     | 'kitchenServeToTable'
+    | 'menuDishVideo'
     | 'menuFlavorHints'
     | 'openTableReceiptPrint'
     | 'quickTableClose'
@@ -37,10 +41,13 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
+    | 'menuDishVideoDesc'
     | 'menuFlavorHintsDesc'
     | 'openTableReceiptPrintDesc'
     | 'quickTableCloseDesc'
     | 'takeawayOrderingDesc';
+  /** Platform Pro gate (`platform_pro_settings.premium_keys`): toggle is locked unless Pro is effective. */
+  premiumKey?: PremiumKey;
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -55,6 +62,7 @@ export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinit
   { id: 'kitchen', labelKey: 'moduleKitchen', sortOrder: 15 },
   { id: 'billing', labelKey: 'moduleBilling', sortOrder: 20 },
   { id: 'flavor', labelKey: 'moduleFlavor', sortOrder: 25 },
+  { id: 'menuDisplay', labelKey: 'moduleMenuDisplay', sortOrder: 27 },
   { id: 'ordering', labelKey: 'moduleOrdering', sortOrder: 30 },
 ] as const;
 
@@ -100,6 +108,14 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'menuFlavorHints',
     descKey: 'menuFlavorHintsDesc',
+  },
+  {
+    key: 'menu_dish_video_enabled',
+    moduleId: 'menuDisplay',
+    defaultEnabled: false,
+    labelKey: 'menuDishVideo',
+    descKey: 'menuDishVideoDesc',
+    premiumKey: 'menu_dish_video',
   },
   {
     key: 'takeaway_ordering',

@@ -25,13 +25,18 @@ export type WaiterBoardCardDisplayLabels = {
   cardTransferredBadge: string;
 };
 
-/** Meta row only — seats and dining duration (opener / idle hint are not chips). */
-export type WaiterBoardCardMetaChipKind = 'seats' | 'time';
+/** Meta row only — seats, dining duration, ordered dish qty (opener / idle hint are not chips). */
+export type WaiterBoardCardMetaChipKind = 'seats' | 'time' | 'dishes';
 
 export type WaiterBoardCardMetaChip = {
   kind: WaiterBoardCardMetaChipKind;
   text: string;
 };
+
+/** Sole floor-card dish-portion label — bare `×N` (no icon, all locales). */
+export function formatWaiterBoardOrderedDishQty(orderedDishQty: number): string {
+  return `×${Math.max(0, Math.floor(Number(orderedDishQty) || 0))}`;
+}
 
 /**
  * Sole floor-card headcount / relation badge — rendered on the status rail.
@@ -44,7 +49,7 @@ export type WaiterBoardStatusBadge = {
 
 /**
  * Sole floor-card display shape (6-col dense).
- * Title = tableTitle only; meta = seats/time;
+ * Title = tableTitle only; meta = seats/time/dishes (`×N`);
  * status rail = statusLabel + statusBadge (headcount, not seat capacity);
  * below rule = opener slot (name or empty) then amountText XOR idleHint.
  * amountText gated by showAmounts (same canViewTableDetailAmounts as table detail);
@@ -148,6 +153,7 @@ function diningDurationText(
 function buildMetaChips(input: {
   boardState: WaiterTableBoardState;
   capacityText: string;
+  orderedDishQty: number;
   session: WaiterTableSessionMeta | undefined;
   checkoutRequestedAt: string | null;
   lang: UILanguage;
@@ -170,6 +176,7 @@ function buildMetaChips(input: {
   if (timeText) {
     chips.push({ kind: 'time', text: timeText });
   }
+  chips.push({ kind: 'dishes', text: formatWaiterBoardOrderedDishQty(input.orderedDishQty) });
 
   return chips;
 }
@@ -239,6 +246,7 @@ export function buildWaiterBoardCardViewModel(input: {
     metaChips: buildMetaChips({
       boardState: input.boardState,
       capacityText,
+      orderedDishQty: input.card.orderedDishQty,
       session: input.session,
       checkoutRequestedAt: input.checkoutRequestedAt,
       lang: input.lang,

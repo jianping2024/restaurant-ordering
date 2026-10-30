@@ -11,6 +11,7 @@ import {
   menuItemIdFromLimitedBillableKey,
   sortBillableSessionItemsForWaiterDetail,
   sortOrdersForBillableCatalog,
+  sumBillableMenuCatalogQty,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
@@ -96,6 +97,7 @@ describe('sumBillableSessionTotal', () => {
 
     assert.equal(sumBillableSessionTotal(orders), 5);
     assert.equal(sumBillableNonBuffetTotal(orders), 5);
+    assert.equal(sumBillableMenuCatalogQty(orders), 3);
   });
 
   it('sums non-buffet lines only for meals total', () => {
@@ -134,6 +136,72 @@ describe('sumBillableSessionTotal', () => {
 
     assert.equal(sumBillableSessionTotal(orders), 38.9);
     assert.equal(sumBillableNonBuffetTotal(orders), 3);
+    assert.equal(sumBillableMenuCatalogQty(orders), 2);
+  });
+
+  it('menu catalog qty excludes buffet headcount, takeaway, packaging, voided', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 1,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 45.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'd1',
+            name: 'Água',
+            name_pt: 'Água',
+            qty: 2,
+            price: 1.5,
+            emoji: '💧',
+            item_status: 'pending',
+          },
+          {
+            id: 'd2',
+            name: 'Void cola',
+            name_pt: 'Void cola',
+            qty: 4,
+            price: 2,
+            emoji: '🥤',
+            item_status: 'voided',
+          },
+          {
+            id: 'takeaway',
+            kind: 'takeaway',
+            name: 'Takeaway',
+            name_pt: 'Takeaway',
+            qty: 1,
+            price: 1,
+            emoji: '',
+            item_status: 'pending',
+          },
+          {
+            id: 'box',
+            kind: 'packaging',
+            name: 'Box',
+            name_pt: 'Box',
+            qty: 3,
+            price: 0.5,
+            emoji: '',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+    assert.equal(sumBillableMenuCatalogQty(orders), 2);
   });
 
   it('excludes kitchen_remake lines from payable totals', () => {

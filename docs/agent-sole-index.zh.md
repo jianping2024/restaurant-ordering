@@ -414,7 +414,7 @@ sole `dashboard.waiter_board.table_detail_amounts.view` → `canViewTableDetailA
 
 ### Floor-card fixed slots
 
-sole geometry is always-on `cardOpenerSlot` + `cardAmountSlot` + `cardStatusSlot` + status-rail `cardRailBelow*` (empty when idle) + one-line `cardMeta`; do not omit opener/status/rail bands by board state or reintroduce `flex-wrap` meta that changes hall card height.
+sole geometry is always-on `cardOpenerSlot` + `cardAmountSlot` + `cardStatusSlot` + status-rail `cardRailBelow*` (empty when idle) + one-line `cardMeta` (seats ± time ± dishes `×N` via sole `orderedDishQty`/`sumBillableMenuCatalogQty`/`formatWaiterBoardOrderedDishQty` — no icon on dishes); do not omit opener/status/rail bands by board state or reintroduce `flex-wrap` meta that changes hall card height.
 
 ### Waiter table-detail session writes
 

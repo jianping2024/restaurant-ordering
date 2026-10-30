@@ -13,6 +13,7 @@ function idleSummaryForFloorTable(table: RestaurantTableRow): WaiterBoardTableSu
     seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
     buffetHeadcount: null,
     sessionTotal: 0,
+    orderedDishQty: 0,
     hasBuffet: false,
     occupied: false,
     updatedAt: '',

@@ -3,7 +3,7 @@ import {
   listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
 import { lineTotal } from '@/lib/cart-totals';
-import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import {
   allocateSessionSushiLimitedLines,
@@ -339,6 +339,18 @@ export function sumBillableNonBuffetTotal(orders: Order[]): number {
   return buildBillableSessionItems(orders).reduce((sum, row) => {
     if (isBuffetBaseItem(row.item)) return sum;
     return sum + billableLineAmount(row);
+  }, 0);
+}
+
+/**
+ * Sole floor-card / waiter「已点」portion count: sum of menu-catalog line qty
+ * from {@link buildBillableSessionItems} (void/remake already excluded).
+ * Excludes buffet headcount, takeaway charge, packaging — not dishes.
+ */
+export function sumBillableMenuCatalogQty(orders: Order[]): number {
+  return buildBillableSessionItems(orders).reduce((sum, row) => {
+    if (!isMenuCatalogItem(row.item)) return sum;
+    return sum + Math.max(0, Number(row.item.qty) || 0);
   }, 0);
 }
 

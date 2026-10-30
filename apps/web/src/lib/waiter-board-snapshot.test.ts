@@ -23,6 +23,7 @@ describe('buildWaiterBoardTableSummaries', () => {
     assert.equal(a.occupied, false);
     assert.equal(a.buffetHeadcount, null);
     assert.equal(a.sessionTotal, 0);
+    assert.equal(a.orderedDishQty, 0);
   });
 
   it('aggregates session orders for an open table', () => {
@@ -57,6 +58,7 @@ describe('buildWaiterBoardTableSummaries', () => {
     assert.equal(a.occupied, true);
     assert.equal(a.buffetHeadcount, null);
     assert.equal(a.sessionTotal, 10);
+    assert.equal(a.orderedDishQty, 2);
   });
 
   it('derives buffet headcount from active buffet_base line', () => {
@@ -108,6 +110,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMax: 4,
         buffetHeadcount: null,
         sessionTotal: 0,
+        orderedDishQty: 0,
         hasBuffet: false,
         occupied: false,
         updatedAt: '',
@@ -119,6 +122,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMax: 4,
         buffetHeadcount: { adults: 2, children: 0 },
         sessionTotal: 20,
+        orderedDishQty: 0,
         hasBuffet: false,
         occupied: true,
         updatedAt: '',
@@ -144,6 +148,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMax: 4,
         buffetHeadcount: { adults: 2, children: 0 },
         sessionTotal: 20,
+        orderedDishQty: 0,
         hasBuffet: true,
         occupied: true,
         updatedAt: '',
@@ -155,6 +160,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMax: 4,
         buffetHeadcount: null,
         sessionTotal: 0,
+        orderedDishQty: 0,
         hasBuffet: false,
         occupied: false,
         updatedAt: '',

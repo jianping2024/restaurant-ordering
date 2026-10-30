@@ -3,6 +3,9 @@
  * should be seen — on screen, tab visible, and not covered by an open detail.
  * Element `src` must always match the catalog URL (resync when it changes).
  * No global concurrent cap. Client wiring lives in `DishMotionVideo`.
+ *
+ * Well media exclusivity: when motion is covering, the still (photo/emoji)
+ * must not show through — sole `dishMotionCoversStill`.
  */
 
 export type DishMotionVideoLayer = 'rail' | 'detail';
@@ -16,6 +19,18 @@ export function dishMotionVideoShouldPlay(input: {
   if (!input.intersecting || !input.pageVisible) return false;
   if (input.layer === 'detail') return true;
   return !input.detailOpen;
+}
+
+/**
+ * Sole rule: motion is the only visible media in the well (still must hide).
+ * Ready = first `playing` event; failed / not allowed → still stays.
+ */
+export function dishMotionCoversStill(input: {
+  allowed: boolean;
+  failed: boolean;
+  ready: boolean;
+}): boolean {
+  return input.allowed && !input.failed && input.ready;
 }
 
 /**

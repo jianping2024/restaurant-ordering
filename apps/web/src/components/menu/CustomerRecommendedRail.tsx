@@ -84,24 +84,23 @@ export function CustomerRecommendedRail({
                 className={RECOMMENDED_POSTER_THUMB_CLASS}
                 style={{ width: POSTER_WIDTH_PX, height: POSTER_MEDIA_HEIGHT_PX }}
               >
-                {imageSrc ? (
-                  <Image
-                    key={imageSrc}
-                    src={imageSrc}
-                    alt=""
-                    fill
-                    className={MENU_IMAGE_OBJECT_FIT_CLASS}
-                    sizes={`${POSTER_WIDTH_PX}px`}
-                    unoptimized={MENU_IMAGE_UNOPTIMIZED}
-                  />
-                ) : (
-                  <span className="mesa-recommended-poster-thumb-emoji flex h-full w-full items-center justify-center">
-                    {item.emoji}
-                  </span>
-                )}
-                {imageSrc ? (
-                  <DishMotionVideo layer="rail" src={item.rail_video_url} />
-                ) : null}
+                <DishMotionVideo layer="rail" src={imageSrc ? item.rail_video_url : null}>
+                  {imageSrc ? (
+                    <Image
+                      key={imageSrc}
+                      src={imageSrc}
+                      alt=""
+                      fill
+                      className={MENU_IMAGE_OBJECT_FIT_CLASS}
+                      sizes={`${POSTER_WIDTH_PX}px`}
+                      unoptimized={MENU_IMAGE_UNOPTIMIZED}
+                    />
+                  ) : (
+                    <span className="mesa-recommended-poster-thumb-emoji flex h-full w-full items-center justify-center">
+                      {item.emoji}
+                    </span>
+                  )}
+                </DishMotionVideo>
                 {item.is_vegetarian ? (
                   <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} />
                 ) : null}

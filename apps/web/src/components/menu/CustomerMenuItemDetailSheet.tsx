@@ -171,22 +171,21 @@ export function CustomerMenuItemDetailSheet({
 
         <div className={customerMenuItemDetailBodyClass}>
           <div className={CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS}>
-            {imageSrc ? (
-              <Image
-                src={imageSrc}
-                alt={label}
-                fill
-                className={MENU_IMAGE_OBJECT_FIT_CLASS}
-                sizes="(max-width: 1023px) 100vw, 32rem"
-                priority
-                unoptimized={MENU_IMAGE_UNOPTIMIZED}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-7xl">{item.emoji}</div>
-            )}
-            {imageSrc ? (
-              <DishMotionVideo key={item.id} layer="detail" src={item.video_url} />
-            ) : null}
+            <DishMotionVideo key={item.id} layer="detail" src={imageSrc ? item.video_url : null}>
+              {imageSrc ? (
+                <Image
+                  src={imageSrc}
+                  alt={label}
+                  fill
+                  className={MENU_IMAGE_OBJECT_FIT_CLASS}
+                  sizes="(max-width: 1023px) 100vw, 32rem"
+                  priority
+                  unoptimized={MENU_IMAGE_UNOPTIMIZED}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-7xl">{item.emoji}</div>
+              )}
+            </DishMotionVideo>
             <MenuItemFlavorChips
               flavorCodes={item.flavor_codes}
               lang={lang}

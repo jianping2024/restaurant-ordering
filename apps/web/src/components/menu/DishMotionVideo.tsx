@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { dishVideoDeviceAllows } from '@/lib/menu-dish-video';
 import {
   applyDishMotionVideoElementSrc,
+  dishMotionCoversStill,
   dishMotionVideoShouldPlay,
   type DishMotionVideoLayer,
 } from '@/lib/menu-dish-video-playback';
@@ -47,20 +48,28 @@ function deviceAllowsDishVideo(): boolean {
   });
 }
 
+/** Still layer inside the well — hidden while motion covers (opacity only; keeps layout). */
+const DISH_MOTION_STILL_CLASS =
+  'absolute inset-0 flex items-center justify-center transition-opacity duration-300 motion-reduce:transition-none';
+
 /**
- * Sole guest dish motion video: muted seamless loop over the still photo.
+ * Sole guest dish motion video in a media well (list thumb, recommended rail,
+ * detail hero): muted seamless loop. Children = the still (photo / emoji) —
+ * one visible media at a time via `dishMotionCoversStill` (motion ready →
+ * still opacity 0; no src / not allowed / error → still only).
  * Play only when on screen (≥50%), the tab is visible, and — for rail — no
  * detail sheet is open. Detail layer always wins while mounted. Downloads
  * only when about to play (`preload="none"`); catalog URL changes always
- * resync the element `src` (never keep a stale mp4). Reduced motion / data
- * saver / 2G / errors keep the photo. No global concurrent cap.
+ * resync the element `src`. No global concurrent cap.
  */
 export function DishMotionVideo(props: {
   src: string | null | undefined;
-  /** Recommended rail (default) yields while a detail player is open. */
+  /** Recommended rail / list (default) yields while a detail player is open. */
   layer?: DishMotionVideoLayer;
+  /** Still photo or emoji — sole fallback while motion is not covering. */
+  children: ReactNode;
 }) {
-  const { src } = props;
+  const { src, children } = props;
   const layer: DishMotionVideoLayer = props.layer ?? 'rail';
   const ref = useRef<HTMLVideoElement>(null);
   const intersectingRef = useRef(false);
@@ -95,7 +104,7 @@ export function DishMotionVideo(props: {
           setReady(false);
         }
         void video.play().catch(() => {
-          /* autoplay refused (e.g. iOS low power) → photo stays */
+          /* autoplay refused (e.g. iOS low power) → still stays */
         });
       } else if (!video.paused) {
         video.pause();
@@ -127,22 +136,34 @@ export function DishMotionVideo(props: {
     };
   }, [allowed, failed, src, layer]);
 
-  if (!allowed || failed || !src) return null;
+  const showVideo = Boolean(allowed && !failed && src);
+  const covering = dishMotionCoversStill({ allowed, failed, ready });
+
   return (
-    <video
-      ref={ref}
-      muted
-      loop
-      playsInline
-      preload="none"
-      aria-hidden
-      tabIndex={-1}
-      disablePictureInPicture
-      onPlaying={() => setReady(true)}
-      onError={() => setFailed(true)}
-      className={`pointer-events-none absolute inset-0 h-full w-full ${MENU_IMAGE_OBJECT_FIT_CLASS} transition-opacity duration-300 motion-reduce:transition-none ${
-        ready ? 'opacity-100' : 'opacity-0'
-      }`}
-    />
+    <>
+      <span
+        className={`${DISH_MOTION_STILL_CLASS} ${covering ? 'opacity-0' : 'opacity-100'}`}
+        aria-hidden={covering || undefined}
+      >
+        {children}
+      </span>
+      {showVideo ? (
+        <video
+          ref={ref}
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-hidden
+          tabIndex={-1}
+          disablePictureInPicture
+          onPlaying={() => setReady(true)}
+          onError={() => setFailed(true)}
+          className={`pointer-events-none absolute inset-0 h-full w-full ${MENU_IMAGE_OBJECT_FIT_CLASS} transition-opacity duration-300 motion-reduce:transition-none ${
+            ready ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      ) : null}
+    </>
   );
 }

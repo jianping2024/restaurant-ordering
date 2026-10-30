@@ -3,9 +3,12 @@ import { describe, it } from 'node:test';
 import {
   canUsePremiumFeature,
   isProEffective,
+  normalizePremiumKeyGrants,
   normalizePremiumKeys,
   normalizeRestaurantPlan,
+  parseProFeatureProduct,
   proTrialValidUntil,
+  quoteProFeaturesEur,
   PRO_TRIAL_DAYS,
 } from './premium-tier';
 import {
@@ -71,16 +74,40 @@ describe('premium-tier', () => {
     );
   });
 
-  it('canUsePremiumFeature skips gate when key not in catalog', () => {
+  it('canUsePremiumFeature requires effective Pro and a grant', () => {
+    const now = new Date('2026-06-15T00:00:00.000Z');
     assert.equal(
       canUsePremiumFeature({
         premiumKey: 'value_analytics',
-        enabledKeys: ['abnormal_ops'],
+        entitledKeys: ['value_analytics'],
+        plan: 'pro',
+        proValidUntil: '2026-12-31T00:00:00.000Z',
+        licenseValidUntil: null,
+        now,
+      }),
+      true,
+    );
+    assert.equal(
+      canUsePremiumFeature({
+        premiumKey: 'value_analytics',
+        entitledKeys: ['abnormal_ops'],
+        plan: 'pro',
+        proValidUntil: '2026-12-31T00:00:00.000Z',
+        licenseValidUntil: null,
+        now,
+      }),
+      false,
+    );
+    assert.equal(
+      canUsePremiumFeature({
+        premiumKey: 'value_analytics',
+        entitledKeys: ['value_analytics'],
         plan: 'basic',
         proValidUntil: null,
         licenseValidUntil: null,
+        now,
       }),
-      true,
+      false,
     );
   });
 
@@ -99,5 +126,37 @@ describe('premium-tier', () => {
       'operation_logs',
       'menu_dish_video',
     ]);
+  });
+
+  it('normalizePremiumKeyGrants keeps empty and drops invalid', () => {
+    assert.deepEqual(normalizePremiumKeyGrants(null), []);
+    assert.deepEqual(normalizePremiumKeyGrants([]), []);
+    assert.deepEqual(normalizePremiumKeyGrants(['value_analytics', 'nope']), ['value_analytics']);
+  });
+
+  it('quoteProFeaturesEur sums active list prices', () => {
+    const products = [
+      parseProFeatureProduct({
+        feature_key: 'value_analytics',
+        price_month_eur: 10,
+        price_year_eur: 100,
+        active: true,
+      })!,
+      parseProFeatureProduct({
+        feature_key: 'menu_dish_video',
+        price_month_eur: 5.5,
+        price_year_eur: 55,
+        active: true,
+      })!,
+      parseProFeatureProduct({
+        feature_key: 'abnormal_ops',
+        price_month_eur: 9,
+        price_year_eur: 90,
+        active: false,
+      })!,
+    ];
+    assert.equal(quoteProFeaturesEur(['value_analytics', 'menu_dish_video'], products, 'month'), 15.5);
+    assert.equal(quoteProFeaturesEur(['value_analytics', 'menu_dish_video'], products, 'year'), 155);
+    assert.equal(quoteProFeaturesEur(['abnormal_ops'], products, 'month'), 0);
   });
 });

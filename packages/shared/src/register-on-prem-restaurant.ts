@@ -9,7 +9,7 @@ import {
   resolveLicenseCalendarDate,
   todayLisbonCalendarDate,
 } from './license-calendar';
-import { proTrialValidUntil } from './premium-tier';
+import { proTrialFeatureGrantRows, proTrialValidUntil } from './premium-tier';
 import { defaultRestaurantSlug } from './slug';
 import type { PrintLocale } from './create-restaurant';
 
@@ -130,9 +130,23 @@ export async function registerOnPremRestaurant(
     };
   }
 
+  const restaurantId = restaurantRow.id as string;
+  const { error: grantError } = await admin
+    .from('restaurant_pro_feature_grants')
+    .insert(proTrialFeatureGrantRows(restaurantId));
+  if (grantError) {
+    await admin.from('restaurants').delete().eq('id', restaurantId);
+    return {
+      ok: false,
+      error: 'pro_grant_seed_failed',
+      status: 500,
+      detail: grantError.message,
+    };
+  }
+
   return {
     ok: true,
     slug,
-    restaurantId: restaurantRow.id as string,
+    restaurantId,
   };
 }

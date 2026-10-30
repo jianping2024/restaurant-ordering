@@ -233,7 +233,9 @@ platform_admin_accounts.role: support | admin
 restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | owner | print_agent | custom
 restaurants.plan: basic | pro  
 restaurants.pro_valid_until: timestamptz nullable — Pro membership expiry (Ops: Lisbon calendar day → that day 23:59:59.999 Europe/Lisbon, same as license_valid_until); effective Pro also requires license_valid_until when set  
-platform_pro_settings (id: text PK default 'default', premium_keys: jsonb /* default value_analytics|abnormal_ops|operation_logs|menu_dish_video */, wechat_url: text nullable, whatsapp_url: text nullable, updated_at: timestamptz) — singleton global Pro catalog + upgrade contact links  
+pro_feature_products (feature_key: text PK [value_analytics|abnormal_ops|operation_logs|menu_dish_video], price_month_eur: numeric >=0, price_year_eur: numeric >=0, active: boolean, updated_at: timestamptz) — platform Pro price catalog (EUR)  
+restaurant_pro_feature_grants (restaurant_id: uuid FK -> restaurants.id, feature_key: text, created_at: timestamptz; PK (restaurant_id, feature_key)) — per-restaurant Pro feature entitlements (usable only when Pro effective)  
+platform_pro_settings (id: text PK default 'default', premium_keys: jsonb, wechat_url: text nullable, whatsapp_url: text nullable, updated_at: timestamptz) — legacy singleton; do not use for new gates (pricing+grants tables above)  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  
 restaurants.order_radius_meters: 10..10000 (column default 1000; existing rows unchanged by default migration)  

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设计图 · 每店 Pro 功能包</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --panel: #18181b;
+      --panel2: #27272a;
+      --line: #3f3f46;
+      --text: #fafafa;
+      --muted: #a1a1aa;
+      --amber: #f59e0b;
+      --amber-ink: #1c1917;
+      --ok: #34d399;
+      --warn: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 48px; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .lead { margin: 0 0 20px; color: var(--muted); font-size: 14px; max-width: 70ch; }
+    .compare {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 820px) { .compare { grid-template-columns: 1fr; } }
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .chip b { display: block; margin-bottom: 4px; }
+    .chip.bad b { color: #fca5a5; }
+    .chip.good b { color: var(--ok); }
+    .chip span { color: var(--muted); }
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .panel-h {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .panel-h h2 { margin: 0; font-size: 16px; font-weight: 600; }
+    .panel-h .sub { color: var(--muted); font-size: 12px; }
+    .panel-b { padding: 16px; }
+    .crumb { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .crumb a { color: var(--amber); text-decoration: none; }
+    .kv {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .kv div {
+      background: #09090b;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .kv dt { color: var(--muted); font-size: 12px; }
+    .kv dd { margin: 4px 0 0; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+    label.field { display: block; color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+    select, input[type="text"] {
+      margin-top: 6px;
+      width: 100%;
+      max-width: 280px;
+      background: #09090b;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #09090b;
+      padding: 12px;
+    }
+    .box legend {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 6px;
+      border-radius: 8px;
+    }
+    .opt:hover { background: rgba(255,255,255,.03); }
+    .opt.child {
+      margin-left: 26px;
+      border-left: 2px solid #3f3f46;
+      padding-left: 12px;
+    }
+    .boxx {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      border-radius: 3px;
+      border: 1.5px solid #71717a;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--amber-ink);
+    }
+    .boxx.on { background: var(--amber); border-color: var(--amber); }
+    .boxx.off { background: transparent; }
+    .boxx.dim { opacity: 0.35; }
+    .opt .t { font-size: 13px; }
+    .opt .k { margin-left: 8px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #71717a; }
+    .opt .d { margin-top: 2px; font-size: 12px; color: var(--muted); }
+    .actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: default;
+    }
+    .btn.primary { background: var(--amber); color: var(--amber-ink); }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .note {
+      margin-top: 12px;
+      font-size: 12.5px;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .global .opt { opacity: 0.55; }
+    .strike { text-decoration: line-through; color: #71717a; }
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--ok);
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .tag.move {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--warn);
+    }
+    footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    code { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>每店 Pro 功能包 · 设计图</h1>
+    <p class="lead">
+      现在「需要 Pro 的功能」是全平台一把尺：所有 Pro 店解锁同一批能力。
+      目标改成：Ops 在<strong>每家店</strong>勾选这店 Pro 能用哪些功能；全局页只留升级联系方式，不再用全局勾选决定每店开放范围。
+    </p>
+
+    <div class="compare">
+      <div class="chip bad">
+        <b>现在（不行）</b>
+        <span>全局勾「菜品动图」→ 所有有效 Pro 店都能开；无法做到甲店有分析、乙店有动图。</span>
+      </div>
+      <div class="chip good">
+        <b>目标（每店一份）</b>
+        <span>店仍要先是有效 Pro；再在本店勾功能包。没勾的功能，店后台显示要升级 / 不可用。</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel" aria-label="餐厅详情 Pro">
+        <div class="panel-h">
+          <h2>餐厅详情 · Pro 会员</h2>
+          <span class="sub">主设置位置 · 每店一份</span>
+        </div>
+        <div class="panel-b">
+          <div class="crumb"><a href="#">餐厅</a> / 白云自助火锅</div>
+
+          <dl class="kv">
+            <div>
+              <dt>当前 plan</dt>
+              <dd>pro</dd>
+            </div>
+            <div>
+              <dt>pro_valid_until</dt>
+              <dd>2028-01-01</dd>
+            </div>
+          </dl>
+
+          <label class="field">
+            套餐
+            <select aria-label="套餐">
+              <option>basic</option>
+              <option selected>pro</option>
+            </select>
+          </label>
+
+          <div class="box">
+            <div class="legend">本店 Pro 功能包 <span class="tag">新增</span></div>
+
+            <div class="opt">
+              <div class="boxx on">✓</div>
+              <div>
+                <div class="t">增值分析 <span class="k">value_analytics</span></div>
+                <div class="d">数据概览 / 增值分析页</div>
+              </div>
+            </div>
+            <div class="opt">
+              <div class="boxx on">✓</div>
+              <div>
+                <div class="t">异常操作 <span class="k">abnormal_ops</span></div>
+                <div class="d">异常操作页</div>
+              </div>
+            </div>
+            <div class="opt">
+              <div class="boxx off"></div>
+              <div>
+                <div class="t">操作记录 <span class="k">operation_logs</span></div>
+                <div class="d">本店未购买 · 店内入口锁定</div>
+              </div>
+            </div>
+            <div class="opt">
+              <div class="boxx on">✓</div>
+              <div>
+                <div class="t">菜品动图 <span class="k">menu_dish_video</span></div>
+                <div class="d">推荐栏 + 详情动图；店内还可再开「点餐列表动图」附加项</div>
+              </div>
+            </div>
+            <div class="opt child">
+              <div class="boxx dim"></div>
+              <div>
+                <div class="t">点餐列表动图 <span class="k">（店内附加开关）</span></div>
+                <div class="d">不在 Ops 勾选。是否播列表由店「功能设置」决定；此处只决定有没有「菜品动图」资格。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn primary">保存本店 Pro</button>
+            <button type="button" class="btn ghost">续期 Pro</button>
+          </div>
+
+          <div class="note">
+            规则：套餐不是 pro / Pro 已过期 → 功能包全部不生效。
+            是有效 Pro 但未勾某项 → 该项对这家店关闭。
+            已勾项 → 店主仍可在功能设置里自己开关（如动图开/关）。
+          </div>
+        </div>
+      </section>
+
+      <section class="panel global" aria-label="全局 Pro 设置改版">
+        <div class="panel-h">
+          <h2>全局 · Pro 会员设置</h2>
+          <span class="sub">降级为联系方式</span>
+        </div>
+        <div class="panel-b">
+          <p class="crumb" style="margin-top:0">/ops/settings/pro</p>
+          <p style="margin:0 0 14px;font-size:13px;color:var(--muted)">
+            不再用全局勾选决定「哪些店能用哪些功能」。
+            <span class="tag move">迁到每店</span>
+          </p>
+
+          <div class="box" style="margin-bottom:14px">
+            <div class="legend strike">需要 Pro 的功能（全局）— 移除操作</div>
+            <div class="opt">
+              <div class="boxx dim">✓</div>
+              <div class="t strike">增值分析 / 异常操作 / 操作记录 / 菜品动图</div>
+            </div>
+          </div>
+
+          <label class="field">
+            微信联系链接
+            <input type="text" placeholder="https://…" value="" readonly />
+          </label>
+          <label class="field">
+            WhatsApp 联系链接
+            <input type="text" placeholder="https://wa.me/…" value="" readonly />
+          </label>
+
+          <div class="actions">
+            <button type="button" class="btn primary">保存联系方式</button>
+          </div>
+
+          <div class="note">
+            功能清单以产品代码里的固定目录为准（增值分析、异常操作、操作记录、菜品动图…）。
+            Ops 只在每家店勾「买了哪几项」。
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      文件：<code>docs/design/mockups/2026-10-30-per-restaurant-pro-features.html</code>
+      · 示意稿，确认后再改库表与代码。
+    </footer>
+  </div>
+</body>
+</html>

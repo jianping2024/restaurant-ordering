@@ -6,7 +6,7 @@ import {
 import { normalizeCountryCode } from './country-code';
 import { ensurePrintAgentStaff } from './print-agent-staff';
 import { ensureRestaurantPresetRoles } from './role-permission-templates';
-import { proTrialValidUntil } from './premium-tier';
+import { proTrialFeatureGrantRows, proTrialValidUntil } from './premium-tier';
 import { defaultRestaurantSlug } from './slug';
 
 export type PrintLocale = 'zh' | 'en' | 'pt';
@@ -137,6 +137,21 @@ export async function createRestaurantWithOwner(
   }
 
   const restaurantId = restaurantRow.id as string;
+
+  const { error: grantError } = await admin
+    .from('restaurant_pro_feature_grants')
+    .insert(proTrialFeatureGrantRows(restaurantId));
+  if (grantError) {
+    await admin.from('restaurants').delete().eq('id', restaurantId);
+    await admin.auth.admin.deleteUser(ownerId);
+    return {
+      ok: false,
+      error: 'pro_grant_seed_failed',
+      status: 500,
+      detail: grantError.message,
+    };
+  }
+
   try {
     await ensureRestaurantPresetRoles(admin, restaurantId);
   } catch (e) {

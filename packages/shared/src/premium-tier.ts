@@ -14,6 +14,15 @@ export type PremiumKey = (typeof PREMIUM_KEYS)[number];
 
 export const DEFAULT_PREMIUM_KEYS: readonly PremiumKey[] = [...PREMIUM_KEYS];
 
+export type ProBillingPeriod = 'month' | 'year';
+
+export type ProFeatureProduct = {
+  featureKey: PremiumKey;
+  priceMonthEur: number;
+  priceYearEur: number;
+  active: boolean;
+};
+
 export function isRestaurantPlan(value: string | null | undefined): value is RestaurantPlan {
   return value === 'basic' || value === 'pro';
 }
@@ -33,8 +42,9 @@ export function isPremiumKey(value: string): value is PremiumKey {
 }
 
 /**
- * Normalize platform Pro catalog. Explicit `[]` means nothing requires Pro.
- * Non-array / missing → product defaults. All-invalid entries → defaults (not empty wipe).
+ * Normalize an entitlement / grant list.
+ * Explicit `[]` stays empty. Non-array / missing → product defaults.
+ * All-invalid entries → defaults (not empty wipe).
  */
 export function normalizePremiumKeys(raw: unknown): PremiumKey[] {
   if (!Array.isArray(raw)) return [...DEFAULT_PREMIUM_KEYS];
@@ -46,6 +56,18 @@ export function normalizePremiumKeys(raw: unknown): PremiumKey[] {
     }
   }
   return out.length > 0 ? out : [...DEFAULT_PREMIUM_KEYS];
+}
+
+/** Grant list from Ops/API: empty allowed; invalid dropped; never invent defaults. */
+export function normalizePremiumKeyGrants(raw: unknown): PremiumKey[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PremiumKey[] = [];
+  for (const item of raw) {
+    if (typeof item === 'string' && isPremiumKey(item) && !out.includes(item)) {
+      out.push(item);
+    }
+  }
+  return out;
 }
 
 /**
@@ -74,17 +96,72 @@ export function isProEffective(input: ProEffectiveInput): boolean {
   return true;
 }
 
-export function premiumKeyRequiresPro(
-  premiumKey: PremiumKey,
-  enabledKeys: readonly PremiumKey[],
+/**
+ * Sole commercial gate: effective Pro + per-restaurant grant for this feature.
+ * Store feature_flags are a separate operational layer on top.
+ */
+export function canUsePremiumFeature(
+  input: {
+    premiumKey: PremiumKey;
+    entitledKeys: readonly PremiumKey[];
+  } & ProEffectiveInput,
 ): boolean {
-  return enabledKeys.includes(premiumKey);
+  if (!isProEffective(input)) return false;
+  return input.entitledKeys.includes(input.premiumKey);
 }
 
-export function canUsePremiumFeature(input: {
-  premiumKey: PremiumKey;
-  enabledKeys: readonly PremiumKey[];
-} & ProEffectiveInput): boolean {
-  if (!premiumKeyRequiresPro(input.premiumKey, input.enabledKeys)) return true;
-  return isProEffective(input);
+function nonNegativeMoney(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return null;
+  return Math.round(value * 100) / 100;
+}
+
+/** Parse one catalog row from DB / API JSON. */
+export function parseProFeatureProduct(raw: unknown): ProFeatureProduct | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const keyRaw =
+    typeof row.featureKey === 'string'
+      ? row.featureKey
+      : typeof row.feature_key === 'string'
+        ? row.feature_key
+        : null;
+  if (!keyRaw || !isPremiumKey(keyRaw)) return null;
+  const month = nonNegativeMoney(
+    row.priceMonthEur ?? row.price_month_eur ?? row.priceMonthEUR,
+  );
+  const year = nonNegativeMoney(row.priceYearEur ?? row.price_year_eur ?? row.priceYearEUR);
+  if (month == null || year == null) return null;
+  return {
+    featureKey: keyRaw,
+    priceMonthEur: month,
+    priceYearEur: year,
+    active: row.active !== false,
+  };
+}
+
+/** Sole Pro quote: sum list prices for entitled keys (inactive catalog rows skipped). */
+export function quoteProFeaturesEur(
+  entitledKeys: readonly PremiumKey[],
+  products: readonly ProFeatureProduct[],
+  period: ProBillingPeriod,
+): number {
+  const byKey = new Map(products.filter((p) => p.active).map((p) => [p.featureKey, p]));
+  let sum = 0;
+  for (const key of entitledKeys) {
+    const product = byKey.get(key);
+    if (!product) continue;
+    sum += period === 'month' ? product.priceMonthEur : product.priceYearEur;
+  }
+  return Math.round(sum * 100) / 100;
+}
+
+/** Trial / new-Pro seed rows for `restaurant_pro_feature_grants` (all known keys). */
+export function proTrialFeatureGrantRows(restaurantId: string): Array<{
+  restaurant_id: string;
+  feature_key: PremiumKey;
+}> {
+  return DEFAULT_PREMIUM_KEYS.map((feature_key) => ({
+    restaurant_id: restaurantId,
+    feature_key,
+  }));
 }

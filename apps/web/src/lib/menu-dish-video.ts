@@ -67,11 +67,12 @@ export function dishVideoObjectPath(
   return `${restaurantId}/${menuItemId}/${key}-${variant}.mp4`;
 }
 
-/** Restaurant columns every dish-video gate needs (Pro tier + store switch). */
+/** Restaurant columns every dish-video gate needs (Pro grant + store switch). */
 export const DISH_VIDEO_GATE_RESTAURANT_COLUMNS =
-  'plan, pro_valid_until, license_valid_until, feature_flags' as const;
+  'id, plan, pro_valid_until, license_valid_until, feature_flags' as const;
 
 export type DishVideoGateRestaurant = {
+  id: string;
   plan?: string | null;
   pro_valid_until?: string | null;
   license_valid_until?: string | null;

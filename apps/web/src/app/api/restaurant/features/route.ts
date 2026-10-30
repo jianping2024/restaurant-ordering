@@ -37,7 +37,7 @@ import { parseTakeawayVatRatePatch, resolveTakeawayVatRate } from '@/lib/checkou
 import { assertCanDisableTakeawayOrdering } from '@/lib/instore-takeaway-server';
 import { isRestaurantFeatureEnabled, isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
-import { computePremiumLockedFeatureKeys, loadPlatformProSettings } from '@/lib/premium/access';
+import { computePremiumLockedFeatureKeys, loadRestaurantProEntitledKeys } from '@/lib/premium/access';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
 import type { PermissionKey } from '@/lib/permissions/registry';
@@ -300,7 +300,10 @@ export async function PATCH(req: Request) {
   }
 
   if (patch && row) {
-    const locked = computePremiumLockedFeatureKeys(row, await loadPlatformProSettings());
+    const locked = computePremiumLockedFeatureKeys(
+      row,
+      await loadRestaurantProEntitledKeys(loaded.principal.restaurantId),
+    );
     // Only turning a locked toggle on is refused; an expired store can still save other settings.
     const blocked = locked.find(
       (key) => patch[key] === true && !isRestaurantFeatureEnabled(row.feature_flags, key),

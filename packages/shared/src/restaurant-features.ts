@@ -46,7 +46,7 @@ export type RestaurantFeatureDefinition = {
     | 'openTableReceiptPrintDesc'
     | 'quickTableCloseDesc'
     | 'takeawayOrderingDesc';
-  /** Platform Pro gate (`platform_pro_settings.premium_keys`): toggle is locked unless Pro is effective. */
+  /** Pro commercial key: toggle locked unless restaurant has effective Pro + feature grant. */
   premiumKey?: PremiumKey;
 };
 

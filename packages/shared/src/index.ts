@@ -43,9 +43,14 @@ export {
   isRestaurantPlan,
   normalizeRestaurantPlan,
   normalizePremiumKeys,
-  premiumKeyRequiresPro,
+  normalizePremiumKeyGrants,
+  parseProFeatureProduct,
+  proTrialFeatureGrantRows,
   proTrialValidUntil,
+  quoteProFeaturesEur,
   type PremiumKey,
+  type ProBillingPeriod,
+  type ProFeatureProduct,
   type RestaurantPlan,
 } from './premium-tier';
 export {

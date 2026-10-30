@@ -7,11 +7,10 @@ import {
   DISH_VIDEO_GATE_RESTAURANT_COLUMNS,
   type DishVideoGateRestaurant,
 } from '@/lib/menu-dish-video';
-import { loadPlatformProSettings, resolvePremiumGate } from '@/lib/premium/access';
-
+import { loadRestaurantProEntitledKeys, resolvePremiumGate } from '@/lib/premium/access';
 
 export type DishVideoAccess = {
-  /** Platform Pro `menu_dish_video` is effective for this restaurant. */
+  /** Pro `menu_dish_video` grant is effective for this restaurant. */
   pro: boolean;
   /** Pro + staff capability `dashboard.menu.video.manage` → may generate/change videos. */
   canManage: boolean;
@@ -19,13 +18,13 @@ export type DishVideoAccess = {
   guestVisible: boolean;
 };
 
-/** Sole dish-video gate: Pro tier × capability × store switch. */
+/** Sole dish-video gate: Pro grant × capability × store switch. */
 export async function resolveDishVideoAccess(
   restaurant: DishVideoGateRestaurant,
   capabilities: Capabilities | null,
 ): Promise<DishVideoAccess> {
-  const settings = await loadPlatformProSettings();
-  const pro = resolvePremiumGate(restaurant, 'menu_dish_video', settings).ok;
+  const entitledKeys = await loadRestaurantProEntitledKeys(restaurant.id);
+  const pro = resolvePremiumGate(restaurant, 'menu_dish_video', entitledKeys).ok;
   return {
     pro,
     canManage: pro && capabilities != null && can(capabilities, 'dashboard.menu.video.manage'),

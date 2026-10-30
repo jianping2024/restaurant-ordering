@@ -1,31 +1,31 @@
 import { NextResponse } from 'next/server';
-import { normalizePremiumKeys, PREMIUM_KEYS } from '@mesa/shared';
-import { requirePlatformAdminRole } from '@/lib/platform-auth';
+import {
+  parseProFeatureProduct,
+  PREMIUM_KEYS,
+  type PremiumKey,
+  type ProFeatureProduct,
+} from '@mesa/shared';
+import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
-const SETTINGS_ID = 'default';
-
 export async function GET() {
-  const { ctx, error, admin } = await requirePlatformAdminRole('admin');
-  if (error || !ctx || !admin) return error!;
+  const { error, admin } = await requirePlatformAdmin();
+  if (error || !admin) return error!;
 
-  const { data, error: fetchError } = await admin
-    .from('platform_pro_settings')
-    .select('premium_keys, wechat_url, whatsapp_url, updated_at')
-    .eq('id', SETTINGS_ID)
-    .maybeSingle();
+  const { data, error: qErr } = await admin
+    .from('pro_feature_products')
+    .select('feature_key, price_month_eur, price_year_eur, active, updated_at')
+    .order('feature_key');
 
-  if (fetchError) {
-    return NextResponse.json({ error: 'fetch_failed', detail: fetchError.message }, { status: 500 });
+  if (qErr) {
+    return NextResponse.json({ error: 'fetch_failed', detail: qErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({
-    premiumKeys: normalizePremiumKeys(data?.premium_keys),
-    wechatUrl: data?.wechat_url ?? null,
-    whatsappUrl: data?.whatsapp_url ?? null,
-    updatedAt: data?.updated_at ?? null,
-    catalog: PREMIUM_KEYS,
-  });
+  const products = (data ?? [])
+    .map((row) => parseProFeatureProduct(row))
+    .filter((p): p is ProFeatureProduct => p != null);
+
+  return NextResponse.json({ products });
 }
 
 export async function PATCH(req: Request) {
@@ -39,48 +39,67 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  const metadata: Record<string, unknown> = {};
-
-  if (body.premiumKeys !== undefined) {
-    const keys = normalizePremiumKeys(body.premiumKeys);
-    updates.premium_keys = keys;
-    metadata.premiumKeys = keys;
+  const rawProducts = body.products;
+  if (!Array.isArray(rawProducts)) {
+    return NextResponse.json({ error: 'products_required' }, { status: 400 });
   }
 
-  if (body.wechatUrl === null || typeof body.wechatUrl === 'string') {
-    const wechatUrl =
-      typeof body.wechatUrl === 'string' ? body.wechatUrl.trim() || null : null;
-    updates.wechat_url = wechatUrl;
-    metadata.wechatUrl = wechatUrl;
+  const updates: ProFeatureProduct[] = [];
+  for (const item of rawProducts) {
+    const parsed = parseProFeatureProduct(item);
+    if (!parsed) {
+      return NextResponse.json({ error: 'invalid_product' }, { status: 400 });
+    }
+    updates.push(parsed);
   }
 
-  if (body.whatsappUrl === null || typeof body.whatsappUrl === 'string') {
-    const whatsappUrl =
-      typeof body.whatsappUrl === 'string' ? body.whatsappUrl.trim() || null : null;
-    updates.whatsapp_url = whatsappUrl;
-    metadata.whatsappUrl = whatsappUrl;
+  const seen = new Set<PremiumKey>();
+  for (const product of updates) {
+    if (seen.has(product.featureKey)) {
+      return NextResponse.json({ error: 'duplicate_feature_key' }, { status: 400 });
+    }
+    seen.add(product.featureKey);
   }
 
-  if (Object.keys(metadata).length === 0) {
-    return NextResponse.json({ ok: true, unchanged: true });
+  for (const key of PREMIUM_KEYS) {
+    if (!seen.has(key)) {
+      return NextResponse.json(
+        { error: 'products_incomplete', message: `缺少功能定价：${key}` },
+        { status: 400 },
+      );
+    }
   }
 
-  const { error: upsertError } = await admin
-    .from('platform_pro_settings')
-    .upsert({ id: SETTINGS_ID, ...updates });
+  const now = new Date().toISOString();
+  const rows = updates.map((p) => ({
+    feature_key: p.featureKey,
+    price_month_eur: p.priceMonthEur,
+    price_year_eur: p.priceYearEur,
+    active: p.active,
+    updated_at: now,
+  }));
 
-  if (upsertError) {
-    return NextResponse.json({ error: 'update_failed', detail: upsertError.message }, { status: 500 });
+  const { error: upErr } = await admin.from('pro_feature_products').upsert(rows, {
+    onConflict: 'feature_key',
+  });
+  if (upErr) {
+    return NextResponse.json({ error: 'update_failed', detail: upErr.message }, { status: 500 });
   }
 
   await writePlatformAudit(admin, {
     actorUserId: ctx.userId,
-    action: 'platform_pro_settings.update',
-    targetType: 'platform_pro_settings',
-    targetId: SETTINGS_ID,
-    metadata,
+    action: 'settings.pro_prices_updated',
+    targetType: 'platform_pro_catalog',
+    targetId: 'default',
+    metadata: {
+      products: updates.map((p) => ({
+        featureKey: p.featureKey,
+        priceMonthEur: p.priceMonthEur,
+        priceYearEur: p.priceYearEur,
+        active: p.active,
+      })),
+    },
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, products: updates });
 }

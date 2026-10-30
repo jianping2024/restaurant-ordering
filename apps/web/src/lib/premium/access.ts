@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import {
   canUsePremiumFeature,
-  normalizePremiumKeys,
+  normalizePremiumKeyGrants,
   RESTAURANT_FEATURE_DEFINITIONS,
   type PremiumKey,
   type RestaurantFeatureKey,
@@ -11,13 +11,8 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NAV_PREMIUM_KEY } from '@/lib/premium/catalog';
 
-export type PlatformProSettings = {
-  premiumKeys: PremiumKey[];
-  wechatUrl: string | null;
-  whatsappUrl: string | null;
-};
-
 export type RestaurantTierFields = {
+  id?: string | null;
   plan?: string | null;
   pro_valid_until?: string | null;
   license_valid_until?: string | null;
@@ -27,43 +22,35 @@ export type PremiumGateResult =
   | { ok: true }
   | { ok: false; reason: 'pro_required'; premiumKey: PremiumKey };
 
-async function loadPlatformProSettingsUncached(): Promise<PlatformProSettings> {
+async function loadRestaurantProEntitledKeysUncached(restaurantId: string): Promise<PremiumKey[]> {
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return { premiumKeys: normalizePremiumKeys(null), wechatUrl: null, whatsappUrl: null };
+    return [];
   }
 
   const { data, error } = await admin
-    .from('platform_pro_settings')
-    .select('premium_keys, wechat_url, whatsapp_url')
-    .eq('id', 'default')
-    .maybeSingle();
+    .from('restaurant_pro_feature_grants')
+    .select('feature_key')
+    .eq('restaurant_id', restaurantId);
 
-  if (error || !data) {
-    return { premiumKeys: normalizePremiumKeys(null), wechatUrl: null, whatsappUrl: null };
-  }
-
-  return {
-    premiumKeys: normalizePremiumKeys(data.premium_keys),
-    wechatUrl: typeof data.wechat_url === 'string' ? data.wechat_url.trim() || null : null,
-    whatsappUrl: typeof data.whatsapp_url === 'string' ? data.whatsapp_url.trim() || null : null,
-  };
+  if (error || !data) return [];
+  return normalizePremiumKeyGrants(data.map((row) => row.feature_key));
 }
 
-/** Process-wide cache; ops updates visible on next request after cache miss. */
-export const loadPlatformProSettings = cache(loadPlatformProSettingsUncached);
+/** Process-wide cache of per-restaurant Pro feature grants. */
+export const loadRestaurantProEntitledKeys = cache(loadRestaurantProEntitledKeysUncached);
 
 export function resolvePremiumGate(
   restaurant: RestaurantTierFields,
   premiumKey: PremiumKey,
-  settings: PlatformProSettings,
+  entitledKeys: readonly PremiumKey[],
   now = new Date(),
 ): PremiumGateResult {
   const allowed = canUsePremiumFeature({
     premiumKey,
-    enabledKeys: settings.premiumKeys,
+    entitledKeys,
     plan: restaurant.plan,
     proValidUntil: restaurant.pro_valid_until,
     licenseValidUntil: restaurant.license_valid_until,
@@ -74,32 +61,33 @@ export function resolvePremiumGate(
 }
 
 export async function assertPremiumGate(
-  restaurant: RestaurantTierFields,
+  restaurant: RestaurantTierFields & { id: string },
   premiumKey: PremiumKey,
 ): Promise<PremiumGateResult> {
-  const settings = await loadPlatformProSettings();
-  return resolvePremiumGate(restaurant, premiumKey, settings);
+  const entitledKeys = await loadRestaurantProEntitledKeys(restaurant.id);
+  return resolvePremiumGate(restaurant, premiumKey, entitledKeys);
 }
+
 export function navItemProLocked(
   navItemId: string,
   restaurant: RestaurantTierFields,
-  settings: PlatformProSettings,
+  entitledKeys: readonly PremiumKey[],
   now = new Date(),
 ): boolean {
   const premiumKey = NAV_PREMIUM_KEY[navItemId as keyof typeof NAV_PREMIUM_KEY];
   if (!premiumKey) return false;
-  const gate = resolvePremiumGate(restaurant, premiumKey, settings, now);
+  const gate = resolvePremiumGate(restaurant, premiumKey, entitledKeys, now);
   return !gate.ok;
 }
 
 /** Feature-settings toggles whose `premiumKey` is not effective for this restaurant. */
 export function computePremiumLockedFeatureKeys(
   restaurant: RestaurantTierFields,
-  settings: PlatformProSettings,
+  entitledKeys: readonly PremiumKey[],
   now = new Date(),
 ): RestaurantFeatureKey[] {
   return RESTAURANT_FEATURE_DEFINITIONS.filter(
-    (def) => def.premiumKey && !resolvePremiumGate(restaurant, def.premiumKey, settings, now).ok,
+    (def) => def.premiumKey && !resolvePremiumGate(restaurant, def.premiumKey, entitledKeys, now).ok,
   ).map((def) => def.key);
 }
 
@@ -110,7 +98,7 @@ export type PremiumLoaderError = {
 };
 
 export async function premiumLoaderCheck(
-  restaurant: RestaurantTierFields,
+  restaurant: RestaurantTierFields & { id: string },
   premiumKey: PremiumKey,
 ): Promise<PremiumLoaderError | null> {
   const gate = await assertPremiumGate(restaurant, premiumKey);
@@ -120,11 +108,11 @@ export async function premiumLoaderCheck(
 
 export function computePremiumLockedNavIds(
   restaurant: RestaurantTierFields,
-  settings: PlatformProSettings,
+  entitledKeys: readonly PremiumKey[],
 ): ReadonlySet<string> {
   const locked = new Set<string>();
   for (const navId of Object.keys(NAV_PREMIUM_KEY) as Array<keyof typeof NAV_PREMIUM_KEY>) {
-    if (navItemProLocked(navId, restaurant, settings)) {
+    if (navItemProLocked(navId, restaurant, entitledKeys)) {
       locked.add(navId);
     }
   }

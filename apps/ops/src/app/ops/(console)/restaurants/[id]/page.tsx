@@ -3,8 +3,11 @@ import { notFound } from 'next/navigation';
 import {
   normalizeBuffetServiceMode,
   normalizeCountryCode,
+  normalizePremiumKeyGrants,
+  parseProFeatureProduct,
   type BuffetServiceMode,
   type PrintLocale,
+  type ProFeatureProduct,
   type RestaurantCountryCode,
 } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -62,6 +65,18 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   });
   const ownerEmail = row.owner_email || owner?.data?.user?.email || null;
 
+  const [{ data: grantRows }, { data: productRows }] = await Promise.all([
+    admin.from('restaurant_pro_feature_grants').select('feature_key').eq('restaurant_id', row.id),
+    admin
+      .from('pro_feature_products')
+      .select('feature_key, price_month_eur, price_year_eur, active')
+      .order('feature_key'),
+  ]);
+  const featureKeys = normalizePremiumKeyGrants((grantRows ?? []).map((g) => g.feature_key));
+  const products = (productRows ?? [])
+    .map((p) => parseProFeatureProduct(p))
+    .filter((p): p is ProFeatureProduct => p != null);
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center gap-3 text-sm">
@@ -112,6 +127,8 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         initial={{
           plan: row.plan,
           proValidUntil: row.pro_valid_until,
+          featureKeys,
+          products,
         }}
       />
 

@@ -366,6 +366,10 @@ sole `lockBodyScroll` / `useBodyScrollLock` freezes + restores guest menu scroll
 
 sole trash `RowRemoveIconButton` (cart + by-item/buffet shares); sole empty+close `clearSubmitCart`; cart header clear via `CustomerMenuBottomSheet` `headerActions` + `ConfirmModal` danger; remove-last/clear closes drawer; submit locks −/+ / trash / clear — never a second cart trash or parallel clear helper beside `clearSubmitCart`.
 
+### Sushi round guest phone seats
+
+sole `guestClientSeatLimit` (max(n+2, 2n); 0 = no cap) in `registerGuestClient` (round line upsert + submit-request); copy sole `messageForSushiRoundError` → `guestClientLimit` — never inline `floor(guestCount)` as the phone cap, never fall back to `submitFailed` for `guest_client_limit`; never tell staff to raise headcount to unblock a phone (headcount bills buffet).
+
 ### Sushi round cooldown settle
 
 sole SQL `settle_expired_table_order_round_cooldown` (GET `getRoundSnapshot` + upsert both); never leave expired cooldown lines in snapshot as a live cap beside that settle.

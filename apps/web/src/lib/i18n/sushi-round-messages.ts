@@ -59,6 +59,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: string;
     cooldownActive: string;
     emptyRound: string;
+    guestClientLimit: string;
     submitFailed: string;
     introTitle: string;
     introSubtitle: string;
@@ -109,6 +110,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: '送厨处理中，暂不可改免费菜',
     cooldownActive: '送厨冷却中，请稍候',
     emptyRound: '请先添加免费菜',
+    guestClientLimit: '本桌点餐手机已满，请找服务员帮忙点单',
     submitFailed: '操作失败，请重试',
     introTitle: '寿司同桌轮次',
     introSubtitle: '免费菜加入本轮后，要点「送厨」厨房才开始做；收费菜下单即送',
@@ -159,6 +161,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: 'Kitchen send in progress — free dishes locked',
     cooldownActive: 'Table cooldown — please wait',
     emptyRound: 'Add free dishes first',
+    guestClientLimit: 'This table has reached its phone limit — please ask staff to order for you',
     submitFailed: 'Something went wrong — retry',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes join this round, but the kitchen starts only after “Send”; paid dishes go straight away',
@@ -209,6 +212,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: 'Envio em curso — pratos grátis bloqueados',
     cooldownActive: 'Espera da mesa — aguarde',
     emptyRound: 'Adicione pratos grátis primeiro',
+    guestClientLimit: 'Esta mesa atingiu o limite de telemóveis — peça ao staff para fazer o pedido',
     submitFailed: 'Algo falhou — tente de novo',
     introTitle: 'Rondas de sushi na mesa',
     introSubtitle: 'Os pratos grátis entram na ronda, mas a cozinha só começa depois de “Enviar”; os pagos vão já',
@@ -259,6 +263,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: 'Envío en curso — platos gratis bloqueados',
     cooldownActive: 'Espera de mesa — espera un momento',
     emptyRound: 'Añade platos gratis primero',
+    guestClientLimit: 'Esta mesa alcanzó el límite de móviles — pide al personal que haga el pedido',
     submitFailed: 'Algo falló — reintenta',
     introTitle: 'Rondas de sushi en la mesa',
     introSubtitle: 'Los platos gratis entran en la ronda, pero cocina empieza solo tras “Enviar”; los de pago van ya',
@@ -309,6 +314,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: 'Kitchen send in progress — free dishes locked',
     cooldownActive: 'Table cooldown — please wait',
     emptyRound: 'Add free dishes first',
+    guestClientLimit: 'This table has reached its phone limit — please ask staff to order for you',
     submitFailed: 'Something went wrong — retry',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes join this round, but the kitchen starts only after “Send”; paid dishes go straight away',
@@ -359,6 +365,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     basketLocked: 'Kitchen send in progress — free dishes locked',
     cooldownActive: 'Table cooldown — please wait',
     emptyRound: 'Add free dishes first',
+    guestClientLimit: 'This table has reached its phone limit — please ask staff to order for you',
     submitFailed: 'Something went wrong — retry',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes join this round, but the kitchen starts only after “Send”; paid dishes go straight away',
@@ -442,6 +449,8 @@ export function messageForSushiRoundError(
       return t.cooldownActive;
     case 'round_empty':
       return t.emptyRound;
+    case 'guest_client_limit':
+      return t.guestClientLimit;
     default:
       return t.submitFailed;
   }

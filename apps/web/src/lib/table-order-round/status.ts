@@ -45,6 +45,17 @@ export function isSubmitDeadlinePassed(submitDeadlineAt: string | null, nowMs = 
   return nowMs >= at;
 }
 
+/**
+ * Sole cap on distinct guest phones per session for round writes. Free quota is per headcount
+ * (not per phone), so the slack only absorbs re-scans / browser switches (new localStorage id).
+ * 0 = no cap (headcount unknown).
+ */
+export function guestClientSeatLimit(guestCount: number): number {
+  const n = Math.floor(guestCount);
+  if (!Number.isFinite(n) || n < 1) return 0;
+  return Math.max(n + 2, n * 2);
+}
+
 export function roundCapTotal(perPersonCap: number, guestCount: number): number {
   if (perPersonCap < 1 || guestCount < 1) return 0;
   return perPersonCap * guestCount;

@@ -120,11 +120,28 @@ export type ProEffectiveInput = {
   now?: Date;
 };
 
-/** Store has active Pro entitlement (plan + pro window + license window). */
-export function isProEffective(input: ProEffectiveInput): boolean {
+/**
+ * Pro membership clock only: plan=pro and pro_valid_until not past.
+ * Null pro_valid_until = no expiry (still unexpired). Does not check license.
+ * Ops downgrade confirm uses this — not isProEffective (which also gates on license).
+ */
+export function isProMembershipUnexpired(input: {
+  plan: string | null | undefined;
+  proValidUntil: string | null | undefined;
+  now?: Date;
+}): boolean {
   const now = input.now ?? new Date();
   if (input.plan !== 'pro') return false;
   if (input.proValidUntil && new Date(input.proValidUntil) <= now) return false;
+  return true;
+}
+
+/** Store has active Pro entitlement (plan + pro window + license window). */
+export function isProEffective(input: ProEffectiveInput): boolean {
+  const now = input.now ?? new Date();
+  if (!isProMembershipUnexpired({ plan: input.plan, proValidUntil: input.proValidUntil, now })) {
+    return false;
+  }
   if (input.licenseValidUntil && new Date(input.licenseValidUntil) <= now) return false;
   return true;
 }

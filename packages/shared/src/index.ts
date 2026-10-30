@@ -40,6 +40,7 @@ export {
   canUsePremiumFeature,
   isPremiumKey,
   isProEffective,
+  isProMembershipUnexpired,
   isRestaurantPlan,
   normalizeRestaurantPlan,
   normalizePremiumKeys,

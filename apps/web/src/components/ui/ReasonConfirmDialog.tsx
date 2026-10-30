@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { requiresAbnormalReasonDetail, type AbnormalReasonGroup } from '@/lib/audit/reasons';
+import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 
 export type ReasonOption = { value: string; label: string };
 
@@ -144,7 +145,7 @@ export function ReasonConfirmDialog({
               disabled={confirming}
               rows={3}
               placeholder={detailPlaceholder}
-              className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text resize-y"
+              className={`w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} resize-y`}
             />
           </div>
         ) : null}

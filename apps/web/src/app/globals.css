@@ -43,6 +43,8 @@
   /* Near-white primary copy — dishes, amounts, table ids must stay on brand-text. */
   --color-brand-text: 242 239 231;
   --color-brand-text-muted: 212 206 194;
+  /* Empty-field hint only — clearly dimmer than brand-text (not full text-muted). */
+  --color-brand-placeholder: 148 142 130;
   --color-on-gold: 27 26 22;
   --color-on-ink: 27 26 22;
   /* Floor / badge status — pre-FARVOO saturated checkout / dining / idle */
@@ -191,6 +193,8 @@
   --color-brand-text: 26 22 18;
   /* ink-soft: idle chrome / hints — soft enough that brand-ink active nav pops */
   --color-brand-text-muted: 138 131 119;
+  /* Empty-field hint only — lighter than text-muted so filled vs empty stays obvious. */
+  --color-brand-placeholder: 168 160 148;
   --color-on-gold: 247 244 238;
   --color-on-ink: 247 244 238;
   --color-status-warning-fg: 92 40 8;

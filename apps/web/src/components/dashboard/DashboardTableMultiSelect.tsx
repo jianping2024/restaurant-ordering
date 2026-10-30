@@ -35,7 +35,11 @@ const selectStyles: StylesConfig<DashboardTableOption, true> = {
     boxShadow: state.isFocused ? '0 0 0 2px rgba(212, 175, 55, 0.5)' : 'none',
     '&:hover': { borderColor: 'rgb(var(--color-brand-border))' },
   }),
-  placeholder: (base) => ({ ...base, color: 'rgb(var(--color-brand-text-muted))', fontSize: 14 }),
+  placeholder: (base) => ({
+    ...base,
+    color: 'rgb(var(--color-brand-placeholder))',
+    fontSize: 14,
+  }),
   menu: (base) => ({
     ...base,
     backgroundColor: 'rgb(var(--color-brand-card))',

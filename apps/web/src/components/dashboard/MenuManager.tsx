@@ -14,6 +14,7 @@ import {
   MenuCategorySortTree,
 } from '@/components/dashboard/MenuCategorySortTree';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
+import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
@@ -115,7 +116,7 @@ const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', 
 
 /** Shared height/padding for dish-list search + category filter (matches form selects). */
 const MENU_TOOLBAR_CONTROL =
-  'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
+  `w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} focus:outline-none focus:ring-2 focus:ring-brand-gold/50`;
 
 interface MenuManagerProps {
   restaurantId: string;

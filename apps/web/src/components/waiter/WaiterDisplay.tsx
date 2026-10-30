@@ -767,7 +767,7 @@ function WaiterBoardInner({
             aria-label={t.searchTables}
             clearable
             clearLabel={t.clearSearch}
-            className="mesa-board-search px-3 py-2 focus:ring-brand-ink/20 placeholder:text-brand-text-muted"
+            className="mesa-board-search px-3 py-2 focus:ring-brand-ink/20"
           />
         </div>
       </div>

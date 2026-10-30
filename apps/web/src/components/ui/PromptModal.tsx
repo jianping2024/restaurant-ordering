@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
+import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 
 export interface PromptModalProps {
   open: boolean;
@@ -65,7 +66,7 @@ export function PromptModal({
               }
             }}
             placeholder={placeholder}
-            className="mt-1.5 w-full rounded-xl border border-brand-border bg-brand-bg px-3 py-2.5 text-base text-brand-text placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-gold/35 focus:border-brand-gold/50"
+            className={`mt-1.5 w-full rounded-xl border border-brand-border bg-brand-bg px-3 py-2.5 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} focus:outline-none focus:ring-2 focus:ring-brand-gold/35 focus:border-brand-gold/50`}
             disabled={submitting}
             autoComplete="off"
           />

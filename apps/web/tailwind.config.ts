@@ -8,6 +8,8 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
+    // PasswordInput brand theme ships placeholder:text-brand-placeholder as a literal.
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -24,6 +26,7 @@ const config: Config = {
           border: "rgb(var(--color-brand-border) / <alpha-value>)",
           text: "rgb(var(--color-brand-text) / <alpha-value>)",
           "text-muted": "rgb(var(--color-brand-text-muted) / <alpha-value>)",
+          placeholder: "rgb(var(--color-brand-placeholder) / <alpha-value>)",
           "on-gold": "rgb(var(--color-on-gold) / <alpha-value>)",
           "on-ink": "rgb(var(--color-on-ink) / <alpha-value>)",
         },

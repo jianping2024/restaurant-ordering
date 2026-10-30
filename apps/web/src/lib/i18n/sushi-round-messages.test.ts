@@ -83,6 +83,19 @@ describe('messageForSushiRoundError', () => {
     assert.match(msg, /本轮核单/);
     assert.doesNotMatch(msg, /\{used\}|\{cap\}/);
   });
+
+  it('maps guest_client_limit to ask-staff copy, never the generic retry toast', () => {
+    for (const lang of Object.keys(SUSHI_ROUND_MESSAGES) as Array<keyof typeof SUSHI_ROUND_MESSAGES>) {
+      const t = SUSHI_ROUND_MESSAGES[lang];
+      const msg = messageForSushiRoundError('guest_client_limit', t);
+      assert.equal(msg, t.guestClientLimit);
+      assert.notEqual(msg, t.submitFailed);
+    }
+    assert.equal(
+      messageForSushiRoundError('guest_client_limit', SUSHI_ROUND_MESSAGES.pt),
+      'Esta mesa atingiu o limite de telemóveis — peça ao staff para fazer o pedido',
+    );
+  });
 });
 
 describe('messageForGuestRoundQtyPreview', () => {

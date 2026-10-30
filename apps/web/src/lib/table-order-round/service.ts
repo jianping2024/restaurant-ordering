@@ -18,6 +18,7 @@ import {
   type SushiRoundSettings,
 } from '@/lib/table-order-round/settings';
 import {
+  guestClientSeatLimit,
   isCooldownActive,
   isCooldownExpired,
   isSubmitDeadlinePassed,
@@ -322,7 +323,7 @@ export async function getRoundSnapshot(params: {
   };
 }
 
-export async function registerGuestClient(
+async function registerGuestClient(
   admin: SupabaseClient,
   params: {
     sessionId: string;
@@ -332,7 +333,7 @@ export async function registerGuestClient(
   },
 ): Promise<ServiceResult<{ registered: boolean }>> {
   const { sessionId, restaurantId, guestClientId, guestCount } = params;
-  const limit = Math.max(0, Math.floor(guestCount));
+  const limit = guestClientSeatLimit(guestCount);
 
   const { data: existing } = await admin
     .from('table_order_round_clients')

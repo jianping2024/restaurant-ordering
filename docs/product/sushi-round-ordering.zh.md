@@ -172,8 +172,9 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 ## 8. 顾客身份 `guest_client_id`
 
 - 首次进菜单：`localStorage` 生成 UUID，键名 `mesa_guest_client_id_{restaurant_id}_{table_id}`
-- 服务端 session 登记；**同一 session 有效 client 数 ≤ 开台人数**
-- 伪造多 id：超出人数的 client **不可再登记**
+- 服务端 session 登记；**同一 session 有效 client 数 ≤ `guestClientSeatLimit(开台人数)` = max(人数+2, 人数×2)**（1 人 3 台、2 人 4 台、10 人 20 台；人数 0 不限）
+- 余量只为吸收重扫码 / 换浏览器（新 `localStorage` → 新 id）：免费额度按人数算、与手机数无关，结账 / 分单不读登记表
+- 超出余量的 client **不可再登记** → `guest_client_limit`，顾客端提示「本桌点餐手机已满，请找服务员帮忙点单」（不再落到通用「操作失败」）
 
 ---
 
@@ -310,7 +311,7 @@ Classic **不得**出现轮次 UI 组件。
 | `round_confirm_pending` | 已在确认中重复发起 |
 | `round_cooldown_active` | 桌级冷却 |
 | `session_billing` | 结账中 |
-| `guest_client_limit` | 超额 client 登记 |
+| `guest_client_limit` | 超出 `guestClientSeatLimit` 的新 client 登记（含送厨 submit-request） |
 | `per_person_limit_exceeded` | 整餐免费菜上限（写篮 / append；客人） |
 | `over_limit_price_missing` | 限定菜缺超额单价配置 |
 | `limited_item_requires_headcount` | 限定菜但开台人数为 0 |

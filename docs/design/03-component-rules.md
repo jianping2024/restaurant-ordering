@@ -70,8 +70,9 @@
 - 内容 `mesa-panel-frame` + 内层 `mesa-panel-frame__inner`，标题 `font-heading text-brand-ink`
 - 尺寸：`sm` 确认框 · `md` 默认 · `lg/xl` 复杂表单
 - ESC 关闭；打开时 `body` 锁滚动
+- 可选 `footer`：与标题同级、在滚动 body 之外（`shrink-0`）。长列表 / 需钉住取消·确认的弹窗把 `ModalConfirmActions` 放这里，不要塞进可滚动 `children` 末尾
 
-**规则**：业务内容放 `children`，不复制 Modal 壳。
+**规则**：业务内容放 `children`，不复制 Modal 壳；钉底确认行唯一走 `footer` + `ModalConfirmActions`。
 
 ---
 

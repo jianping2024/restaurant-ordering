@@ -9,6 +9,12 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  /**
+   * Optional actions bar below the scroll body (shrink-0).
+   * Use for list/form confirm rows so cancel/confirm stay visible — do not put
+   * `ModalConfirmActions` only inside scrolling `children` for that job.
+   */
+  footer?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Backdrop / overlay tap closes the dialog when true (default). */
   dismissOnBackdrop?: boolean;
@@ -29,6 +35,7 @@ export function Modal({
   onClose,
   title,
   children,
+  footer,
   size = 'md',
   dismissOnBackdrop = true,
 }: ModalProps) {
@@ -79,6 +86,11 @@ export function Modal({
           </div>
         ) : null}
         <div className="modal-scroll min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
+        {footer ? (
+          <div className="flex flex-shrink-0 border-t border-brand-border/60 px-4 py-3 sm:px-6 sm:py-4">
+            {footer}
+          </div>
+        ) : null}
         </div>
       </div>
     </div>,

@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   canUsePremiumFeature,
   isProEffective,
+  isProMembershipUnexpired,
   normalizePremiumKeyGrants,
   normalizePremiumKeys,
   normalizeRestaurantPlan,
@@ -36,6 +37,38 @@ describe('premium-tier', () => {
     const startYmd = lisbonCalendarDateFromInstant(from);
     const endYmd = addLisbonCalendarDays(startYmd, PRO_TRIAL_DAYS);
     assert.equal(proTrialValidUntil(from), licenseValidUntilEndOfLisbonDay(endYmd));
+  });
+
+  it('isProMembershipUnexpired is plan+pro window only (null until = unexpired)', () => {
+    const now = new Date('2026-06-15T00:00:00.000Z');
+    assert.equal(
+      isProMembershipUnexpired({
+        plan: 'pro',
+        proValidUntil: '2026-12-31T00:00:00.000Z',
+        now,
+      }),
+      true,
+    );
+    assert.equal(
+      isProMembershipUnexpired({ plan: 'pro', proValidUntil: null, now }),
+      true,
+    );
+    assert.equal(
+      isProMembershipUnexpired({
+        plan: 'pro',
+        proValidUntil: '2026-01-01T00:00:00.000Z',
+        now,
+      }),
+      false,
+    );
+    assert.equal(
+      isProMembershipUnexpired({
+        plan: 'basic',
+        proValidUntil: '2026-12-31T00:00:00.000Z',
+        now,
+      }),
+      false,
+    );
   });
 
   it('isProEffective requires plan pro and valid windows', () => {

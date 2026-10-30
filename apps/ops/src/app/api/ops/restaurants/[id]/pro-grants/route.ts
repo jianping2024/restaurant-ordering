@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { sanitizePremiumKeyGrants, type PremiumKey } from '@mesa/shared';
+import { sanitizePremiumKeyGrants } from '@mesa/shared';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
+import { replaceRestaurantProFeatureGrants } from '@/lib/pro-feature-grants';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -40,11 +41,10 @@ export async function PUT(req: Request, context: RouteContext) {
   if (!Array.isArray(body.featureKeys)) {
     return NextResponse.json({ error: 'feature_keys_required' }, { status: 400 });
   }
-  const featureKeys = sanitizePremiumKeyGrants(body.featureKeys);
 
   const { data: restaurant, error: fetchError } = await admin
     .from('restaurants')
-    .select('id')
+    .select('id, plan')
     .eq('id', id)
     .maybeSingle();
 
@@ -54,24 +54,22 @@ export async function PUT(req: Request, context: RouteContext) {
   if (!restaurant) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
-
-  const { error: delErr } = await admin
-    .from('restaurant_pro_feature_grants')
-    .delete()
-    .eq('restaurant_id', id);
-  if (delErr) {
-    return NextResponse.json({ error: 'update_failed', detail: delErr.message }, { status: 500 });
+  if (restaurant.plan !== 'pro') {
+    return NextResponse.json(
+      {
+        error: 'plan_not_pro',
+        message: '当前套餐是 basic，不能改 Pro 功能包。请先保存为 pro。',
+      },
+      { status: 409 },
+    );
   }
 
-  if (featureKeys.length > 0) {
-    const rows = featureKeys.map((feature_key: PremiumKey) => ({
-      restaurant_id: id,
-      feature_key,
-    }));
-    const { error: insErr } = await admin.from('restaurant_pro_feature_grants').insert(rows);
-    if (insErr) {
-      return NextResponse.json({ error: 'update_failed', detail: insErr.message }, { status: 500 });
-    }
+  const replaced = await replaceRestaurantProFeatureGrants(admin, id, body.featureKeys);
+  if (!replaced.ok) {
+    return NextResponse.json(
+      { error: replaced.error, detail: replaced.detail },
+      { status: replaced.status },
+    );
   }
 
   await writePlatformAudit(admin, {
@@ -80,21 +78,8 @@ export async function PUT(req: Request, context: RouteContext) {
     targetType: 'restaurant',
     targetId: id,
     restaurantId: id,
-    metadata: { featureKeys },
+    metadata: { featureKeys: replaced.featureKeys },
   });
 
-  // Guest catalog carries list-motion gate from grants — bump doorbell version.
-  const { data: verRow } = await admin
-    .from('restaurants')
-    .select('menu_catalog_version')
-    .eq('id', id)
-    .maybeSingle();
-  const nextVer = Number(verRow?.menu_catalog_version ?? 0) + 1;
-  await admin.from('restaurants').update({ menu_catalog_version: nextVer }).eq('id', id);
-  await admin.from('menu_catalog_signals').upsert(
-    { restaurant_id: id, version: nextVer, bumped_at: new Date().toISOString() },
-    { onConflict: 'restaurant_id' },
-  );
-
-  return NextResponse.json({ ok: true, featureKeys });
+  return NextResponse.json({ ok: true, featureKeys: replaced.featureKeys });
 }

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import {
+  isProMembershipUnexpired,
   normalizeCountryCode,
   parseBuffetServiceMode,
   type PrintLocale,
 } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
+import { replaceRestaurantProFeatureGrants } from '@/lib/pro-feature-grants';
 import { purgeRestaurantForOps } from '@/lib/purge-restaurant';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -123,10 +125,42 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (!PLANS.has(body.plan)) {
       return NextResponse.json({ error: 'invalid_plan' }, { status: 400 });
     }
+    if (
+      body.plan === 'basic' &&
+      isProMembershipUnexpired({
+        plan: existing.plan,
+        proValidUntil: existing.pro_valid_until,
+      })
+    ) {
+      if (body.confirmDowngradeFromActivePro !== true) {
+        return NextResponse.json(
+          {
+            error: 'confirm_downgrade_from_active_pro_required',
+            message:
+              '这家店 Pro 还没到期。改成 basic 后店里会立刻用不了 Pro 功能。请确认后再保存。',
+          },
+          { status: 409 },
+        );
+      }
+      metadata.confirmDowngradeFromActivePro = true;
+    }
     if (body.plan !== existing.plan) {
       updates.plan = body.plan;
       metadata.plan = { from: existing.plan, to: body.plan };
     }
+  }
+
+  const nextPlan =
+    typeof updates.plan === 'string' ? (updates.plan as string) : existing.plan;
+  const wantsGrants = Array.isArray(body.featureKeys);
+  if (wantsGrants && nextPlan !== 'pro') {
+    return NextResponse.json(
+      {
+        error: 'plan_not_pro',
+        message: '当前套餐是 basic，不能改 Pro 功能包。',
+      },
+      { status: 409 },
+    );
   }
 
   // Store product toggles (kitchen_serve_to_table / bill_receipt_print) — owner-only via
@@ -173,26 +207,48 @@ export async function PATCH(req: Request, context: RouteContext) {
     }
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (Object.keys(updates).length === 0 && !wantsGrants) {
     return NextResponse.json({ ok: true, unchanged: true });
   }
 
-  const { error: updateError } = await admin.from('restaurants').update(updates).eq('id', id);
+  if (Object.keys(updates).length > 0) {
+    const { error: updateError } = await admin.from('restaurants').update(updates).eq('id', id);
 
-  if (updateError) {
-    return NextResponse.json({ error: 'update_failed', detail: updateError.message }, { status: 500 });
+    if (updateError) {
+      return NextResponse.json({ error: 'update_failed', detail: updateError.message }, { status: 500 });
+    }
+
+    await writePlatformAudit(admin, {
+      actorUserId: ctx.userId,
+      action: 'restaurant.update',
+      targetType: 'restaurant',
+      targetId: existing.id,
+      restaurantId: existing.id,
+      metadata,
+    });
   }
 
-  await writePlatformAudit(admin, {
-    actorUserId: ctx.userId,
-    action: 'restaurant.update',
-    targetType: 'restaurant',
-    targetId: existing.id,
-    restaurantId: existing.id,
-    metadata,
-  });
+  let featureKeys: string[] | undefined;
+  if (wantsGrants) {
+    const replaced = await replaceRestaurantProFeatureGrants(admin, id, body.featureKeys);
+    if (!replaced.ok) {
+      return NextResponse.json(
+        { error: replaced.error, detail: replaced.detail },
+        { status: replaced.status },
+      );
+    }
+    featureKeys = replaced.featureKeys;
+    await writePlatformAudit(admin, {
+      actorUserId: ctx.userId,
+      action: 'restaurant.pro_grants_set',
+      targetType: 'restaurant',
+      targetId: existing.id,
+      restaurantId: existing.id,
+      metadata: { featureKeys: replaced.featureKeys },
+    });
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ...(featureKeys ? { featureKeys } : {}) });
 }
 
 export async function DELETE(req: Request, context: RouteContext) {

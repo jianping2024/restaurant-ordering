@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { showToast } from '@/components/ui/Toast';
 import { KitchenDishThumbButton } from '@/components/kitchen/KitchenDishThumbButton';
+import { KitchenLineNote } from '@/components/kitchen/KitchenLineNote';
 import { KitchenPrepTray } from '@/components/kitchen/KitchenPrepTray';
 import {
   aggregateLinesByDish,
@@ -350,36 +351,39 @@ function KitchenBoardLineRow({
   const stationLocked = prepBusy || printBusy || prepInFlight;
   const canSwipePrep = line.prepEligible && !stationLocked;
 
-  const noteEl = note ? (
-    <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
-  ) : null;
-
+  /** Primary truncates alone; note is sole second line via `KitchenLineNote` (never inline ·). */
   let title: ReactNode;
   if (layout === 'workbench-table') {
     title = (
-      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {line.displayName}
-        {noteEl}
-      </span>
+      <div className="mesa-kitchen-row-title min-w-0 flex-1">
+        <span className="mesa-kitchen-row-title-primary block truncate text-2xl font-medium leading-tight text-brand-text">
+          {line.displayName}
+        </span>
+        <KitchenLineNote note={note} variant="row" />
+      </div>
     );
   } else if (layout === 'ready') {
     title = (
-      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
-        {line.displayName}
-        {noteEl}
-        <span className="ml-2 text-xl font-normal text-slate-500">
-          {' '}
-          · {formatKitchenTableTitle(t, line.tableDisplay)}
+      <div className="mesa-kitchen-row-title min-w-0 flex-1">
+        <span className="mesa-kitchen-row-title-primary block truncate text-2xl font-medium leading-tight text-slate-700">
+          {line.displayName}
+          <span className="ml-2 text-xl font-normal text-slate-500">
+            {' '}
+            · {formatKitchenTableTitle(t, line.tableDisplay)}
+          </span>
         </span>
-      </span>
+        <KitchenLineNote note={note} variant="row" />
+      </div>
     );
   } else {
     // By-dish L2: table display is the row title (dish name already on L1).
     title = (
-      <span className="mesa-kitchen-row-title min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {formatKitchenTableTitle(t, line.tableDisplay)}
-        {noteEl}
-      </span>
+      <div className="mesa-kitchen-row-title min-w-0 flex-1">
+        <span className="mesa-kitchen-row-title-primary block truncate text-2xl font-medium leading-tight text-brand-text">
+          {formatKitchenTableTitle(t, line.tableDisplay)}
+        </span>
+        <KitchenLineNote note={note} variant="row" />
+      </div>
     );
   }
 

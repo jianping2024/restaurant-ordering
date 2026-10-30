@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { KitchenDishThumbButton } from '@/components/kitchen/KitchenDishThumbButton';
+import { KitchenLineNote } from '@/components/kitchen/KitchenLineNote';
 import type { PrepTrayCard } from '@/components/kitchen/kitchen-board-lines';
 import { summarizePrepTray } from '@/components/kitchen/kitchen-board-lines';
 import type { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
@@ -45,8 +46,9 @@ type Props = {
 
 /**
  * Sole kitchen prep tray: every row the cook selected (either view), grouped by dish + note with
- * the big photo, selected portions and table chips (longest wait first). Owns the sole prep button.
- * Mounted per station pane, or once per screen with station sections (shared prep tray).
+ * the big photo, selected portions and table chips (longest wait first). Note chrome sole
+ * `KitchenLineNote` tray strip. Owns the sole prep button. Mounted per station pane, or once per
+ * screen with station sections (shared prep tray).
  */
 export function KitchenPrepTray({
   sections,
@@ -102,11 +104,6 @@ export function KitchenPrepTray({
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="mesa-kitchen-tray-card-name min-w-0 truncate text-2xl font-medium text-brand-text">
               {card.name}
-              {card.note ? (
-                <span className="ml-2 text-xl font-normal text-amber-800/90">
-                  · {card.note}
-                </span>
-              ) : null}
             </span>
             <span className="shrink-0 text-2xl font-semibold tabular-nums text-brand-gold">
               {t.portionBadge.replace('{n}', String(card.selectedQty))}
@@ -118,6 +115,7 @@ export function KitchenPrepTray({
               {t.longestWait.replace('{n}', String(card.longestWaitMin))}
             </span>
           </div>
+          <KitchenLineNote note={card.note} variant="tray" label={t.noteLabel} />
           <div className="flex flex-wrap items-baseline gap-x-4 text-lg text-brand-text-muted">
             <span className="tabular-nums">
               {t.selectedOf

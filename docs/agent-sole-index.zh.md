@@ -456,6 +456,10 @@ sole flag `kitchen_screens.shared_prep_tray` (settings modal switch, shown with 
 
 sole `prepTrayCardKey` / `buildPrepTrayCards` = dish + trimmed note (`lineNoteKey`); React key sole `card.cardKey` (cards never mix stations — shared tray groups them per station `sections`), expand key = station id + `card.cardKey`. Same dish + different/blank notes must not stack; never regroup tray cards by `menuItemId` alone.
 
+### Kitchen note display
+
+sole `KitchenLineNote` — list rows `variant="row"` (second line under primary title); prep tray `variant="tray"` + `noteLabel`; never inline `· {note}` inside a shared `truncate` with the dish name.
+
 ### Kitchen group header leading (chevron · select)
 
 sole `KitchenGroupHeader` cluster: 36×36 chevron + `gap-3` + `KitchenGroupSelectControl` (36 hit / 22 visual); workbench row checkbox sits in the same 36 column, indent sole `.mesa-kitchen-group-row` (`3.75rem` ≥30rem pane = rail+pad+chevron+gap). Never a second header select, never reintroduce 20px chevron + `2.5rem` indent as a parallel geometry.

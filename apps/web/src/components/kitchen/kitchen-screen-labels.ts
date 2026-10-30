@@ -55,6 +55,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     /** Aria for dish thumb that opens detail. */
     dishThumbOpenDetail: string;
     trayTitle: string;
+    /** Prep-tray note strip prefix only (list rows show note text alone). */
+    noteLabel: string;
     traySummary: string;
     trayEmpty: string;
     /** Shared by group headers and the prep tray: distinct tables / longest wait / «已选 n/m» tally. */
@@ -122,6 +124,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: '素食',
     dishThumbOpenDetail: '查看菜品详情',
     trayTitle: '备餐区',
+    noteLabel: '备注',
     traySummary: '已选 {d} 道 · {p} 份 · {t} 桌',
     trayEmpty: '从左侧勾选要备的菜',
     tableCount: '{n} 桌',
@@ -184,6 +187,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: 'Vegetarian',
     dishThumbOpenDetail: 'View dish details',
     trayTitle: 'Prep tray',
+    noteLabel: 'Note',
     traySummary: 'Dishes {d} · Pcs {p} · Tables {t}',
     trayEmpty: 'Select dishes on the left to prep',
     tableCount: 'Tables {n}',
@@ -246,6 +250,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: 'Vegetariano',
     dishThumbOpenDetail: 'Ver detalhes do prato',
     trayTitle: 'Área de preparo',
+    noteLabel: 'Obs.',
     traySummary: 'Pratos {d} · Un. {p} · Mesas {t}',
     trayEmpty: 'Selecione os pratos à esquerda',
     tableCount: 'Mesas {n}',
@@ -308,6 +313,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: 'Vegetariano',
     dishThumbOpenDetail: 'Ver detalle del plato',
     trayTitle: 'Zona de preparación',
+    noteLabel: 'Nota',
     traySummary: 'Platos {d} · Uds. {p} · Mesas {t}',
     trayEmpty: 'Seleccione platos a la izquierda',
     tableCount: 'Mesas {n}',
@@ -370,6 +376,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: 'Vegetarien',
     dishThumbOpenDetail: 'Voir le detail du plat',
     trayTitle: 'Zone de préparation',
+    noteLabel: 'Note',
     traySummary: 'Plats {d} · Pcs {p} · Tables {t}',
     trayEmpty: 'Sélectionnez les plats à gauche',
     tableCount: 'Tables {n}',
@@ -432,6 +439,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: 'Vegetarisch',
     dishThumbOpenDetail: 'Gerichtdetails anzeigen',
     trayTitle: 'Zubereitung',
+    noteLabel: 'Hinweis',
     traySummary: 'Gerichte {d} · Stk. {p} · Tische {t}',
     trayEmpty: 'Gerichte links auswählen',
     tableCount: 'Tische {n}',

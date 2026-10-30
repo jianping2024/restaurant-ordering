@@ -913,12 +913,17 @@ body {
     row-gap: 0.125rem;
   }
 
+  /* Title block owns the full width; clamp the primary line only (note stays its own line). */
   .mesa-kitchen-row-title {
     flex-basis: 100%;
+  }
+
+  .mesa-kitchen-row-title-primary {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     white-space: normal;
+    overflow: hidden;
   }
 
   .mesa-kitchen-group-count {
@@ -1001,7 +1006,7 @@ body {
   }
 }
 
-/* Prep tray card: narrow tray puts name·note on line 1, portions/tables/wait on line 2. */
+/* Prep tray card: narrow tray puts dish name on line 1; note is sole strip below (KitchenLineNote). */
 .mesa-kitchen-tray {
   container-type: inline-size;
   container-name: mesa-kitchen-tray;

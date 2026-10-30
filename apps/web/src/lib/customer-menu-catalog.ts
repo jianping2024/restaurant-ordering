@@ -38,12 +38,18 @@ async function bumpCustomerMenuCatalogVersion(restaurantId: string): Promise<num
     .update({ menu_catalog_version: next })
     .eq('id', restaurantId);
   if (error) throw new Error(error.message);
+  // Guest Realtime doorbell (narrow table — do not CDC full restaurants rows).
+  const { error: signalError } = await admin.from('menu_catalog_signals').upsert(
+    { restaurant_id: restaurantId, version: next, bumped_at: new Date().toISOString() },
+    { onConflict: 'restaurant_id' },
+  );
+  if (signalError) throw new Error(signalError.message);
   return next;
 }
 
 /**
- * After dashboard menu writes: bump durable version then invalidate Next data cache.
- * Sole invalidation entry — callers must await.
+ * After dashboard menu writes: bump durable version + guest doorbell row, then invalidate
+ * Next data cache. Sole invalidation entry — callers must await.
  */
 export async function invalidateCustomerMenuCatalog(restaurantId: string): Promise<void> {
   await bumpCustomerMenuCatalogVersion(restaurantId);
@@ -62,10 +68,13 @@ export type CustomerMenuCatalogRows = {
 /** Cached shape: display rows + the restaurant fields the dish-video gate needs (never sent to guests). */
 export type CustomerMenuCatalogCached = CustomerMenuCatalogRows & {
   dishVideoGate: DishVideoGateRestaurant | null;
+  /** DB `menu_catalog_version` this payload was loaded under (cache key). */
+  catalogVersion: number;
 };
 
 async function loadCustomerMenuCatalogUncached(
   restaurantId: string,
+  catalogVersion: number,
 ): Promise<CustomerMenuCatalogCached> {
   const admin = createAdminClient();
   const [
@@ -112,18 +121,26 @@ async function loadCustomerMenuCatalogUncached(
     ),
     menuTimeSlots,
     dishVideoGate: (dishVideoGate as DishVideoGateRestaurant | null) ?? null,
+    catalogVersion,
   };
 }
 
 /**
  * Customer-facing menu catalog (items + active categories).
- * Short TTL + tag invalidation on dashboard menu mutations.
- * Session/table context stays request-dynamic outside this cache.
- * Durable freshness for clients is {@link loadCustomerMenuCatalogVersion}.
+ * Cache key includes {@link loadCustomerMenuCatalogVersion} so a bump cannot serve a stale body
+ * under a new version; tag invalidation still drops old entries early.
+ * Durable client freshness remains `menu_catalog_version` + ensure(knownVersion).
  */
-export function loadCustomerMenuCatalog(restaurantId: string) {
-  return unstable_cache(loadCustomerMenuCatalogUncached, ['customer-menu-catalog', restaurantId], {
-    revalidate: 60,
-    tags: [customerMenuCatalogTag(restaurantId)],
-  })(restaurantId);
+export async function loadCustomerMenuCatalog(
+  restaurantId: string,
+): Promise<CustomerMenuCatalogCached> {
+  const catalogVersion = await loadCustomerMenuCatalogVersion(restaurantId);
+  return unstable_cache(
+    async () => loadCustomerMenuCatalogUncached(restaurantId, catalogVersion),
+    ['customer-menu-catalog', restaurantId, String(catalogVersion)],
+    {
+      revalidate: 60,
+      tags: [customerMenuCatalogTag(restaurantId)],
+    },
+  )();
 }

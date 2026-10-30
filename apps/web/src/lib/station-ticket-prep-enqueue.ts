@@ -17,7 +17,10 @@ import {
   hanBitmapFontPxFromConfig,
   isStationSlipShowCategoryGroupEnabled,
 } from '@/lib/print-agent-config';
-import { formatStationTicketOrderTime } from '@/lib/table-guest-count';
+import {
+  earliestOrderItemAddedAtIso,
+  formatStationTicketOrderTime,
+} from '@/lib/table-guest-count';
 import {
   insertStationTicketJob,
   resolveGuestCountForStationTicket,
@@ -255,8 +258,12 @@ export async function enqueueStationTicketsForPrepSelection(params: {
       return { ok: false, status: 500, code: 'session_orders_lookup_failed', message };
     }
 
+    const orderFallback = primary.created_at || new Date().toISOString();
     const orderTime = formatStationTicketOrderTime(
-      primary.created_at || new Date().toISOString(),
+      earliestOrderItemAddedAtIso(
+        tableLines.map((l) => l.item),
+        orderFallback,
+      ),
     );
 
     const payload: StationTicketJobPayload = {

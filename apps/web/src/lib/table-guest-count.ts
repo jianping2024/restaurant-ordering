@@ -51,18 +51,31 @@ export function formatStationTicketOrderTime(
   return `${pick('year')}-${pick('month')}-${pick('day')} ${pick('hour')}:${pick('minute')}`;
 }
 
+/**
+ * Earliest line `added_at` among the given items (fallback when a line has none).
+ * Sole source for station-ticket `order_time` ISO — auto batch and kitchen prep.
+ */
+export function earliestOrderItemAddedAtIso(
+  items: Array<Pick<OrderItem, 'added_at'>>,
+  fallbackIso: string,
+): string {
+  let earliest = '';
+  for (const item of items) {
+    const at = item.added_at || fallbackIso;
+    if (!at) continue;
+    if (!earliest || at < earliest) earliest = at;
+  }
+  return earliest || fallbackIso;
+}
+
 /** Earliest line `added_at` in the batch (fallback to order timestamp). */
 export function stationTicketOrderTimeIso(
   items: OrderItem[],
   batchId: string,
   fallbackIso: string,
 ): string {
-  let earliest = '';
-  for (const item of items) {
-    if (orderItemBatchKey(item) !== batchId) continue;
-    const at = item.added_at || fallbackIso;
-    if (!at) continue;
-    if (!earliest || at < earliest) earliest = at;
-  }
-  return earliest || fallbackIso;
+  return earliestOrderItemAddedAtIso(
+    items.filter((item) => orderItemBatchKey(item) === batchId),
+    fallbackIso,
+  );
 }

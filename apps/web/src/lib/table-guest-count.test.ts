@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  earliestOrderItemAddedAtIso,
   guestCountFromTableOrders,
   isBillGuestCountConfirmed,
+  stationTicketOrderTimeIso,
 } from './table-guest-count';
-import type { Order } from '@/types';
+import type { Order, OrderItem } from '@/types';
 
 function orderWithItems(items: Order['items']): Order {
   return {
@@ -121,5 +123,52 @@ describe('guestCountFromTableOrders / isBillGuestCountConfirmed', () => {
     ];
     assert.equal(guestCountFromTableOrders(orders), 0);
     assert.equal(isBillGuestCountConfirmed(orders), false);
+  });
+});
+
+describe('earliestOrderItemAddedAtIso / stationTicketOrderTimeIso', () => {
+  const fallback = '2026-10-30T21:27:00.000Z';
+
+  it('picks earliest added_at among lines (prep slip)', () => {
+    const items: Array<Pick<OrderItem, 'added_at'>> = [
+      { added_at: '2026-10-30T21:59:46.155Z' },
+      { added_at: '2026-10-30T22:00:10.000Z' },
+    ];
+    assert.equal(earliestOrderItemAddedAtIso(items, fallback), '2026-10-30T21:59:46.155Z');
+  });
+
+  it('falls back to order created_at when lines lack added_at', () => {
+    assert.equal(earliestOrderItemAddedAtIso([{}, {}], fallback), fallback);
+  });
+
+  it('batch helper ignores other batches', () => {
+    const items = [
+      {
+        id: 'a',
+        name: 'A',
+        name_pt: 'A',
+        emoji: '🍽️',
+        price: 1,
+        qty: 1,
+        kind: 'menu' as const,
+        batch_id: 'other',
+        added_at: '2026-10-30T21:00:00.000Z',
+      },
+      {
+        id: 'e2',
+        name: 'E2',
+        name_pt: 'E2',
+        emoji: '🍽️',
+        price: 1,
+        qty: 2,
+        kind: 'menu' as const,
+        batch_id: '1793397586155-zj2ume',
+        added_at: '2026-10-30T21:59:46.155Z',
+      },
+    ];
+    assert.equal(
+      stationTicketOrderTimeIso(items, '1793397586155-zj2ume', fallback),
+      '2026-10-30T21:59:46.155Z',
+    );
   });
 });

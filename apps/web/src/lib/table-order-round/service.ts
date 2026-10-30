@@ -146,6 +146,121 @@ async function loadRoundLines(
   return (data || []) as TableOrderRoundLineRow[];
 }
 
+async function loadSessionOrdersForRoundSettle(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionId: string,
+): Promise<Array<{ items?: OrderItem[] | null; status: string }>> {
+  const { data } = await admin
+    .from('orders')
+    .select('id, status, items, created_at')
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId)
+    .in('status', ['pending', 'cooking', 'done']);
+  return (data || []) as Array<{ items?: OrderItem[] | null; status: string }>;
+}
+
+export type SettleDueSubmitResult = 'noop' | 'reset_empty' | 'finalized' | 'error';
+
+/**
+ * Sole due-submit settle: `pending_confirm` / `finalize_failed` past `submit_deadline_at`
+ * → empty basket back to collecting, else `finalizeRound` (append + station tickets).
+ * Callers: GET snapshot, in-process arm/sweep. Do not duplicate this branch elsewhere.
+ */
+export async function settleDueTableOrderRoundSubmit(params: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  sessionId: string;
+  sessionOrders?: Array<{ items?: OrderItem[] | null; status: string }>;
+  settings?: SushiRoundSettings;
+  buffetServiceMode?: BuffetServiceMode | string | null;
+  nowMs?: number;
+}): Promise<SettleDueSubmitResult> {
+  const settings =
+    params.settings ?? (await loadRestaurantSushiRoundSettings(params.admin, params.restaurantId));
+  const round = await loadActiveRound(params.admin, params.sessionId);
+  if (!round) return 'noop';
+  if (round.status !== 'pending_confirm' && round.status !== 'finalize_failed') return 'noop';
+  if (!isSubmitDeadlinePassed(round.submit_deadline_at, params.nowMs)) return 'noop';
+
+  const linesForGate = await loadRoundLines(params.admin, round.id);
+  if (sumLineQty(linesForGate) < 1) {
+    const nowIso = new Date().toISOString();
+    await params.admin
+      .from('table_order_rounds')
+      .update({
+        status: 'collecting',
+        submit_request_id: null,
+        submit_requested_at: null,
+        submit_deadline_at: null,
+        append_client_request_id: null,
+        updated_at: nowIso,
+      })
+      .eq('id', round.id)
+      .in('status', ['pending_confirm', 'finalize_failed']);
+    return 'reset_empty';
+  }
+
+  const sessionOrders =
+    params.sessionOrders ??
+    (await loadSessionOrdersForRoundSettle(params.admin, params.restaurantId, params.sessionId));
+
+  const result = await finalizeRound({
+    admin: params.admin,
+    restaurantId: params.restaurantId,
+    sessionId: params.sessionId,
+    tableId: round.table_id,
+    settings,
+    sessionOrders,
+    buffetServiceMode: params.buffetServiceMode ?? 'sushi',
+  });
+  return result.ok ? 'finalized' : 'error';
+}
+
+/** Sweep all sessions whose submit deadline has passed (in-process interval; not a Vercel cron). */
+export async function sweepDueTableOrderRoundSubmits(
+  admin: SupabaseClient,
+  options?: { limit?: number; nowMs?: number },
+): Promise<{ examined: number; settled: number; errors: number }> {
+  const limit = Math.min(200, Math.max(1, options?.limit ?? 50));
+  const nowIso = new Date(options?.nowMs ?? Date.now()).toISOString();
+  const { data, error } = await admin
+    .from('table_order_rounds')
+    .select('id, restaurant_id, session_id')
+    .in('status', ['pending_confirm', 'finalize_failed'])
+    .lte('submit_deadline_at', nowIso)
+    .order('submit_deadline_at', { ascending: true })
+    .limit(limit);
+
+  if (error || !data) {
+    return { examined: 0, settled: 0, errors: error ? 1 : 0 };
+  }
+
+  let settled = 0;
+  let errors = 0;
+  for (const row of data) {
+    const restaurantId = typeof row.restaurant_id === 'string' ? row.restaurant_id : '';
+    const sessionId = typeof row.session_id === 'string' ? row.session_id : '';
+    if (!restaurantId || !sessionId) {
+      errors += 1;
+      continue;
+    }
+    try {
+      const outcome = await settleDueTableOrderRoundSubmit({
+        admin,
+        restaurantId,
+        sessionId,
+        nowMs: options?.nowMs,
+      });
+      if (outcome === 'finalized' || outcome === 'reset_empty') settled += 1;
+      else if (outcome === 'error') errors += 1;
+    } catch {
+      errors += 1;
+    }
+  }
+  return { examined: data.length, settled, errors };
+}
+
 export async function getRoundSnapshot(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -163,44 +278,17 @@ export async function getRoundSnapshot(params: {
 
   if (!params.skipExpirySettle) {
     await settleExpiredTableOrderRoundCooldown(params.admin, params.sessionId);
+    await settleDueTableOrderRoundSubmit({
+      admin: params.admin,
+      restaurantId: params.restaurantId,
+      sessionId: params.sessionId,
+      sessionOrders: params.sessionOrders,
+      settings,
+      buffetServiceMode: 'sushi',
+    });
   }
 
-  let round = await loadActiveRound(params.admin, params.sessionId);
-
-  if (
-    !params.skipExpirySettle &&
-    round &&
-    (round.status === 'pending_confirm' || round.status === 'finalize_failed') &&
-    isSubmitDeadlinePassed(round.submit_deadline_at)
-  ) {
-    const linesForGate = await loadRoundLines(params.admin, round.id);
-    if (sumLineQty(linesForGate) < 1) {
-      const nowIso = new Date().toISOString();
-      await params.admin
-        .from('table_order_rounds')
-        .update({
-          status: 'collecting',
-          submit_request_id: null,
-          submit_requested_at: null,
-          submit_deadline_at: null,
-          append_client_request_id: null,
-          updated_at: nowIso,
-        })
-        .eq('id', round.id)
-        .in('status', ['pending_confirm', 'finalize_failed']);
-    } else {
-      await finalizeRound({
-        admin: params.admin,
-        restaurantId: params.restaurantId,
-        sessionId: params.sessionId,
-        tableId: round.table_id,
-        settings,
-        sessionOrders: params.sessionOrders,
-        buffetServiceMode: 'sushi',
-      });
-    }
-    round = await loadActiveRound(params.admin, params.sessionId);
-  }
+  const round = await loadActiveRound(params.admin, params.sessionId);
 
   if (!round) {
     return {

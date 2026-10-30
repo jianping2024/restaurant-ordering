@@ -142,7 +142,8 @@
 |------|-------------|------|
 | `/api/cron/nightly-close-sessions` | `0 4 * * *`（UTC 每天一次，Hobby） | 批量关台（`auto_nightly`；默认 `policy=due` 里斯本 05:00 门闸；on-prem 日切 `?policy=always`） |
 
-鉴权：`CRON_SECRET` 环境变量。
+鉴权：`CRON_SECRET` 环境变量。  
+**Vercel Hobby 仅允许一条 cron**——勿再往 `vercel.json` 加任务。寿司轮次到点送厨用店机长驻 Node 的 `submit-request` arm + 懒启动进程内 sweep（见 `sushi-round-ordering.zh.md` §7.3），不另开 cron。
 
 ---
 

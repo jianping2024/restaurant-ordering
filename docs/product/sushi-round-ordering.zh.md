@@ -157,10 +157,15 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 ### 7.3 超时与 finalize
 
-- 客户端到点 `POST …/round/finalize`；`GET` round 若已过 deadline 则同一套 finalize 收口
+- **到点收口唯一写法**：服务端 `settleDueTableOrderRoundSubmit`（空篮 → 回 `collecting`；有菜 → 同一套 `finalizeRound`）
+- 触发（都走上面唯一收口，不另写第二套送厨；**不**新增 Vercel Cron——`vercel.json` 仍只有 nightly 一条）：
+  1. `submit-request` 成功后进程内按 `submit_deadline_at` 定时（手机可关；店机长驻 Node 可靠）
+  2. Node 进程内周期 sweep（首次 `submit-request` / GET round 时懒启动，约 10s；店机 / `next start`）
+  3. `GET` round 发现已过 deadline
+  4. 菜单仍打开时客户端到点 `POST …/round/finalize`（加速，非必要条件）
 - 条件：`status = pending_confirm`（或 `finalize_failed`）且 `now ≥ submit_deadline_at`
 - finalize 成功：合并 lines → **一次** append 写单 → **服务端**调用现有 `enqueueStationTicketsForOrder` 入队档口出品联 → `cooldown`
-- 顾客端**不**再调 `station-tickets/auto`（避免依赖已废投票标记或某一台手机仍在前台）
+- 顾客端**不**再调 `station-tickets/auto`；送厨**不**依赖某一台手机仍在前台
 
 ---
 

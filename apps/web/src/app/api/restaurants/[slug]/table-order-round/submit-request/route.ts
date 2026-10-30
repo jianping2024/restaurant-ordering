@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyOrderAppendGate } from '@/lib/order-submit-gate';
+import { armTableOrderRoundDeadlineFinalize } from '@/lib/table-order-round/deadline-finalize-runtime';
 import { submitRequest } from '@/lib/table-order-round/service';
 import {
   loadTableOrderRoundContext,
@@ -52,6 +53,21 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
 
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
+  }
+
+  const round = result.data.snapshot.round;
+  if (
+    round &&
+    round.status === 'pending_confirm' &&
+    typeof round.submit_deadline_at === 'string' &&
+    round.submit_deadline_at
+  ) {
+    armTableOrderRoundDeadlineFinalize({
+      roundId: round.id,
+      restaurantId: ctx.restaurant.restaurantId,
+      sessionId: ctx.writeContext.session.id as string,
+      submitDeadlineAt: round.submit_deadline_at,
+    });
   }
 
   return NextResponse.json(roundSnapshotJson(result.data.snapshot));

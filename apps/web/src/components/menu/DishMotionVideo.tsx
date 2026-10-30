@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { dishVideoDeviceAllows } from '@/lib/menu-dish-video';
 import {
+  applyDishMotionVideoElementSrc,
   dishMotionVideoShouldPlay,
   type DishMotionVideoLayer,
 } from '@/lib/menu-dish-video-playback';
@@ -50,8 +51,9 @@ function deviceAllowsDishVideo(): boolean {
  * Sole guest dish motion video: muted seamless loop over the still photo.
  * Play only when on screen (≥50%), the tab is visible, and — for rail — no
  * detail sheet is open. Detail layer always wins while mounted. Downloads
- * only when about to play (`preload="none"`); reduced motion / data saver /
- * 2G / errors keep the photo. No global concurrent cap.
+ * only when about to play (`preload="none"`); catalog URL changes always
+ * resync the element `src` (never keep a stale mp4). Reduced motion / data
+ * saver / 2G / errors keep the photo. No global concurrent cap.
  */
 export function DishMotionVideo(props: {
   src: string | null | undefined;
@@ -89,7 +91,9 @@ export function DishMotionVideo(props: {
         detailOpen: getDishMotionDetailOpen(),
       });
       if (should) {
-        if (!video.getAttribute('src')) video.setAttribute('src', src);
+        if (applyDishMotionVideoElementSrc(video, src)) {
+          setReady(false);
+        }
         void video.play().catch(() => {
           /* autoplay refused (e.g. iOS low power) → photo stays */
         });

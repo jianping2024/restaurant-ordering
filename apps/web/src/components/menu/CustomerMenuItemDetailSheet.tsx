@@ -184,7 +184,9 @@ export function CustomerMenuItemDetailSheet({
             ) : (
               <div className="flex h-full w-full items-center justify-center text-7xl">{item.emoji}</div>
             )}
-            {imageSrc ? <DishMotionVideo key={item.id} src={item.video_url} /> : null}
+            {imageSrc ? (
+              <DishMotionVideo key={item.id} layer="detail" src={item.video_url} />
+            ) : null}
             <MenuItemFlavorChips
               flavorCodes={item.flavor_codes}
               lang={lang}

@@ -49,7 +49,7 @@
 | 顶栏 | 紧凑身份行：客人点餐页左侧唯一桌号 chip（`CustomerTableIdentityBadge`，店名只在店面信息带）；结账 / 代点仍可带店名；语言+主题 sole `AppearanceChromeGroup` 胶囊；可选返回。类目不在顶栏 |
 | 店面带 | 客人经典/寿司页 sole `CustomerMenuStorefrontScroll` + `CustomerStorefrontBand`（封面/Logo/营业时间 Lisbon/简介/地址电话）；空封面 sole 默认图；员工嵌入/账单页不挂 |
 | 分类 | 唯一 `CustomerMenuCategoryNav`：左侧竖向一级类目栏；客人页 / 员工嵌入 **同一双栏独立滚**；右列唯一顺序 **推荐 `catalogLeading` → sticky 二级 soft chip → 菜列表**。宽壳类目栏可至 112px |
-| 推荐 | 唯一 `CustomerRecommendedRail`：经 `catalogLeading`；4:3 海报卡 + 价；点开详情；勿复用 `MenuItemCard` |
+| 推荐 | 唯一 `CustomerRecommendedRail`：经 `catalogLeading`；4:3 海报卡 + 价；点开详情；交互 sole `.mesa-recommended-poster`（悬停抬起/按下微沉/焦点，无 tilt）；勿复用 `MenuItemCard` |
 | 菜品 | `MenuItemCard`；列表 qty sole 金圆 `+`/数量 → 展开 pill −/n/+；卡身 `min-h` 跟缩略图，内容多时可长高；无列表描述 |
 | 同桌飘窗 | sole `CustomerMenuPeerFloats`（躲开左类目栏）；经典=他人加菜；寿司=轮次同行+收费加菜 |
 | 购物车 | 底部贴底固定条（`customerBottomDockSurfaceClass` + 菜单壳宽）→ `CartDrawer`；提交成功 sole 底栏 ✓ + 袋 pop（菜单页无成功 toast）；角标在 `FooterIconSlot` 盒内 |

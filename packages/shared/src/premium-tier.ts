@@ -23,6 +23,12 @@ export type ProFeatureProduct = {
   active: boolean;
 };
 
+/** Platform base subscription list price (no Pro add-ons). */
+export type SubscriptionBaseProduct = {
+  priceMonthEur: number;
+  priceYearEur: number;
+};
+
 export function isRestaurantPlan(value: string | null | undefined): value is RestaurantPlan {
   return value === 'basic' || value === 'pro';
 }
@@ -139,7 +145,28 @@ export function parseProFeatureProduct(raw: unknown): ProFeatureProduct | null {
   };
 }
 
-/** Sole Pro quote: sum list prices for entitled keys (inactive catalog rows skipped). */
+/** Parse base subscription list price from DB / API JSON. */
+export function parseSubscriptionBaseProduct(raw: unknown): SubscriptionBaseProduct | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const month = nonNegativeMoney(
+    row.priceMonthEur ?? row.price_month_eur ?? row.priceMonthEUR,
+  );
+  const year = nonNegativeMoney(row.priceYearEur ?? row.price_year_eur ?? row.priceYearEUR);
+  if (month == null || year == null) return null;
+  return { priceMonthEur: month, priceYearEur: year };
+}
+
+/** Base list price for one billing period (missing base → 0). */
+export function quoteSubscriptionBaseEur(
+  base: SubscriptionBaseProduct | null | undefined,
+  period: ProBillingPeriod,
+): number {
+  if (!base) return 0;
+  return period === 'month' ? base.priceMonthEur : base.priceYearEur;
+}
+
+/** Pro add-on subtotal: sum list prices for entitled keys (inactive catalog rows skipped). */
 export function quoteProFeaturesEur(
   entitledKeys: readonly PremiumKey[],
   products: readonly ProFeatureProduct[],
@@ -153,6 +180,21 @@ export function quoteProFeaturesEur(
     sum += period === 'month' ? product.priceMonthEur : product.priceYearEur;
   }
   return Math.round(sum * 100) / 100;
+}
+
+/**
+ * Sole restaurant subscription quote:
+ * base plan list price + Pro feature add-ons for the same period.
+ */
+export function quoteRestaurantSubscriptionEur(
+  base: SubscriptionBaseProduct | null | undefined,
+  entitledKeys: readonly PremiumKey[],
+  products: readonly ProFeatureProduct[],
+  period: ProBillingPeriod,
+): number {
+  const total =
+    quoteSubscriptionBaseEur(base, period) + quoteProFeaturesEur(entitledKeys, products, period);
+  return Math.round(total * 100) / 100;
 }
 
 /** Trial / new-Pro seed rows for `restaurant_pro_feature_grants` (all known keys). */

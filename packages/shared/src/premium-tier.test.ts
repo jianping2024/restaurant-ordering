@@ -7,8 +7,11 @@ import {
   normalizePremiumKeys,
   normalizeRestaurantPlan,
   parseProFeatureProduct,
+  parseSubscriptionBaseProduct,
   proTrialValidUntil,
   quoteProFeaturesEur,
+  quoteRestaurantSubscriptionEur,
+  quoteSubscriptionBaseEur,
   PRO_TRIAL_DAYS,
 } from './premium-tier';
 import {
@@ -158,5 +161,37 @@ describe('premium-tier', () => {
     assert.equal(quoteProFeaturesEur(['value_analytics', 'menu_dish_video'], products, 'month'), 15.5);
     assert.equal(quoteProFeaturesEur(['value_analytics', 'menu_dish_video'], products, 'year'), 155);
     assert.equal(quoteProFeaturesEur(['abnormal_ops'], products, 'month'), 0);
+  });
+
+  it('quoteRestaurantSubscriptionEur is base plus Pro add-ons', () => {
+    const base = parseSubscriptionBaseProduct({
+      price_month_eur: 29,
+      price_year_eur: 290,
+    })!;
+    const products = [
+      parseProFeatureProduct({
+        feature_key: 'value_analytics',
+        price_month_eur: 10,
+        price_year_eur: 100,
+        active: true,
+      })!,
+      parseProFeatureProduct({
+        feature_key: 'menu_dish_video',
+        price_month_eur: 5.5,
+        price_year_eur: 55,
+        active: true,
+      })!,
+    ];
+    assert.equal(quoteSubscriptionBaseEur(base, 'month'), 29);
+    assert.equal(quoteSubscriptionBaseEur(null, 'month'), 0);
+    assert.equal(quoteRestaurantSubscriptionEur(base, [], products, 'month'), 29);
+    assert.equal(
+      quoteRestaurantSubscriptionEur(base, ['value_analytics', 'menu_dish_video'], products, 'month'),
+      44.5,
+    );
+    assert.equal(
+      quoteRestaurantSubscriptionEur(base, ['value_analytics', 'menu_dish_video'], products, 'year'),
+      445,
+    );
   });
 });

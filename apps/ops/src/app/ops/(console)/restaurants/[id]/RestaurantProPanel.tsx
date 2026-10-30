@@ -6,9 +6,12 @@ import {
   todayLisbonCalendarDate,
   PREMIUM_KEYS,
   quoteProFeaturesEur,
+  quoteRestaurantSubscriptionEur,
+  quoteSubscriptionBaseEur,
   type LicenseExtendPeriod,
   type PremiumKey,
   type ProFeatureProduct,
+  type SubscriptionBaseProduct,
 } from '@mesa/shared';
 import { OpsCalendarValidUntilEditor } from '@/components/OpsCalendarValidUntilEditor';
 
@@ -27,6 +30,7 @@ type Props = {
     proValidUntil: string | null;
     featureKeys: PremiumKey[];
     products: ProFeatureProduct[];
+    base: SubscriptionBaseProduct;
   };
 };
 
@@ -46,8 +50,22 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
     return map;
   }, [initial.products]);
   const entitledList = Array.from(featureKeys);
-  const monthQuote = quoteProFeaturesEur(entitledList, initial.products, 'month');
-  const yearQuote = quoteProFeaturesEur(entitledList, initial.products, 'year');
+  const baseMonth = quoteSubscriptionBaseEur(initial.base, 'month');
+  const baseYear = quoteSubscriptionBaseEur(initial.base, 'year');
+  const proMonth = quoteProFeaturesEur(entitledList, initial.products, 'month');
+  const proYear = quoteProFeaturesEur(entitledList, initial.products, 'year');
+  const monthQuote = quoteRestaurantSubscriptionEur(
+    initial.base,
+    entitledList,
+    initial.products,
+    'month',
+  );
+  const yearQuote = quoteRestaurantSubscriptionEur(
+    initial.base,
+    entitledList,
+    initial.products,
+    'year',
+  );
 
   const applyProValidUntil = (iso: string) => {
     setProValidUntil(iso);
@@ -151,7 +169,7 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
         <h2 className="text-lg font-medium">Pro 会员</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          有效 Pro 仍受 license_valid_until 约束；到期设定与授权同一里斯本日历日。本店功能包与全局定价分开：勾选开通项 → 按价目合计报价。
+          有效 Pro 仍受 license_valid_until 约束；到期设定与授权同一里斯本日历日。店报价 = 基础版 + 已勾 Pro 功能。
         </p>
 
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
@@ -228,10 +246,22 @@ export function RestaurantProPanel({ restaurantId, initial, readOnly = false }: 
             );
           })}
 
-          <div className="rounded border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-300">
-            报价合计：月 <span className="font-mono text-amber-400">€{monthQuote.toFixed(2)}</span>
-            {' · '}
-            年 <span className="font-mono text-amber-400">€{yearQuote.toFixed(2)}</span>
+          <div className="space-y-1 rounded border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-300">
+            <div>
+              基础版：月 <span className="font-mono">€{baseMonth.toFixed(2)}</span>
+              {' · '}
+              年 <span className="font-mono">€{baseYear.toFixed(2)}</span>
+            </div>
+            <div>
+              Pro 功能：月 <span className="font-mono">€{proMonth.toFixed(2)}</span>
+              {' · '}
+              年 <span className="font-mono">€{proYear.toFixed(2)}</span>
+            </div>
+            <div>
+              报价合计：月 <span className="font-mono text-amber-400">€{monthQuote.toFixed(2)}</span>
+              {' · '}
+              年 <span className="font-mono text-amber-400">€{yearQuote.toFixed(2)}</span>
+            </div>
           </div>
 
           {!readOnly ? (

@@ -536,7 +536,7 @@ rsync must exclude `.next` **and** `.next-*` (`.next-uat` / `.next-typecheck`); 
 
 ### Pro commercial (pricing + grants)
 
-sole catalog `pro_feature_products` (EUR month/year) + sole entitlements `restaurant_pro_feature_grants`; sole gate `canUsePremiumFeature` / `resolvePremiumGate` = effective Pro × grant (never `platform_pro_settings.premium_keys`); sole quote `quoteProFeaturesEur`; Ops prices at `/ops/settings/pro`, grants on restaurant Pro panel — never a second global “requires Pro” checklist or contact-link gate.
+sole base price `subscription_base_product` + Pro catalog `pro_feature_products` + entitlements `restaurant_pro_feature_grants`; sole gate `canUsePremiumFeature` / `resolvePremiumGate` = effective Pro × grant (never `platform_pro_settings.premium_keys`); sole store quote `quoteRestaurantSubscriptionEur` = base + `quoteProFeaturesEur` (never a second total); Ops `/ops/settings/pro` edits base+Pro prices, grants on restaurant Pro panel — never stuff base into `pro_feature_products` / `PremiumKey`.
 
 ### LAN HTTP UUID
 

@@ -11,7 +11,7 @@ const NAV = [
 ];
 
 const ADMIN_NAV = [
-  { href: '/ops/settings/pro', label: 'Pro' },
+  { href: '/ops/settings/pro', label: '定价' },
   { href: '/ops/settings/admins', label: '账号' },
 ];
 

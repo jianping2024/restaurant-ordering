@@ -45,13 +45,17 @@ export {
   normalizePremiumKeys,
   normalizePremiumKeyGrants,
   parseProFeatureProduct,
+  parseSubscriptionBaseProduct,
   proTrialFeatureGrantRows,
   proTrialValidUntil,
   quoteProFeaturesEur,
+  quoteRestaurantSubscriptionEur,
+  quoteSubscriptionBaseEur,
   type PremiumKey,
   type ProBillingPeriod,
   type ProFeatureProduct,
   type RestaurantPlan,
+  type SubscriptionBaseProduct,
 } from './premium-tier';
 export {
   registerOnPremRestaurant,

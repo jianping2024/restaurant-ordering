@@ -30,6 +30,7 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'restaurant.pro_extend': '续期 Pro',
   'restaurant.pro_grants_set': '设置本店 Pro 功能包',
   'settings.pro_prices_updated': '更新 Pro 功能定价',
+  'settings.subscription_prices_updated': '更新订阅定价（基础+Pro）',
   'platform_admin.create': '创建运营账号',
   'platform_admin.disable': '停用运营账号',
   'platform_admin.enable': '启用运营账号',

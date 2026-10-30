@@ -5,6 +5,7 @@ import {
   normalizeCountryCode,
   normalizePremiumKeyGrants,
   parseProFeatureProduct,
+  parseSubscriptionBaseProduct,
   type BuffetServiceMode,
   type PrintLocale,
   type ProFeatureProduct,
@@ -65,17 +66,24 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   });
   const ownerEmail = row.owner_email || owner?.data?.user?.email || null;
 
-  const [{ data: grantRows }, { data: productRows }] = await Promise.all([
+  const [{ data: grantRows }, { data: productRows }, { data: baseRow }] = await Promise.all([
     admin.from('restaurant_pro_feature_grants').select('feature_key').eq('restaurant_id', row.id),
     admin
       .from('pro_feature_products')
       .select('feature_key, price_month_eur, price_year_eur, active')
       .order('feature_key'),
+    admin
+      .from('subscription_base_product')
+      .select('price_month_eur, price_year_eur')
+      .eq('id', 'default')
+      .maybeSingle(),
   ]);
   const featureKeys = normalizePremiumKeyGrants((grantRows ?? []).map((g) => g.feature_key));
   const products = (productRows ?? [])
     .map((p) => parseProFeatureProduct(p))
     .filter((p): p is ProFeatureProduct => p != null);
+  const base =
+    parseSubscriptionBaseProduct(baseRow) ?? { priceMonthEur: 0, priceYearEur: 0 };
 
   return (
     <div>
@@ -129,6 +137,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           proValidUntil: row.pro_valid_until,
           featureKeys,
           products,
+          base,
         }}
       />
 

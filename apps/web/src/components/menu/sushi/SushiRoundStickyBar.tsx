@@ -13,8 +13,8 @@ import type { CustomerMenuDietaryFilterPrefs } from '@/lib/customer-menu-dietary
 import { mesaSelectionChipShellClass, mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { Button } from '@/components/ui/Button';
+import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerMenuTableGuestsLabel } from '@/components/menu/CustomerMenuTableGuestsChrome';
-import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 
 type Copy = (typeof SUSHI_ROUND_MESSAGES)[Language];
 
@@ -62,6 +62,8 @@ export function SushiRoundStickyBar({
     setDraftExclude([...dietaryFilter.prefs.excludeAllergenCodes]);
     setAllergenSheetOpen(true);
   };
+
+  const closeAllergenSheet = () => setAllergenSheetOpen(false);
 
   return (
     <div className="shrink-0 border-b border-brand-border bg-brand-card/95 px-4 py-2">
@@ -116,46 +118,13 @@ export function SushiRoundStickyBar({
         ) : null}
       </div>
 
-      {allergenSheetOpen && dietaryFilter ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/45"
-            aria-label={menuT.itemDetailClose}
-            onClick={() => setAllergenSheetOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="sushi-allergen-filter-title"
-            className={`relative z-10 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} rounded-t-2xl border border-brand-border bg-brand-card px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-4`}
-          >
-            <h2 id="sushi-allergen-filter-title" className="text-base font-semibold text-brand-text">
-              {menuT.dietaryFilterAllergenTitle}
-            </h2>
-            <p className="mt-1 text-[12px] leading-snug text-brand-text-muted">
-              {menuT.dietaryFilterAllergenHint}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {ALLERGENS.map((entry) => {
-                const on = draftExclude.includes(entry.code);
-                return (
-                  <button
-                    key={entry.code}
-                    type="button"
-                    onClick={() =>
-                      setDraftExclude((prev) =>
-                        on ? prev.filter((c) => c !== entry.code) : [...prev, entry.code],
-                      )
-                    }
-                    className={`${mesaSelectionChipShellClass} px-2.5 py-1 text-[13px] ${mesaSelectionChipSoftClass(on)}`}
-                  >
-                    {allergenLabel(entry.code, lang)}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-4 flex gap-2">
+      {dietaryFilter ? (
+        <CustomerMenuBottomSheet
+          open={allergenSheetOpen}
+          onClose={closeAllergenSheet}
+          title={menuT.dietaryFilterAllergenTitle}
+          footer={
+            <div className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -170,14 +139,37 @@ export function SushiRoundStickyBar({
                 className="flex-1"
                 onClick={() => {
                   dietaryFilter.onExcludeAllergenCodesChange(draftExclude);
-                  setAllergenSheetOpen(false);
+                  closeAllergenSheet();
                 }}
               >
                 {menuT.dietaryFilterAllergenDone}
               </Button>
             </div>
+          }
+        >
+          <p className="text-[12px] leading-snug text-brand-text-muted">
+            {menuT.dietaryFilterAllergenHint}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {ALLERGENS.map((entry) => {
+              const on = draftExclude.includes(entry.code);
+              return (
+                <button
+                  key={entry.code}
+                  type="button"
+                  onClick={() =>
+                    setDraftExclude((prev) =>
+                      on ? prev.filter((c) => c !== entry.code) : [...prev, entry.code],
+                    )
+                  }
+                  className={`${mesaSelectionChipShellClass} px-2.5 py-1 text-[13px] ${mesaSelectionChipSoftClass(on)}`}
+                >
+                  {allergenLabel(entry.code, lang)}
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </CustomerMenuBottomSheet>
       ) : null}
     </div>
   );

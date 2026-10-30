@@ -1,6 +1,6 @@
 /**
  * Sole layout tokens for customer menu bottom sheet (`CustomerMenuBottomSheet`:
- * cart / 已点 / 本轮核单). Panel is viewport-capped; header + footer stay pinned;
+ * cart / 已点 / 本轮核单 / sushi allergen filter). Panel is viewport-capped; header + footer stay pinned;
  * one body scroller only — never max-h on the body alone without capping the panel.
  */
 

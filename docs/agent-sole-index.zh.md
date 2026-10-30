@@ -319,7 +319,7 @@ sole UI gates `previewGuestRoundCartDraftGates` (菜卡/详情/购物车加份 +
 
 ### Guest menu shell width
 
-sole `CUSTOMER_MENU_SHELL_WIDTH_CLASS` = `w-full max-w-[68rem]` (page root / menu footer / bill dock / bottom sheets / storefront hours sheet / sushi dietary sheet) — never a parallel `max-w-mobile` + `lg:max-w-[68rem]` pair or bare `max-w-mobile` on those surfaces; dish detail panel stays full-bleed below `lg` / `max-w-lg` dialog at `lg+` (not the menu shell).
+sole `CUSTOMER_MENU_SHELL_WIDTH_CLASS` = `w-full max-w-[68rem]` (page root / menu footer / bill dock / bottom sheets via `CustomerMenuBottomSheet` / storefront hours sheet) — never a parallel `max-w-mobile` + `lg:max-w-[68rem]` pair or bare `max-w-mobile` on those surfaces; dish detail panel stays full-bleed below `lg` / `max-w-lg` dialog at `lg+` (not the menu shell).
 
 ### Guest menu edge floats (notice + peer float)
 
@@ -340,7 +340,7 @@ sole `CustomerMenuCategoryNav` dual-pane (`customerMenuDualPaneRootClass` + nav 
 
 ### Guest menu bottom sheet height
 
-sole `customer-menu-bottom-sheet-layout` (`max-h-[100dvh]` flex panel + `customerMenuBottomSheetBodyClass` scroller) via `CustomerMenuBottomSheet` — never body-only `max-h-[60vh]` without capping the panel (title/close clipped off-screen).
+sole `customer-menu-bottom-sheet-layout` (`max-h-[100dvh]` flex panel + `customerMenuBottomSheetBodyClass` scroller) via `CustomerMenuBottomSheet` (cart / 已点 / 本轮核单 / sushi allergen filter) — never a parallel hand-rolled allergen `fixed` sheet beside it; never body-only `max-h-[60vh]` without capping the panel (title/close clipped off-screen).
 
 ### Guest menu overlay scroll lock
 

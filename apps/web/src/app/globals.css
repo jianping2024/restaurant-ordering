@@ -858,9 +858,9 @@ body {
 }
 
 /*
- * Sole workbench row indent under a group header: aligns the row checkbox under the header
- * select box (4px state rail + px-2 + 20px chevron + gap-2 = 40px) once the pane is wide enough;
- * phone-width panes keep the compact left pad so dish names are not squeezed.
+ * Sole workbench row indent under a group header: left edge of the row checkbox lines up
+ * with the header select control (4px state rail + px-2 + 36px chevron + gap-3 = 60px / 3.75rem)
+ * once the pane is wide enough; phone-width panes keep the compact left pad so names fit.
  */
 .mesa-kitchen-group-row {
   padding-left: 0.5rem;
@@ -868,7 +868,7 @@ body {
 
 @container mesa-kitchen-pane (min-width: 30rem) {
   .mesa-kitchen-group-row {
-    padding-left: 2.5rem;
+    padding-left: 3.75rem;
   }
 }
 

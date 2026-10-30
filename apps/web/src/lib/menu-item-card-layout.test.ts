@@ -9,6 +9,7 @@ import {
   MENU_ITEM_CARD_FLAVOR_SLOT_CLASS,
   MENU_ITEM_CARD_GOLD_ACTION_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
+  MENU_ITEM_CARD_NAME_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_CLASS,
   MENU_ITEM_CARD_QTY_DECREMENT_CLASS,
@@ -19,6 +20,7 @@ import {
   MENU_ITEM_CARD_THUMB_PX,
   MENU_ITEM_CARD_THUMB_PX_NARROW,
   MENU_ITEM_CARD_THUMB_PX_WIDE,
+  MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS,
   menuItemCardQtyTextClass,
   menuItemCardTiltFromPointer,
 } from './menu-item-card-layout';
@@ -72,9 +74,20 @@ describe('menuItemCardLayout', () => {
   it('reserves name ≤2 lines and flavor ≤1 row; no list description token', () => {
     assert.match(MENU_ITEM_CARD_NAME_CLASS, /-webkit-line-clamp:2/);
     assert.match(MENU_ITEM_CARD_NAME_CLASS, /h-\[2\.4375rem\]/);
+    assert.match(MENU_ITEM_CARD_NAME_CLASS, /min-w-0/);
+    assert.match(MENU_ITEM_CARD_NAME_CLASS, /flex-1/);
     assert.match(MENU_ITEM_CARD_FLAVOR_SLOT_CLASS, /h-\[1\.375rem\]/);
     assert.match(MENU_ITEM_CARD_FLAVOR_SLOT_CLASS, /flex-nowrap/);
     assert.match(MENU_ITEM_CARD_FLAVOR_SLOT_CLASS, /overflow-hidden/);
+  });
+
+  it('keeps vegetarian badge outside the name clamp as a shrink-0 sibling', () => {
+    assert.equal(MENU_ITEM_CARD_NAME_ROW_CLASS, 'flex min-w-0 items-start gap-1.5');
+    assert.match(MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS, /\bh-\[22px\]/);
+    assert.match(MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS, /\bshrink-0\b/);
+    assert.match(MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS, /\bleading-none\b/);
+    assert.doesNotMatch(MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS, /overflow-hidden/);
+    assert.doesNotMatch(MENU_ITEM_CARD_NAME_ROW_CLASS, /overflow-hidden/);
   });
 
   it('sole catalog list columns track host container width (not viewport xl)', () => {

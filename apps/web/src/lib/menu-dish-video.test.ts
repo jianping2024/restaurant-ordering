@@ -9,7 +9,10 @@ import {
   pickDishVideoTierWithinCap,
   stripMenuItemVideoFields,
 } from './menu-dish-video';
-import { dishMotionVideoShouldPlay } from './menu-dish-video-playback';
+import {
+  applyDishMotionVideoElementSrc,
+  dishMotionVideoShouldPlay,
+} from './menu-dish-video-playback';
 import { MENU_IMAGE_MAX_BYTES } from './menu-image';
 
 describe('dish video catalog', () => {
@@ -111,5 +114,20 @@ describe('dish video catalog', () => {
       }),
       false,
     );
+  });
+
+  it('resyncs video element src when the catalog URL changes', () => {
+    let attr: string | null = null;
+    const video = {
+      getAttribute: (name: string) => (name === 'src' ? attr : null),
+      setAttribute: (name: string, value: string) => {
+        if (name === 'src') attr = value;
+      },
+    };
+    assert.equal(applyDishMotionVideoElementSrc(video, '/a-rail.mp4'), true);
+    assert.equal(attr, '/a-rail.mp4');
+    assert.equal(applyDishMotionVideoElementSrc(video, '/a-rail.mp4'), false);
+    assert.equal(applyDishMotionVideoElementSrc(video, '/b-rail.mp4'), true);
+    assert.equal(attr, '/b-rail.mp4');
   });
 });

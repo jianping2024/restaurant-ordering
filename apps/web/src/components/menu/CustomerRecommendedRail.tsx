@@ -86,6 +86,7 @@ export function CustomerRecommendedRail({
               >
                 {imageSrc ? (
                   <Image
+                    key={imageSrc}
                     src={imageSrc}
                     alt=""
                     fill

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设计图 · 批量生成菜品动图（确认面板）</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --card: #ffffff;
+      --bg: #f4f4f5;
+      --gold: #c4a35a;
+      --gold-soft: rgba(196, 163, 90, 0.16);
+      --ok: #059669;
+      --scrim: rgba(15, 23, 42, 0.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    header.page {
+      padding: 28px 32px 12px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    header.page h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    header.page p { margin: 0; color: var(--muted); font-size: 14px; max-width: 68ch; }
+    .rules {
+      margin: 16px auto 0;
+      max-width: 920px;
+      padding: 0 32px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .rule {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .rule strong { display: block; margin-bottom: 4px; }
+    .rule span { color: var(--muted); }
+    .path-box {
+      margin: 12px auto 0;
+      max-width: 920px;
+      padding: 0 32px;
+    }
+    .path-box a {
+      display: inline-block;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--ink);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .path-box a:hover { border-color: var(--gold); background: var(--gold-soft); }
+    main {
+      max-width: 920px;
+      margin: 20px auto 40px;
+      padding: 0 32px;
+    }
+    .shell {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+    }
+    .shell-h {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .shell-h h2 { margin: 0; font-size: 15px; }
+    .shell-h .tag {
+      font-size: 11px;
+      color: var(--muted);
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 3px 8px;
+    }
+    .toolbar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      background: #fcfcfc;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f9fafb; }
+    .btn.primary {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    .btn.primary:hover { opacity: 0.92; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn.linkish {
+      border: none;
+      background: transparent;
+      color: var(--ok);
+      padding: 6px 4px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .btn.danger-text {
+      border: none;
+      background: transparent;
+      color: #b91c1c;
+      padding: 6px 4px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .sep {
+      width: 1px;
+      height: 16px;
+      background: var(--line);
+      flex-shrink: 0;
+    }
+    .filters {
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .filters select, .filters input {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      background: #fff;
+      min-width: 0;
+    }
+    .filters select { flex: 1 1 180px; }
+    .filters input { flex: 2 1 220px; }
+    .hint-line {
+      padding: 0 16px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .list { padding: 8px 12px 16px; display: grid; gap: 6px; }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+    .thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .thumb.has-photo {
+      background:
+        radial-gradient(circle at 30% 30%, #fde68a, transparent 45%),
+        linear-gradient(145deg, #78716c, #44403c);
+    }
+    .thumb .badge {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      font-size: 9px;
+      line-height: 1;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      border-radius: 4px;
+      padding: 2px 3px;
+    }
+    .body { flex: 1; min-width: 0; }
+    .name {
+      font-size: 14px;
+      font-weight: 550;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .price {
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+      min-width: 3.5rem;
+      text-align: right;
+    }
+    .status {
+      font-size: 11px;
+      flex-shrink: 0;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .status.ok { background: #ecfdf5; color: var(--ok); }
+    .status.todo { background: var(--gold-soft); color: #92400e; }
+    .status.none { background: #f3f4f6; color: var(--muted); }
+    .toast {
+      margin: 0 16px 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      color: var(--ok);
+      font-size: 13px;
+      display: none;
+    }
+    .toast.show { display: block; }
+
+    /* Modal */
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: var(--scrim);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      z-index: 40;
+    }
+    .scrim.open { display: flex; }
+    .modal {
+      width: min(480px, 100%);
+      max-height: min(84vh, 720px);
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 20px 50px rgba(0,0,0,.18);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-h {
+      padding: 16px 18px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-h h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+    .modal-h p { margin: 0; font-size: 13px; color: var(--muted); }
+    .modal-b {
+      padding: 14px 18px;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+    }
+    .effects {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .effects .label {
+      width: 100%;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .chip {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .chip .hint { margin-left: 4px; font-size: 11px; color: var(--muted); }
+    .chip[aria-pressed="true"] {
+      border-color: var(--gold);
+      background: var(--gold-soft);
+      font-weight: 600;
+    }
+    .panel-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .panel-tools button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .candidate {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .candidate:last-child { border-bottom: none; }
+    .candidate input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--gold);
+      flex-shrink: 0;
+    }
+    .candidate .c-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 30% 30%, #fde68a, transparent 45%),
+        linear-gradient(145deg, #78716c, #44403c);
+      flex-shrink: 0;
+    }
+    .candidate .c-name {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .empty-panel {
+      padding: 28px 8px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .modal-f {
+      padding: 12px 18px 16px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      background: #fcfcfc;
+    }
+    footer.note {
+      max-width: 920px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header class="page">
+    <h1>批量生成菜品动图 · 设计图</h1>
+    <p>
+      日常列表不出现勾选。点工具栏「批量生成动图」打开确认面板：只列出当前筛选里「有静图、无动图」的菜，默认全选，指定一种效果后生成。已有动图不进面板。
+    </p>
+  </header>
+
+  <div class="rules">
+    <div class="rule">
+      <strong>列表</strong>
+      <span>无勾选框；只保留「有动图」标记，日常改菜/排序不被打扰。</span>
+    </div>
+    <div class="rule">
+      <strong>入口</strong>
+      <span>工具栏一键打开面板；候选 = 当前分类/搜索下的可生成菜。</span>
+    </div>
+    <div class="rule">
+      <strong>面板内</strong>
+      <span>效果芯片 + 可取消个别勾选；已有动图 / 无图永不出现。</span>
+    </div>
+    <div class="rule">
+      <strong>排除个别</strong>
+      <span>在面板里取消勾选即可，不必进列表选择模式。</span>
+    </div>
+  </div>
+
+  <div class="path-box">
+    <a id="file-link" href="#">打开本文件（file://）</a>
+  </div>
+
+  <main>
+    <section class="shell" aria-label="菜单管理 · 菜品列表">
+      <div class="shell-h">
+        <h2>菜单管理 · 菜品</h2>
+        <span class="tag">示意 · 可点选交互</span>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="btn">+ 添加菜品</button>
+        <button type="button" class="btn" id="btn-open" disabled>▶ 批量生成动图（0）</button>
+        <span class="sep" aria-hidden="true"></span>
+        <button type="button" class="btn linkish">本页全部上架</button>
+        <button type="button" class="btn danger-text">本页全部下架</button>
+      </div>
+
+      <div class="filters">
+        <select id="category" aria-label="分类">
+          <option value="hot">热菜</option>
+          <option value="drink">饮品</option>
+          <option value="dessert">甜点</option>
+        </select>
+        <input id="search" type="search" placeholder="搜索菜名…" aria-label="搜索" />
+      </div>
+      <p class="hint-line" id="scope-hint">以下操作仅影响当前筛选列表。</p>
+      <div class="toast" id="toast" role="status"></div>
+      <div class="list" id="list"></div>
+    </section>
+  </main>
+
+  <div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal">
+      <div class="modal-h">
+        <h3 id="modal-title">批量生成动图</h3>
+        <p id="modal-sub">当前列表中有静图、还没有动图的菜。</p>
+      </div>
+      <div class="modal-b">
+        <div class="effects" id="effects" role="group" aria-label="动图效果"></div>
+        <div class="panel-tools">
+          <span id="panel-count">已选 0</span>
+          <button type="button" id="btn-all">全选</button>
+          <button type="button" id="btn-none">全不选</button>
+        </div>
+        <div id="candidates"></div>
+      </div>
+      <div class="modal-f">
+        <button type="button" class="btn" id="btn-cancel">取消</button>
+        <button type="button" class="btn primary" id="btn-run" disabled>生成</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">
+    文件：<code>docs/design/mockups/2026-10-30-dish-video-batch.html</code>
+    · 本页为可点选设计示意，不是线上页面。确认后再改产品代码。
+  </footer>
+
+  <script>
+    const EFFECTS = [
+      { id: 'push', label: '推近', hint: '通用' },
+      { id: 'steam', label: '热气腾腾', hint: '热菜/热饮' },
+      { id: 'gloss', label: '光泽扫过', hint: '甜点/酱汁' },
+      { id: 'pan', label: '镜头横移', hint: '大盘菜' },
+      { id: 'bubbles', label: '气泡上升', hint: '汽水/啤酒' },
+      { id: 'frost', label: '冰爽闪光', hint: '冰饮/果汁' },
+    ];
+
+    const ALL = [
+      { id: '1', cat: 'hot', name: '201 红烧牛肉', price: '€12.50', hasPhoto: true, hasVideo: false },
+      { id: '2', cat: 'hot', name: '202 宫保鸡丁', price: '€11.00', hasPhoto: true, hasVideo: true },
+      { id: '3', cat: 'hot', name: '203 清蒸鲈鱼', price: '€18.00', hasPhoto: true, hasVideo: false },
+      { id: '4', cat: 'hot', name: '204 时蔬拼盘', price: '€6.50', hasPhoto: false, hasVideo: false },
+      { id: '5', cat: 'drink', name: '301 可乐', price: '€2.50', hasPhoto: true, hasVideo: false },
+      { id: '6', cat: 'drink', name: '302 冰柠檬茶', price: '€3.20', hasPhoto: true, hasVideo: true },
+      { id: '7', cat: 'drink', name: '303 气泡水', price: '€2.80', hasPhoto: true, hasVideo: false },
+      { id: '8', cat: 'dessert', name: '401 提拉米苏', price: '€5.50', hasPhoto: true, hasVideo: false },
+      { id: '9', cat: 'dessert', name: '402 芒果布丁', price: '€4.80', hasPhoto: true, hasVideo: true },
+      { id: '10', cat: 'dessert', name: '403 无图甜品', price: '€4.00', hasPhoto: false, hasVideo: false },
+    ];
+
+    const state = {
+      effect: 'push',
+      selected: new Set(),
+      category: 'hot',
+      search: '',
+      snapshot: [],
+    };
+
+    const listEl = document.getElementById('list');
+    const btnOpen = document.getElementById('btn-open');
+    const scrim = document.getElementById('scrim');
+    const effectsEl = document.getElementById('effects');
+    const candidatesEl = document.getElementById('candidates');
+    const btnRun = document.getElementById('btn-run');
+    const panelCount = document.getElementById('panel-count');
+    const toast = document.getElementById('toast');
+    const scopeHint = document.getElementById('scope-hint');
+    const modalSub = document.getElementById('modal-sub');
+    const fileLink = document.getElementById('file-link');
+
+    fileLink.href = location.href;
+    fileLink.textContent = location.href;
+
+    function eligible(item) {
+      return item.hasPhoto && !item.hasVideo;
+    }
+
+    function visibleItems() {
+      const q = state.search.trim().toLowerCase();
+      return ALL.filter((item) => {
+        if (item.cat !== state.category) return false;
+        if (!q) return true;
+        return item.name.toLowerCase().includes(q);
+      });
+    }
+
+    function eligibleOnPage() {
+      return visibleItems().filter(eligible);
+    }
+
+    function effectLabel(id) {
+      return EFFECTS.find((e) => e.id === id)?.label || id;
+    }
+
+    function syncOpenButton() {
+      const n = eligibleOnPage().length;
+      btnOpen.textContent = '▶ 批量生成动图（' + n + '）';
+      btnOpen.disabled = n === 0;
+    }
+
+    function renderList() {
+      const rows = visibleItems();
+      const nEligible = rows.filter(eligible).length;
+      scopeHint.textContent =
+        '当前列表 ' + rows.length + ' 道；其中 ' + nEligible + ' 道可批量生成（有图且无动图）。列表本身无勾选。';
+
+      listEl.innerHTML = '';
+      if (rows.length === 0) {
+        listEl.innerHTML = '<p class="hint-line" style="padding:24px 4px">当前筛选无菜品。</p>';
+        syncOpenButton();
+        return;
+      }
+
+      rows.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb' + (item.hasPhoto ? ' has-photo' : '');
+        if (item.hasVideo) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = '动';
+          thumb.appendChild(badge);
+        }
+        row.appendChild(thumb);
+
+        const body = document.createElement('div');
+        body.className = 'body';
+        body.innerHTML =
+          '<div class="name">' + item.name + '</div>' +
+          '<div class="meta">分类示意 · ' +
+          (item.hasPhoto ? '有静图' : '无静图') +
+          (item.hasVideo ? ' · 已有动图' : '') +
+          '</div>';
+        row.appendChild(body);
+
+        const price = document.createElement('div');
+        price.className = 'price';
+        price.textContent = item.price;
+        row.appendChild(price);
+
+        const status = document.createElement('span');
+        status.className = 'status ' + (item.hasVideo ? 'ok' : item.hasPhoto ? 'todo' : 'none');
+        status.textContent = item.hasVideo ? '有动图' : item.hasPhoto ? '可生成' : '无图';
+        row.appendChild(status);
+
+        listEl.appendChild(row);
+      });
+
+      syncOpenButton();
+    }
+
+    function renderEffects() {
+      effectsEl.innerHTML = '<span class="label">动图效果</span>';
+      EFFECTS.forEach((e) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.setAttribute('aria-pressed', String(e.id === state.effect));
+        b.innerHTML = e.label + '<span class="hint">' + e.hint + '</span>';
+        b.addEventListener('click', () => {
+          state.effect = e.id;
+          renderEffects();
+        });
+        effectsEl.appendChild(b);
+      });
+    }
+
+    function syncPanelFooter() {
+      const n = state.selected.size;
+      panelCount.textContent = '已选 ' + n + ' / ' + state.snapshot.length;
+      btnRun.disabled = n === 0;
+      btnRun.textContent = n === 0 ? '生成' : '生成（' + n + '）';
+    }
+
+    function renderCandidates() {
+      candidatesEl.innerHTML = '';
+      if (state.snapshot.length === 0) {
+        candidatesEl.innerHTML = '<div class="empty-panel">当前筛选没有可生成的菜（需要有静图且还没有动图）。</div>';
+        syncPanelFooter();
+        return;
+      }
+      state.snapshot.forEach((item) => {
+        const row = document.createElement('label');
+        row.className = 'candidate';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = state.selected.has(item.id);
+        cb.addEventListener('change', () => {
+          if (cb.checked) state.selected.add(item.id);
+          else state.selected.delete(item.id);
+          syncPanelFooter();
+        });
+        const thumb = document.createElement('div');
+        thumb.className = 'c-thumb';
+        const name = document.createElement('div');
+        name.className = 'c-name';
+        name.textContent = item.name;
+        row.appendChild(cb);
+        row.appendChild(thumb);
+        row.appendChild(name);
+        candidatesEl.appendChild(row);
+      });
+      syncPanelFooter();
+    }
+
+    function openPanel() {
+      state.snapshot = eligibleOnPage();
+      state.selected = new Set(state.snapshot.map((i) => i.id));
+      state.effect = 'push';
+      modalSub.textContent =
+        '仅当前筛选 · 有静图且无动图（' + state.snapshot.length + ' 道）。已有动图不在此列。';
+      renderEffects();
+      renderCandidates();
+      scrim.hidden = false;
+      scrim.classList.add('open');
+    }
+
+    function closePanel() {
+      scrim.classList.remove('open');
+      scrim.hidden = true;
+    }
+
+    btnOpen.addEventListener('click', openPanel);
+    document.getElementById('btn-cancel').addEventListener('click', closePanel);
+    scrim.addEventListener('click', (e) => {
+      if (e.target === scrim) closePanel();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && scrim.classList.contains('open')) closePanel();
+    });
+
+    document.getElementById('btn-all').addEventListener('click', () => {
+      state.selected = new Set(state.snapshot.map((i) => i.id));
+      renderCandidates();
+    });
+    document.getElementById('btn-none').addEventListener('click', () => {
+      state.selected.clear();
+      renderCandidates();
+    });
+
+    btnRun.addEventListener('click', () => {
+      const n = state.selected.size;
+      if (n === 0) return;
+      closePanel();
+      toast.className = 'toast show';
+      toast.textContent =
+        '示意：将为已选 ' + n + ' 道菜生成动图（效果：' + effectLabel(state.effect) + '）。产品里走浏览器编码 + 现有保存接口。';
+    });
+
+    document.getElementById('category').addEventListener('change', (e) => {
+      state.category = e.target.value;
+      toast.className = 'toast';
+      toast.textContent = '';
+      renderList();
+    });
+    document.getElementById('search').addEventListener('input', (e) => {
+      state.search = e.target.value;
+      renderList();
+    });
+
+    renderList();
+  </script>
+</body>
+</html>

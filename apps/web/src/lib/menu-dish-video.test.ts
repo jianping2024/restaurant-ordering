@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   DISH_VIDEO_ENCODE_TIERS,
+  DISH_VIDEO_EFFECT_MESSAGE_KEYS,
+  DISH_VIDEO_EFFECTS,
   DISH_VIDEO_MAX_BYTES,
   dishVideoDeviceAllows,
   dishVideoObjectPath,
   isDishVideoEffect,
+  menuItemEligibleForDishVideoBatch,
   pickDishVideoTierWithinCap,
   stripMenuItemVideoFields,
 } from './menu-dish-video';
@@ -20,6 +23,20 @@ describe('dish video catalog', () => {
   it('accepts only the six DB-checked effects', () => {
     for (const e of ['push', 'steam', 'gloss', 'pan', 'bubbles', 'frost']) assert.equal(isDishVideoEffect(e), true);
     for (const e of ['none', '', 'zoom', null, 3]) assert.equal(isDishVideoEffect(e), false);
+  });
+
+  it('maps every effect to one message key pair (form + batch panel)', () => {
+    for (const e of DISH_VIDEO_EFFECTS) {
+      assert.ok(DISH_VIDEO_EFFECT_MESSAGE_KEYS[e].label.startsWith('dishVideoEffect'));
+      assert.ok(DISH_VIDEO_EFFECT_MESSAGE_KEYS[e].hint.endsWith('Hint'));
+    }
+  });
+
+  it('batch eligibility is has photo and no video', () => {
+    assert.equal(menuItemEligibleForDishVideoBatch({ image_url: 'p', video_url: null }), true);
+    assert.equal(menuItemEligibleForDishVideoBatch({ image_url: 'p', video_url: 'v' }), false);
+    assert.equal(menuItemEligibleForDishVideoBatch({ image_url: null, video_url: null }), false);
+    assert.equal(menuItemEligibleForDishVideoBatch({ image_url: '', video_url: null }), false);
   });
 
   it('caps each mp4 at the photo bucket limit', () => {

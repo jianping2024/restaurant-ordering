@@ -14,6 +14,24 @@ export function isDishVideoEffect(value: unknown): value is DishVideoEffect {
   return typeof value === 'string' && (DISH_VIDEO_EFFECTS as readonly string[]).includes(value);
 }
 
+/** Sole i18n key map for effect chips (dish form + batch panel) — `menuManager` keys. */
+export const DISH_VIDEO_EFFECT_MESSAGE_KEYS = {
+  push: { label: 'dishVideoEffectPush', hint: 'dishVideoEffectPushHint' },
+  steam: { label: 'dishVideoEffectSteam', hint: 'dishVideoEffectSteamHint' },
+  gloss: { label: 'dishVideoEffectGloss', hint: 'dishVideoEffectGlossHint' },
+  pan: { label: 'dishVideoEffectPan', hint: 'dishVideoEffectPanHint' },
+  bubbles: { label: 'dishVideoEffectBubbles', hint: 'dishVideoEffectBubblesHint' },
+  frost: { label: 'dishVideoEffectFrost', hint: 'dishVideoEffectFrostHint' },
+} as const;
+
+/** Batch gate: has still photo and no motion video yet (existing motion never enters batch). */
+export function menuItemEligibleForDishVideoBatch(item: {
+  image_url?: string | null;
+  video_url?: string | null;
+}): boolean {
+  return Boolean(item.image_url) && !item.video_url;
+}
+
 /** Same cap as the photo bucket limit — each mp4 must fit. */
 export const DISH_VIDEO_MAX_BYTES = MENU_IMAGE_MAX_BYTES;
 

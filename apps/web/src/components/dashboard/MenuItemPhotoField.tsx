@@ -8,6 +8,7 @@ import type { getMessages } from '@/lib/i18n/messages';
 import { mesaSelectionChipShellClass, mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
 import {
   DEFAULT_DISH_VIDEO_EFFECT,
+  DISH_VIDEO_EFFECT_MESSAGE_KEYS,
   DISH_VIDEO_EFFECTS,
   isDishVideoEffect,
   type DishVideoEffect,
@@ -51,15 +52,6 @@ export const EMPTY_MENU_ITEM_PHOTO_DRAFT: MenuItemPhotoDraft = {
 };
 
 type EffectChoice = DishVideoEffect | 'none';
-
-const EFFECT_LABEL_KEYS: Record<DishVideoEffect, { label: keyof MenuManagerMessages; hint: keyof MenuManagerMessages }> = {
-  push: { label: 'dishVideoEffectPush', hint: 'dishVideoEffectPushHint' },
-  steam: { label: 'dishVideoEffectSteam', hint: 'dishVideoEffectSteamHint' },
-  gloss: { label: 'dishVideoEffectGloss', hint: 'dishVideoEffectGlossHint' },
-  pan: { label: 'dishVideoEffectPan', hint: 'dishVideoEffectPanHint' },
-  bubbles: { label: 'dishVideoEffectBubbles', hint: 'dishVideoEffectBubblesHint' },
-  frost: { label: 'dishVideoEffectFrost', hint: 'dishVideoEffectFrostHint' },
-};
 
 type PickedPhoto = {
   original: File;
@@ -402,9 +394,11 @@ export function MenuItemPhotoField({
                   onClick={() => chooseEffect(key)}
                   className={`text-[13px] px-2.5 py-1 disabled:opacity-50 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(active)}`}
                 >
-                  {key === 'none' ? t.dishVideoEffectNone : t[EFFECT_LABEL_KEYS[key].label]}
+                  {key === 'none' ? t.dishVideoEffectNone : t[DISH_VIDEO_EFFECT_MESSAGE_KEYS[key].label]}
                   {key === 'none' ? null : (
-                    <span className="ml-1 text-[11px] text-brand-text-muted">{t[EFFECT_LABEL_KEYS[key].hint]}</span>
+                    <span className="ml-1 text-[11px] text-brand-text-muted">
+                      {t[DISH_VIDEO_EFFECT_MESSAGE_KEYS[key].hint]}
+                    </span>
                   )}
                 </button>
               );

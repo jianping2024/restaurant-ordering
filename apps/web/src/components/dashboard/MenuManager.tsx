@@ -19,7 +19,11 @@ import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { DEFAULT_DISH_VIDEO_EFFECT } from '@/lib/menu-dish-video';
+import {
+  DISH_VIDEO_EFFECT_MESSAGE_KEYS,
+  menuItemEligibleForDishVideoBatch,
+  type DishVideoEffect,
+} from '@/lib/menu-dish-video';
 import { dishVideoEncodingSupported, encodeDishVideos } from '@/lib/menu-dish-video-encode';
 import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
@@ -27,6 +31,7 @@ import {
   MenuItemPhotoField,
   type MenuItemPhotoDraft,
 } from '@/components/dashboard/MenuItemPhotoField';
+import { DishVideoBatchModal } from '@/components/dashboard/DishVideoBatchModal';
 import {
   buildMenuNotePresetEditorGroups,
   menuNotePresetLocalizedName,
@@ -657,10 +662,13 @@ export function MenuManager({
     setItemModalOpen(true);
   };
 
-  const itemsMissingDishVideo = useMemo(
-    () => (canManageDishVideo ? items.filter((item) => item.image_url && !item.video_url) : []),
-    [canManageDishVideo, items],
+  /** Current filter/search page: has photo, no video yet (existing motion never enters batch). */
+  const itemsEligibleDishVideoBatch = useMemo(
+    () => (canManageDishVideo ? visibleItems.filter(menuItemEligibleForDishVideoBatch) : []),
+    [canManageDishVideo, visibleItems],
   );
+  const [dishVideoBatchOpen, setDishVideoBatchOpen] = useState(false);
+  const [dishVideoBatchSnapshot, setDishVideoBatchSnapshot] = useState<MenuItem[]>([]);
   const [dishVideoBatch, setDishVideoBatch] = useState<{ done: number; total: number } | null>(null);
   const [dishVideoBatchNote, setDishVideoBatchNote] = useState('');
   /** Client-only probe (SSR has no WebCodecs) — avoids a hydration mismatch on the toolbar. */
@@ -669,13 +677,24 @@ export function MenuManager({
     setDishVideoEncodeReady(dishVideoEncodingSupported());
   }, []);
 
-  /** One-click: default effect for every dish that has a photo but no video (sequential, same save API). */
-  const runDishVideoBatch = async () => {
-    const todo = itemsMissingDishVideo;
-    if (todo.length === 0 || dishVideoBatch) return;
+  const openDishVideoBatchModal = () => {
+    if (dishVideoBatch || itemsEligibleDishVideoBatch.length === 0) return;
+    setDishVideoBatchNote('');
+    setDishVideoBatchSnapshot(itemsEligibleDishVideoBatch);
+    setDishVideoBatchOpen(true);
+  };
+
+  /** Sequential encode + same save API; ids must be subset of the open-time snapshot. */
+  const runDishVideoBatch = async (ids: string[], effect: DishVideoEffect) => {
+    if (dishVideoBatch || ids.length === 0) return;
+    const byId = new Map(dishVideoBatchSnapshot.map((item) => [item.id, item]));
+    const todo = ids.map((id) => byId.get(id)).filter((item): item is MenuItem => Boolean(item));
+    if (todo.length === 0) return;
+    setDishVideoBatchOpen(false);
     setDishVideoBatchNote('');
     let ok = 0;
     let failed = 0;
+    const effectLabel = t[DISH_VIDEO_EFFECT_MESSAGE_KEYS[effect].label];
     for (let i = 0; i < todo.length; i++) {
       setDishVideoBatch({ done: i, total: todo.length });
       const item = todo[i];
@@ -683,9 +702,9 @@ export function MenuManager({
         const photoUrl = resolveMenuImageDisplayUrl(item.image_url);
         if (!photoUrl) throw new Error('no_photo');
         const photo = await (await fetch(photoUrl)).blob();
-        const encoded = await encodeDishVideos(photo, DEFAULT_DISH_VIDEO_EFFECT);
+        const encoded = await encodeDishVideos(photo, effect);
         const result = await setMenuItemImageClient(item.id, {
-          video: { ...encoded, effect: DEFAULT_DISH_VIDEO_EFFECT },
+          video: { ...encoded, effect },
         });
         if (!result.ok) throw new Error(result.error);
         const row = result.data.item;
@@ -696,9 +715,10 @@ export function MenuManager({
       }
     }
     setDishVideoBatch(null);
+    setDishVideoBatchSnapshot([]);
     setDishVideoBatchNote(
       failed === 0
-        ? t.dishVideoBatchDone.replace('{n}', String(ok))
+        ? t.dishVideoBatchDone.replace('{n}', String(ok)).replace('{effect}', effectLabel)
         : t.dishVideoBatchPartial.replace('{ok}', String(ok)).replace('{failed}', String(failed)),
     );
   };
@@ -1468,19 +1488,20 @@ export function MenuManager({
               <Button type="button" size="sm" onClick={openItemCreateModal}>
                 + {t.addItem}
               </Button>
-              {dishVideoBatch || (itemsMissingDishVideo.length > 0 && dishVideoEncodeReady) ? (
+              {dishVideoBatch || (itemsEligibleDishVideoBatch.length > 0 && dishVideoEncodeReady) ? (
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
                   loading={dishVideoBatch != null}
-                  onClick={() => void runDishVideoBatch()}
+                  disabled={dishVideoBatch != null}
+                  onClick={openDishVideoBatchModal}
                 >
                   {dishVideoBatch
                     ? t.dishVideoBatchRunning
                         .replace('{done}', String(dishVideoBatch.done))
                         .replace('{total}', String(dishVideoBatch.total))
-                    : `▶ ${t.dishVideoBatch.replace('{n}', String(itemsMissingDishVideo.length))}`}
+                    : `▶ ${t.dishVideoBatch.replace('{n}', String(itemsEligibleDishVideoBatch.length))}`}
                 </Button>
               ) : null}
               {dishVideoBatchNote ? (
@@ -2156,6 +2177,17 @@ export function MenuManager({
           </div>
         </div>
       </Modal>
+
+      <DishVideoBatchModal
+        open={dishVideoBatchOpen}
+        onClose={() => setDishVideoBatchOpen(false)}
+        candidates={dishVideoBatchSnapshot}
+        lang={lang}
+        t={t}
+        onConfirm={(ids, effect) => {
+          void runDishVideoBatch(ids, effect);
+        }}
+      />
 
       <Modal
         open={confirmDialog.open}

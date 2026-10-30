@@ -256,7 +256,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/购物车/已点/详情 + toast「本轮已送厨」；判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。加份前 sole `previewGuestRoundLineSetGates`（桌上限 + 整餐单菜）。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append；混合提交成功提示 `placedMixed`（收费菜已送厨 · 免费菜已加入本轮） |
-| Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示「厨房还没收到」时点去送厨）→ 下一轮（冷却倒计时） |
+| Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示「厨房还没收到」时点去送厨）→ 下一轮（冷却倒计时；收费菜可继续点，免费菜等结束后开下一轮） |
 
 Classic **不得**出现轮次 UI 组件。
 
@@ -282,7 +282,7 @@ Classic **不得**出现轮次 UI 组件。
 | unsent | collecting（或无 status 但有行）且 `tableReviewQty > 0` | 当前 · 送厨 | 本桌 N 道菜，厨房还没收到；满额时「本轮已满 x/M，先送厨再点」 |
 | countdown | pending_confirm | 当前 · `{s}s` | {s} 秒后自动送厨 · 同桌还能加 |
 | failed | finalize_failed | 当前 · ! | 送厨未成功，正在重试；一直不行请叫服务员 |
-| sent | cooldown 且未到 `cooldown_until` | ✓ 已送厨 | 已送厨 · {s} 秒后可点下一轮 |
+| sent | cooldown 且未到 `cooldown_until` | ✓ 已送厨 | 已送厨 · 收费菜可继续点 · {s} 秒后开下一轮 |
 | — | 其它 | 不显示 | — |
 
 - 引导条高度 sole `--mesa-bottom-dock-extra`（`[data-mesa-bottom-dock-guidance]` 挂载时 4.5rem）：同时抬高菜单滚动底距与 toast 位置。Classic 不传 `guidance`，零变化。

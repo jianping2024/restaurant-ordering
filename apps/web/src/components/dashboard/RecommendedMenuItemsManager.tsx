@@ -22,6 +22,7 @@ import {
   reorderRecommendedMenuItemsClient,
 } from '@/lib/dashboard-menu-client';
 import { moveIdInOrderedList } from '@/lib/sort-order';
+import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 import {
   mesaSelectionChipShellClass,
   mesaSelectionChipStrongClass,
@@ -278,7 +279,7 @@ export function RecommendedMenuItemsManager({
             value={pickerSearch}
             onChange={(e) => setPickerSearch(e.target.value)}
             placeholder={t.searchPlaceholder}
-            className="w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+            className={`w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} focus:outline-none focus:ring-2 focus:ring-brand-gold/50`}
           />
           {topCategories.length > 0 ? (
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5">

@@ -1,8 +1,8 @@
 /** Mobile-safe customer form inputs — iOS Safari skips auto-zoom at >=16px. */
-import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
+import { FORM_CONTROL_PLACEHOLDER_CLASS, FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 
 const customerInputCore =
-  `${FORM_CONTROL_TEXT_CLASS} text-brand-text placeholder:text-brand-muted focus:outline-none focus:ring-2 tabular-nums`;
+  `${FORM_CONTROL_TEXT_CLASS} text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} focus:outline-none focus:ring-2 tabular-nums`;
 
 export const customerTextInputClass =
   `w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 ${customerInputCore} focus:ring-brand-gold/40`;

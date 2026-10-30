@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
 import { useAuthLogin } from '@/lib/auth/use-auth-login';
+import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 
 type Props = {
   storeSlug?: string;
@@ -48,7 +49,7 @@ export function AuthLoginForm({ storeSlug }: Props) {
         required
         disabled={loading}
         labelClassName="text-sm font-semibold text-brand-text"
-        inputClassName={`w-full border rounded-xl text-brand-text placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-ink/25 transition-colors duration-200 border-brand-border/90 bg-brand-card/70 ${LOGIN_FIELD_CLASS} pr-12`}
+        inputClassName={`w-full border rounded-xl text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS} focus:outline-none focus:ring-2 focus:ring-brand-ink/25 transition-colors duration-200 border-brand-border/90 bg-brand-card/70 ${LOGIN_FIELD_CLASS} pr-12`}
         toggleClassName="absolute right-1 top-0 flex h-full w-12 items-center justify-center text-brand-text-muted hover:text-brand-text disabled:opacity-50 disabled:pointer-events-none"
       />
 

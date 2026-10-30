@@ -86,12 +86,11 @@ export function stripMenuItemVideoFields<T extends { video_url?: string | null; 
   return { ...item, video_url: null, rail_video_url: null, video_effect: null };
 }
 
-/** At most this many guest dish videos play at once (rail scroll + detail). */
-export const DISH_VIDEO_MAX_CONCURRENT_PLAYING = 4;
-
 /**
  * Guest device gate: reduced motion, data saver or 2G keep the still photo.
  * Pure so it is testable; the component reads matchMedia / navigator.connection.
+ * Playback visibility / detail priority: sole `dishMotionVideoShouldPlay`
+ * in `menu-dish-video-playback.ts`.
  */
 export function dishVideoDeviceAllows(input: {
   reducedMotion: boolean;

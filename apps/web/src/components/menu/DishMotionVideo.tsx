@@ -1,13 +1,40 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { dishVideoDeviceAllows } from '@/lib/menu-dish-video';
 import {
-  DISH_VIDEO_MAX_CONCURRENT_PLAYING,
-  dishVideoDeviceAllows,
-} from '@/lib/menu-dish-video';
+  dishMotionVideoShouldPlay,
+  type DishMotionVideoLayer,
+} from '@/lib/menu-dish-video-playback';
 import { MENU_IMAGE_OBJECT_FIT_CLASS } from '@/lib/menu-image';
 
-const playing = new Set<HTMLVideoElement>();
+/** How many detail-layer players are mounted (sheet open). Rails yield while > 0. */
+let detailOpenCount = 0;
+const detailOpenListeners = new Set<() => void>();
+
+function getDishMotionDetailOpen(): boolean {
+  return detailOpenCount > 0;
+}
+
+function subscribeDishMotionDetailOpen(listener: () => void): () => void {
+  detailOpenListeners.add(listener);
+  return () => {
+    detailOpenListeners.delete(listener);
+  };
+}
+
+function notifyDishMotionDetailOpenListeners(): void {
+  detailOpenListeners.forEach((listener) => listener());
+}
+
+function retainDishMotionDetailOpen(): () => void {
+  detailOpenCount += 1;
+  notifyDishMotionDetailOpenListeners();
+  return () => {
+    detailOpenCount = Math.max(0, detailOpenCount - 1);
+    notifyDishMotionDetailOpenListeners();
+  };
+}
 
 function deviceAllowsDishVideo(): boolean {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
@@ -20,13 +47,21 @@ function deviceAllowsDishVideo(): boolean {
 }
 
 /**
- * Sole guest dish motion video: muted seamless loop layered over the still photo in the
- * same well. The photo stays the poster — the video fades in only once it is playing,
- * downloads only when ≥50% on screen, pauses off screen, and never renders on reduced
- * motion / data saver / load error / autoplay refusal. Max {@link DISH_VIDEO_MAX_CONCURRENT_PLAYING}.
+ * Sole guest dish motion video: muted seamless loop over the still photo.
+ * Play only when on screen (≥50%), the tab is visible, and — for rail — no
+ * detail sheet is open. Detail layer always wins while mounted. Downloads
+ * only when about to play (`preload="none"`); reduced motion / data saver /
+ * 2G / errors keep the photo. No global concurrent cap.
  */
-export function DishMotionVideo({ src }: { src: string | null | undefined }) {
+export function DishMotionVideo(props: {
+  src: string | null | undefined;
+  /** Recommended rail (default) yields while a detail player is open. */
+  layer?: DishMotionVideoLayer;
+}) {
+  const { src } = props;
+  const layer: DishMotionVideoLayer = props.layer ?? 'rail';
   const ref = useRef<HTMLVideoElement>(null);
+  const intersectingRef = useRef(false);
   const [allowed, setAllowed] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -38,29 +73,55 @@ export function DishMotionVideo({ src }: { src: string | null | undefined }) {
   }, [src]);
 
   useEffect(() => {
+    if (layer !== 'detail') return;
+    return retainDishMotionDetailOpen();
+  }, [layer]);
+
+  useEffect(() => {
     const video = ref.current;
     if (!allowed || failed || !video || !src) return;
-    const play = () => {
-      if (playing.size >= DISH_VIDEO_MAX_CONCURRENT_PLAYING && !playing.has(video)) return;
-      if (!video.getAttribute('src')) video.setAttribute('src', src);
-      void video.play().catch(() => {
-        /* autoplay refused (e.g. iOS low power) → photo stays */
+
+    const sync = () => {
+      const should = dishMotionVideoShouldPlay({
+        intersecting: intersectingRef.current,
+        pageVisible: document.visibilityState === 'visible',
+        layer,
+        detailOpen: getDishMotionDetailOpen(),
       });
+      if (should) {
+        if (!video.getAttribute('src')) video.setAttribute('src', src);
+        void video.play().catch(() => {
+          /* autoplay refused (e.g. iOS low power) → photo stays */
+        });
+      } else if (!video.paused) {
+        video.pause();
+      }
     };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) play();
-        else if (!video.paused) video.pause();
+        intersectingRef.current = Boolean(entry?.isIntersecting);
+        sync();
       },
       { threshold: 0.5 },
     );
     observer.observe(video);
+
+    const onVisibility = () => {
+      sync();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    const unsubscribeDetail = subscribeDishMotionDetailOpen(sync);
+
+    sync();
+
     return () => {
       observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+      unsubscribeDetail();
       video.pause();
-      playing.delete(video);
     };
-  }, [allowed, failed, src]);
+  }, [allowed, failed, src, layer]);
 
   if (!allowed || failed || !src) return null;
   return (
@@ -73,11 +134,7 @@ export function DishMotionVideo({ src }: { src: string | null | undefined }) {
       aria-hidden
       tabIndex={-1}
       disablePictureInPicture
-      onPlaying={(e) => {
-        playing.add(e.currentTarget);
-        setReady(true);
-      }}
-      onPause={(e) => playing.delete(e.currentTarget)}
+      onPlaying={() => setReady(true)}
       onError={() => setFailed(true)}
       className={`pointer-events-none absolute inset-0 h-full w-full ${MENU_IMAGE_OBJECT_FIT_CLASS} transition-opacity duration-300 motion-reduce:transition-none ${
         ready ? 'opacity-100' : 'opacity-0'

@@ -98,7 +98,9 @@ export function CustomerRecommendedRail({
                     {item.emoji}
                   </span>
                 )}
-                {imageSrc ? <DishMotionVideo src={item.rail_video_url} /> : null}
+                {imageSrc ? (
+                  <DishMotionVideo layer="rail" src={item.rail_video_url} />
+                ) : null}
                 {item.is_vegetarian ? (
                   <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} />
                 ) : null}

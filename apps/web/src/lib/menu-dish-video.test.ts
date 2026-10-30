@@ -9,6 +9,7 @@ import {
   pickDishVideoTierWithinCap,
   stripMenuItemVideoFields,
 } from './menu-dish-video';
+import { dishMotionVideoShouldPlay } from './menu-dish-video-playback';
 import { MENU_IMAGE_MAX_BYTES } from './menu-image';
 
 describe('dish video catalog', () => {
@@ -62,5 +63,53 @@ describe('dish video catalog', () => {
     assert.equal(dishVideoDeviceAllows({ reducedMotion: false, saveData: true }), false);
     assert.equal(dishVideoDeviceAllows({ reducedMotion: false, effectiveType: '2g' }), false);
     assert.equal(dishVideoDeviceAllows({ reducedMotion: false, effectiveType: 'slow-2g' }), false);
+  });
+
+  it('plays only when on screen, tab visible, and rail yields to open detail', () => {
+    assert.equal(
+      dishMotionVideoShouldPlay({
+        intersecting: true,
+        pageVisible: true,
+        layer: 'rail',
+        detailOpen: false,
+      }),
+      true,
+    );
+    assert.equal(
+      dishMotionVideoShouldPlay({
+        intersecting: true,
+        pageVisible: true,
+        layer: 'rail',
+        detailOpen: true,
+      }),
+      false,
+    );
+    assert.equal(
+      dishMotionVideoShouldPlay({
+        intersecting: true,
+        pageVisible: true,
+        layer: 'detail',
+        detailOpen: true,
+      }),
+      true,
+    );
+    assert.equal(
+      dishMotionVideoShouldPlay({
+        intersecting: false,
+        pageVisible: true,
+        layer: 'detail',
+        detailOpen: true,
+      }),
+      false,
+    );
+    assert.equal(
+      dishMotionVideoShouldPlay({
+        intersecting: true,
+        pageVisible: false,
+        layer: 'rail',
+        detailOpen: false,
+      }),
+      false,
+    );
   });
 });

@@ -11,6 +11,7 @@ import {
 } from './menu-dish-video';
 import {
   applyDishMotionVideoElementSrc,
+  dishMotionCoversStill,
   dishMotionVideoShouldPlay,
 } from './menu-dish-video-playback';
 import { MENU_IMAGE_MAX_BYTES } from './menu-image';
@@ -114,6 +115,13 @@ describe('dish video catalog', () => {
       }),
       false,
     );
+  });
+
+  it('covers the still only when motion is allowed, not failed, and ready', () => {
+    assert.equal(dishMotionCoversStill({ allowed: true, failed: false, ready: true }), true);
+    assert.equal(dishMotionCoversStill({ allowed: true, failed: false, ready: false }), false);
+    assert.equal(dishMotionCoversStill({ allowed: false, failed: false, ready: true }), false);
+    assert.equal(dishMotionCoversStill({ allowed: true, failed: true, ready: true }), false);
   });
 
   it('resyncs video element src when the catalog URL changes', () => {

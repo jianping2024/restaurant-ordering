@@ -53,7 +53,7 @@ interface Props {
   flavorHintsEnabled?: boolean;
   /**
    * Pro list-motion add-on + store switch: play rail video on the list thumb
-   * (same asset as recommended rail; visibility-gated inside DishMotionVideo).
+   * (same asset + sole still/motion exclusivity as recommended rail).
    */
   listMotionEnabled?: boolean;
   onOpenDetail: () => void;
@@ -259,19 +259,20 @@ export function MenuItemCard({
         aria-label={openDetailAria}
         className={`${MENU_ITEM_CARD_THUMB_CLASS} ${MENU_IMAGE_WELL_BG_CLASS} text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40`}
       >
-        {imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt=""
-            fill
-            className={MENU_IMAGE_OBJECT_FIT_CLASS}
-            sizes={`${MENU_ITEM_CARD_THUMB_PX}px`}
-            unoptimized={MENU_IMAGE_UNOPTIMIZED}
-          />
-        ) : (
-          item.emoji
-        )}
-        {listMotionSrc ? <DishMotionVideo layer="rail" src={listMotionSrc} /> : null}
+        <DishMotionVideo layer="rail" src={listMotionSrc}>
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt=""
+              fill
+              className={MENU_IMAGE_OBJECT_FIT_CLASS}
+              sizes={`${MENU_ITEM_CARD_THUMB_PX}px`}
+              unoptimized={MENU_IMAGE_UNOPTIMIZED}
+            />
+          ) : (
+            item.emoji
+          )}
+        </DishMotionVideo>
         {item.is_vegetarian ? <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} /> : null}
       </button>
 

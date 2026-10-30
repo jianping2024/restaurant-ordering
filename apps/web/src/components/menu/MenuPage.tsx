@@ -18,6 +18,7 @@ import {
   type MenuOrderingRestaurant,
 } from '@/components/menu/MenuOrderingController';
 import { SushiMenuPage } from '@/components/menu/sushi/SushiMenuPage';
+import { CustomerMenuCatalogRealtimeLazy } from '@/components/menu/CustomerMenuCatalogRealtimeLazy';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import {
   parseSushiRoundSettingsFromRestaurantRow,
@@ -31,8 +32,10 @@ const EMPTY_MENU_TIME_SLOTS: MenuTimeSlot[] = [];
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
-  /** SSR/demo seed — skips mount catalog reconcile when present. */
+  /** SSR/demo seed for first paint; version seeds client ensure. */
   initialMenuCatalog?: CustomerMenuCatalog | null;
+  /** DB `menu_catalog_version` matching `initialMenuCatalog` (0 when unknown). */
+  initialMenuCatalogVersion?: number;
   tableId: string;
   displayName: string;
   /** Table currently in the restaurant's is_takeaway group. */
@@ -46,6 +49,7 @@ interface Props {
 export function MenuPage({
   restaurant,
   initialMenuCatalog = null,
+  initialMenuCatalogVersion = 0,
   tableId,
   displayName,
   tableInTakeawayGroup = false,
@@ -79,10 +83,10 @@ export function MenuPage({
 
   useEffect(() => {
     if (!seededCatalog) return;
-    seedCustomerMenuCatalogCache(restaurant.id, seededCatalog);
+    seedCustomerMenuCatalogCache(restaurant.id, seededCatalog, initialMenuCatalogVersion);
     setCatalog(seededCatalog);
     setCatalogReady(true);
-  }, [restaurant.id, seededCatalog]);
+  }, [restaurant.id, seededCatalog, initialMenuCatalogVersion]);
 
   const refreshCatalog = useCallback(() => {
     const { initial, ready } = reconcileCustomerMenuCatalogOnEntry({
@@ -105,12 +109,8 @@ export function MenuPage({
       });
   }, [restaurant.id, restaurant.slug]);
 
-  useRestaurantStaffEntryReconcile(
-    Boolean(!isDemo && !seededCatalog),
-    refreshCatalog,
-    restaurant.id,
-    true,
-  );
+  // SSR seed paints first; still version-reconcile on mount + attention (cheap when unchanged).
+  useRestaurantStaffEntryReconcile(Boolean(!isDemo), refreshCatalog, restaurant.id, true);
 
   const menuItems = catalog?.menuItems ?? [];
   const menuCategories = catalog?.menuCategories ?? [];
@@ -121,6 +121,17 @@ export function MenuPage({
 
   const standaloneTitle =
     !isDemo && tableId ? <GuestTableStandaloneTitle /> : null;
+
+  const catalogRealtime =
+    !isDemo ? (
+      <CustomerMenuCatalogRealtimeLazy
+        restaurantId={restaurant.id}
+        enabled
+        onRefresh={() => {
+          void refreshCatalog();
+        }}
+      />
+    ) : null;
 
   const orderingChannel = resolveTableOrderingChannel({
     takeawayOrderingEnabled: isRestaurantFeatureEnabled(
@@ -142,6 +153,7 @@ export function MenuPage({
     return (
       <>
         {standaloneTitle}
+        {catalogRealtime}
         <SushiMenuPage
           restaurant={restaurantWithNotice}
           sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
@@ -164,6 +176,7 @@ export function MenuPage({
   return (
     <>
       {standaloneTitle}
+      {catalogRealtime}
       <MenuOrderingController
         restaurant={restaurantWithNotice}
         menuItems={menuItems}

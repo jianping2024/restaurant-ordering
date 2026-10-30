@@ -265,6 +265,10 @@ sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `-
 
 sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.
 
+### Guest menu catalog freshness
+
+sole durable signal `restaurants.menu_catalog_version` + client `ensureCustomerMenuCatalog` (knownVersion); SSR seeds version via `loadCustomerMenuCatalogForDisplay`; MenuPage always entry/attention reconcile (never disable the hook because SSR seed exists); live doorbell sole `menu_catalog_signals` via `CustomerMenuCatalogRealtime` (`restaurant_id` filter; upsert on invalidate — never CDC full `restaurants`, never poll, never `menu_items` CDC) → same ensure. Server cache key includes the version so a bump cannot serve a stale body.
+
 ### Customer recommended merchandising
 
 sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price (+ photo-corner `VegetarianMark` thumb), tap opens detail; poster motion sole `.mesa-recommended-poster` (hover lift + press sink + focus-visible; **no** pointer tilt); do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` / `.mesa-menu-item-card` on the rail.

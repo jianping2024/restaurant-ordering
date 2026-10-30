@@ -52,10 +52,10 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     );
   }
 
-  const catalog = await loadCustomerMenuCatalogForDisplay(restaurantId);
+  const { version: catalogVersion, ...catalog } = await loadCustomerMenuCatalogForDisplay(restaurantId);
   return NextResponse.json(
     {
-      version,
+      version: catalogVersion,
       ...catalog,
     },
     { headers: CUSTOMER_READ_NO_STORE_HEADERS },

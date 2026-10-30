@@ -39,7 +39,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   }
   const restaurant = gate.restaurant;
 
-  const [sessionContext, initialMenuCatalog] = await Promise.all([
+  const [sessionContext, catalogForDisplay] = await Promise.all([
     loadCustomerSessionContext({
       admin,
       restaurantId: restaurant.id,
@@ -48,6 +48,8 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     loadCustomerMenuCatalogForDisplay(restaurant.id),
   ]);
   if (!sessionContext) notFound();
+
+  const { version: initialMenuCatalogVersion, ...initialMenuCatalog } = catalogForDisplay;
 
   const tableInTakeawayGroup = await loadTableInTakeawayGroup(
     admin,
@@ -76,6 +78,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}
       initialSessionContext={sessionContext}
       initialMenuCatalog={initialMenuCatalog}
+      initialMenuCatalogVersion={initialMenuCatalogVersion}
       staffAssisted={staffAssisted}
     />
   );

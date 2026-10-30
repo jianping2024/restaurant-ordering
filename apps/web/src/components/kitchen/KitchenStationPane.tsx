@@ -115,24 +115,26 @@ function KitchenGroupSelectControl({
       aria-label={title}
       aria-checked={checked ? 'true' : partial ? 'mixed' : 'false'}
       role="checkbox"
-      className={`relative h-[22px] w-[22px] shrink-0 rounded-md border-2 disabled:opacity-40 ${
-        checked
-          ? 'border-brand-gold bg-brand-gold'
-          : partial
-            ? 'border-brand-gold bg-brand-card'
-            : 'border-brand-border bg-brand-card'
-      }`}
+      className="grid h-9 w-9 shrink-0 place-items-center disabled:opacity-40"
       onClick={(e) => {
         e.stopPropagation();
         onToggle();
       }}
     >
-      {partial ? (
-        <span
-          aria-hidden
-          className="absolute left-1 right-1 top-1/2 h-[2.5px] -translate-y-1/2 rounded-sm bg-brand-gold"
-        />
-      ) : null}
+      <span
+        aria-hidden
+        className={`relative h-[22px] w-[22px] rounded-md border-2 ${
+          checked
+            ? 'border-brand-gold bg-brand-gold'
+            : partial
+              ? 'border-brand-gold bg-brand-card'
+              : 'border-brand-border bg-brand-card'
+        }`}
+      >
+        {partial ? (
+          <span className="absolute left-1 right-1 top-1/2 h-[2.5px] -translate-y-1/2 rounded-sm bg-brand-gold" />
+        ) : null}
+      </span>
     </button>
   );
 }
@@ -175,31 +177,34 @@ function KitchenGroupHeader({
       data-kitchen-group-header=""
       className={`sticky top-0 z-[1] flex w-full items-center gap-2 border-b border-brand-border/60 px-2 py-2 backdrop-blur-sm ${groupHeaderShellClass(frac.state)}`}
     >
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-hidden
-        className="grid h-5 w-5 shrink-0 place-items-center text-brand-text-muted"
-        onClick={onToggleOpen}
-      >
-        <svg
-          viewBox="0 0 20 20"
-          className={`h-5 w-5 transition-transform ${open ? '' : '-rotate-90'}`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      {/* Chevron + select: gap-3 + 36px hit boxes so kitchen touch does not mis-fire. */}
+      <div className="flex shrink-0 items-center gap-3">
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          className="grid h-9 w-9 shrink-0 place-items-center text-brand-text-muted"
+          onClick={onToggleOpen}
         >
-          <path d="M5 8l5 5 5-5" />
-        </svg>
-      </button>
-      <KitchenGroupSelectControl
-        state={frac.state}
-        disabled={selectDisabled}
-        title={frac.state === 'all' ? t.deselectAll : t.selectAll}
-        onToggle={onToggleSelect}
-      />
+          <svg
+            viewBox="0 0 20 20"
+            className={`h-5 w-5 transition-transform ${open ? '' : '-rotate-90'}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 8l5 5 5-5" />
+          </svg>
+        </button>
+        <KitchenGroupSelectControl
+          state={frac.state}
+          disabled={selectDisabled}
+          title={frac.state === 'all' ? t.deselectAll : t.selectAll}
+          onToggle={onToggleSelect}
+        />
+      </div>
       {thumb}
       <button
         type="button"
@@ -407,15 +412,18 @@ function KitchenBoardLineRow({
         data-kitchen-prep-in-flight={prepInFlight ? '' : undefined}
         aria-busy={prepInFlight || undefined}
       >
-        <input
-          type="checkbox"
-          className="h-6 w-6 shrink-0"
-          checked={checked}
-          disabled={!rowInteractive || stationLocked}
-          onChange={onToggle}
-          onClick={(e) => e.stopPropagation()}
-          aria-label={line.displayName}
-        />
+        {/* Same 36px column as header select so the boxes share one vertical line. */}
+        <span className="grid h-9 w-9 shrink-0 place-items-center">
+          <input
+            type="checkbox"
+            className="h-6 w-6"
+            checked={checked}
+            disabled={!rowInteractive || stationLocked}
+            onChange={onToggle}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={line.displayName}
+          />
+        </span>
         {layout === 'workbench-dish-l2' ? null : (
           <KitchenDishThumbButton
             imageUrl={thumbImageUrl}

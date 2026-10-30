@@ -1,5 +1,6 @@
 import { normalizeMenuItemCode } from '@/lib/menu-print-label';
 import type { Language, MenuItem } from '@/types';
+import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 /** Catalog row or order-line snapshot. Print titles use `menuLocalizedName` instead. */
 export type MenuItemNameFields = {
@@ -66,4 +67,17 @@ export function formatLocalizedMenuItemLabel(
 /** Catalog card / list title for a menu row. */
 export function formatMenuCatalogItemLabel(item: MenuItem, lang: Language): string {
   return formatLocalizedMenuItemLabel(item, lang, item.item_code);
+}
+
+/**
+ * Sole guest "open dish detail" accessible name (list card + recommended poster).
+ * Vegetarian dishes carry the word, since their mark is an icon-only photo badge.
+ */
+export function formatMenuItemOpenDetailAria(item: MenuItem, lang: Language): string {
+  const t = MENU_PAGE_MESSAGES[lang];
+  const label = formatMenuCatalogItemLabel(item, lang);
+  return t.itemOpenDetailAria.replace(
+    '{name}',
+    item.is_vegetarian ? `${label} (${t.itemVegetarianBadge})` : label,
+  );
 }

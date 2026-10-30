@@ -11,8 +11,9 @@ import {
   MENU_IMAGE_WELL_BG_CLASS,
   resolveMenuImageDisplayUrl,
 } from '@/lib/menu-image';
-import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
+import { formatMenuCatalogItemLabel, formatMenuItemOpenDetailAria } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
+import { VegetarianMark } from '@/components/menu/VegetarianMark';
 
 type Props = {
   items: MenuItem[];
@@ -28,7 +29,8 @@ const POSTER_MEDIA_HEIGHT_PX = POSTER_WIDTH_PX / MENU_IMAGE_ASPECT_RATIO;
 
 /**
  * Sole customer recommended merchandising: gold-wash band of equal-height
- * poster cards (locked 4:3 well + one-line truncated name + tight price).
+ * poster cards (locked 4:3 well + one-line truncated name + tight price);
+ * vegetarian dishes get the same photo-corner `VegetarianMark` as the list card.
  * Band inset is one py-*. Tap opens detail. Not MenuItemCard, not sticky,
  * not a virtual category, no overlay +, no sold-out row.
  */
@@ -56,13 +58,12 @@ export function CustomerRecommendedRail({
             freeLabel: t.itemFree,
             treatZeroAsFree,
           });
-          const openDetailAria = t.itemOpenDetailAria.replace('{name}', label);
           return (
             <button
               key={item.id}
               type="button"
               onClick={() => onOpenDetail(item.id)}
-              aria-label={openDetailAria}
+              aria-label={formatMenuItemOpenDetailAria(item, lang)}
               title={label}
               className="flex min-w-0 shrink-0 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
               style={{ width: POSTER_WIDTH_PX }}
@@ -83,6 +84,9 @@ export function CustomerRecommendedRail({
                 ) : (
                   <span className="flex h-full w-full items-center justify-center">{item.emoji}</span>
                 )}
+                {item.is_vegetarian ? (
+                  <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} />
+                ) : null}
               </span>
               <span className={CUSTOMER_MENU_TYPE.recommendedName}>{label}</span>
               <span className={CUSTOMER_MENU_TYPE.recommendedPrice}>{priceText}</span>

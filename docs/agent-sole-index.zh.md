@@ -267,7 +267,7 @@ sole `resolveCustomerMenuCatalogView` — nav shows a category only when it stil
 
 ### Customer recommended merchandising
 
-sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price, tap opens detail; do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` on the rail.
+sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price (+ photo-corner `VegetarianMark` thumb), tap opens detail; do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` on the rail.
 
 ### Recommended add POST
 
@@ -331,7 +331,7 @@ sole entry `CustomerGuestOrderingNotice` = megaphone capsule (`appearanceChromeG
 
 ### Menu vegetarian mark
 
-sole `VegetarianMark` + `VegetarianLeafIcon` (status-success tokens): list card = `thumb` leaf disc `.mesa-veg-mark-thumb` at the photo top-left (word goes into the card detail `aria-label`); guest detail + kitchen detail = `label` pill; sushi 素食 filter chip shows the same leaf as legend. Never a word pill in the name / flavor / price bands (drifts with name length, clips, steals name width per language), never `emerald-800` hand-rolled copies.
+sole `VegetarianMark` + `VegetarianLeafIcon` (status-success tokens): list card + recommended poster = `thumb` leaf disc `.mesa-veg-mark-thumb` at the photo top-left (word via sole `formatMenuItemOpenDetailAria`); guest detail + kitchen detail = `label` pill; sushi 素食 filter chip shows the same leaf as legend. Never a word pill in the name / flavor / price bands (drifts with name length, clips, steals name width per language), never `emerald-800` hand-rolled copies.
 
 ### Guest menu peer float
 

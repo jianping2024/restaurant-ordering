@@ -15,7 +15,7 @@ import {
   MENU_IMAGE_WELL_BG_CLASS,
   resolveMenuImageDisplayUrl,
 } from '@/lib/menu-image';
-import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
+import { formatMenuCatalogItemLabel, formatMenuItemOpenDetailAria } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
@@ -218,10 +218,7 @@ export function MenuItemCard({
     freeLabel: t.itemFree,
     treatZeroAsFree,
   });
-  const openDetailAria = t.itemOpenDetailAria.replace(
-    '{name}',
-    item.is_vegetarian ? `${label} (${t.itemVegetarianBadge})` : label,
-  );
+  const openDetailAria = formatMenuItemOpenDetailAria(item, lang);
 
   // Hover tilt writes CSS vars straight onto the shell — no React re-render per move.
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {

@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   formatLocalizedMenuItemLabel,
   formatMenuCatalogItemLabel,
+  formatMenuItemOpenDetailAria,
   formatOnScreenMenuItemLabel,
   resolveMenuItemLocalizedDescription,
   resolveMenuItemLocalizedName,
@@ -94,6 +95,17 @@ describe('formatLocalizedMenuItemLabel', () => {
     assert.equal(
       formatLocalizedMenuItemLabel(baseItem, 'en', '028'),
       '028 Water 500ml',
+    );
+  });
+});
+
+describe('formatMenuItemOpenDetailAria', () => {
+  it('names the dish; vegetarian dishes also carry the localized word', () => {
+    const item = { ...baseItem, item_code: '028' };
+    assert.equal(formatMenuItemOpenDetailAria(item, 'zh'), '查看028 矿泉水详情');
+    assert.equal(
+      formatMenuItemOpenDetailAria({ ...item, is_vegetarian: true }, 'zh'),
+      '查看028 矿泉水 (素食)详情',
     );
   });
 });

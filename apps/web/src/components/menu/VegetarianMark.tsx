@@ -4,8 +4,8 @@ type Props = {
   /** Localized「素食」— thumb uses it as tooltip; label shows it beside the leaf. */
   label: string;
   /**
-   * `thumb`: leaf disc pinned to the list-card thumb's top-left (icon only;
-   * the card's detail button aria-label carries the word).
+   * `thumb`: leaf disc pinned to a dish photo's top-left — list card thumb and
+   * recommended poster (icon only; `formatMenuItemOpenDetailAria` carries the word).
    * `label`: leaf + word pill (guest detail sheet, kitchen detail).
    */
   variant: 'thumb' | 'label';

@@ -253,7 +253,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**加份前**本机预检桌上限 + 整餐单菜额度（sole `previewGuestRoundCartDraftGates`：已进篮 `lines_qty_total` + 本机草稿；看不见别机草稿）；**下单**才写入 round lines |
 | 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；提交前同一 `previewGuestRoundCartDraftGates`；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口）；左键：可送厨时 **先不送厨**，否则 **继续点餐**；顶部同底栏送厨引导提示（不显示「已送厨」态）；底部只读分组 **收费菜 · 已直接送厨**（sole `buildRoundPaidSentLines`：本轮 `created_at` 之后整桌收费菜单行，✓ 数量，不可改、不计入 N 道、不参与送厨；无活跃轮次则无此组） |
-| 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/购物车/已点/详情 + toast「本轮已送厨」；判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
+| 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/**购物车抽屉**/已点/详情 + toast「本轮已送厨」；**不清**本机购物车草稿（免费/收费均保留；草稿仅本机「下单」成功后由 `clearSubmitCart` 清空）。判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。加份前 sole `previewGuestRoundLineSetGates`（桌上限 + 整餐单菜）。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append；混合提交成功提示 `placedMixed`（收费菜已送厨 · 免费菜已加入本轮） |
 | Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示「厨房还没收到」时点去送厨）→ 下一轮（冷却倒计时；收费菜可继续点，免费菜等结束后开下一轮） |

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { AppearanceChromeGroup } from '@/components/ui/AppearanceChromeGroup';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
@@ -29,6 +30,8 @@ interface Props {
    * Bill / staff-assisted: true (default).
    */
   showRestaurantName?: boolean;
+  /** Guest menu: restaurant notice capsule, left of language + theme. */
+  notice?: ReactNode;
 }
 
 /** Sole table-identity chip for guest and staff-assisted customer chrome (menu + bill). */
@@ -40,7 +43,7 @@ function CustomerTableIdentityBadge({
   displayName: string;
 }) {
   return (
-    <span className="shrink-0 rounded-full border border-brand-ink/45 px-3 py-1 text-base font-semibold text-brand-ink tabular-nums leading-tight">
+    <span className="min-w-0 truncate rounded-full border border-brand-ink/45 px-3 py-1 text-base font-semibold text-brand-ink tabular-nums leading-tight">
       {tableLabel} {displayName}
     </span>
   );
@@ -64,6 +67,7 @@ export function CustomerOrderingHeader({
   sticky = false,
   headingSize = 'menu',
   showRestaurantName = true,
+  notice = null,
 }: Props) {
   const isStaffAssisted = staffAssisted !== null;
 
@@ -73,7 +77,7 @@ export function CustomerOrderingHeader({
       : 'font-heading text-lg text-brand-ink truncate';
 
   const tableBadges = (
-    <span className="flex shrink-0 items-center gap-1.5">
+    <span className="flex min-w-0 items-center gap-1.5">
       <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
       {takeawayBadgeLabel ? (
         <CustomerTakeawayChannelBadge label={takeawayBadgeLabel} />
@@ -112,7 +116,10 @@ export function CustomerOrderingHeader({
           {isStaffAssisted ? (
             tableBadges
           ) : (
-            <AppearanceChromeGroup />
+            <div className="flex shrink-0 items-center gap-2">
+              {notice}
+              <AppearanceChromeGroup />
+            </div>
           )}
         </div>
       </div>

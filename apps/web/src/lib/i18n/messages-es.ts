@@ -803,7 +803,6 @@ export const MESSAGES_ES = {
     "errorSuspended": "El restaurante está suspendido; no se permiten cambios."
   },
   "guestNoticeCustomer": {
-    "tabLabel": "Aviso",
     "openLabel": "Ver el aviso del restaurante"
   },
   "settingsHub": {

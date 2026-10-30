@@ -51,7 +51,7 @@
 
 | 表面 | 位置 |
 |---|---|
-| 列表菜卡 | **菜名正下方**一条风味带；素食标贴菜名旁（与菜名 clamp **同级 sibling**，不进 `overflow-hidden`） |
+| 列表菜卡 | **菜名正下方**一条风味带；素食标是菜图**左上角**叶子圆标（`VegetarianMark` thumb），不进菜名 / 风味 / 价格行 |
 | 详情 | 大图（头图区）**左下角**；价旁**不**再重复风味 |
 
 ### 列表菜卡竖向契约（稳定不跳）
@@ -60,7 +60,7 @@
 
 | 槽 | 规则 |
 |---|---|
-| 菜名行 | 菜名文字最多 **2** 行省略（字号 15px，唯一 clamp）；可选素食绿标为 **sibling**（22px chip 带，与风味 inline 同高，`shrink-0`，禁止放进菜名 `overflow-hidden`） |
+| 菜名行 | 菜名文字最多 **2** 行省略（字号 15px，唯一 clamp）；行内不放任何标（素食在图角） |
 | 风味带 | 开关**开**时始终占位（无码也留空高）；最多 **1** 行 chip，再多裁切 |
 | 底行 | 价左、动作右，高度 36px，贴右栏底（与图底齐）；动作槽静止时只有一个 36px 金色圆（未加为「+」、已加为份数），价格始终可见；点圆展开 `− / n / +` 胶囊盖住整条底行（金色 + 留在原位），约 3 秒无操作或点外部收回，减到 0 回到「+」；列表**不**用 `CartQtyStepper`；外壳唯一 `MENU_ITEM_CARD_SHELL_CLASS`（`mesa-menu-item-card`；窄列 88/`p-3`/`rounded-xl`，≥40rem 112/`p-4`/`rounded-2xl`；**不** `overflow-hidden` 裁底行）；列表列数唯一跟壳宽 container（`CUSTOMER_MENU_ITEM_LIST_HOST_CLASS` + `CUSTOMER_MENU_ITEM_LIST_CLASS`），不跟视口 `xl` |
 

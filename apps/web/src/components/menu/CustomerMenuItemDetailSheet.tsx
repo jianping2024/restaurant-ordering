@@ -29,6 +29,7 @@ import {
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { resolveMenuItemAllergenPresentation } from '@/lib/allergens';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
+import { VegetarianMark } from '@/components/menu/VegetarianMark';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
@@ -196,9 +197,7 @@ export function CustomerMenuItemDetailSheet({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className={CUSTOMER_MENU_TYPE.moneyAmount}>{priceText}</span>
               {item.is_vegetarian ? (
-                <span className="rounded-full border border-emerald-600/35 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                  {t.itemVegetarianBadge}
-                </span>
+                <VegetarianMark variant="label" label={t.itemVegetarianBadge} />
               ) : null}
               {treatZeroAsFree ? (
                 <span className="rounded-full border border-brand-border bg-brand-border/25 px-2.5 py-0.5 text-xs font-medium text-brand-text-muted">

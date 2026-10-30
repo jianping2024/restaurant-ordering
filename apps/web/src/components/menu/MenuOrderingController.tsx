@@ -581,13 +581,6 @@ export function MenuOrderingController({
     () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
     [lang, restaurant.guest_ordering_notice],
   );
-  const hideGuestNoticeChrome =
-    isDemo ||
-    isEmbedded ||
-    staffAssisted !== null ||
-    cartOpen ||
-    orderedOpen ||
-    introVisible;
 
   const formatCountLabel = useCallback(
     (template: string, count: number) => template.replace('{count}', String(count)),
@@ -990,6 +983,11 @@ export function MenuOrderingController({
               }
             : null
         }
+        notice={
+          guestNotice && !isDemo && !isEmbedded && staffAssisted === null ? (
+            <CustomerGuestOrderingNotice restaurantId={restaurant.id} notice={guestNotice} lang={lang} />
+          ) : null
+        }
       />
 
       {!isDemo ? (
@@ -1090,15 +1088,6 @@ export function MenuOrderingController({
         )}
       </CustomerMenuCategoryNav>
       </CustomerMenuStorefrontScroll>
-
-      {guestNotice ? (
-        <CustomerGuestOrderingNotice
-          restaurantId={restaurant.id}
-          notice={guestNotice}
-          lang={lang}
-          hidden={hideGuestNoticeChrome}
-        />
-      ) : null}
 
       <CustomerMenuPeerFloats
         lines={[]}

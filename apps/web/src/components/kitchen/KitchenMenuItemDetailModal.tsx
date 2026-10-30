@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
+import { VegetarianMark } from '@/components/menu/VegetarianMark';
 import { resolveMenuItemAllergenPresentation } from '@/lib/allergens';
 import type { KitchenBoardMenuCatalogEntry } from '@/lib/kitchen-board-menu-catalog';
 import {
@@ -80,7 +81,9 @@ export function KitchenMenuItemDetailModal({
         </div>
 
         {entry.is_vegetarian ? (
-          <p className="text-base font-medium text-emerald-800">{labels.detailVegetarianBadge}</p>
+          <div>
+            <VegetarianMark variant="label" label={labels.detailVegetarianBadge} />
+          </div>
         ) : null}
 
         <MenuItemFlavorChips

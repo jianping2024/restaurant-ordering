@@ -1001,7 +1001,6 @@ export const MESSAGES = {
       errorSuspended: '餐厅已暂停营业，暂不可修改。',
     },
     guestNoticeCustomer: {
-      tabLabel: '通知',
       openLabel: '查看餐厅通知',
     },
     settingsHub: {
@@ -2606,7 +2605,6 @@ export const MESSAGES = {
       errorSuspended: 'Restaurant is suspended; edits are blocked.',
     },
     guestNoticeCustomer: {
-      tabLabel: 'Notice',
       openLabel: 'View restaurant notice',
     },
     settingsHub: {
@@ -3955,7 +3953,6 @@ export const MESSAGES = {
       errorSuspended: 'Restaurante suspenso; edicao bloqueada.',
     },
     guestNoticeCustomer: {
-      tabLabel: 'Aviso',
       openLabel: 'Ver aviso do restaurante',
     },
     settingsHub: {

@@ -805,7 +805,6 @@ export const MESSAGES_DE = {
     "errorSuspended": "Restaurant ist gesperrt; Änderungen sind nicht möglich."
   },
   "guestNoticeCustomer": {
-    "tabLabel": "Hinweis",
     "openLabel": "Restaurantsmitteilung anzeigen"
   },
   "settingsHub": {

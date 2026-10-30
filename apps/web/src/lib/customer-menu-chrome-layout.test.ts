@@ -14,7 +14,6 @@ import {
   customerMenuCategoryRailPageScrollClass,
   customerMenuContentHostClass,
   customerMenuDualPaneRootClass,
-  customerMenuNoticeTabShellClass,
   customerMenuPeerFloatRailClass,
   customerMenuShellRootClass,
 } from './customer-menu-chrome-layout';
@@ -28,16 +27,11 @@ describe('customerMenuChromeLayout', () => {
     assert.ok(customerMenuShellRootClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 
-  it('anchors notice + peer-float to content host (not viewport rem top)', () => {
+  it('anchors peer-float to content host (not viewport rem top)', () => {
     assert.match(customerMenuContentHostClass, /relative/);
     assert.match(customerMenuContentHostClass, /flex-1/);
     assert.match(customerMenuContentHostClass, /min-h-0/);
     assert.match(customerMenuContentHostClass, /overflow-hidden/);
-    assert.match(customerMenuNoticeTabShellClass, /absolute/);
-    assert.match(customerMenuNoticeTabShellClass, /inset-x-0/);
-    assert.match(customerMenuNoticeTabShellClass, /top-0/);
-    assert.doesNotMatch(customerMenuNoticeTabShellClass, /fixed/);
-    assert.doesNotMatch(customerMenuNoticeTabShellClass, /3\.75rem|6\.5rem|safe-area/);
     assert.match(customerMenuPeerFloatRailClass, /absolute/);
     assert.match(customerMenuPeerFloatRailClass, /inset-x-0/);
     assert.match(customerMenuPeerFloatRailClass, /top-0/);

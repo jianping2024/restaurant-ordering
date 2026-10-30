@@ -645,8 +645,6 @@ export function SushiMenuPage({
     () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
     [lang, restaurant.guest_ordering_notice],
   );
-  const hideGuestNoticeChrome =
-    isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible || !!detailMenuItemId;
 
   const [reviewBusyLineId, setReviewBusyLineId] = useState<string | null>(null);
 
@@ -1128,6 +1126,11 @@ export function SushiMenuPage({
         showRestaurantName={false}
         sticky
         backLink={null}
+        notice={
+          guestNotice && !isDemo ? (
+            <CustomerGuestOrderingNotice restaurantId={restaurant.id} notice={guestNotice} lang={lang} />
+          ) : null
+        }
       />
 
       {!isDemo ? (
@@ -1250,15 +1253,6 @@ export function SushiMenuPage({
         )}
       </CustomerMenuCategoryNav>
       </CustomerMenuStorefrontScroll>
-
-      {guestNotice ? (
-        <CustomerGuestOrderingNotice
-          restaurantId={restaurant.id}
-          notice={guestNotice}
-          lang={lang}
-          hidden={hideGuestNoticeChrome}
-        />
-      ) : null}
 
       <CustomerMenuPeerFloats
         lines={round.snapshot.lines}

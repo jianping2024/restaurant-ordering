@@ -15,6 +15,7 @@ import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { Button } from '@/components/ui/Button';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerMenuTableGuestsLabel } from '@/components/menu/CustomerMenuTableGuestsChrome';
+import { VegetarianLeafIcon } from '@/components/menu/customer-ordering-icons';
 
 type Copy = (typeof SUSHI_ROUND_MESSAGES)[Language];
 
@@ -92,14 +93,7 @@ export function SushiRoundStickyBar({
                     : 'border-brand-border bg-brand-card text-brand-text-muted'
                 }`}
               >
-                <span
-                  aria-hidden
-                  className={`h-2 w-2 shrink-0 rounded-full ${
-                    vegetarianOnly
-                      ? 'bg-[rgb(52,199,89)] shadow-[0_0_0_2px_rgba(52,199,89,0.28),0_0_10px_rgba(52,199,89,0.85)]'
-                      : 'bg-brand-border'
-                  }`}
-                />
+                <VegetarianLeafIcon className="h-3.5 w-3.5 shrink-0" />
                 {menuT.dietaryFilterVegetarian}
               </button>
             ) : null}

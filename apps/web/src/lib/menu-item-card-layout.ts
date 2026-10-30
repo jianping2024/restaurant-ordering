@@ -3,14 +3,14 @@
  *
  * JD-style list rhythm: square thumb is the height anchor; right column is at least
  * thumb height and may grow when name + flavor + foot exceed it (narrow + flavor on).
- * Slots: name row (title ≤2 lines + optional vegetarian badge sibling) → flavor ≤1 row
+ * Slots: name ≤2 lines → flavor ≤1 row
  * (only when flavor hints enabled; empty still reserved) → foot price + action.
  * List never shows description (detail only).
  *
+ * Vegetarian mark is the thumb's top-left leaf (`VegetarianMark` thumb) — never in the
+ * name / flavor / price text bands.
  * Shell never uses overflow-hidden: clip only on thumb / name text / flavor.
- * Vegetarian badge must stay a sibling of the name clamp — never inside
- * overflow-hidden / -webkit-line-clamp. Foot action (bare + or CartQtyStepper
- * density=compact) must stay fully visible inside the rounded face — pad/radius
+ * Foot action (bare + or CartQtyStepper density=compact) must stay fully visible inside the rounded face — pad/radius
  * scale with catalog container (see globals.css `.mesa-menu-item-card`): narrow
  * 88px thumb + p-3/rounded-xl; ≥40rem host 112px + p-4/rounded-2xl.
  */
@@ -50,26 +50,9 @@ export const MENU_ITEM_CARD_SHELL_CLASS =
 export const MENU_ITEM_CARD_THUMB_CLASS =
   'mesa-menu-item-card-thumb relative flex h-[var(--mesa-menu-card-thumb)] w-[var(--mesa-menu-card-thumb)] shrink-0 items-center justify-center overflow-hidden rounded-[var(--mesa-menu-card-thumb-radius)] self-start';
 
-/**
- * Name row: title clamp + optional vegetarian badge as siblings.
- * Badge stays outside overflow-hidden so pill padding/border is never clipped.
- */
-export const MENU_ITEM_CARD_NAME_ROW_CLASS = 'flex min-w-0 items-start gap-1.5';
-
-/**
- * Name text slot: 15px / 1.3 × 2 lines = 39px. Sole list title face for MenuItemCard.
- * `min-w-0 flex-1` so a sibling badge can sit beside without forcing title overflow
- * out of the card; clamp/overflow apply to this node only (not the badge).
- */
+/** Name slot: 15px / 1.3 × 2 lines = 39px. Sole list title face for MenuItemCard. */
 export const MENU_ITEM_CARD_NAME_CLASS =
-  'min-w-0 flex-1 h-[2.4375rem] min-h-[2.4375rem] overflow-hidden break-words text-[15px] font-semibold leading-[1.3] text-brand-text [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]';
-
-/**
- * List vegetarian pill — same 22px chip band as flavor inline chips; `shrink-0`
- * + fixed height + leading-none so it never enters the name clamp box.
- */
-export const MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS =
-  'inline-flex h-[22px] shrink-0 items-center rounded-full border border-emerald-600/35 bg-emerald-500/10 px-1.5 text-[10px] font-semibold leading-none text-emerald-800';
+  'h-[2.4375rem] min-h-[2.4375rem] overflow-hidden break-words text-[15px] font-semibold leading-[1.3] text-brand-text [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]';
 
 /**
  * Flavor band: one chip row (~22px).

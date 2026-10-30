@@ -57,3 +57,28 @@ export function CustomerRoundTrayIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Vegetarian dish — filled leaf + stem (sole veg glyph: card thumb, detail, filter legend). */
+export function VegetarianLeafIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M17 3C9.5 3 4 6.8 4 12.6 4 15.2 5.9 17 8.6 17 14 17 17 12 17 3Z" fill="currentColor" />
+      <path d="M2.75 17.75c2.5-3.6 5.4-6.6 9.25-9.25" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Restaurant notice (guest header) — megaphone outline. */
+export function CustomerNoticeIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        d="M3.75 8.5v3a1 1 0 0 0 1 1h1.75l6.25 3.5V4l-6.25 3.5H4.75a1 1 0 0 0-1 1Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M6.75 12.5l1 3.5M15.5 7.75a3 3 0 0 1 0 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}

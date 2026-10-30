@@ -321,9 +321,17 @@ sole UI gates `previewGuestRoundCartDraftGates` (菜卡/详情/购物车加份 +
 
 sole `CUSTOMER_MENU_SHELL_WIDTH_CLASS` = `w-full max-w-[68rem]` (page root / menu footer / bill dock / bottom sheets via `CustomerMenuBottomSheet` / storefront hours sheet) — never a parallel `max-w-mobile` + `lg:max-w-[68rem]` pair or bare `max-w-mobile` on those surfaces; dish detail panel stays full-bleed below `lg` / `max-w-lg` dialog at `lg+` (not the menu shell).
 
-### Guest menu edge floats (notice + peer float)
+### Guest menu edge floats (peer float)
 
-sole content host `customerMenuContentHostClass` (under header + guests/sushi sticky + gate); notice `customerMenuNoticeTabShellClass` + peer rail `customerMenuPeerFloatRailClass` both `absolute inset-x-0 top-0` inside that host (peer left-inset `CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS`); never viewport-fixed rem tops (`3.75rem` / safe-area stacks) or a second host/rail.
+sole content host `customerMenuContentHostClass` (under header + guests/sushi sticky + gate); peer rail `customerMenuPeerFloatRailClass` `absolute inset-x-0 top-0` inside that host (left-inset `CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS`); never viewport-fixed rem tops (`3.75rem` / safe-area stacks) or a second host/rail.
+
+### Guest restaurant notice
+
+sole entry `CustomerGuestOrderingNotice` = megaphone capsule (`appearanceChromeGroupClass` + segment button, gold unread dot) via `CustomerOrderingHeader` `notice` left of `AppearanceChromeGroup` (classic + sushi guest only); never an edge tab floating over the dish list (it covered the gold `+`).
+
+### Menu vegetarian mark
+
+sole `VegetarianMark` + `VegetarianLeafIcon` (status-success tokens): list card = `thumb` leaf disc `.mesa-veg-mark-thumb` at the photo top-left (word goes into the card detail `aria-label`); guest detail + kitchen detail = `label` pill; sushi 素食 filter chip shows the same leaf as legend. Never a word pill in the name / flavor / price bands (drifts with name length, clips, steals name width per language), never `emerald-800` hand-rolled copies.
 
 ### Guest menu peer float
 

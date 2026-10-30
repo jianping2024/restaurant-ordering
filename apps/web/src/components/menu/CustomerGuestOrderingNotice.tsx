@@ -8,21 +8,24 @@ import {
   markGuestOrderingNoticeSeen,
   type GuestOrderingNoticeLocalized,
 } from '@/lib/guest-ordering-notice';
-import { customerMenuNoticeTabShellClass } from '@/lib/customer-menu-chrome-layout';
+import { appearanceChromeButtonClass, appearanceChromeGroupClass } from '@/lib/appearance-chrome';
 import { getMessages } from '@/lib/i18n/messages';
+import { CustomerNoticeIcon } from '@/components/menu/customer-ordering-icons';
 
 type Props = {
   restaurantId: string;
   notice: GuestOrderingNoticeLocalized;
   lang: Language;
-  hidden?: boolean;
 };
 
+/**
+ * Sole guest restaurant-notice entry: one megaphone capsule in the ordering header
+ * (beside language + theme) — never an edge float over the dish list.
+ */
 export function CustomerGuestOrderingNotice({
   restaurantId,
   notice,
   lang,
-  hidden = false,
 }: Props) {
   const t = getMessages(lang).guestNoticeCustomer;
   const [open, setOpen] = useState(false);
@@ -32,8 +35,6 @@ export function CustomerGuestOrderingNotice({
     setUnread(guestOrderingNoticeHasUnreadUpdate(restaurantId, notice.updatedAt));
   }, [restaurantId, notice.updatedAt]);
 
-  if (hidden) return null;
-
   const handleOpen = () => {
     setOpen(true);
     markGuestOrderingNoticeSeen(restaurantId, notice.updatedAt);
@@ -42,22 +43,17 @@ export function CustomerGuestOrderingNotice({
 
   return (
     <>
-      <div className={customerMenuNoticeTabShellClass}>
+      <div className={appearanceChromeGroupClass}>
         <button
           type="button"
           onClick={handleOpen}
           aria-label={t.openLabel}
-          className="pointer-events-auto absolute right-0 flex max-w-[2.75rem] flex-col items-center gap-1 rounded-l-xl border border-r-0 border-brand-gold/45 bg-brand-card/95 px-1.5 py-3 text-center shadow-lg backdrop-blur-sm transition-colors hover:bg-brand-gold/10 active:bg-brand-gold/15"
+          className={`relative ${appearanceChromeButtonClass('segment')} text-brand-gold hover:text-brand-gold-light`}
         >
-          <span className="text-base leading-none" aria-hidden>
-            📢
-          </span>
-          <span className="text-[10px] font-semibold leading-tight text-brand-gold [writing-mode:vertical-rl]">
-            {t.tabLabel}
-          </span>
+          <CustomerNoticeIcon className="h-5 w-5" />
           {unread ? (
             <span
-              className="absolute -left-1 top-2 h-2.5 w-2.5 rounded-full bg-brand-gold ring-2 ring-brand-bg"
+              className="absolute right-1.5 top-2.5 h-2 w-2 rounded-full bg-brand-gold ring-2 ring-brand-card"
               aria-hidden
             />
           ) : null}

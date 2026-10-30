@@ -25,7 +25,6 @@ import {
   MENU_ITEM_CARD_GOLD_ACTION_CLASS,
   MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
-  MENU_ITEM_CARD_NAME_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_CLASS,
   MENU_ITEM_CARD_QTY_DECREMENT_CLASS,
@@ -34,12 +33,12 @@ import {
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
-  MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS,
   menuItemCardQtyTextClass,
   menuItemCardTiltFromPointer,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
+import { VegetarianMark } from '@/components/menu/VegetarianMark';
 
 interface Props {
   item: MenuItem;
@@ -189,8 +188,8 @@ function MenuItemCardAction({
 }
 
 /**
- * Sole catalog card: thumb left; right column min-height = thumb
- * (name row ± veg badge → optional one-line flavor → price/action).
+ * Sole catalog card: thumb left (veg leaf pinned top-left); right column min-height = thumb
+ * (name → optional one-line flavor → price/action).
  * List has no description.
  */
 export function MenuItemCard({
@@ -219,7 +218,10 @@ export function MenuItemCard({
     freeLabel: t.itemFree,
     treatZeroAsFree,
   });
-  const openDetailAria = t.itemOpenDetailAria.replace('{name}', label);
+  const openDetailAria = t.itemOpenDetailAria.replace(
+    '{name}',
+    item.is_vegetarian ? `${label} (${t.itemVegetarianBadge})` : label,
+  );
 
   // Hover tilt writes CSS vars straight onto the shell — no React re-render per move.
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -263,6 +265,7 @@ export function MenuItemCard({
         ) : (
           item.emoji
         )}
+        {item.is_vegetarian ? <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} /> : null}
       </button>
 
       <div className={MENU_ITEM_CARD_BODY_CLASS}>
@@ -272,12 +275,7 @@ export function MenuItemCard({
           aria-label={openDetailAria}
           className="flex min-w-0 flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
         >
-          <div className={MENU_ITEM_CARD_NAME_ROW_CLASS}>
-            <h3 className={MENU_ITEM_CARD_NAME_CLASS}>{label}</h3>
-            {item.is_vegetarian ? (
-              <span className={MENU_ITEM_CARD_VEGETARIAN_BADGE_CLASS}>{t.itemVegetarianBadge}</span>
-            ) : null}
-          </div>
+          <h3 className={MENU_ITEM_CARD_NAME_CLASS}>{label}</h3>
           <MenuItemFlavorChips
             flavorCodes={item.flavor_codes}
             lang={lang}

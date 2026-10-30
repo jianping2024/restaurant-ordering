@@ -104,22 +104,15 @@ export const CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS =
 /**
  * Sole guest menu content region under non-scrolling top chrome
  * (identity header + guests strip / sushi sticky + optional gate banner).
- * Edge floats (notice tab + peer-float rail) mount inside and use absolute
- * top-0 of this host — never a viewport rem stack that drifts when chrome grows.
+ * The peer-float rail mounts inside and uses absolute top-0 of this host — never a
+ * viewport rem stack that drifts when chrome grows.
  */
 export const customerMenuContentHostClass =
   'relative flex min-h-0 flex-1 flex-col overflow-hidden';
 
 /**
- * Sole guest notice tab shell: absolute to {@link customerMenuContentHostClass}
- * (inset-x + top). Children use pointer-events-auto. Not viewport-fixed.
- */
-export const customerMenuNoticeTabShellClass =
-  'pointer-events-none absolute inset-x-0 top-0 z-20';
-
-/**
- * Sole peer-float rail shell: same content-host anchor as the notice tab
- * (absolute inset-x top-0). Left inset clears the category rail.
+ * Sole peer-float rail shell: absolute inset-x top-0 of the content host.
+ * Left inset clears the category rail.
  */
 export const customerMenuPeerFloatRailClass = [
   'pointer-events-none absolute inset-x-0 top-0 z-40 flex flex-col items-start gap-2',

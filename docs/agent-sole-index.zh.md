@@ -370,6 +370,10 @@ sole trash `RowRemoveIconButton` (cart + by-item/buffet shares); sole empty+clos
 
 sole SQL `settle_expired_table_order_round_cooldown` (GET `getRoundSnapshot` + upsert both); never leave expired cooldown lines in snapshot as a live cap beside that settle.
 
+### Sushi round due-submit settle
+
+sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound`); triggers = submit-request arm + lazy in-process sweep (first submit/GET round) + GET snapshot + optional client finalize while page open — never a second due-submit branch, never instrumentation/crypto pull, never a second Vercel cron beside nightly-close.
+
 ## 厨房 / 楼面 / 权限
 
 ### Kitchen ready-after minutes

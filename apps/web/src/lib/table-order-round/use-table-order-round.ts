@@ -260,6 +260,8 @@ export function useTableOrderRound(params: {
     return result;
   }, [applySnapshot, guestClientId, slug, tableId]);
 
+  // Client timer is acceleration only while this page is open. Due settle sole path is
+  // server `settleDueTableOrderRoundSubmit` (arm after submit-request + in-process sweep + GET).
   useEffect(() => {
     if (!enabled || snapshot.round?.status !== 'pending_confirm') return;
     const deadline = snapshot.round.submit_deadline_at;

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ensureTableOrderRoundDeadlineSweep } from '@/lib/table-order-round/deadline-finalize-runtime';
 import {
   loadTableOrderRoundContext,
   roundSnapshotJson,
@@ -8,6 +9,9 @@ import { getRoundSnapshot } from '@/lib/table-order-round/service';
 export const runtime = 'nodejs';
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
+  // Lazy start due-submit sweep on first guest round traffic (Node API; no instrumentation).
+  ensureTableOrderRoundDeadlineSweep();
+
   const url = new URL(req.url);
   const loaded = await loadTableOrderRoundContext({
     slug: params.slug,

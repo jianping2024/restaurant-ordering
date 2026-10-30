@@ -159,10 +159,10 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 - **到点收口唯一写法**：服务端 `settleDueTableOrderRoundSubmit`（空篮 → 回 `collecting`；有菜 → 同一套 `finalizeRound`）
 - 触发（都走上面唯一收口，不另写第二套送厨；**不**新增 Vercel Cron——`vercel.json` 仍只有 nightly 一条）：
-  1. `submit-request` 成功后进程内按 `submit_deadline_at` 定时（手机可关；店机长驻 Node 可靠）
-  2. Node 进程内周期 sweep（首次 `submit-request` / GET round 时懒启动，约 10s；店机 / `next start`）
+  1. `submit-request` 成功后按 `submit_deadline_at` 定时（手机可关）：Vercel 上由 `waitUntil`（`@vercel/functions`）托管，实例活到送厨写完——否则响应后实例被冻结，结算拿着幂等锁停在半路，其它结算全部 `append_in_progress`；店机长驻 Node 上 `waitUntil` 为空操作，定时器照常进程内跑
+  2. 长驻 Node 进程内周期 sweep（首次 `submit-request` / GET round 时懒启动，约 10s；店机 / `next dev`）——**Vercel 上不跑**（请求外的 interval 同样会被冻结在半路）
   3. `GET` round 发现已过 deadline
-  4. 菜单仍打开时客户端到点 `POST …/round/finalize`（加速，非必要条件）
+  4. 菜单仍打开时客户端到点发一次 `GET` round（即第 3 条；无单独 finalize API）；他人正在送厨时结果靠 Realtime 推回
 - 条件：`status = pending_confirm`（或 `finalize_failed`）且 `now ≥ submit_deadline_at`
 - finalize 成功：合并 lines → **一次** append 写单 → **服务端**调用现有 `enqueueStationTicketsForOrder` 入队档口出品联 → `cooldown`
 - 顾客端**不**再调 `station-tickets/auto`；送厨**不**依赖某一台手机仍在前台
@@ -187,8 +187,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | GET | `/` | 当前 session 活跃 round + lines（mount / Realtime 后 reconcile） |
 | POST | `/lines` | upsert 免费菜行（含 note）；由购物车「下单」写入，禁止卡片 debounce 直写 |
 | DELETE | `/lines/:id` | 仅 `collecting`；仅允许删除 **本 client** 添加的行 |
-| POST | `/submit-request` | → pending_confirm |
-| POST | `/finalize` | 幂等 finalize + append + 档口出品联入队 |
+| POST | `/submit-request` | → pending_confirm；到点 finalize + append + 档口出品联入队只在服务端（§7.3） |
 
 **限流**：按 `session_id` 独立限流（**不可**与 append 共用 IP 桶）；建议 60 req/min/session。
 

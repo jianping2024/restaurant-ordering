@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { waitUntil } from '@vercel/functions';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   settleDueTableOrderRoundSubmit,
@@ -9,26 +10,18 @@ import {
 const ARM_SLACK_MS = 250;
 const SWEEP_INTERVAL_MS = 10_000;
 
-type ArmKey = string;
-
 type GlobalDeadlineRuntime = typeof globalThis & {
-  __mesaRoundDeadlineArms?: Map<ArmKey, ReturnType<typeof setTimeout>>;
   __mesaRoundDeadlineSweepStarted?: boolean;
 };
 
-function arms(): Map<ArmKey, ReturnType<typeof setTimeout>> {
-  const g = globalThis as GlobalDeadlineRuntime;
-  if (!g.__mesaRoundDeadlineArms) g.__mesaRoundDeadlineArms = new Map();
-  return g.__mesaRoundDeadlineArms;
-}
-
 /**
- * Exact-deadline arm after submit-request. Long-lived Node (on-prem / next dev) keeps
- * the timer even if every phone leaves. Do not add a second Vercel cron for this.
- * Lazy-starts the in-process safety sweep (no instrumentation.ts — avoids crypto bundle issues).
+ * Exact-deadline arm after submit-request. Call inside the request handler: on Vercel the
+ * wait + settle is registered with `waitUntil`, so the instance is not frozen between the
+ * idempotency claim and the append (a frozen settle holds the claim and every other
+ * finalize gets `append_in_progress`). Long-lived Node (on-prem / next dev) has no request
+ * context — `waitUntil` is a no-op there and the timer simply runs in-process.
  */
 export function armTableOrderRoundDeadlineFinalize(input: {
-  roundId: string;
   restaurantId: string;
   sessionId: string;
   submitDeadlineAt: string;
@@ -38,14 +31,9 @@ export function armTableOrderRoundDeadlineFinalize(input: {
   const dueAt = Date.parse(input.submitDeadlineAt);
   if (!Number.isFinite(dueAt)) return;
 
-  const map = arms();
-  const prev = map.get(input.roundId);
-  if (prev) clearTimeout(prev);
-
   const delay = Math.max(0, dueAt - Date.now()) + ARM_SLACK_MS;
-  const timer = setTimeout(() => {
-    map.delete(input.roundId);
-    void (async () => {
+  waitUntil(
+    new Promise<void>((resolve) => setTimeout(resolve, delay)).then(async () => {
       try {
         const admin = createAdminClient();
         await settleDueTableOrderRoundSubmit({
@@ -56,18 +44,19 @@ export function armTableOrderRoundDeadlineFinalize(input: {
       } catch (e) {
         console.error('[mesa sushi-round] deadline arm settle failed:', e);
       }
-    })();
-  }, delay);
-  map.set(input.roundId, timer);
+    }),
+  );
 }
 
 /**
- * In-process safety sweep. Idempotent via globalThis.
- * Start from API Node routes (submit-request / GET round) — not instrumentation.
+ * In-process safety sweep for long-lived Node only (catches arms lost to a restart).
+ * Not on Vercel: an interval outside any request runs on a frozen instance and can strand
+ * an idempotency claim mid-append. Idempotent via globalThis.
  */
 export function ensureTableOrderRoundDeadlineSweep(options?: {
   intervalMs?: number;
 }): void {
+  if (process.env.VERCEL) return;
   if (process.env.MESA_DISABLE_ROUND_DEADLINE_SWEEP === '1') return;
   if (process.env.NEXT_PHASE === 'phase-production-build') return;
 

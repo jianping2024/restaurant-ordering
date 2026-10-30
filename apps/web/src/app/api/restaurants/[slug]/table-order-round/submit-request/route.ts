@@ -63,7 +63,6 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     round.submit_deadline_at
   ) {
     armTableOrderRoundDeadlineFinalize({
-      roundId: round.id,
       restaurantId: ctx.restaurant.restaurantId,
       sessionId: ctx.writeContext.session.id as string,
       submitDeadlineAt: round.submit_deadline_at,

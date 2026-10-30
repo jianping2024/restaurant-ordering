@@ -48,7 +48,10 @@ describe('formatSushiSendGuidanceMessage', () => {
   it('covers countdown, failed and sent', () => {
     assert.equal(formatSushiSendGuidanceMessage({ kind: 'countdown', seconds: 18 }, zh), '18 秒后自动送厨 · 同桌还能加');
     assert.equal(formatSushiSendGuidanceMessage({ kind: 'failed' }, zh), zh.guidanceFailed);
-    assert.equal(formatSushiSendGuidanceMessage({ kind: 'sent', seconds: 90 }, zh), '已送厨 · 90 秒后可点下一轮');
+    assert.equal(
+      formatSushiSendGuidanceMessage({ kind: 'sent', seconds: 90 }, zh),
+      '已送厨 · 收费菜可继续点 · 90 秒后开下一轮',
+    );
   });
 });
 

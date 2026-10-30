@@ -89,6 +89,7 @@ describe('premium-tier', () => {
       'value_analytics',
       'abnormal_ops',
       'operation_logs',
+      'menu_dish_video',
     ]);
     assert.deepEqual(normalizePremiumKeys([]), []);
     assert.deepEqual(normalizePremiumKeys(['value_analytics']), ['value_analytics']);
@@ -96,6 +97,7 @@ describe('premium-tier', () => {
       'value_analytics',
       'abnormal_ops',
       'operation_logs',
+      'menu_dish_video',
     ]);
   });
 });

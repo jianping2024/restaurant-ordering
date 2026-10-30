@@ -1,6 +1,7 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
 import { MAX_MENU_CATEGORY_DEPTH } from '@/lib/menu-admin';
+import { DISH_VIDEO_MIME, type DishVideoEffect } from '@/lib/menu-dish-video';
 
 type ApiError = { error: string; message?: string; referenced_item_count?: number };
 
@@ -56,6 +57,8 @@ export type MenuItemErrorLabels = {
   invalidOverLimitPrice?: string;
   limitRequiresOveragePrice?: string;
   errTimeSlotNotFound: string;
+  errDishVideoForbidden?: string;
+  errInvalidVideo?: string;
 };
 
 export function mapMenuCategoryApiError(
@@ -104,6 +107,10 @@ export function mapMenuItemApiError(
       return labels.categoryRequired;
     case 'invalid_image':
       return labels.imageTypeInvalid;
+    case 'dish_video_forbidden':
+      return labels.errDishVideoForbidden || labels.saveFail;
+    case 'invalid_video':
+      return labels.errInvalidVideo || labels.saveFail;
     case 'cleanup_failed':
       return message || labels.saveFail;
     case 'reorder_scope_mismatch':
@@ -263,11 +270,23 @@ export async function reorderMenuItemsClient(orderedIds: string[]) {
 
 export async function setMenuItemImageClient(
   itemId: string,
-  options: { file?: File | null; stripImage?: boolean },
+  options: {
+    file?: File | null;
+    stripImage?: boolean;
+    /** Both guest variants from `encodeDishVideos` + the effect they were made with. */
+    video?: { detail: Blob; rail: Blob; effect: DishVideoEffect } | null;
+    stripVideo?: boolean;
+  },
 ) {
   const form = new FormData();
   if (options.stripImage) form.set('strip_image', '1');
   if (options.file) form.set('file', options.file);
+  if (options.stripVideo) form.set('strip_video', '1');
+  if (options.video) {
+    form.set('video', new File([options.video.detail], 'detail.mp4', { type: DISH_VIDEO_MIME }));
+    form.set('rail_video', new File([options.video.rail], 'rail.mp4', { type: DISH_VIDEO_MIME }));
+    form.set('video_effect', options.video.effect);
+  }
   return request<{ item: MenuItem }>(`/api/dashboard/menu/items/${encodeURIComponent(itemId)}/image`, {
     method: 'POST',
     body: form,

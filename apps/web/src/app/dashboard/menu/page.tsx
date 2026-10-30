@@ -28,6 +28,8 @@ export default async function MenuPage({ searchParams }: Props) {
       <MenuManager
         initialTab={initialTab}
         canManagePrintStations={loaded.canManagePrintStations}
+        canManageDishVideo={loaded.canManageDishVideo}
+        dishVideoPro={loaded.dishVideoPro}
         flavorHintsEnabled={loaded.flavorHintsEnabled}
         takeawayOrderingEnabled={loaded.takeawayOrderingEnabled}
         restaurantId={loaded.restaurantId}

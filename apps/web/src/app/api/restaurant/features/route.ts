@@ -37,6 +37,8 @@ import { parseTakeawayVatRatePatch, resolveTakeawayVatRate } from '@/lib/checkou
 import { assertCanDisableTakeawayOrdering } from '@/lib/instore-takeaway-server';
 import { isRestaurantFeatureEnabled, isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
+import { computePremiumLockedFeatureKeys, loadPlatformProSettings } from '@/lib/premium/access';
+import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import {
@@ -270,7 +272,7 @@ export async function PATCH(req: Request) {
   const { data: row, error: readError } = await admin
     .from('restaurants')
     .select(
-      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, suspended_at, ${SUSHI_ROUND_SELECT}`,
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, suspended_at, plan, pro_valid_until, license_valid_until, ${SUSHI_ROUND_SELECT}`,
     )
     .eq('id', loaded.principal.restaurantId)
     .maybeSingle();
@@ -294,6 +296,17 @@ export async function PATCH(req: Request) {
     const gate = await assertCanDisableTakeawayOrdering(admin, loaded.principal.restaurantId);
     if (!gate.ok) {
       return NextResponse.json({ error: gate.error }, { status: 409 });
+    }
+  }
+
+  if (patch && row) {
+    const locked = computePremiumLockedFeatureKeys(row, await loadPlatformProSettings());
+    // Only turning a locked toggle on is refused; an expired store can still save other settings.
+    const blocked = locked.find(
+      (key) => patch[key] === true && !isRestaurantFeatureEnabled(row.feature_flags, key),
+    );
+    if (blocked) {
+      return NextResponse.json({ error: 'pro_required', feature: blocked }, { status: 403 });
     }
   }
 
@@ -387,6 +400,14 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'migration_required' }, { status: 503 });
     }
     return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
+  }
+
+  if (
+    patch?.menu_dish_video_enabled !== undefined &&
+    patch.menu_dish_video_enabled !== isRestaurantFeatureEnabled(row?.feature_flags, 'menu_dish_video_enabled')
+  ) {
+    // Guest catalog strips/keeps video urls by this switch — refresh it now.
+    await invalidateCustomerMenuCatalog(loaded.principal.restaurantId);
   }
 
   const nextOrderCooldownSeconds =

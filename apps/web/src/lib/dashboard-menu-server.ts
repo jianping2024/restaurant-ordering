@@ -11,6 +11,7 @@ import {
 import { menuItemHasDuplicateCode, siblingCategoryHasDuplicateCode } from '@/lib/menu-code-uniqueness';
 import {
   MENU_IMAGE_MAX_BYTES,
+  MENU_STORAGE_CACHE_CONTROL,
   menuImageObjectPath,
   pathFromMenuImagePublicUrl,
   toMenuImagePublicRef,
@@ -35,6 +36,12 @@ import {
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
 } from '@/lib/menu-recommended';
+import {
+  DISH_VIDEO_MAX_BYTES,
+  DISH_VIDEO_MIME,
+  dishVideoObjectPath,
+  isDishVideoEffect,
+} from '@/lib/menu-dish-video';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -394,7 +401,7 @@ export async function deleteMenuCategory(
       return { error: 'category_has_linked_items', status: 409 };
     }
     for (const item of linkedInSubtree) {
-      await removeMenuImage(admin, item.image_url);
+      await removeMenuItemStorageObjects(admin, item);
     }
     const { error: dishDeleteError } = await admin
       .from('menu_items')
@@ -757,7 +764,7 @@ export async function deleteMenuItem(
 
   const { data: item, error: queryError } = await admin
     .from('menu_items')
-    .select('id, image_url')
+    .select('id, image_url, video_url, rail_video_url')
     .eq('id', id)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
@@ -768,7 +775,7 @@ export async function deleteMenuItem(
     return { error: 'item_not_found', status: 404 };
   }
 
-  await removeMenuImage(admin, item.image_url);
+  await removeMenuItemStorageObjects(admin, item);
   const { error } = await admin.from('menu_items').delete().eq('id', id).eq('restaurant_id', restaurantId);
   if (error) {
     return { error: 'delete_failed', message: error.message, status: 500 };
@@ -800,7 +807,8 @@ export async function batchSetMenuItemsAvailable(
   return { ok: true };
 }
 
-async function removeMenuImage(
+/** Remove one public `menu-images` object (photo or dish video) by its stored URL. */
+async function removeMenuStorageObject(
   admin: SupabaseClient,
   publicUrl: string | null | undefined,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
@@ -819,16 +827,61 @@ async function removeMenuImage(
   return { ok: true };
 }
 
+type MenuItemMediaUrls = Pick<MenuItem, 'image_url' | 'video_url' | 'rail_video_url'>;
+
+/** Sole cleanup when a dish row goes away: photo + both dish videos. */
+async function removeMenuItemStorageObjects(admin: SupabaseClient, item: MenuItemMediaUrls) {
+  await removeMenuStorageObject(admin, item.image_url);
+  await removeMenuStorageObject(admin, item.video_url);
+  await removeMenuStorageObject(admin, item.rail_video_url);
+}
+
+export type MenuItemMediaInput = {
+  /** New compressed photo, or null to keep / strip. */
+  file: File | null;
+  stripImage: boolean;
+  /** New dish videos encoded in the staff browser from the final photo. */
+  video: { detail: File; rail: File; effect: string } | null;
+  /** Drop the current videos while keeping the photo (effect "none"). */
+  stripVideo: boolean;
+  /** Pro `menu_dish_video` + `dashboard.menu.video.manage` (resolveDishVideoAccess). */
+  canManageVideo: boolean;
+};
+
+function trimmedUrl(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * Sole dish photo + motion-video write. Any photo change clears the videos unless new
+ * videos come in the same request (a video always matches the photo it was made from).
+ */
 export async function setMenuItemImage(
   admin: SupabaseClient,
   restaurantId: string,
   itemId: string,
-  file: File | null,
-  stripImage: boolean,
+  input: MenuItemMediaInput,
 ): Promise<{ item: MenuItem } | MenuMutationError> {
   const id = parseTableIdParam(itemId);
   if (!id) {
     return { error: 'invalid_item_id', status: 400 };
+  }
+  const { file, stripImage, video, stripVideo, canManageVideo } = input;
+  if ((video || stripVideo) && !canManageVideo) {
+    return { error: 'dish_video_forbidden', status: 403 };
+  }
+  if (video && (stripImage || stripVideo)) {
+    return { error: 'invalid_media_request', status: 400 };
+  }
+  if (file && (!ALLOWED_IMAGE_MIME.has(file.type) || file.size > MENU_IMAGE_MAX_BYTES)) {
+    return { error: 'invalid_image', status: 400 };
+  }
+  if (
+    video &&
+    (!isDishVideoEffect(video.effect) ||
+      [video.detail, video.rail].some((f) => f.type !== DISH_VIDEO_MIME || f.size > DISH_VIDEO_MAX_BYTES))
+  ) {
+    return { error: 'invalid_video', status: 400 };
   }
 
   const { data: existing, error: queryError } = await admin
@@ -844,63 +897,84 @@ export async function setMenuItemImage(
     return { error: 'item_not_found', status: 404 };
   }
 
-  const previousUrl =
-    typeof existing.image_url === 'string' && existing.image_url.trim()
-      ? existing.image_url.trim()
-      : null;
-
-  let imageUrl: string | null | undefined;
-  let uploadedPath: string | null = null;
-
-  if (stripImage && !file) {
-    imageUrl = null;
-  } else if (file) {
-    if (!ALLOWED_IMAGE_MIME.has(file.type) || file.size > MENU_IMAGE_MAX_BYTES) {
-      return { error: 'invalid_image', status: 400 };
-    }
-    const path = menuImageObjectPath(restaurantId, id, file.type, randomUUID());
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { error: uploadError } = await admin.storage.from('menu-images').upload(path, buffer, {
-      upsert: false,
-      contentType: file.type,
-      cacheControl: '3600',
-    });
-    if (uploadError) {
-      return { error: 'upload_failed', message: uploadError.message, status: 500 };
-    }
-    uploadedPath = path;
-    imageUrl = toMenuImagePublicRef(path);
+  const previous = {
+    image_url: trimmedUrl(existing.image_url),
+    video_url: trimmedUrl(existing.video_url),
+    rail_video_url: trimmedUrl(existing.rail_video_url),
+    video_effect: trimmedUrl(existing.video_effect),
+  };
+  const imageChanges = Boolean(file) || (stripImage && previous.image_url != null);
+  const finalHasImage = file ? true : stripImage ? false : previous.image_url != null;
+  if (video && !finalHasImage) {
+    return { error: 'image_required_for_video', status: 400 };
+  }
+  const videoClears = !video && previous.video_url != null && (imageChanges || stripVideo);
+  if (!imageChanges && !video && !videoClears) {
+    return { item: existing as MenuItem };
   }
 
-  if (imageUrl === undefined) {
-    return { item: existing as MenuItem };
+  const uploadedPaths: string[] = [];
+  const rollbackUploads = async () => {
+    if (uploadedPaths.length > 0) await admin.storage.from('menu-images').remove(uploadedPaths);
+  };
+  const upload = async (path: string, body: File) => {
+    const { error } = await admin.storage.from('menu-images').upload(path, Buffer.from(await body.arrayBuffer()), {
+      upsert: false,
+      contentType: body.type,
+      cacheControl: MENU_STORAGE_CACHE_CONTROL,
+    });
+    if (error) return error.message;
+    uploadedPaths.push(path);
+    return null;
+  };
+
+  const patch: Record<string, string | null> = {};
+  if (file) {
+    const path = menuImageObjectPath(restaurantId, id, file.type, randomUUID());
+    const failed = await upload(path, file);
+    if (failed) return { error: 'upload_failed', message: failed, status: 500 };
+    patch.image_url = toMenuImagePublicRef(path);
+  } else if (imageChanges) {
+    patch.image_url = null;
+  }
+  if (video) {
+    const key = randomUUID();
+    for (const variant of ['detail', 'rail'] as const) {
+      const path = dishVideoObjectPath(restaurantId, id, variant, key);
+      const failed = await upload(path, video[variant]);
+      if (failed) {
+        await rollbackUploads();
+        return { error: 'upload_failed', message: failed, status: 500 };
+      }
+      patch[variant === 'detail' ? 'video_url' : 'rail_video_url'] = toMenuImagePublicRef(path);
+    }
+    patch.video_effect = video.effect;
+  } else if (videoClears) {
+    patch.video_url = null;
+    patch.rail_video_url = null;
+    patch.video_effect = null;
   }
 
   const { data, error } = await admin
     .from('menu_items')
-    .update({ image_url: imageUrl })
+    .update(patch)
     .eq('id', id)
     .eq('restaurant_id', restaurantId)
     .select()
     .single();
   if (error) {
-    if (uploadedPath) {
-      await admin.storage.from('menu-images').remove([uploadedPath]);
-    }
+    await rollbackUploads();
     return { error: 'update_failed', message: error.message, status: 500 };
   }
 
-  if (previousUrl && previousUrl !== imageUrl) {
-    const removed = await removeMenuImage(admin, previousUrl);
+  const obsolete = (['image_url', 'video_url', 'rail_video_url'] as const)
+    .filter((key) => key in patch && previous[key] && previous[key] !== patch[key])
+    .map((key) => previous[key]);
+  for (const url of obsolete) {
+    const removed = await removeMenuStorageObject(admin, url);
     if (!removed.ok) {
-      await admin
-        .from('menu_items')
-        .update({ image_url: previousUrl })
-        .eq('id', id)
-        .eq('restaurant_id', restaurantId);
-      if (uploadedPath) {
-        await admin.storage.from('menu-images').remove([uploadedPath]);
-      }
+      await admin.from('menu_items').update(previous).eq('id', id).eq('restaurant_id', restaurantId);
+      await rollbackUploads();
       return { error: 'cleanup_failed', message: removed.message, status: 500 };
     }
   }

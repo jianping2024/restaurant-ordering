@@ -9,7 +9,7 @@ export const PRO_TRIAL_DAYS = 90;
 
 export type RestaurantPlan = 'basic' | 'pro';
 
-export const PREMIUM_KEYS = ['value_analytics', 'abnormal_ops', 'operation_logs'] as const;
+export const PREMIUM_KEYS = ['value_analytics', 'abnormal_ops', 'operation_logs', 'menu_dish_video'] as const;
 export type PremiumKey = (typeof PREMIUM_KEYS)[number];
 
 export const DEFAULT_PREMIUM_KEYS: readonly PremiumKey[] = [...PREMIUM_KEYS];

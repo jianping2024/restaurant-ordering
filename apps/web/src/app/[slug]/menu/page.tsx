@@ -8,7 +8,7 @@ import {
   loadCustomerSessionContext,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
-import { loadCustomerMenuCatalogForDisplay } from '@/lib/customer-menu-catalog';
+import { loadCustomerMenuCatalogForDisplay } from '@/lib/customer-menu-catalog-display';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';

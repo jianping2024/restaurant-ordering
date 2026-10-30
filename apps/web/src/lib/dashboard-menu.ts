@@ -7,6 +7,8 @@ import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { can } from '@/lib/permissions/can';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
+import { DISH_VIDEO_GATE_RESTAURANT_COLUMNS } from '@/lib/menu-dish-video';
+import { resolveDishVideoAccess } from '@/lib/menu-dish-video-access';
 
 export type DashboardMenu =
   | {
@@ -20,6 +22,10 @@ export type DashboardMenu =
       /** Slot choices for the dish form (`menu_items.time_slot_id`). */
       menuTimeSlots: MenuTimeSlot[];
       canManagePrintStations: boolean;
+      /** Pro `menu_dish_video` + `dashboard.menu.video.manage`: generate/change dish videos. */
+      canManageDishVideo: boolean;
+      /** Pro `menu_dish_video` effective: show which dishes have a video. */
+      dishVideoPro: boolean;
       /** Store flag menu_flavor_hints_enabled (default false). */
       flavorHintsEnabled: boolean;
       takeawayOrderingEnabled: boolean;
@@ -71,7 +77,11 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
       .eq('restaurant_id', ctx.restaurantId)
       .order('sort_order'),
     listMenuNotePresetDictionary(ctx.admin, ctx.restaurantId),
-    ctx.admin.from('restaurants').select('feature_flags').eq('id', ctx.restaurantId).maybeSingle(),
+    ctx.admin
+      .from('restaurants')
+      .select(DISH_VIDEO_GATE_RESTAURANT_COLUMNS)
+      .eq('id', ctx.restaurantId)
+      .maybeSingle(),
     loadMenuTimeSlots(ctx.admin, ctx.restaurantId),
   ]);
 
@@ -90,6 +100,9 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
   if ('error' in noteDictionary) {
     return { error: noteDictionary.error, status: noteDictionary.status };
   }
+  const dishVideo = restaurantFlags
+    ? await resolveDishVideoAccess(restaurantFlags, principal?.capabilities ?? null)
+    : { pro: false, canManage: false };
 
   return {
     restaurantId: ctx.restaurantId,
@@ -101,6 +114,8 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     notePresets: noteDictionary.presets,
     menuTimeSlots,
     canManagePrintStations,
+    canManageDishVideo: dishVideo.canManage,
+    dishVideoPro: dishVideo.pro,
     flavorHintsEnabled: isRestaurantFeatureEnabled(
       restaurantFlags?.feature_flags,
       'menu_flavor_hints_enabled',

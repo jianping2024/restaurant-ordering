@@ -27,17 +27,30 @@ const THUMB_SIZE_CLASS: Record<
 export function MenuItemListThumb({
   item,
   size = 40,
+  videoBadgeLabel,
 }: {
   item: CatalogThumbItem;
   size?: MenuItemListThumbSize;
+  /** Dashboard menu list: corner ▶ when the dish has a Pro motion video (label = a11y/title). */
+  videoBadgeLabel?: string;
 }) {
   const src = resolveMenuImageDisplayUrl(item.image_url);
   const classes = THUMB_SIZE_CLASS[size];
 
   return (
     <div
-      className={`${classes.well} rounded-lg overflow-hidden ${MENU_IMAGE_WELL_BG_CLASS} flex-shrink-0 flex items-center justify-center ${classes.emoji}`}
+      className={`relative ${classes.well} rounded-lg overflow-hidden ${MENU_IMAGE_WELL_BG_CLASS} flex-shrink-0 flex items-center justify-center ${classes.emoji}`}
     >
+      {videoBadgeLabel ? (
+        <span
+          role="img"
+          aria-label={videoBadgeLabel}
+          title={videoBadgeLabel}
+          className="absolute bottom-0.5 right-0.5 z-[1] flex h-3.5 w-3.5 items-center justify-center rounded-full bg-black/70 text-[7px] leading-none text-white"
+        >
+          ▶
+        </span>
+      ) : null}
       {src ? (
         <Image
           src={src}

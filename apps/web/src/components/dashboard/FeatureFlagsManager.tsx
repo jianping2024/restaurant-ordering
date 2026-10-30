@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { ProFeatureBadge } from '@/components/dashboard/ProFeatureBadge';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -38,6 +40,8 @@ import { FEATURES_INTEGER_INPUT } from '@/components/dashboard/feature-settings-
 type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
+  /** Pro-gated toggles not effective for this restaurant: shown locked with an upgrade link. */
+  proLockedFeatureKeys?: readonly RestaurantFeatureKey[];
   initialOrderCooldownSeconds: number;
   initialOperationLogRetentionDays: number;
   initialKitchenReadyAfterMinutes: number;
@@ -53,6 +57,7 @@ type Props = {
 export function FeatureFlagsManager({
   embedded,
   initialFlags,
+  proLockedFeatureKeys = [],
   initialOrderCooldownSeconds,
   initialOperationLogRetentionDays,
   initialKitchenReadyAfterMinutes,
@@ -67,6 +72,7 @@ export function FeatureFlagsManager({
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
+  const proBadgeLabel = getMessages(lang).premiumUpgrade.proBadge;
   const [flags, setFlags] = useState(initialFlags);
   const [takeawayCloseConfirmOpen, setTakeawayCloseConfirmOpen] = useState(false);
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
@@ -109,9 +115,13 @@ export function FeatureFlagsManager({
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          flags: pickRestaurantFeatureFlagsForModules(
-            flags,
-            groupRestaurantFeaturesForFeatureSettings().map((g) => g.module.id),
+          flags: Object.fromEntries(
+            Object.entries(
+              pickRestaurantFeatureFlagsForModules(
+                flags,
+                groupRestaurantFeaturesForFeatureSettings().map((g) => g.module.id),
+              ),
+            ).filter(([key]) => !proLockedFeatureKeys.includes(key as RestaurantFeatureKey)),
           ),
           orderCooldownSeconds,
           operationLogRetentionDays,
@@ -208,14 +218,19 @@ export function FeatureFlagsManager({
           <section key={module.id}>
             <h2 className="text-sm font-medium text-brand-text mb-2">{t[module.labelKey]}</h2>
             <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
-              {features.map((def) => (
+              {features.map((def) => {
+                const proLocked = def.premiumKey != null && proLockedFeatureKeys.includes(def.key);
+                return (
                 <label
                   key={def.key}
-                  className="flex items-start gap-3 px-4 py-4 cursor-pointer select-none hover:bg-brand-border/20 transition-colors"
+                  className={`flex items-start gap-3 px-4 py-4 select-none transition-colors ${
+                    proLocked ? 'cursor-default opacity-80' : 'cursor-pointer hover:bg-brand-border/20'
+                  }`}
                 >
                   <input
                     type="checkbox"
-                    checked={flags[def.key]}
+                    disabled={proLocked}
+                    checked={flags[def.key] && !proLocked}
                     onChange={(e) => {
                       const key = def.key as RestaurantFeatureKey;
                       const checked = e.target.checked;
@@ -228,15 +243,27 @@ export function FeatureFlagsManager({
                     className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                   />
                   <span className="min-w-0">
-                    <span className="block text-[15px] font-medium text-brand-text">
+                    <span className="flex flex-wrap items-center gap-2 text-[15px] font-medium text-brand-text">
                       {t[def.labelKey]}
+                      {def.premiumKey ? (
+                        <ProFeatureBadge label={proBadgeLabel} />
+                      ) : null}
                     </span>
                     <span className="block text-[13px] text-brand-text-muted mt-0.5">
                       {t[def.descKey]}
                     </span>
+                    {proLocked && def.premiumKey ? (
+                      <Link
+                        href={`/dashboard/upgrade?feature=${def.premiumKey}`}
+                        className="mt-1 inline-block text-[13px] text-brand-gold underline-offset-4 hover:underline"
+                      >
+                        {t.proLockedHint}
+                      </Link>
+                    ) : null}
                   </span>
                 </label>
-              ))}
+                );
+              })}
               {module.id === 'kitchen' ? (
                 <label className="block px-4 py-4">
                   <span className="block text-[15px] font-medium text-brand-text">

@@ -15,6 +15,7 @@ const FEATURE_LABEL_KEY: Record<PremiumKey, keyof ReturnType<typeof getMessages>
   value_analytics: 'valueAnalytics',
   abnormal_ops: 'abnormalOps',
   operation_logs: 'operationLogs',
+  menu_dish_video: 'menuDishVideo',
 };
 
 /** Pro upgrade gate — contact channels reuse landing sole source (`LandingContactChannels`). */

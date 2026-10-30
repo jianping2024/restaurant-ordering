@@ -126,6 +126,10 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
       permission: 'dashboard.menu.print_stations.manage',
       label: { source: 'menuTab', key: 'tabStations' },
     },
+    {
+      permission: 'dashboard.menu.video.manage',
+      label: { source: 'action', labelKey: 'menuDishVideoManage' },
+    },
   ]),
   navPage('guestNotice'),
   navPage('waiterBoard', [

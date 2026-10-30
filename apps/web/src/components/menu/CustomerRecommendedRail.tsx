@@ -28,6 +28,16 @@ const POSTER_WIDTH_PX = 112;
 const POSTER_MEDIA_HEIGHT_PX = POSTER_WIDTH_PX / MENU_IMAGE_ASPECT_RATIO;
 
 /**
+ * Sole recommended poster chrome class — motion in globals `.mesa-recommended-poster`
+ * (lift / press / focus; no pointer tilt). Do not reuse MenuItemCard / mesa-menu-item-card.
+ */
+const RECOMMENDED_POSTER_SHELL_CLASS =
+  'mesa-recommended-poster flex min-w-0 shrink-0 flex-col text-left';
+
+/** Sole recommended poster image well — pairs with `.mesa-recommended-poster-thumb` CSS. */
+const RECOMMENDED_POSTER_THUMB_CLASS = `mesa-recommended-poster-thumb relative block shrink-0 overflow-hidden rounded-lg ${MENU_IMAGE_WELL_BG_CLASS} text-2xl`;
+
+/**
  * Sole customer recommended merchandising: gold-wash band of equal-height
  * poster cards (locked 4:3 well + one-line truncated name + tight price);
  * vegetarian dishes get the same photo-corner `VegetarianMark` as the list card.
@@ -46,11 +56,12 @@ export function CustomerRecommendedRail({
 
   return (
     <section
-      className="mb-3 min-w-0 overflow-hidden rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2"
+      className="mb-3 min-w-0 rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2"
       aria-label={title}
     >
       <h2 className="px-0.5 text-[13px] font-semibold text-brand-gold">{title}</h2>
-      <div className="mesa-chip-scroll mt-1.5 flex min-w-0 items-start gap-2">
+      {/* py gives room so hover lift / shadow is not clipped by mesa-chip-scroll */}
+      <div className="mesa-chip-scroll mt-1.5 flex min-w-0 items-start gap-2 py-2">
         {items.map((item) => {
           const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
           const label = formatMenuCatalogItemLabel(item, lang);
@@ -65,11 +76,11 @@ export function CustomerRecommendedRail({
               onClick={() => onOpenDetail(item.id)}
               aria-label={formatMenuItemOpenDetailAria(item, lang)}
               title={label}
-              className="flex min-w-0 shrink-0 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
+              className={RECOMMENDED_POSTER_SHELL_CLASS}
               style={{ width: POSTER_WIDTH_PX }}
             >
               <span
-                className={`relative block shrink-0 overflow-hidden rounded-lg ${MENU_IMAGE_WELL_BG_CLASS} text-2xl`}
+                className={RECOMMENDED_POSTER_THUMB_CLASS}
                 style={{ width: POSTER_WIDTH_PX, height: POSTER_MEDIA_HEIGHT_PX }}
               >
                 {imageSrc ? (
@@ -82,7 +93,9 @@ export function CustomerRecommendedRail({
                     unoptimized={MENU_IMAGE_UNOPTIMIZED}
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center">{item.emoji}</span>
+                  <span className="mesa-recommended-poster-thumb-emoji flex h-full w-full items-center justify-center">
+                    {item.emoji}
+                  </span>
                 )}
                 {item.is_vegetarian ? (
                   <VegetarianMark variant="thumb" label={t.itemVegetarianBadge} />

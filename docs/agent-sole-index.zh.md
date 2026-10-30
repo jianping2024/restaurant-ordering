@@ -267,7 +267,7 @@ sole `resolveCustomerMenuCatalogView` — nav shows a category only when it stil
 
 ### Customer recommended merchandising
 
-sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price (+ photo-corner `VegetarianMark` thumb), tap opens detail; do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` on the rail.
+sole `CustomerRecommendedRail` via `catalogLeading` (recommended → sticky sub chips → list); 4:3 + catalog label + price (+ photo-corner `VegetarianMark` thumb), tap opens detail; poster motion sole `.mesa-recommended-poster` (hover lift + press sink + focus-visible; **no** pointer tilt); do not keep a strip sentinel `recommended` or overlay the list gold action (`MenuItemCardAction`) / reuse `MenuItemCard` / `.mesa-menu-item-card` on the rail.
 
 ### Recommended add POST
 

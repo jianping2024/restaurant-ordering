@@ -30,6 +30,19 @@ sql_exec_file() {
     psql -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -q <"$host_file" >/dev/null
 }
 
+# One transaction for the whole file (psql -1). Required for incremental migrations:
+# Mode B otherwise autocommits each statement, so TEMP … ON COMMIT DROP is gone
+# before the next statement (Pirata 2026-10-31: 20261028140000).
+sql_exec_file_tx() {
+  local host_file="$1"
+  if [[ ! -f "$host_file" ]]; then
+    echo "ERROR: SQL file not found: ${host_file}" >&2
+    return 1
+  fi
+  docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" "$MESA_DB_CONTAINER" \
+    psql -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -1 -q <"$host_file" >/dev/null
+}
+
 sql_scalar() {
   local query="$1"
   # No -i: attached empty stdin breaks -tAc batches on some Docker setups.

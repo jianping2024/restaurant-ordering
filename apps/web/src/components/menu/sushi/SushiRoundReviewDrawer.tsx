@@ -15,11 +15,15 @@ import type { Language } from '@/types';
 
 type Labels = {
   title: string;
+  heroTitle: string;
+  heroLead: string;
   empty: string;
-  /** Dismiss while the round can still be sent (先不送厨). */
-  notYet: string;
+  /** Dismiss while sendable (再加点). */
+  addMore: string;
   continueOrdering: string;
   sendRound: string;
+  sendRoundCount: string;
+  paidJustOrdered: string | null;
   paidSentTitle: string;
 };
 
@@ -27,10 +31,14 @@ type Props = {
   open: boolean;
   groups: RoundReviewGroup[];
   labels: Labels;
+  /** Unsent table qty for hero / send CTA count. */
+  tableQty: number;
   /** Read-only paid rows already sent this round (never sent again, not counted). */
   paidSentLines: RoundReviewPaidSentLine[];
   /** Same live guidance as the footer strip (unsent / countdown / failed). */
   guidance: SushiSendGuidance | null;
+  /** Geo / send failure shown inside the sheet (keep open). */
+  sendError: string | null;
   lang: Language;
   canSend: boolean;
   sendBusy: boolean;
@@ -61,8 +69,10 @@ export function SushiRoundReviewDrawer({
   open,
   groups,
   labels,
+  tableQty,
   paidSentLines,
   guidance,
+  sendError,
   lang,
   canSend,
   sendBusy,
@@ -72,38 +82,81 @@ export function SushiRoundReviewDrawer({
   onSend,
   onOwnLineQtyChange,
 }: Props) {
-  const notice = guidance && guidance.kind !== 'sent' ? guidance : null;
+  const urgent = canSend && tableQty > 0;
+  const notice = !urgent && guidance && guidance.kind !== 'sent' ? guidance : null;
+  const sendLabel = urgent
+    ? labels.sendRoundCount.replace('{count}', String(tableQty))
+    : labels.sendRound;
 
   return (
     <CustomerMenuBottomSheet
       open={open}
       onClose={onClose}
-      title={labels.title}
+      title={urgent ? labels.heroTitle : labels.title}
       footer={
-        <div className="flex items-stretch gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="action"
-            className="min-w-0 flex-1 whitespace-nowrap"
-            onClick={onClose}
-          >
-            {canSend ? labels.notYet : labels.continueOrdering}
-          </Button>
-          <Button
-            type="button"
-            variant="gold"
-            size="action"
-            className="min-w-0 flex-1 whitespace-nowrap"
-            disabled={!canSend || sendBusy || countdownActive}
-            loading={sendBusy}
-            onClick={onSend}
-          >
-            {labels.sendRound}
-          </Button>
-        </div>
+        urgent ? (
+          <div className="flex flex-col gap-1">
+            <Button
+              type="button"
+              variant="gold"
+              size="action"
+              className="w-full whitespace-normal px-3 py-3.5 text-[15px] leading-snug"
+              disabled={!canSend || sendBusy || countdownActive}
+              loading={sendBusy}
+              onClick={onSend}
+            >
+              {sendLabel}
+            </Button>
+            <button
+              type="button"
+              className="w-full py-2 text-center text-sm text-brand-text-muted"
+              onClick={onClose}
+            >
+              {labels.addMore}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-stretch gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="action"
+              className="min-w-0 flex-1 whitespace-nowrap"
+              onClick={onClose}
+            >
+              {labels.continueOrdering}
+            </Button>
+            <Button
+              type="button"
+              variant="gold"
+              size="action"
+              className="min-w-0 flex-1 whitespace-nowrap"
+              disabled={!canSend || sendBusy || countdownActive}
+              loading={sendBusy}
+              onClick={onSend}
+            >
+              {sendLabel}
+            </Button>
+          </div>
+        )
       }
     >
+      {urgent ? (
+        <div className="mb-3 text-center">
+          <div
+            className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-2xl"
+            aria-hidden="true"
+          >
+            🛎
+          </div>
+          <p className="text-sm leading-snug text-brand-text-muted">
+            {labels.heroLead.replace('{qty}', String(tableQty))}
+          </p>
+        </div>
+      ) : null}
+      {labels.paidJustOrdered ? (
+        <p className="mb-3 text-sm font-semibold text-emerald-800">{labels.paidJustOrdered}</p>
+      ) : null}
       {notice ? <SushiSendGuidanceNotice guidance={notice} lang={lang} className="mb-3" /> : null}
       {groups.length === 0 ? (
         <p className="text-brand-text-muted text-sm">{labels.empty}</p>
@@ -174,6 +227,14 @@ export function SushiRoundReviewDrawer({
             ))}
           </div>
         </section>
+      ) : null}
+      {sendError ? (
+        <div
+          role="alert"
+          className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-800"
+        >
+          {sendError}
+        </div>
       ) : null}
     </CustomerMenuBottomSheet>
   );

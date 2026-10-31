@@ -46,7 +46,10 @@ describe('formatSushiSendGuidanceMessage', () => {
   });
 
   it('covers countdown, failed and sent', () => {
-    assert.equal(formatSushiSendGuidanceMessage({ kind: 'countdown', seconds: 18 }, zh), '18 秒后自动送厨 · 同桌还能加');
+    assert.equal(
+      formatSushiSendGuidanceMessage({ kind: 'countdown', seconds: 18 }, zh),
+      '18 秒后自动送厨 · 同桌还能加',
+    );
     assert.equal(formatSushiSendGuidanceMessage({ kind: 'failed' }, zh), zh.guidanceFailed);
     assert.equal(
       formatSushiSendGuidanceMessage({ kind: 'sent', seconds: 90 }, zh),
@@ -96,7 +99,7 @@ describe('messageForSushiRoundError', () => {
     }
     assert.equal(
       messageForSushiRoundError('guest_client_limit', SUSHI_ROUND_MESSAGES.pt),
-      'Esta mesa atingiu o limite de telemóveis — peça ao staff para fazer o pedido',
+      'Demasiados telemóveis nesta mesa — peça ao staff',
     );
   });
 });

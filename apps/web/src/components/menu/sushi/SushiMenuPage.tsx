@@ -18,6 +18,7 @@ import {
   resolveSushiCartSubmitLabel,
   SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
+import { shouldAutoOpenRoundReview } from '@/lib/table-order-round/auto-open-round-review';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import {
   customerMenuContentHostClass,
@@ -184,6 +185,10 @@ export function SushiMenuPage({
   const [selfBatchIds, setSelfBatchIds] = useState<ReadonlySet<string>>(() => new Set());
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [roundReviewOpen, setRoundReviewOpen] = useState(false);
+  /** Ephemeral tip: paid qty from this submit (not the paid-sent list). */
+  const [paidJustOrderedCount, setPaidJustOrderedCount] = useState(0);
+  /** Geo/send failure copy kept inside 核单 while it stays open. */
+  const [roundSendError, setRoundSendError] = useState<string | null>(null);
   const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
   const [dietaryPrefs, setDietaryPrefs] = useState<CustomerMenuDietaryFilterPrefs>(
     EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
@@ -341,6 +346,42 @@ export function SushiMenuPage({
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
   const [initiatorConfirmOpen, setInitiatorConfirmOpen] = useState(false);
   const countdownActive = round.snapshot.round?.status === 'pending_confirm';
+
+  const closeRoundReview = useCallback(() => {
+    setRoundReviewOpen(false);
+    setPaidJustOrderedCount(0);
+    setRoundSendError(null);
+  }, []);
+
+  /** Sole open path for auto + footer「去送厨」(same sheet). */
+  const openRoundReview = useCallback((opts?: { paidJustOrdered?: number }) => {
+    setCartOpen(false);
+    setOrderedOpen(false);
+    setDetailMenuItemId(null);
+    setInitiatorConfirmOpen(false);
+    setRoundSendError(null);
+    const paid = Math.max(0, Math.floor(opts?.paidJustOrdered ?? 0));
+    setPaidJustOrderedCount(paid);
+    setRoundReviewOpen(true);
+  }, []);
+
+  const tryAutoOpenRoundReview = useCallback(
+    (opts?: {
+      paidJustOrdered?: number;
+      /** Prefer post-mutation qty/status after await (React state may still be stale). */
+      tableReviewQty?: number;
+      status?: TableOrderRoundStatus | null;
+    }) => {
+      const tableReviewQty = opts?.tableReviewQty ?? round.tableReviewQty;
+      const status = opts?.status !== undefined ? opts.status : round.snapshot.round?.status;
+      if (!shouldAutoOpenRoundReview({ tableReviewQty, status })) {
+        return false;
+      }
+      openRoundReview({ paidJustOrdered: opts?.paidJustOrdered });
+      return true;
+    },
+    [openRoundReview, round.snapshot.round?.status, round.tableReviewQty],
+  );
 
   const resolveLimitItem = useCallback(
     (id: string) => {
@@ -836,6 +877,8 @@ export function SushiMenuPage({
 
     const freeCart = cart.filter((c) => isSushiRoundFreeMenuPrice(c.price));
     const paidCart = cart.filter((c) => !isSushiRoundFreeMenuPrice(c.price));
+    let postFreeTableQty: number | undefined;
+    let postFreeStatus: TableOrderRoundStatus | null | undefined;
 
     const noteContext = { catalog: notePresetCatalog, lang };
 
@@ -913,6 +956,8 @@ export function SushiMenuPage({
           );
           return;
         }
+        postFreeTableQty = result.snapshot.lines_qty_total;
+        postFreeStatus = result.snapshot.round?.status ?? null;
         setCart(paidCart);
         if (paidCart.length > 0) {
           // Free lines are in the round even if the paid append below fails.
@@ -923,7 +968,10 @@ export function SushiMenuPage({
       if (paidCart.length === 0) {
         restartSubmitCooldown();
         clearSubmitCart();
-        setRoundReviewOpen(true);
+        tryAutoOpenRoundReview({
+          tableReviewQty: postFreeTableQty,
+          status: postFreeStatus,
+        });
         signalSubmitFeedback(roundT.placedInRound);
         return;
       }
@@ -984,6 +1032,11 @@ export function SushiMenuPage({
 
       if ('kind' in result) {
         await showSubmitFailure(result);
+        // Free lines may already be in the round — still remind to send.
+        tryAutoOpenRoundReview({
+          tableReviewQty: postFreeTableQty,
+          status: postFreeStatus,
+        });
         return;
       }
 
@@ -1004,10 +1057,16 @@ export function SushiMenuPage({
         refreshSession: () => refreshSessionContext('full'),
       });
       restartSubmitCooldown();
+      const paidQty = paidCart.reduce((sum, c) => sum + coerceCartQty(c.qty), 0);
       completeGuestOrderSubmit({
         clearCart: clearSubmitCart,
         signalSubmitted: () =>
           signalSubmitFeedback(freeCart.length > 0 ? roundT.placedMixed : t.orderSuccess),
+      });
+      tryAutoOpenRoundReview({
+        paidJustOrdered: paidQty,
+        tableReviewQty: postFreeTableQty,
+        status: postFreeStatus,
       });
     } catch {
       showToast(t.submitFailed, 'error');
@@ -1024,13 +1083,23 @@ export function SushiMenuPage({
 
   /** Sole kitchen-send success → back to menu (核单/确认/同桌提示/购物车抽屉/已点/详情). Cart drafts stay; only clearSubmitCart clears after本机下单. */
   const dismissToMenuAfterKitchenSend = useCallback(() => {
-    setRoundReviewOpen(false);
+    closeRoundReview();
     setInitiatorConfirmOpen(false);
     setRoundPeerNotifyOpen(false);
     setCartOpen(false);
     setOrderedOpen(false);
     setDetailMenuItemId(null);
-  }, [setRoundPeerNotifyOpen]);
+  }, [closeRoundReview, setRoundPeerNotifyOpen]);
+
+  const messageForRoundSendGeo = useCallback(
+    (reason: string) => {
+      if (reason === 'too_far') return t.locationTooFar;
+      if (reason === 'permission_denied') return t.locationPermissionDenied;
+      if (reason === 'not_supported') return t.locationNotSupported;
+      return t.locationCheckFailed;
+    },
+    [t.locationCheckFailed, t.locationNotSupported, t.locationPermissionDenied, t.locationTooFar],
+  );
 
   const handleConfirmSendRound = async () => {
     if (roundBusy || !canSendRound) return;
@@ -1042,12 +1111,12 @@ export function SushiMenuPage({
         isLocalDevHost,
       });
       if (!geo.ok) {
-        if (geo.reason === 'too_far') showToast(t.locationTooFar, 'error');
-        else if (geo.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
-        else if (geo.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
-        else showToast(t.locationCheckFailed, 'error');
+        setInitiatorConfirmOpen(false);
+        setRoundSendError(messageForRoundSendGeo(geo.reason));
+        setRoundReviewOpen(true);
         return;
       }
+      setRoundSendError(null);
       const result = await round.submitRequest({
         latitude: geo.latitude,
         longitude: geo.longitude,
@@ -1059,7 +1128,7 @@ export function SushiMenuPage({
       // Initiate only: leave review so guest can keep browsing during countdown.
       // Authoritative full dismiss is dismissToMenuAfterKitchenSend on cooldown edge.
       setInitiatorConfirmOpen(false);
-      setRoundReviewOpen(false);
+      closeRoundReview();
     } finally {
       setRoundBusy(false);
     }
@@ -1068,12 +1137,60 @@ export function SushiMenuPage({
   const kitchenSendDismissedRoundIdRef = useRef<string | null>(null);
   const prevRoundStatusRef = useRef<TableOrderRoundStatus | null | undefined>(undefined);
   const roundStatusBootstrappedRef = useRef(false);
+  const enterAutoOpenedKeyRef = useRef<string | null>(null);
+  const tryAutoOpenRoundReviewRef = useRef(tryAutoOpenRoundReview);
+  tryAutoOpenRoundReviewRef.current = tryAutoOpenRoundReview;
+  const introVisibleRef = useRef(introVisible);
+  introVisibleRef.current = introVisible;
 
   useEffect(() => {
     kitchenSendDismissedRoundIdRef.current = null;
     prevRoundStatusRef.current = undefined;
     roundStatusBootstrappedRef.current = false;
+    enterAutoOpenedKeyRef.current = null;
   }, [activeSession?.id, tableId]);
+
+  // Enter / refresh / rescan: auto-open once when snapshot shows unsent.
+  // Do not claim on empty qty first — wait until shouldAutoOpen is true, then claim+open
+  // (avoids racing an empty snapshot before lines hydrate). Peer adds after a claimed
+  // empty visit still will not open (claim empty only after we have seen ready+empty).
+  useEffect(() => {
+    if (isDemo || !round.snapshotReady || introVisible) return;
+    const key = activeSession?.id ?? tableId;
+    if (enterAutoOpenedKeyRef.current === key) return;
+    const shouldOpen = shouldAutoOpenRoundReview({
+      tableReviewQty: round.tableReviewQty,
+      status: round.snapshot.round?.status,
+    });
+    if (!shouldOpen) {
+      // Snapshot ready and nothing to send — claim so later peer adds do not pop.
+      enterAutoOpenedKeyRef.current = key;
+      return;
+    }
+    enterAutoOpenedKeyRef.current = key;
+    openRoundReview();
+  }, [
+    activeSession?.id,
+    introVisible,
+    isDemo,
+    openRoundReview,
+    round.snapshot.round?.status,
+    round.snapshotReady,
+    round.tableReviewQty,
+    tableId,
+  ]);
+
+  // Resume (熄屏 / 切后台回来): reopen when table still has unsent (Will: 弹).
+  useEffect(() => {
+    if (isDemo) return;
+    const onVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (introVisibleRef.current) return;
+      tryAutoOpenRoundReviewRef.current();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [isDemo]);
 
   useEffect(() => {
     if (!round.snapshotReady) return;
@@ -1198,7 +1315,7 @@ export function SushiMenuPage({
               onOpenDetail={(menuItemId) => {
                 setCartOpen(false);
                 setOrderedOpen(false);
-                setRoundReviewOpen(false);
+                closeRoundReview();
                 setDetailMenuItemId(menuItemId);
               }}
             />
@@ -1238,7 +1355,7 @@ export function SushiMenuPage({
                   onOpenDetail={() => {
                     setCartOpen(false);
                     setOrderedOpen(false);
-                    setRoundReviewOpen(false);
+                    closeRoundReview();
                     setDetailMenuItemId(item.id);
                   }}
                   onIncrement={() => bumpItem(item, 1)}
@@ -1288,19 +1405,17 @@ export function SushiMenuPage({
         }}
         onOpenCart={() => {
           setOrderedOpen(false);
-          setRoundReviewOpen(false);
+          closeRoundReview();
           setCartOpen(true);
         }}
         onOpenOrdered={() => {
           setCartOpen(false);
-          setRoundReviewOpen(false);
+          closeRoundReview();
           setOrderedOpen(true);
           if (!isDemo) void refreshSessionContext('full');
         }}
         onOpenRoundReview={() => {
-          setCartOpen(false);
-          setOrderedOpen(false);
-          setRoundReviewOpen(true);
+          openRoundReview();
         }}
       />
 
@@ -1351,20 +1466,29 @@ export function SushiMenuPage({
         groups={roundReviewGroups}
         labels={{
           title: roundT.reviewTitle,
+          heroTitle: roundT.reviewHeroTitle,
+          heroLead: roundT.reviewHeroLead,
           empty: roundT.reviewEmpty,
-          notYet: roundT.reviewNotYet,
+          addMore: roundT.reviewAddMore,
           continueOrdering: t.continueOrdering,
           sendRound: roundT.sendRound,
+          sendRoundCount: roundT.sendRoundCount,
+          paidJustOrdered:
+            paidJustOrderedCount > 0
+              ? roundT.reviewPaidJustOrdered.replace('{count}', String(paidJustOrderedCount))
+              : null,
           paidSentTitle: roundT.reviewPaidSentTitle,
         }}
+        tableQty={round.tableReviewQty}
         paidSentLines={roundPaidSentLines}
         guidance={sendGuidance}
+        sendError={roundSendError}
         lang={lang}
         canSend={canSendRound}
         sendBusy={roundBusy}
         countdownActive={countdownActive}
         busyLineId={reviewBusyLineId}
-        onClose={() => setRoundReviewOpen(false)}
+        onClose={closeRoundReview}
         onSend={() => handleSendRound()}
         onOwnLineQtyChange={(lineId, nextQty) => {
           void handleOwnRoundLineQtyChange(lineId, nextQty);
@@ -1394,11 +1518,10 @@ export function SushiMenuPage({
       <ConfirmModal
         open={initiatorConfirmOpen}
         onClose={() => setInitiatorConfirmOpen(false)}
-        title={roundT.confirmTitle}
-        message={roundT.confirmMessage.replace(
-          '{n}',
-          String(round.settings.sushi_round_cooldown_seconds),
-        )}
+        title={roundT.confirmTitle.replace('{count}', String(round.tableReviewQty))}
+        message={roundT.confirmMessage
+          .replace('{confirm}', String(round.settings.sushi_round_confirm_timeout_seconds))
+          .replace('{cooldown}', String(round.settings.sushi_round_cooldown_seconds))}
         confirmLabel={roundT.confirmAction}
         cancelLabel={roundT.confirmCancel}
         onConfirm={() => void handleConfirmSendRound()}

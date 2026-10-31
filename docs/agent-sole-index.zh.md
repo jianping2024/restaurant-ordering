@@ -311,7 +311,7 @@ sole `round.ownReviewQty` → footer `roundOwnQty` (本机本轮份数, `Custome
 
 ### Sushi send guidance
 
-sole state `resolveSushiSendGuidance` (table round only, never cart) via one `useSushiSendGuidance` per page → `SushiSendGuidanceStrip` (footer `guidance` slot, height `--mesa-bottom-dock-extra`) + 核单 `SushiSendGuidanceNotice`; copy `formatSushiSendGuidanceMessage`; sticky slot is round limit only (`formatSushiStickyRoundLimit`) — never countdown/cooldown there again; footer CTA `去送厨 · N` only opens 核单 (send stays sole in 核单); cart submit label sole `resolveSushiCartSubmitLabel`; paid rows in 核单 sole `buildRoundPaidSentLines` (read-only).
+sole state `resolveSushiSendGuidance` (table round only, never cart) via one `useSushiSendGuidance` per page → `SushiSendGuidanceStrip` (footer `guidance` slot, height `--mesa-bottom-dock-extra`) + 核单 `SushiSendGuidanceNotice`; copy `formatSushiSendGuidanceMessage`; sticky slot is round limit only (`formatSushiStickyRoundLimit`) — never countdown/cooldown there again; footer CTA `去送厨 · N` only opens 核单 (send stays sole in 核单); cart submit label sole `resolveSushiCartSubmitLabel`; paid rows in 核单 sole `buildRoundPaidSentLines` (read-only); auto-open 核单 sole `shouldAutoOpenRoundReview` (submit / enter / visibility — never a second remind modal).
 
 ### Sushi free card qty
 

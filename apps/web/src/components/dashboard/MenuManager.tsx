@@ -1750,19 +1750,12 @@ export function MenuManager({
                               </div>
                               <div className="flex-1 min-w-0 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
                                 <div className="min-w-0 flex-1">
-                                  <div className="flex items-baseline gap-2 min-w-0">
-                                    <p
-                                      className="flex-1 min-w-0 text-sm font-medium text-brand-text truncate"
-                                      title={hoverTitle}
-                                    >
-                                      {catalogLabel}
-                                    </p>
-                                    {!item.available ? (
-                                      <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
-                                        {t.unavailableBadge}
-                                      </span>
-                                    ) : null}
-                                  </div>
+                                  <p
+                                    className="min-w-0 text-sm font-medium text-brand-text truncate"
+                                    title={hoverTitle}
+                                  >
+                                    {catalogLabel}
+                                  </p>
                                   <p
                                     className="text-[11px] text-brand-text-muted truncate mt-0.5"
                                     title={metaTitle}
@@ -1798,6 +1791,11 @@ export function MenuManager({
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-3 sm:justify-end shrink-0 pt-0.5 sm:pt-0">
+                                  {!item.available ? (
+                                    <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
+                                      {t.unavailableBadge}
+                                    </span>
+                                  ) : null}
                                   <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                                     €{item.price.toFixed(2)}
                                   </span>

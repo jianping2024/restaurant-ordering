@@ -13,7 +13,9 @@
 #   NEVER sync_covered_from_file. That only INSERT-stamps covered rows and would
 #   skip real SQL on stores whose live schema never got those migrations
 #   (Pirata 2026-10-21: station_print / time_slot marked applied, columns missing).
-#   Only apply_pending_sql_files (ledger miss → run file → stamp) + ensure realtime.
+#   Only apply_pending_sql_files (ledger miss → run file in one tx → stamp) + ensure realtime.
+#   Each pending *.sql uses psql -1 (single transaction), same as supabase CLI —
+#   otherwise TEMP … ON COMMIT DROP dies after the CREATE statement (Pirata 2026-10-31).
 #
 # Pending is a bash path array from glob + sql_scalar checks — never from psql stdout.
 set -euo pipefail
@@ -215,7 +217,7 @@ apply_pending_sql_files() {
     }
     base=$(basename "$f")
     echo "Applying incremental migration: ${base}"
-    sql_exec_file "$f"
+    sql_exec_file_tx "$f"
     sql_exec <<SQL
 INSERT INTO public.mesa_schema_migrations (filename) VALUES ('$(sql_escape "$base")')
 ON CONFLICT DO NOTHING;

@@ -7,6 +7,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import { Button, buttonClasses } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { Input } from '@/components/ui/Input';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
@@ -1888,7 +1889,28 @@ export function MenuManager({
         </>
       )}
 
-      <Modal open={itemModalOpen} onClose={closeItemModal} title={editingItem ? t.modalEdit : t.modalAdd} size="xl">
+      <Modal
+        open={itemModalOpen}
+        onClose={closeItemModal}
+        title={editingItem ? t.modalEdit : t.modalAdd}
+        size="xl"
+        footer={
+          <div className="w-full space-y-2">
+            {photoDraft.busy ? (
+              <p className="text-xs text-brand-text-muted">{t.dishVideoSaveWaiting}</p>
+            ) : null}
+            <ModalConfirmActions
+              cancelLabel={t.cancel}
+              confirmLabel={editingItem ? t.saveEdit : t.addItem}
+              onCancel={closeItemModal}
+              onConfirm={() => void saveItem()}
+              busy={itemSaving}
+              confirmDisabled={photoDraft.busy}
+              confirmVariant="gold"
+            />
+          </div>
+        }
+      >
         <div className="space-y-4">
           <MenuItemPhotoField
             key={photoFieldKey}
@@ -2276,14 +2298,6 @@ export function MenuManager({
           </div>
 
           {itemError && !isImageError && <p className="mesa-alert-danger text-sm px-4 py-2">{itemError}</p>}
-
-          {photoDraft.busy ? (
-            <p className="text-xs text-brand-text-muted">{t.dishVideoSaveWaiting}</p>
-          ) : null}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
-            <Button onClick={saveItem} loading={itemSaving} disabled={photoDraft.busy} className="flex-1">{editingItem ? t.saveEdit : t.addItem}</Button>
-            <Button variant="outline" onClick={closeItemModal} className="w-full sm:w-auto">{t.cancel}</Button>
-          </div>
         </div>
       </Modal>
 

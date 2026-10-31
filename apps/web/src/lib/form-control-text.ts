@@ -10,3 +10,10 @@ export const FORM_CONTROL_TEXT_CLASS = 'text-base';
  * react-select and other non-Tailwind surfaces must use the same CSS variable.
  */
 export const FORM_CONTROL_PLACEHOLDER_CLASS = 'placeholder:text-brand-placeholder';
+
+/**
+ * Sole compact `type="search"` chrome for dashboard list toolbars
+ * (operation logs, dish history). Fixed width; no field label above.
+ */
+export const DASHBOARD_COMPACT_SEARCH_CLASS =
+  `w-[11rem] rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS}`;

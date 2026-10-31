@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/Input';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { DishHistoryListResult, DishHistoryRow } from '@/lib/dish-history-server';
+import { DASHBOARD_COMPACT_SEARCH_CLASS } from '@/lib/form-control-text';
+import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { type ListPageSize } from '@/lib/paginate-list';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
@@ -143,29 +144,26 @@ export function DishHistoryManager({ restaurantSlug, tables }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="sm:w-[min(100%,18rem)] sm:shrink-0 min-w-0">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-brand-text-muted">{t.tableFilterLabel}</label>
-            <DashboardTableMultiSelect
-              tables={tables}
-              value={selectedTables}
-              onChange={onTablesChange}
-              tableWord={t.table}
-              placeholder={t.filterTable}
-              noOptionsMessage={t.empty}
-              ariaLabel={t.tableFilterLabel}
-            />
-          </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <Input
-            label={t.dishSearchLabel}
-            value={draftFilters.q}
-            onChange={(e) => patchDraftFilters({ q: e.target.value })}
-            placeholder={t.searchPlaceholder}
-          />
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <DashboardTableMultiSelect
+          tables={tables}
+          value={selectedTables}
+          onChange={onTablesChange}
+          tableWord={t.table}
+          placeholder={t.filterTable}
+          noOptionsMessage={t.empty}
+          className="w-[min(100%,18rem)] text-base"
+          ariaLabel={t.filterTable}
+        />
+        <input
+          type="search"
+          className={DASHBOARD_COMPACT_SEARCH_CLASS}
+          value={draftFilters.q}
+          onChange={(e) => patchDraftFilters({ q: e.target.value })}
+          placeholder={t.searchPlaceholder}
+          aria-label={t.searchPlaceholder}
+          autoComplete="off"
+        />
       </div>
 
       {error ? <p className="mesa-alert-danger text-sm px-4 py-2">{error}</p> : null}

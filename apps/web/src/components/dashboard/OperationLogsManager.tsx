@@ -21,7 +21,7 @@ import type { OperationLogsListResult } from '@/lib/operation-logs/query';
 import { normalizeOperationLogsSearchQ } from '@/lib/operation-logs/search';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { type ListPageSize } from '@/lib/paginate-list';
-import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
+import { DASHBOARD_COMPACT_SEARCH_CLASS } from '@/lib/form-control-text';
 import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 const REFRESH_COOLDOWN_MS = 60_000;
@@ -40,8 +40,6 @@ const DEFAULT_FILTERS = (today: string): Filters => ({
 
 const COMPACT_SELECT_CLASS =
   'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
-const COMPACT_SEARCH_CLASS =
-  `w-[11rem] rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS}`;
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
@@ -182,7 +180,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
         </select>
         <input
           type="search"
-          className={COMPACT_SEARCH_CLASS}
+          className={DASHBOARD_COMPACT_SEARCH_CLASS}
           value={draftFilters.q}
           onChange={(e) => patchDraftFilters({ q: e.target.value })}
           placeholder={t.searchPlaceholder}

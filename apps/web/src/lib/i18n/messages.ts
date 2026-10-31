@@ -1811,9 +1811,7 @@ export const MESSAGES = {
     },
     dishHistory: {
       title: '当日菜品检索',
-      tableFilterLabel: '桌号',
       filterTable: '筛选桌号（如 5）',
-      dishSearchLabel: '菜名或编号',
       searchPlaceholder: '菜名或编号',
       empty: '今日暂无匹配菜品',
       loadFail: '加载失败，请重试',
@@ -3311,9 +3309,7 @@ export const MESSAGES = {
     },
     dishHistory: {
       title: 'Today’s dishes',
-      tableFilterLabel: 'Table',
       filterTable: 'Filter table (e.g. 5)',
-      dishSearchLabel: 'Dish name or code',
       searchPlaceholder: 'Dish name or code',
       empty: 'No matching dishes today',
       loadFail: 'Load failed, please retry',
@@ -4711,9 +4707,7 @@ export const MESSAGES = {
     },
     dishHistory: {
       title: 'Pratos de hoje',
-      tableFilterLabel: 'Mesa',
       filterTable: 'Filtrar mesa (ex: 5)',
-      dishSearchLabel: 'Nome ou codigo',
       searchPlaceholder: 'Nome ou codigo',
       empty: 'Sem pratos hoje',
       loadFail: 'Falha ao carregar',

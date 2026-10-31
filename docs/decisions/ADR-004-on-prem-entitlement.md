@@ -29,7 +29,7 @@ Local (on-prem) stores are the business authority (ADR-001/002). Platform Ops st
 
 ## Consequences
 
-- Platform claim/check-in: `/api/platform/license/claim`, `/api/platform/license/check-in` (install credential, not admin cookie).
+- Platform claim/check-in: `/api/platform/license/claim`, `/api/platform/license/check-in` (install credential, not admin cookie). Both return `featureKeys` from cloud `restaurant_pro_feature_grants`; store applies via sole `replaceRestaurantProFeatureGrants` when the field is an array (omit → leave local grants).
 - On-prem web reconciles on business boundaries via sole `reconcileRestaurantLicense` (staff login / guest menu+order with `checkIn:false` / dashboard enter with check-in): optional platform check-in then materialize — not interval polling of read models.
 - Cloud path does not require lease/check-in; may still materialize `license_valid_until` expiry into `suspended_at`.
 - Existing cloud tenants (`deployment_mode=cloud`) are unaffected by the on-prem claim bridge when mode split is preserved.

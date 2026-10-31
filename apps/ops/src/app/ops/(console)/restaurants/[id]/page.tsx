@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
+  loadRestaurantProFeatureGrantKeys,
   normalizeBuffetServiceMode,
   normalizeCountryCode,
-  sanitizePremiumKeyGrants,
   parseProFeatureProduct,
   parseSubscriptionBaseProduct,
   type BuffetServiceMode,
@@ -66,8 +66,8 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   });
   const ownerEmail = row.owner_email || owner?.data?.user?.email || null;
 
-  const [{ data: grantRows }, { data: productRows }, { data: baseRow }] = await Promise.all([
-    admin.from('restaurant_pro_feature_grants').select('feature_key').eq('restaurant_id', row.id),
+  const [featureKeys, { data: productRows }, { data: baseRow }] = await Promise.all([
+    loadRestaurantProFeatureGrantKeys(admin, row.id),
     admin
       .from('pro_feature_products')
       .select('feature_key, price_month_eur, price_year_eur, active')
@@ -78,7 +78,6 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
       .eq('id', 'default')
       .maybeSingle(),
   ]);
-  const featureKeys = sanitizePremiumKeyGrants((grantRows ?? []).map((g) => g.feature_key));
   const products = (productRows ?? [])
     .map((p) => parseProFeatureProduct(p))
     .filter((p): p is ProFeatureProduct => p != null);

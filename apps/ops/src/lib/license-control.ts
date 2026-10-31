@@ -10,12 +10,14 @@ import {
   isRestaurantSuspended,
   mintCheckinSecret,
   mintInstallCode,
+  loadRestaurantProFeatureGrantKeys,
   normalizeBuffetServiceMode,
   normalizeOfflineGraceDays,
   offlineGraceDaysToMs,
   resolveLicenseCalendarDate,
   signLicenseLease,
   type LicenseExtendPeriod,
+  type PremiumKey,
 } from '@mesa/shared';
 
 const INSTALL_CODE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -298,6 +300,7 @@ export type ClaimInstallResult =
       licenseValidUntil: string | null;
       plan: string;
       proValidUntil: string | null;
+      featureKeys: PremiumKey[];
       suspendedAt: string | null;
       suspensionReason: string | null;
       leaseToken: string;
@@ -414,6 +417,18 @@ export async function claimOnPremInstallation(
     return { ok: false, error: 'claim_install_failed', status: 500, detail: updateInstError.message };
   }
 
+  let featureKeys: PremiumKey[];
+  try {
+    featureKeys = await loadRestaurantProFeatureGrantKeys(admin, restaurant.id);
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'grants_fetch_failed',
+      status: 500,
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
+
   return {
     ok: true,
     restaurantId: restaurant.id,
@@ -427,6 +442,7 @@ export async function claimOnPremInstallation(
     licenseValidUntil: restaurant.license_valid_until,
     plan: restaurant.plan,
     proValidUntil: restaurant.pro_valid_until ?? null,
+    featureKeys,
     suspendedAt: restaurant.suspended_at,
     suspensionReason: restaurant.suspension_reason,
     leaseToken,
@@ -445,6 +461,7 @@ export type CheckInResult =
       buffetServiceMode: string;
       plan: string;
       proValidUntil: string | null;
+      featureKeys: PremiumKey[];
     }
   | { ok: false; error: string; status: number; detail?: string };
 
@@ -515,6 +532,18 @@ export async function checkInOnPremInstallation(
     .update({ last_checkin_at: checkedAt })
     .eq('id', installation.id);
 
+  let featureKeys: PremiumKey[];
+  try {
+    featureKeys = await loadRestaurantProFeatureGrantKeys(admin, restaurant.id);
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'grants_fetch_failed',
+      status: 500,
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
+
   return {
     ok: true,
     restaurantId: restaurant.id,
@@ -525,5 +554,6 @@ export async function checkInOnPremInstallation(
     buffetServiceMode: normalizeBuffetServiceMode(restaurant.buffet_service_mode),
     plan: restaurant.plan,
     proValidUntil: restaurant.pro_valid_until ?? null,
+    featureKeys,
   };
 }

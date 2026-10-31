@@ -7,7 +7,9 @@ import {
   isRestaurantSuspended,
   normalizeBuffetServiceMode,
   normalizeRestaurantPlan,
+  replaceRestaurantProFeatureGrants,
   type DeploymentMode,
+  type PremiumKey,
 } from '@mesa/shared';
 import {
   loadPlatformLicenseConfig,
@@ -171,6 +173,7 @@ export async function syncOnPremLicenseFromPlatform(
       plan?: string | null;
       proValidUntil?: string | null;
       buffetServiceMode?: string | null;
+      featureKeys?: PremiumKey[];
     };
     if (!res.ok || !json.leaseToken || !json.lease) {
       await applyLicenseMaterialize(admin, restaurantId);
@@ -189,6 +192,19 @@ export async function syncOnPremLicenseFromPlatform(
         ...(json.proValidUntil !== undefined ? { pro_valid_until: json.proValidUntil } : {}),
       })
       .eq('id', restaurantId);
+
+    // Only replace when platform sent an array — old platforms omit the field; keep local grants.
+    if (Array.isArray(json.featureKeys)) {
+      const replaced = await replaceRestaurantProFeatureGrants(
+        admin,
+        restaurantId,
+        json.featureKeys,
+      );
+      if (!replaced.ok) {
+        await applyLicenseMaterialize(admin, restaurantId);
+        return { ok: false, error: replaced.error || 'grants_sync_failed' };
+      }
+    }
 
     await applyLicenseMaterialize(admin, restaurantId);
     return { ok: true };
@@ -211,6 +227,8 @@ export type PlatformClaimSnapshot = {
   licenseValidUntil: string | null;
   plan?: string | null;
   proValidUntil?: string | null;
+  /** Platform Pro feature grants; omit → leave local grants unchanged. */
+  featureKeys?: PremiumKey[];
   suspendedAt: string | null;
   suspensionReason: string | null;
   leaseToken: string;
@@ -220,6 +238,20 @@ export type PlatformClaimSnapshot = {
 export type ApplyOnPremClaimResult =
   | { ok: true; restaurantId: string; ownerEmail: string; slug: string }
   | { ok: false; error: string; status: number; detail?: string };
+
+/** Apply platform featureKeys when present; omit/non-array → leave local grants. */
+async function applyPlatformFeatureKeysIfPresent(
+  admin: SupabaseClient,
+  restaurantId: string,
+  featureKeys: unknown,
+): Promise<{ ok: true } | { ok: false; error: string; detail?: string }> {
+  if (!Array.isArray(featureKeys)) return { ok: true };
+  const replaced = await replaceRestaurantProFeatureGrants(admin, restaurantId, featureKeys);
+  if (!replaced.ok) {
+    return { ok: false, error: replaced.error, detail: replaced.detail };
+  }
+  return { ok: true };
+}
 
 /**
  * Sole local apply-claim: same restaurantId as platform, local Auth owner, persist platform config.
@@ -311,6 +343,11 @@ export async function applyOnPremClaim(
       };
     }
 
+    const grants = await applyPlatformFeatureKeysIfPresent(admin, restaurantId, snap.featureKeys);
+    if (!grants.ok) {
+      return { ok: false, error: 'grants_sync_failed', status: 500, detail: grants.detail };
+    }
+
     await applyLicenseMaterialize(admin, restaurantId);
     return { ok: true, restaurantId, ownerEmail: snap.ownerEmail, slug: snap.slug };
   }
@@ -373,6 +410,11 @@ export async function applyOnPremClaim(
       status: 500,
       detail: e instanceof Error ? e.message : String(e),
     };
+  }
+
+  const grants = await applyPlatformFeatureKeysIfPresent(admin, restaurantId, snap.featureKeys);
+  if (!grants.ok) {
+    return { ok: false, error: 'grants_sync_failed', status: 500, detail: grants.detail };
   }
 
   await applyLicenseMaterialize(admin, restaurantId);

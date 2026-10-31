@@ -7,7 +7,7 @@ import {
 } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
-import { replaceRestaurantProFeatureGrants } from '@/lib/pro-feature-grants';
+import { replaceRestaurantProFeatureGrants } from '@mesa/shared';
 import { purgeRestaurantForOps } from '@/lib/purge-restaurant';
 
 type RouteContext = { params: Promise<{ id: string }> };

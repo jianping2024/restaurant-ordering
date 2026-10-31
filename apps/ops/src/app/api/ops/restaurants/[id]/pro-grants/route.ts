@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import { sanitizePremiumKeyGrants } from '@mesa/shared';
+import {
+  loadRestaurantProFeatureGrantKeys,
+  replaceRestaurantProFeatureGrants,
+} from '@mesa/shared';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
-import { replaceRestaurantProFeatureGrants } from '@/lib/pro-feature-grants';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -11,18 +13,15 @@ export async function GET(_req: Request, context: RouteContext) {
   if (error || !admin) return error!;
 
   const { id } = await context.params;
-  const { data, error: qErr } = await admin
-    .from('restaurant_pro_feature_grants')
-    .select('feature_key')
-    .eq('restaurant_id', id);
-
-  if (qErr) {
-    return NextResponse.json({ error: 'fetch_failed', detail: qErr.message }, { status: 500 });
+  try {
+    const featureKeys = await loadRestaurantProFeatureGrantKeys(admin, id);
+    return NextResponse.json({ featureKeys });
+  } catch (e) {
+    return NextResponse.json(
+      { error: 'fetch_failed', detail: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
   }
-
-  return NextResponse.json({
-    featureKeys: sanitizePremiumKeyGrants((data ?? []).map((row) => row.feature_key)),
-  });
 }
 
 export async function PUT(req: Request, context: RouteContext) {

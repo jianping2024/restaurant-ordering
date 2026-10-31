@@ -1734,14 +1734,6 @@ export function MenuManager({
                                     >
                                       {catalogLabel}
                                     </p>
-                                    {dishVideoEffectLabel ? (
-                                      <span
-                                        className="shrink-0 max-w-[7.5rem] truncate text-[10px] px-1.5 py-px rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold leading-tight"
-                                        title={dishVideoEffectLabel}
-                                      >
-                                        {dishVideoEffectLabel}
-                                      </span>
-                                    ) : null}
                                     {!item.available ? (
                                       <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
                                         {t.unavailableBadge}
@@ -1762,6 +1754,14 @@ export function MenuManager({
                                         </span>{' '}
                                         {stationName}
                                       </>
+                                    ) : null}
+                                    {dishVideoEffectLabel ? (
+                                      <span
+                                        className="ml-1 inline-flex max-w-[7.5rem] truncate align-middle text-[10px] px-1 py-px rounded border border-brand-border/70 text-brand-text-muted leading-tight"
+                                        title={dishVideoEffectLabel}
+                                      >
+                                        {dishVideoEffectLabel}
+                                      </span>
                                     ) : null}
                                     {timeSlotName ? (
                                       <>

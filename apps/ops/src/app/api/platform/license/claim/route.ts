@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     licenseValidUntil: result.licenseValidUntil,
     plan: result.plan,
     proValidUntil: result.proValidUntil,
+    featureKeys: result.featureKeys,
     suspendedAt: result.suspendedAt,
     suspensionReason: result.suspensionReason,
     leaseToken: result.leaseToken,

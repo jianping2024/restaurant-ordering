@@ -240,14 +240,3 @@ export function quoteRestaurantSubscriptionEur(
     quoteSubscriptionBaseEur(base, period) + quoteProFeaturesEur(entitledKeys, products, period);
   return Math.round(total * 100) / 100;
 }
-
-/** Trial / new-Pro seed rows for `restaurant_pro_feature_grants` (all known keys). */
-export function proTrialFeatureGrantRows(restaurantId: string): Array<{
-  restaurant_id: string;
-  feature_key: PremiumKey;
-}> {
-  return DEFAULT_PREMIUM_KEYS.map((feature_key) => ({
-    restaurant_id: restaurantId,
-    feature_key,
-  }));
-}

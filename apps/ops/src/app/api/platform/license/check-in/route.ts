@@ -44,6 +44,7 @@ export async function POST(req: Request) {
     licenseValidUntil: result.licenseValidUntil,
     plan: result.plan,
     proValidUntil: result.proValidUntil,
+    featureKeys: result.featureKeys,
     leaseToken: result.leaseToken,
     lease: result.lease,
     desiredSuspended: result.desiredSuspended,

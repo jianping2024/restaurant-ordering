@@ -9,7 +9,8 @@ import {
   resolveLicenseCalendarDate,
   todayLisbonCalendarDate,
 } from './license-calendar';
-import { proTrialFeatureGrantRows, proTrialValidUntil } from './premium-tier';
+import { DEFAULT_PREMIUM_KEYS, proTrialValidUntil } from './premium-tier';
+import { replaceRestaurantProFeatureGrants } from './pro-feature-grants';
 import { defaultRestaurantSlug } from './slug';
 import type { PrintLocale } from './create-restaurant';
 
@@ -131,16 +132,16 @@ export async function registerOnPremRestaurant(
   }
 
   const restaurantId = restaurantRow.id as string;
-  const { error: grantError } = await admin
-    .from('restaurant_pro_feature_grants')
-    .insert(proTrialFeatureGrantRows(restaurantId));
-  if (grantError) {
+  const seeded = await replaceRestaurantProFeatureGrants(admin, restaurantId, [
+    ...DEFAULT_PREMIUM_KEYS,
+  ]);
+  if (!seeded.ok) {
     await admin.from('restaurants').delete().eq('id', restaurantId);
     return {
       ok: false,
       error: 'pro_grant_seed_failed',
       status: 500,
-      detail: grantError.message,
+      detail: seeded.detail,
     };
   }
 

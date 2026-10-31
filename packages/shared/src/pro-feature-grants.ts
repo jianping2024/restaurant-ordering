@@ -1,9 +1,25 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { sanitizePremiumKeyGrants, type PremiumKey } from '@mesa/shared';
+import { sanitizePremiumKeyGrants, type PremiumKey } from './premium-tier';
 
 /**
- * Sole Ops write for restaurant_pro_feature_grants: replace full set + bump menu catalog.
- * Callers must already enforce plan=pro (or equivalent gate).
+ * Sole read of a restaurant's Pro feature grant keys (sanitized).
+ * Platform check-in / claim and Ops panels use this — never a parallel select shape.
+ */
+export async function loadRestaurantProFeatureGrantKeys(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<PremiumKey[]> {
+  const { data, error } = await admin
+    .from('restaurant_pro_feature_grants')
+    .select('feature_key')
+    .eq('restaurant_id', restaurantId);
+  if (error) throw new Error(error.message);
+  return sanitizePremiumKeyGrants((data ?? []).map((row) => row.feature_key));
+}
+
+/**
+ * Sole write for restaurant_pro_feature_grants: replace full set + bump menu catalog.
+ * Ops panel, create/register seed, and on-prem sync from platform all call this.
  */
 export async function replaceRestaurantProFeatureGrants(
   admin: SupabaseClient,

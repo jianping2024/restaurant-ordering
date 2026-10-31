@@ -48,7 +48,6 @@ export {
   PREMIUM_KEY_REQUIRES_PARENT,
   parseProFeatureProduct,
   parseSubscriptionBaseProduct,
-  proTrialFeatureGrantRows,
   proTrialValidUntil,
   quoteProFeaturesEur,
   quoteRestaurantSubscriptionEur,
@@ -60,6 +59,10 @@ export {
   type RestaurantPlan,
   type SubscriptionBaseProduct,
 } from './premium-tier';
+export {
+  loadRestaurantProFeatureGrantKeys,
+  replaceRestaurantProFeatureGrants,
+} from './pro-feature-grants';
 export {
   registerOnPremRestaurant,
   validateRegisterOnPremRestaurantInput,

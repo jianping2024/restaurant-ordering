@@ -468,7 +468,7 @@ sole `KitchenGroupHeader` cluster: 36×36 chevron + `gap-3` + `KitchenGroupSelec
 
 ### Dashboard list pagination
 
-sole Web footer is `ListPaginationBar` (icon first/prev/next/last + aria-labels; no visible prev/next text; no parallel pager in `TablesQrTable`); Ops sole `OpsListPagination` same four icons.
+sole Web footer is `ListPaginationBar` (icon first/prev/next/last + aria-labels; no visible prev/next text; no parallel pager in `TablesQrTable`); Ops sole `OpsListPagination` same four icons. MenuManager 菜品 tab：内存 `paginateList(visibleItems)` + 同脚；批量上下架/动图仍对筛选全集，拖排序用页偏移换绝对下标——禁止第二套页码或「仅本页」批量平行语义。
 
 ### Value-analytics dish ranking
 

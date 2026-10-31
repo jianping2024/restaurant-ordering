@@ -8,7 +8,13 @@ import { Button, buttonClasses } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  paginateList,
+  type ListPageSize,
+} from '@/lib/paginate-list';
 import {
   CATEGORY_TREE_LEAD,
   MenuCategorySortTree,
@@ -313,6 +319,9 @@ export function MenuManager({
     router.replace(menuManagerPath(allowed), { scroll: false });
   };
   const [dishSearch, setDishSearch] = useState('');
+  const [dishListPage, setDishListPage] = useState(1);
+  const [dishListPageSize, setDishListPageSize] =
+    useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
   const [dishListError, setDishListError] = useState('');
   const [dishReorderBusy, setDishReorderBusy] = useState(false);
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
@@ -593,9 +602,19 @@ export function MenuManager({
     return scopedDishItems;
   }, [scopedDishItems, canReorderDishes]);
 
+  const dishListPagination = useMemo(
+    () => paginateList(visibleItems, dishListPage, dishListPageSize),
+    [visibleItems, dishListPage, dishListPageSize],
+  );
+  const pagedDishItems = dishListPagination.rows;
+
   useEffect(() => {
     setDishListError('');
   }, [itemListFilterValue, dishSearch]);
+
+  useEffect(() => {
+    setDishListPage(1);
+  }, [itemListFilterValue, dishSearch, dishListPageSize]);
 
   const resetImageUi = () => {
     setPhotoDraft(EMPTY_MENU_ITEM_PHOTO_DRAFT);
@@ -910,7 +929,11 @@ export function MenuManager({
     if (!canReorderDishes || dishReorderBusy) return;
     if (!result.destination) return;
     if (result.source.index === result.destination.index) return;
-    void commitDishReorder(result.source.index, result.destination.index);
+    const pageOffset = (dishListPagination.page - 1) * dishListPagination.pageSize;
+    void commitDishReorder(
+      pageOffset + result.source.index,
+      pageOffset + result.destination.index,
+    );
   };
 
   const commitCategoryReorder = async (
@@ -1660,7 +1683,7 @@ export function MenuManager({
                     {...droppableProvided.droppableProps}
                     className="space-y-1.5"
                   >
-                    {visibleItems.map((item, index) => {
+                    {pagedDishItems.map((item, index) => {
                       const catalogLabel = formatMenuCatalogItemLabel(item, lang);
                       const dishVideoEffectLabelKey = dishVideoPro
                         ? menuItemDishVideoListEffectLabelKey(item)
@@ -1842,6 +1865,25 @@ export function MenuManager({
               </Droppable>
             </DragDropContext>
           )}
+          {visibleItems.length > 0 ? (
+            <ListPaginationBar
+              page={dishListPagination.page}
+              totalPages={dishListPagination.totalPages}
+              total={dishListPagination.total}
+              pageSize={dishListPageSize}
+              labels={{
+                pageInfo: t.pageInfo,
+                pageSizeLabel: t.pageSizeLabel,
+                pageFirst: t.pageFirst,
+                pagePrev: t.pagePrev,
+                pageNext: t.pageNext,
+                pageLast: t.pageLast,
+              }}
+              onPageChange={setDishListPage}
+              onPageSizeChange={setDishListPageSize}
+              disabled={dishReorderBusy}
+            />
+          ) : null}
           {canReorderDishes && visibleItems.length > 0 ? (
             <p className="text-[12px] text-brand-text-muted mt-2">{t.dishSortOrderHint}</p>
           ) : null}

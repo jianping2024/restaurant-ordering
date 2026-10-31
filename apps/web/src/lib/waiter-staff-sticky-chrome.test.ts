@@ -12,7 +12,7 @@ import {
 import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 describe('staffTopBarChrome', () => {
-  it('keeps full store name on brand; nav cluster fills leftover; no header overflow clip', () => {
+  it('keeps full store name on brand; nav cluster fills leftover and packs right; no header overflow clip', () => {
     assert.equal(STAFF_TOP_BAR_CONTENT_HEIGHT, '3.5rem');
     assert.equal(
       STAFF_TOP_BAR_TOTAL_HEIGHT,
@@ -46,6 +46,7 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
     assert.match(staffTopBarChrome.rightClusterClassName, /min-w-0/);
     assert.match(staffTopBarChrome.rightClusterClassName, /flex-1/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /justify-end/);
     assert.doesNotMatch(staffTopBarChrome.rightClusterClassName, /max-w-\[calc\(100%-7rem\)\]/);
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,

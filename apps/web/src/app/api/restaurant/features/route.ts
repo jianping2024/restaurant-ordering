@@ -19,8 +19,6 @@ import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import {
   isStationSlipShowCategoryGroupEnabled,
   parseStationSlipShowCategoryGroupPatch,
-  hanBitmapFontPxFromConfig,
-  parseHanBitmapFontPxPatch,
   kitchenReadyAfterMinutesFromConfig,
   parseKitchenReadyAfterMinutesPatch,
   resolveKitchenReadyAfterMinutes,
@@ -64,7 +62,6 @@ function featureSettingsResponse(input: {
     flags: normalizeRestaurantFeatureFlags(input.featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(input.printAgentConfig),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(input.printAgentConfig),
-    hanBitmapFontPx: hanBitmapFontPxFromConfig(input.printAgentConfig),
     kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(input.printAgentConfig),
     orderCooldownSeconds: Math.max(
       ORDER_COOLDOWN_SECONDS_MIN,
@@ -178,7 +175,6 @@ export async function PATCH(req: Request) {
   const patch = parseFeatureFlagsPatch(body);
   const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
   const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
-  const hanBitmapFontPx = parseHanBitmapFontPxPatch(body);
   const kitchenReadyAfterMinutes = parseKitchenReadyAfterMinutesPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
   const operationLogRetentionDays = parseOperationLogRetentionDaysPatch(body);
@@ -193,7 +189,6 @@ export async function PATCH(req: Request) {
     !patch &&
     credentialTtlDays === undefined &&
     stationSlipShowCategoryGroup === undefined &&
-    hanBitmapFontPx === undefined &&
     orderCooldownSeconds === undefined &&
     operationLogRetentionDays === undefined &&
     takeawayVatRate === undefined &&
@@ -208,9 +203,6 @@ export async function PATCH(req: Request) {
   }
   if (stationSlipShowCategoryGroup === null) {
     return NextResponse.json({ error: 'invalid_station_slip_show_category_group' }, { status: 400 });
-  }
-  if (hanBitmapFontPx === null) {
-    return NextResponse.json({ error: 'invalid_han_bitmap_font_px' }, { status: 400 });
   }
   if (orderCooldownSeconds === null) {
     return NextResponse.json({ error: 'invalid_order_cooldown_seconds' }, { status: 400 });
@@ -232,7 +224,6 @@ export async function PATCH(req: Request) {
     (patch != null && featureFlagsPatchTouchesPrintSettings(patch)) ||
     credentialTtlDays !== undefined ||
     stationSlipShowCategoryGroup !== undefined ||
-    hanBitmapFontPx !== undefined ||
     printLocale !== undefined;
   const needsFeatureSettings =
     (patch != null && featureFlagsPatchTouchesNonPrintSettings(patch)) ||
@@ -321,14 +312,12 @@ export async function PATCH(req: Request) {
   const nextConfig =
     credentialTtlDays !== undefined ||
     stationSlipShowCategoryGroup !== undefined ||
-    hanBitmapFontPx !== undefined ||
     kitchenReadyAfterMinutes !== undefined
       ? mergeStoredPrintAgentConfig(row?.print_agent_config, {
           ...(credentialTtlDays !== undefined ? { credential_ttl_days: credentialTtlDays } : {}),
           ...(stationSlipShowCategoryGroup !== undefined
             ? { station_slip_show_category_group: stationSlipShowCategoryGroup }
             : {}),
-          ...(hanBitmapFontPx !== undefined ? { han_bitmap_font_px: hanBitmapFontPx } : {}),
           ...(kitchenReadyAfterMinutes !== undefined
             ? {
                 kitchen_ready_after_minutes: resolveKitchenReadyAfterMinutes(

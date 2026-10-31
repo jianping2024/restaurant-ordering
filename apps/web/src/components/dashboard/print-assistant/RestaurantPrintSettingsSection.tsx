@@ -17,7 +17,6 @@ import {
   type RestaurantFeatureKey,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
-import { HAN_BITMAP_FONT_PX_MAX, HAN_BITMAP_FONT_PX_MIN } from '@/lib/print-agent-config';
 import {
   FEATURES_INTEGER_INPUT,
   PRINT_LOCALE_OPTION_IDLE,
@@ -28,7 +27,6 @@ export type RestaurantPrintSettingsSectionProps = {
   initialFlags: ResolvedRestaurantFeatureFlags;
   initialCredentialTtlDays: number;
   initialStationSlipShowCategoryGroup: boolean;
-  initialHanBitmapFontPx: number;
   initialPrintLocale: PrintLocale;
 };
 
@@ -40,7 +38,6 @@ export function RestaurantPrintSettingsSection({
   initialFlags,
   initialCredentialTtlDays,
   initialStationSlipShowCategoryGroup,
-  initialHanBitmapFontPx,
   initialPrintLocale,
 }: RestaurantPrintSettingsSectionProps) {
   const router = useRouter();
@@ -51,7 +48,6 @@ export function RestaurantPrintSettingsSection({
   const [stationSlipShowCategoryGroup, setStationSlipShowCategoryGroup] = useState(
     initialStationSlipShowCategoryGroup,
   );
-  const [hanBitmapFontPx, setHanBitmapFontPx] = useState(initialHanBitmapFontPx);
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -70,7 +66,6 @@ export function RestaurantPrintSettingsSection({
           flags: pickRestaurantFeatureFlagsForModules(flags, PRINT_SETTINGS_FEATURE_MODULE_IDS),
           credentialTtlDays,
           stationSlipShowCategoryGroup,
-          hanBitmapFontPx,
           printLocale,
         }),
       });
@@ -80,14 +75,12 @@ export function RestaurantPrintSettingsSection({
         flags?: ResolvedRestaurantFeatureFlags;
         credentialTtlDays?: number;
         stationSlipShowCategoryGroup?: boolean;
-        hanBitmapFontPx?: number;
         printLocale?: PrintLocale;
       };
 
       if (!res.ok) {
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
-        else if (json.error === 'invalid_han_bitmap_font_px') setError(t.hanBitmapFontPxInvalid);
         else setError(t.saveFail);
         return;
       }
@@ -97,7 +90,6 @@ export function RestaurantPrintSettingsSection({
       if (json.stationSlipShowCategoryGroup != null) {
         setStationSlipShowCategoryGroup(json.stationSlipShowCategoryGroup);
       }
-      if (json.hanBitmapFontPx != null) setHanBitmapFontPx(json.hanBitmapFontPx);
       if (json.printLocale) setPrintLocale(json.printLocale);
 
       router.refresh();
@@ -195,25 +187,6 @@ export function RestaurantPrintSettingsSection({
                 {t.stationSlipShowCategoryGroupDesc}
               </span>
             </span>
-          </label>
-          <label className="block px-4 py-4">
-            <span className="block text-[15px] font-medium text-brand-text">
-              {t.hanBitmapFontPx}
-            </span>
-            <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-              {t.hanBitmapFontPxDesc}
-            </span>
-            <div className="flex items-center gap-2">
-              <IntegerInput
-                value={hanBitmapFontPx}
-                min={HAN_BITMAP_FONT_PX_MIN}
-                max={HAN_BITMAP_FONT_PX_MAX}
-                onChange={setHanBitmapFontPx}
-                className={FEATURES_INTEGER_INPUT}
-                aria-label={t.hanBitmapFontPx}
-              />
-              <span className="text-[13px] text-brand-text-muted">{t.hanBitmapFontPxUnit}</span>
-            </div>
           </label>
           <label className="block px-4 py-4">
             <span className="block text-[15px] font-medium text-brand-text">

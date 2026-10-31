@@ -20,7 +20,6 @@ export async function RestaurantPrintSettingsLoader({
       initialFlags={data.flags}
       initialCredentialTtlDays={data.credentialTtlDays}
       initialStationSlipShowCategoryGroup={data.stationSlipShowCategoryGroup}
-      initialHanBitmapFontPx={data.hanBitmapFontPx}
       initialPrintLocale={data.printLocale}
     />
   );

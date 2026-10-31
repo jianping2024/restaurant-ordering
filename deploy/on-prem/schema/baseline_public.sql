@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict USlL59zMbWqSpNkchwYSIfAcCc1cPEXasNEn3Wsas7e7iFicPteRypnmGkJBFCO
+\restrict EHd0E6bJPJVV1bfuOZpSYAeEb0pDh6JR6Dju2MTSsWQUT4bOgfXyUd1almIOlyr
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1442,7 +1442,8 @@ BEGIN
         'opened_at', ts.opened_at,
         'closed_at', ts.closed_at,
         'closed_reason', ts.closed_reason,
-        'settled_payable_amount', ts.settled_payable_amount
+        'settled_payable_amount', ts.settled_payable_amount,
+        'ordering_channel', coalesce(ts.ordering_channel, 'dine_in')
       )
       ORDER BY ts.opened_at
     ),
@@ -1498,9 +1499,9 @@ BEGIN
         'id', bs.id,
         'session_id', bs.session_id,
         'status', bs.status,
-        'result', bs.result,
         'total_amount', bs.total_amount,
-        'discount_rate', bs.discount_rate
+        'discount_rate', bs.discount_rate,
+        'result', bs.result
       )
     ),
     '[]'::jsonb
@@ -3569,6 +3570,44 @@ COMMENT ON FUNCTION public.reconcile_split_result_paid_from_ledger(p_result json
 
 
 --
+-- Name: reject_cross_channel_session_merge(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.reject_cross_channel_session_merge() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_target_channel text;
+begin
+  if new.merge_into_session_id is null then
+    return new;
+  end if;
+  if tg_op = 'UPDATE'
+    and old.merge_into_session_id is not distinct from new.merge_into_session_id
+  then
+    return new;
+  end if;
+
+  select ordering_channel into v_target_channel
+  from public.table_sessions
+  where id = new.merge_into_session_id
+    and restaurant_id = new.restaurant_id;
+
+  if v_target_channel is null then
+    return new;
+  end if;
+
+  if coalesce(new.ordering_channel, 'dine_in') is distinct from coalesce(v_target_channel, 'dine_in') then
+    raise exception 'ordering_channel_mismatch';
+  end if;
+
+  return new;
+end;
+$$;
+
+
+--
 -- Name: replace_table_group_members(uuid, uuid[]); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4295,6 +4334,41 @@ $$;
 
 
 --
+-- Name: table_would_be_takeaway_channel(uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.table_would_be_takeaway_channel(p_restaurant_id uuid, p_table_id uuid) RETURNS boolean
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_flags jsonb;
+  v_enabled boolean;
+  v_in_group boolean;
+begin
+  select feature_flags into v_flags
+  from public.restaurants
+  where id = p_restaurant_id;
+  v_enabled := coalesce((v_flags ->> 'takeaway_ordering')::boolean, false);
+  if not v_enabled then
+    return false;
+  end if;
+
+  select exists (
+    select 1
+    from public.restaurant_table_group_members m
+    join public.restaurant_table_groups g on g.id = m.group_id
+    where m.restaurant_id = p_restaurant_id
+      and m.table_id = p_table_id
+      and g.is_takeaway = true
+  ) into v_in_group;
+
+  return coalesce(v_in_group, false);
+end;
+$$;
+
+
+--
 -- Name: transfer_table_session(uuid, uuid, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4386,89 +4460,97 @@ CREATE FUNCTION public.transfer_table_session(p_restaurant_id uuid, p_from_table
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
-DECLARE
+declare
   v_source_session public.table_sessions%rowtype;
   v_target_session_id uuid;
   v_target_display text;
   v_from_display text;
   v_operator_id uuid;
-BEGIN
+  v_source_takeaway boolean;
+  v_target_takeaway boolean;
+begin
   v_operator_id := coalesce(p_operator_user_id, auth.uid());
-  PERFORM public.assert_restaurant_session_operator(p_restaurant_id, v_operator_id);
+  perform public.assert_restaurant_session_operator(p_restaurant_id, v_operator_id);
 
-  IF p_from_table_id = p_to_table_id THEN
-    RAISE EXCEPTION 'source and target table cannot be the same';
-  END IF;
+  if p_from_table_id = p_to_table_id then
+    raise exception 'source and target table cannot be the same';
+  end if;
 
-  SELECT display_name INTO v_target_display
-  FROM public.get_active_restaurant_table(p_restaurant_id, p_to_table_id);
-  IF v_target_display IS NULL THEN
-    RAISE EXCEPTION 'invalid target table';
-  END IF;
+  select display_name into v_target_display
+  from public.get_active_restaurant_table(p_restaurant_id, p_to_table_id);
+  if v_target_display is null then
+    raise exception 'invalid target table';
+  end if;
 
-  SELECT display_name INTO v_from_display
-  FROM public.get_active_restaurant_table(p_restaurant_id, p_from_table_id);
-  IF v_from_display IS NULL THEN
-    RAISE EXCEPTION 'invalid source table';
-  END IF;
+  select display_name into v_from_display
+  from public.get_active_restaurant_table(p_restaurant_id, p_from_table_id);
+  if v_from_display is null then
+    raise exception 'invalid source table';
+  end if;
 
-  SELECT *
-  INTO v_source_session
-  FROM public.table_sessions
-  WHERE restaurant_id = p_restaurant_id
-    AND table_id = p_from_table_id
-    AND status IN ('open', 'billing')
-  ORDER BY opened_at DESC
-  LIMIT 1
-  FOR UPDATE;
+  select *
+  into v_source_session
+  from public.table_sessions
+  where restaurant_id = p_restaurant_id
+    and table_id = p_from_table_id
+    and status in ('open', 'billing')
+  order by opened_at desc
+  limit 1
+  for update;
 
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'source table has no active session';
-  END IF;
+  if not found then
+    raise exception 'source table has no active session';
+  end if;
 
-  SELECT id
-  INTO v_target_session_id
-  FROM public.table_sessions
-  WHERE restaurant_id = p_restaurant_id
-    AND table_id = p_to_table_id
-    AND status IN ('open', 'billing')
-  ORDER BY opened_at DESC
-  LIMIT 1
-  FOR UPDATE;
+  select id
+  into v_target_session_id
+  from public.table_sessions
+  where restaurant_id = p_restaurant_id
+    and table_id = p_to_table_id
+    and status in ('open', 'billing')
+  order by opened_at desc
+  limit 1
+  for update;
 
-  IF v_target_session_id IS NOT NULL THEN
-    RAISE EXCEPTION 'target table already has active session';
-  END IF;
+  if v_target_session_id is not null then
+    raise exception 'target table already has active session';
+  end if;
 
-  UPDATE public.table_sessions
-  SET table_id = p_to_table_id
-  WHERE id = v_source_session.id;
+  v_source_takeaway := coalesce(v_source_session.ordering_channel, 'dine_in') = 'takeaway';
+  v_target_takeaway := public.table_would_be_takeaway_channel(p_restaurant_id, p_to_table_id);
+  if v_source_takeaway is distinct from v_target_takeaway then
+    raise exception 'ordering_channel_mismatch';
+  end if;
 
-  UPDATE public.orders
-  SET table_id = p_to_table_id,
+  update public.table_sessions
+  set table_id = p_to_table_id
+  where id = v_source_session.id;
+
+  update public.orders
+  set table_id = p_to_table_id,
       display_name = v_target_display,
       session_id = coalesce(session_id, v_source_session.id)
-  WHERE restaurant_id = p_restaurant_id
-    AND table_id = p_from_table_id
-    AND status IN ('pending', 'cooking', 'done')
-    AND (session_id IS NULL OR session_id = v_source_session.id);
+  where restaurant_id = p_restaurant_id
+    and table_id = p_from_table_id
+    and status in ('pending', 'cooking', 'done')
+    and (session_id is null or session_id = v_source_session.id);
 
-  UPDATE public.bill_splits
-  SET table_id = p_to_table_id,
+  update public.bill_splits
+  set table_id = p_to_table_id,
       display_name = v_target_display,
       session_id = coalesce(session_id, v_source_session.id)
-  WHERE restaurant_id = p_restaurant_id
-    AND table_id = p_from_table_id
-    AND status IN ('pending', 'confirmed', 'requested')
-    AND (session_id IS NULL OR session_id = v_source_session.id);
+  where restaurant_id = p_restaurant_id
+    and table_id = p_from_table_id
+    and status in ('pending', 'confirmed', 'requested')
+    and (session_id is null or session_id = v_source_session.id);
 
-  UPDATE public.table_order_rounds
-  SET table_id = p_to_table_id,
+  update public.table_order_rounds
+  set table_id = p_to_table_id,
       updated_at = now()
-  WHERE session_id = v_source_session.id
-    AND status IN ('collecting', 'pending_confirm', 'cooldown', 'finalize_failed');
+  where session_id = v_source_session.id
+    and status in ('collecting', 'pending_confirm', 'cooldown', 'finalize_failed');
 
-  INSERT INTO public.table_session_events (
+  insert into public.table_session_events (
     restaurant_id,
     session_id,
     event_type,
@@ -4478,7 +4560,7 @@ BEGIN
     to_table_id,
     from_display_name,
     to_display_name
-  ) VALUES (
+  ) values (
     p_restaurant_id,
     v_source_session.id,
     'transfer',
@@ -4490,8 +4572,8 @@ BEGIN
     v_target_display
   );
 
-  RETURN v_source_session.id;
-END;
+  return v_source_session.id;
+end;
 $$;
 
 
@@ -5316,6 +5398,8 @@ CREATE TABLE public.analytics_daily_restaurant_stats (
     qualifying_session_count integer DEFAULT 0 NOT NULL,
     sealed_at timestamp with time zone DEFAULT now() NOT NULL,
     computed_at timestamp with time zone DEFAULT now() NOT NULL,
+    dine_in_revenue numeric DEFAULT 0 NOT NULL,
+    takeaway_revenue numeric DEFAULT 0 NOT NULL,
     CONSTRAINT analytics_daily_restaurant_stats_counts_nonnegative CHECK (((adult_count >= 0) AND (child_count >= 0) AND (customer_count >= 0) AND (qualifying_session_count >= 0)))
 );
 
@@ -5325,6 +5409,20 @@ CREATE TABLE public.analytics_daily_restaurant_stats (
 --
 
 COMMENT ON TABLE public.analytics_daily_restaurant_stats IS 'Sealed Lisbon-day value-analytics metrics; today is computed live and not stored here until sealed.';
+
+
+--
+-- Name: COLUMN analytics_daily_restaurant_stats.dine_in_revenue; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.analytics_daily_restaurant_stats.dine_in_revenue IS 'Portion of revenue from sessions with ordering_channel=dine_in (legacy rows treated as dine_in).';
+
+
+--
+-- Name: COLUMN analytics_daily_restaurant_stats.takeaway_revenue; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.analytics_daily_restaurant_stats.takeaway_revenue IS 'Portion of revenue from sessions with ordering_channel=takeaway.';
 
 
 --
@@ -5703,6 +5801,26 @@ COMMENT ON COLUMN public.kitchen_screens.shared_prep_tray IS 'When true: the kit
 
 
 --
+-- Name: menu_catalog_signals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.menu_catalog_signals (
+    restaurant_id uuid NOT NULL,
+    version integer NOT NULL,
+    bumped_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE ONLY public.menu_catalog_signals REPLICA IDENTITY FULL;
+
+
+--
+-- Name: TABLE menu_catalog_signals; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.menu_catalog_signals IS 'Guest Realtime doorbell: mirrors restaurants.menu_catalog_version after dashboard menu writes.';
+
+
+--
 -- Name: menu_categories; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5764,12 +5882,21 @@ CREATE TABLE public.menu_items (
     station_print_zh boolean DEFAULT false NOT NULL,
     time_slot_id uuid,
     print_station_ids uuid[] DEFAULT '{}'::uuid[] NOT NULL,
+    takeaway_role text DEFAULT 'none'::text NOT NULL,
+    takeaway_price numeric,
+    video_url text,
+    rail_video_url text,
+    video_effect text,
     CONSTRAINT menu_items_item_code_max_len_10 CHECK ((char_length(btrim((item_code)::text)) <= 10)),
     CONSTRAINT menu_items_item_code_not_blank CHECK ((btrim((item_code)::text) <> ''::text)),
     CONSTRAINT menu_items_limit_requires_overage_price CHECK ((((per_person_qty_limit IS NULL) AND (over_limit_unit_price IS NULL)) OR ((per_person_qty_limit IS NOT NULL) AND (over_limit_unit_price IS NOT NULL)))),
     CONSTRAINT menu_items_over_limit_unit_price_check CHECK (((over_limit_unit_price IS NULL) OR (over_limit_unit_price >= (0)::numeric))),
     CONSTRAINT menu_items_per_person_qty_limit_check CHECK (((per_person_qty_limit IS NULL) OR (per_person_qty_limit >= 1))),
-    CONSTRAINT menu_items_vat_rate_range CHECK (((vat_rate >= (0)::numeric) AND (vat_rate <= (100)::numeric)))
+    CONSTRAINT menu_items_takeaway_price_when_takeaway_menu CHECK (((takeaway_role <> ALL (ARRAY['sellable'::text, 'takeaway_only'::text])) OR ((takeaway_price IS NOT NULL) AND (takeaway_price > (0)::numeric)))),
+    CONSTRAINT menu_items_takeaway_role_check CHECK ((takeaway_role = ANY (ARRAY['none'::text, 'sellable'::text, 'takeaway_only'::text, 'packaging'::text]))),
+    CONSTRAINT menu_items_vat_rate_range CHECK (((vat_rate >= (0)::numeric) AND (vat_rate <= (100)::numeric))),
+    CONSTRAINT menu_items_video_effect_check CHECK (((video_effect IS NULL) OR (video_effect = ANY (ARRAY['push'::text, 'steam'::text, 'gloss'::text, 'pan'::text, 'bubbles'::text, 'frost'::text])))),
+    CONSTRAINT menu_items_video_fields_together_check CHECK ((((video_url IS NULL) = (video_effect IS NULL)) AND ((video_url IS NULL) = (rail_video_url IS NULL)) AND ((video_url IS NULL) OR (image_url IS NOT NULL))))
 );
 
 
@@ -5841,6 +5968,41 @@ COMMENT ON COLUMN public.menu_items.flavor_codes IS 'Display-only flavor hint co
 --
 
 COMMENT ON COLUMN public.menu_items.time_slot_id IS 'Menu time slot (buffet_time_slots). Null = all day. Guest menu + append use the slot nearest to the table session opened_at (lib/menu-time-slot).';
+
+
+--
+-- Name: COLUMN menu_items.takeaway_role; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.takeaway_role IS 'none=dine-in only; sellable=dine-in+takeaway; takeaway_only=takeaway menu only; packaging=checkout supply only.';
+
+
+--
+-- Name: COLUMN menu_items.takeaway_price; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.takeaway_price IS 'Unit price when takeaway_role is sellable or takeaway_only; ignored otherwise.';
+
+
+--
+-- Name: COLUMN menu_items.video_url; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.video_url IS 'Guest detail motion video (mp4 ≤1MB, menu-images bucket); null = photo only. Shown only when Pro menu_dish_video + feature menu_dish_video_enabled.';
+
+
+--
+-- Name: COLUMN menu_items.rail_video_url; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.rail_video_url IS 'Guest recommended-rail motion video (480×360 mp4); set/cleared with video_url.';
+
+
+--
+-- Name: COLUMN menu_items.video_effect; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.video_effect IS 'Motion template: push|steam|gloss|pan|bubbles|frost; set/cleared with video_url.';
 
 
 --
@@ -6023,7 +6185,7 @@ CREATE TABLE public.platform_admin_audit_log (
 
 CREATE TABLE public.platform_pro_settings (
     id text DEFAULT 'default'::text NOT NULL,
-    premium_keys jsonb DEFAULT '["value_analytics", "abnormal_ops", "operation_logs"]'::jsonb NOT NULL,
+    premium_keys jsonb DEFAULT '["value_analytics", "abnormal_ops", "operation_logs", "menu_dish_video"]'::jsonb NOT NULL,
     wechat_url text,
     whatsapp_url text,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -6035,7 +6197,7 @@ CREATE TABLE public.platform_pro_settings (
 -- Name: TABLE platform_pro_settings; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.platform_pro_settings IS 'Singleton: which premium keys require Pro + upgrade contact links for tenant upsell page.';
+COMMENT ON TABLE public.platform_pro_settings IS 'Legacy singleton (premium_keys / contact links). Entitlement+pricing moved to pro_feature_products + restaurant_pro_feature_grants; do not use for new gates.';
 
 
 --
@@ -6202,6 +6364,29 @@ COMMENT ON COLUMN public.print_stations.kitchen_enabled IS 'When true: station u
 
 
 --
+-- Name: pro_feature_products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.pro_feature_products (
+    feature_key text NOT NULL,
+    price_month_eur numeric(12,2) DEFAULT 0 NOT NULL,
+    price_year_eur numeric(12,2) DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT pro_feature_products_feature_key_check CHECK ((feature_key = ANY (ARRAY['value_analytics'::text, 'abnormal_ops'::text, 'operation_logs'::text, 'menu_dish_video'::text, 'menu_dish_list_video'::text]))),
+    CONSTRAINT pro_feature_products_price_month_eur_check CHECK ((price_month_eur >= (0)::numeric)),
+    CONSTRAINT pro_feature_products_price_year_eur_check CHECK ((price_year_eur >= (0)::numeric))
+);
+
+
+--
+-- Name: TABLE pro_feature_products; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.pro_feature_products IS 'Platform Pro product catalog: monthly/yearly EUR list prices per premium feature key.';
+
+
+--
 -- Name: restaurant_installations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6227,6 +6412,25 @@ CREATE TABLE public.restaurant_installations (
 --
 
 COMMENT ON TABLE public.restaurant_installations IS 'On-prem install codes + check-in identity; one pending and one claimed per restaurant.';
+
+
+--
+-- Name: restaurant_pro_feature_grants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.restaurant_pro_feature_grants (
+    restaurant_id uuid NOT NULL,
+    feature_key text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT restaurant_pro_feature_grants_feature_key_check CHECK ((feature_key = ANY (ARRAY['value_analytics'::text, 'abnormal_ops'::text, 'operation_logs'::text, 'menu_dish_video'::text, 'menu_dish_list_video'::text])))
+);
+
+
+--
+-- Name: TABLE restaurant_pro_feature_grants; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.restaurant_pro_feature_grants IS 'Per-restaurant Pro feature entitlements. Usable only when restaurant Pro is effective.';
 
 
 --
@@ -6290,8 +6494,16 @@ CREATE TABLE public.restaurant_table_groups (
     remarks text,
     sort_order integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    is_takeaway boolean DEFAULT false NOT NULL,
     CONSTRAINT restaurant_table_groups_name_len CHECK (((char_length(btrim(name)) >= 1) AND (char_length(btrim(name)) <= 32)))
 );
+
+
+--
+-- Name: COLUMN restaurant_table_groups.is_takeaway; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.restaurant_table_groups.is_takeaway IS 'When true and restaurants.feature_flags.takeaway_ordering is on, tables in this group are takeaway desks.';
 
 
 --
@@ -6641,6 +6853,28 @@ COMMENT ON COLUMN public.session_collected_payments.party_id IS 'Stable seat/tic
 
 
 --
+-- Name: subscription_base_product; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.subscription_base_product (
+    id text DEFAULT 'default'::text NOT NULL,
+    price_month_eur numeric(12,2) DEFAULT 0 NOT NULL,
+    price_year_eur numeric(12,2) DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT subscription_base_product_id_check CHECK ((id = 'default'::text)),
+    CONSTRAINT subscription_base_product_price_month_eur_check CHECK ((price_month_eur >= (0)::numeric)),
+    CONSTRAINT subscription_base_product_price_year_eur_check CHECK ((price_year_eur >= (0)::numeric))
+);
+
+
+--
+-- Name: TABLE subscription_base_product; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.subscription_base_product IS 'Platform base subscription list price (EUR month/year). Store quote = this + granted Pro feature prices.';
+
+
+--
 -- Name: table_checkout_signals; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6790,6 +7024,8 @@ CREATE TABLE public.table_sessions (
     opened_by_user_id uuid,
     settled_payable_amount numeric,
     opened_by_name text,
+    ordering_channel text DEFAULT 'dine_in'::text NOT NULL,
+    CONSTRAINT table_sessions_ordering_channel_check CHECK ((ordering_channel = ANY (ARRAY['dine_in'::text, 'takeaway'::text]))),
     CONSTRAINT table_sessions_status_check CHECK ((status = ANY (ARRAY['open'::text, 'billing'::text, 'closed'::text])))
 );
 
@@ -6822,6 +7058,13 @@ COMMENT ON COLUMN public.table_sessions.settled_payable_amount IS 'Billable sess
 --
 
 COMMENT ON COLUMN public.table_sessions.opened_by_name IS 'Opener label stamped at session open (same ladder as resolveStaffOperatorDisplayName / Auth username). Board and history read this; do not re-resolve from opened_by_user_id for display.';
+
+
+--
+-- Name: COLUMN table_sessions.ordering_channel; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.ordering_channel IS 'Stamped at open: dine_in | takeaway. Sole source for menu price, print badge, revenue split after open.';
 
 
 --
@@ -7001,6 +7244,14 @@ ALTER TABLE ONLY public.kitchen_screens
 
 
 --
+-- Name: menu_catalog_signals menu_catalog_signals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_catalog_signals
+    ADD CONSTRAINT menu_catalog_signals_pkey PRIMARY KEY (restaurant_id);
+
+
+--
 -- Name: menu_categories menu_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7145,11 +7396,27 @@ ALTER TABLE ONLY public.print_stations
 
 
 --
+-- Name: pro_feature_products pro_feature_products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.pro_feature_products
+    ADD CONSTRAINT pro_feature_products_pkey PRIMARY KEY (feature_key);
+
+
+--
 -- Name: restaurant_installations restaurant_installations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.restaurant_installations
     ADD CONSTRAINT restaurant_installations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: restaurant_pro_feature_grants restaurant_pro_feature_grants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restaurant_pro_feature_grants
+    ADD CONSTRAINT restaurant_pro_feature_grants_pkey PRIMARY KEY (restaurant_id, feature_key);
 
 
 --
@@ -7222,6 +7489,14 @@ ALTER TABLE ONLY public.restaurants
 
 ALTER TABLE ONLY public.session_collected_payments
     ADD CONSTRAINT session_collected_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: subscription_base_product subscription_base_product_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_base_product
+    ADD CONSTRAINT subscription_base_product_pkey PRIMARY KEY (id);
 
 
 --
@@ -7744,6 +8019,13 @@ CREATE INDEX idx_restaurant_installations_restaurant ON public.restaurant_instal
 
 
 --
+-- Name: idx_restaurant_pro_feature_grants_feature; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_restaurant_pro_feature_grants_feature ON public.restaurant_pro_feature_grants USING btree (feature_key);
+
+
+--
 -- Name: idx_restaurant_table_group_members_group; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7856,6 +8138,13 @@ CREATE INDEX idx_table_sessions_merge_into ON public.table_sessions USING btree 
 
 
 --
+-- Name: idx_table_sessions_restaurant_channel_opened; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_table_sessions_restaurant_channel_opened ON public.table_sessions USING btree (restaurant_id, ordering_channel, opened_at DESC);
+
+
+--
 -- Name: idx_table_sessions_restaurant_closed_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7958,6 +8247,13 @@ CREATE INDEX restaurant_staff_accounts_user_id_idx ON public.restaurant_staff_ac
 --
 
 CREATE UNIQUE INDEX restaurant_table_group_members_restaurant_table_unique ON public.restaurant_table_group_members USING btree (restaurant_id, table_id);
+
+
+--
+-- Name: restaurant_table_groups_one_takeaway_per_restaurant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX restaurant_table_groups_one_takeaway_per_restaurant ON public.restaurant_table_groups USING btree (restaurant_id) WHERE is_takeaway;
 
 
 --
@@ -8196,6 +8492,13 @@ CREATE TRIGGER trg_close_table_order_rounds_on_session_status AFTER UPDATE OF st
 --
 
 CREATE TRIGGER trg_kitchen_screen_station_limit BEFORE INSERT OR UPDATE ON public.kitchen_screen_stations FOR EACH ROW EXECUTE FUNCTION public.enforce_kitchen_screen_station_limit();
+
+
+--
+-- Name: table_sessions trg_reject_cross_channel_session_merge; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_reject_cross_channel_session_merge BEFORE UPDATE OF merge_into_session_id ON public.table_sessions FOR EACH ROW EXECUTE FUNCTION public.reject_cross_channel_session_merge();
 
 
 --
@@ -8511,6 +8814,14 @@ ALTER TABLE ONLY public.kitchen_screens
 
 
 --
+-- Name: menu_catalog_signals menu_catalog_signals_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_catalog_signals
+    ADD CONSTRAINT menu_catalog_signals_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
 -- Name: menu_categories menu_categories_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8772,6 +9083,14 @@ ALTER TABLE ONLY public.restaurant_installations
 
 ALTER TABLE ONLY public.restaurant_installations
     ADD CONSTRAINT restaurant_installations_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: restaurant_pro_feature_grants restaurant_pro_feature_grants_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.restaurant_pro_feature_grants
+    ADD CONSTRAINT restaurant_pro_feature_grants_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
 
 
 --
@@ -9475,6 +9794,19 @@ CREATE POLICY kitchen_screens_staff_select ON public.kitchen_screens FOR SELECT 
 
 
 --
+-- Name: menu_catalog_signals; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.menu_catalog_signals ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: menu_catalog_signals menu_catalog_signals_select_public; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_catalog_signals_select_public ON public.menu_catalog_signals FOR SELECT TO authenticated, anon USING (true);
+
+
+--
 -- Name: menu_categories; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9860,10 +10192,22 @@ CREATE POLICY print_stations_public_read ON public.print_stations FOR SELECT USI
 
 
 --
+-- Name: pro_feature_products; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.pro_feature_products ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: restaurant_installations; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.restaurant_installations ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: restaurant_pro_feature_grants; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.restaurant_pro_feature_grants ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: restaurant_roles; Type: ROW SECURITY; Schema: public; Owner: -
@@ -10052,6 +10396,12 @@ CREATE POLICY session_collected_payments_owner_select ON public.session_collecte
 
 
 --
+-- Name: subscription_base_product; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.subscription_base_product ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: table_checkout_signals; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10219,5 +10569,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict USlL59zMbWqSpNkchwYSIfAcCc1cPEXasNEn3Wsas7e7iFicPteRypnmGkJBFCO
+\unrestrict EHd0E6bJPJVV1bfuOZpSYAeEb0pDh6JR6Dju2MTSsWQUT4bOgfXyUd1almIOlyr
 

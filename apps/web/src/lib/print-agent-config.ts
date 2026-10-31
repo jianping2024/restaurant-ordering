@@ -276,8 +276,11 @@ export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
   return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
 }
 
-/** Default / clamp for Chinese bitmap font px (sole store: print_agent_config.han_bitmap_font_px). */
-export const HAN_BITMAP_FONT_PX_DEFAULT = 24;
+/**
+ * Legacy cloud field (Agent 0.5.58+ reads agent config only).
+ * Kept for normalize/merge of old print_agent_config JSON; no UI/API writer.
+ */
+export const HAN_BITMAP_FONT_PX_DEFAULT = 22;
 export const HAN_BITMAP_FONT_PX_MIN = 16;
 export const HAN_BITMAP_FONT_PX_MAX = 40;
 
@@ -290,7 +293,7 @@ export function resolveHanBitmapFontPx(raw: unknown): number {
   );
 }
 
-/** Read Han bitmap size from restaurants.print_agent_config (default 24). */
+/** Legacy read of cloud han_bitmap_font_px (default 22). Agent ignores payload. */
 export function hanBitmapFontPxFromConfig(raw: unknown): number {
   return normalizePrintAgentCloudConfig(raw).han_bitmap_font_px ?? HAN_BITMAP_FONT_PX_DEFAULT;
 }

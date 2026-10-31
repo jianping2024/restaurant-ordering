@@ -11,7 +11,6 @@ import {
 } from '@/lib/restaurant-features';
 import {
   isStationSlipShowCategoryGroupEnabled,
-  hanBitmapFontPxFromConfig,
   kitchenReadyAfterMinutesFromConfig,
 } from '@/lib/print-agent-config';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
@@ -123,7 +122,6 @@ export type PrintSettingsPageData = {
   flags: ResolvedRestaurantFeatureFlags;
   credentialTtlDays: number;
   stationSlipShowCategoryGroup: boolean;
-  hanBitmapFontPx: number;
   printLocale: PrintLocale;
 };
 
@@ -145,7 +143,6 @@ export async function loadPrintSettingsPageData(
     flags: normalizeRestaurantFeatureFlags(featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(config),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(config),
-    hanBitmapFontPx: hanBitmapFontPxFromConfig(config),
     printLocale: normalizePrintLocale(printLocale),
   };
 }

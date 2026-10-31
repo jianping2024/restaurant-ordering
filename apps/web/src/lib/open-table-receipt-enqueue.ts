@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
 import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
 import { normalizePrintLocale } from '@/lib/i18n';
-import { hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 import { formatStationTicketOrderTime } from '@/lib/table-guest-count';
@@ -96,7 +95,6 @@ export async function enqueueOpenTableReceiptPrint(params: {
     children: 0,
   };
   const locale = normalizePrintLocale(restaurantRow?.print_locale ?? null);
-  const hanBitmapFontPx = hanBitmapFontPxFromConfig(restaurantRow?.print_agent_config);
   const printerId = await resolveReceiptPrinterId(admin, restaurantId, undefined, locale);
   const firstOrder = orderRows[0]!;
   const printTime = formatStationTicketOrderTime(new Date().toISOString());
@@ -105,7 +103,6 @@ export async function enqueueOpenTableReceiptPrint(params: {
   const payload = {
     order_id: firstOrder.id,
     locale,
-    han_bitmap_font_px: hanBitmapFontPx,
     idempotency_key: idempotencyKey,
     ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: OPEN_TABLE_RECEIPT_VARIANT,

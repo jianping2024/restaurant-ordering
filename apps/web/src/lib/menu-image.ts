@@ -11,10 +11,10 @@ export const MENU_IMAGE_MAX_BYTES = 1048576;
 
 /**
  * Sole Cache-Control for every `menu-images` upload (dish photo, dish videos, storefront
- * logo/cover): one year. Safe because each upload gets a new random object key, so a
+ * logo/cover): three years. Safe because each upload gets a new random object key, so a
  * replaced file is a new URL and a cached copy can never go stale.
  */
-export const MENU_STORAGE_CACHE_CONTROL = '31536000';
+export const MENU_STORAGE_CACHE_CONTROL = '94608000';
 
 export const MENU_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 

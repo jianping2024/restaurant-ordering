@@ -72,7 +72,7 @@ export function pickDishVideoTierWithinCap(
 
 /**
  * Storage key for one dish video. Unique `objectKey` per upload → new public URL,
- * so the object can use the one-year `MENU_STORAGE_CACHE_CONTROL`.
+ * so the object can use the three-year `MENU_STORAGE_CACHE_CONTROL`.
  */
 export function dishVideoObjectPath(
   restaurantId: string,

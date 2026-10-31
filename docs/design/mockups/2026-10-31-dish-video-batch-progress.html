@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设计图 · 批量生成动图进度</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --card: #ffffff;
+      --bg: #f4f4f5;
+      --gold: #c4a35a;
+      --gold-soft: rgba(196, 163, 90, 0.16);
+      --ok: #059669;
+      --warn: #b45309;
+      --danger: #dc2626;
+      --dash-bg: #0f1115;
+      --dash-panel: #171a21;
+      --dash-line: #2a2f3a;
+      --dash-text: #e8eaed;
+      --dash-muted: #9aa3b2;
+      --dash-blue: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    header.page {
+      padding: 28px 32px 12px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    header.page h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    header.page p { margin: 0; color: var(--muted); font-size: 14px; max-width: 72ch; }
+    .rules {
+      margin: 16px auto 0;
+      max-width: 980px;
+      padding: 0 32px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .rule {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .rule strong { display: block; margin-bottom: 4px; }
+    .rule span { color: var(--muted); }
+    .path-box {
+      margin: 12px auto 0;
+      max-width: 980px;
+      padding: 0 32px;
+    }
+    .path-box a {
+      display: inline-block;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--ink);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .path-box a:hover { border-color: var(--gold); background: var(--gold-soft); }
+    main {
+      max-width: 980px;
+      margin: 20px auto 24px;
+      padding: 0 32px;
+      display: grid;
+      gap: 16px;
+    }
+    .compare {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 820px) {
+      .compare { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+    }
+    .panel-h {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .panel-h h2 { margin: 0; font-size: 15px; }
+    .tag {
+      font-size: 11px;
+      color: var(--muted);
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+    .tag.bad { color: #991b1b; background: #fee2e2; }
+    .tag.good { color: #065f46; background: #d1fae5; }
+    .panel-b { padding: 14px 16px 16px; }
+    .caption {
+      margin: 0 0 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .dash {
+      background: var(--dash-bg);
+      border: 1px solid var(--dash-line);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--dash-text);
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+      padding: 10px 12px;
+      background: var(--dash-panel);
+      border: 1px solid var(--dash-line);
+      border-radius: 10px;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      line-height: 1.2;
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .btn.add {
+      background: var(--dash-blue);
+      color: #fff;
+    }
+    .btn.outline {
+      background: transparent;
+      border-color: var(--dash-line);
+      color: var(--dash-text);
+    }
+    .btn.outline[aria-disabled="true"] {
+      opacity: 0.85;
+      cursor: wait;
+    }
+    /* Running label: fixed digit slots — digit count change must not resize the chip */
+    .run-label {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+    .run-label .num {
+      display: inline-block;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+    .btn.linkish {
+      background: transparent;
+      border: 0;
+      color: #34d399;
+      padding: 0 2px;
+      font-size: 13px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .btn.linkish.danger { color: #f87171; }
+    .sep {
+      width: 1px;
+      height: 14px;
+      background: var(--dash-line);
+      flex-shrink: 0;
+    }
+    .spin {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(232, 234, 237, 0.25);
+      border-top-color: #cbd5e1;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Current bug: loading hides label, only spinner in a box */
+    .btn.broken {
+      position: relative;
+      min-width: 40px;
+      min-height: 32px;
+      padding: 7px 14px;
+    }
+    .btn.broken .label { visibility: hidden; }
+    .btn.broken .spin-abs {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+    .note-line {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--dash-muted);
+    }
+    .note-line.ok { color: #6ee7b7; }
+    .note-line.warn { color: #fbbf24; }
+    .states {
+      display: grid;
+      gap: 10px;
+    }
+    .state-row {
+      display: grid;
+      gap: 6px;
+    }
+    .state-row strong {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .demo-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .demo-bar button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+    .demo-bar button:hover { background: #f9fafb; }
+    .demo-bar button.active {
+      border-color: var(--gold);
+      background: var(--gold-soft);
+    }
+    .meter {
+      margin-top: 8px;
+      height: 4px;
+      width: 168px; /* fixed track — fill grows inside, outer box never resizes */
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .meter > i {
+      display: block;
+      height: 100%;
+      background: var(--gold);
+      border-radius: inherit;
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+    footer.note {
+      max-width: 980px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .out {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    /* Dish list row (menu manager) — effect type when video exists */
+    .dish-list {
+      margin-top: 12px;
+      border: 1px solid var(--dash-line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--dash-panel);
+    }
+    .dish-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--dash-line);
+    }
+    .dish-row:first-child { border-top: 0; }
+    .thumb {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #0b0d12;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      overflow: hidden;
+    }
+    .thumb .play {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.72);
+      color: #fff;
+      font-size: 7px;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+    .dish-body { min-width: 0; flex: 1; }
+    .dish-name {
+      font-size: 14px;
+      font-weight: 550;
+      color: var(--dash-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dish-meta {
+      margin-top: 3px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--dash-muted);
+    }
+    .effect-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 1px 8px;
+      border: 1px solid rgba(196, 163, 90, 0.45);
+      background: rgba(196, 163, 90, 0.12);
+      color: #e8d5a3;
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .effect-chip .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+    .dish-price {
+      flex-shrink: 0;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      color: var(--dash-text);
+      min-width: 3.2rem;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <header class="page">
+    <h1>批量生成动图 · 进度提示设计图</h1>
+    <p>
+      生成过程中，工具栏必须能看见「已完成 / 总数」。不要只用转圈把字藏掉。
+      菜品列表：有动图时显示效果类型（推近 / 热气腾腾…），无动图不显示。
+    </p>
+  </header>
+
+  <div class="rules">
+    <div class="rule">
+      <strong>进度唯一写法</strong>
+      <span>工具栏一枚控件：小转圈 +「生成动图 {done}/{total}…」。数字随每道完成/失败 +1。</span>
+    </div>
+    <div class="rule">
+      <strong>数字不晃</strong>
+      <span>done / total 用等宽数字位（tabular-nums + 按 total 位数定宽）。进位（9→10）不改控件宽度。</span>
+    </div>
+    <div class="rule">
+      <strong>列表效果</strong>
+      <span>有 <code>video_url</code> 时，行内显示效果中文名（与编辑芯片同一套）；缩略图 ▶ 可保留。无动图不显示效果。</span>
+    </div>
+    <div class="rule">
+      <strong>禁止</strong>
+      <span>Button.loading 藏进度字；列表不要再平行写死「有动图」而看不到是哪种效果。</span>
+    </div>
+    <div class="rule">
+      <strong>跑完</strong>
+      <span>控件恢复可点文案；旁路一句成功或「n 成功 / m 失败」。</span>
+    </div>
+  </div>
+
+  <div class="path-box">
+    <a id="file-link" href="#">打开本文件</a>
+  </div>
+
+  <main>
+    <div class="compare">
+      <section class="panel" aria-label="现在有问题">
+        <div class="panel-h">
+          <h2>现在（有问题）</h2>
+          <span class="tag bad">loading 藏字</span>
+        </div>
+        <div class="panel-b">
+          <p class="caption">状态里其实有 done/total，但 Button loading 只剩转圈——和线上截图一致。</p>
+          <div class="dash">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline broken" aria-busy="true" title="生成动图 3/12…（看不见）">
+                <span class="label">生成动图 3/12…</span>
+                <span class="spin-abs"><span class="spin" aria-hidden="true"></span></span>
+              </span>
+              <span class="sep" aria-hidden="true"></span>
+              <span class="btn linkish">本页全部上架</span>
+              <span class="btn linkish danger">本页全部下架</span>
+            </div>
+            <p class="note-line">员工看不到做到第几道，只能干等。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="推荐终态">
+        <div class="panel-h">
+          <h2>推荐终态</h2>
+          <span class="tag good">转圈 + 数字同显</span>
+        </div>
+        <div class="panel-b">
+          <p class="caption">不用 loading 藏字；数字位按 total 定宽（tabular-nums）。点「生成中」看 0→12，控件不应左右抖。</p>
+          <div class="demo-bar" role="tablist" aria-label="演示状态">
+            <button type="button" data-demo="idle" class="active">待生成</button>
+            <button type="button" data-demo="run">生成中</button>
+            <button type="button" data-demo="done">全部成功</button>
+            <button type="button" data-demo="partial">部分失败</button>
+          </div>
+          <div class="dash" id="demo-dash">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline" id="demo-btn" aria-disabled="true">
+                <span class="spin" id="demo-spin" aria-hidden="true"></span>
+                <span class="run-label" id="demo-label" aria-live="polite" aria-label="生成动图 3/12">
+                  <span>生成动图&nbsp;</span>
+                  <span class="num" data-part="done" style="min-width:2ch">3</span>
+                  <span>/</span>
+                  <span class="num" data-part="total" style="min-width:2ch">12</span>
+                  <span>…</span>
+                </span>
+              </span>
+              <span class="sep" aria-hidden="true"></span>
+              <span class="btn linkish">本页全部上架</span>
+              <span class="btn linkish danger">本页全部下架</span>
+            </div>
+            <div class="meter" id="demo-meter" aria-hidden="true"><i id="demo-meter-fill"></i></div>
+            <p class="note-line" id="demo-note"></p>
+          </div>
+          <p class="out" id="demo-out">状态：生成中 · 文案「生成动图 3/12…」始终可见</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" aria-label="菜品列表 · 效果类型">
+      <div class="panel-h">
+        <h2>菜品列表 · 有动图显示效果</h2>
+        <span class="tag good">效果名 · 非「有动图」</span>
+      </div>
+      <div class="panel-b">
+        <p class="caption">
+          缩略图角标 ▶ = 有动图；行内金色芯片 = <code>video_effect</code> 对应文案（与表单/批量面板同一套）。
+          无动图、无图行不出现效果芯片。
+        </p>
+        <div class="dash" style="padding:10px">
+          <div class="toolbar" style="margin-bottom:10px">
+            <span class="btn add">+ 添加菜品</span>
+            <span class="btn outline">▶ 批量生成动图（2）</span>
+            <span class="sep"></span>
+            <span class="btn linkish">本页全部上架</span>
+            <span class="btn linkish danger">本页全部下架</span>
+          </div>
+          <div class="dish-list" role="list">
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">🍋<span class="play">▶</span></div>
+              <div class="dish-body">
+                <div class="dish-name">R26 冰块加柠檬</div>
+                <div class="dish-meta">
+                  <span>饮品 · [R]</span>
+                  <span class="effect-chip" title="video_effect=frost"><span class="dot" aria-hidden="true"></span>冰爽闪光</span>
+                </div>
+              </div>
+              <div class="dish-price">€1.50</div>
+            </div>
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">💧<span class="play">▶</span></div>
+              <div class="dish-body">
+                <div class="dish-name">R37 常温水</div>
+                <div class="dish-meta">
+                  <span>饮品 · [R]</span>
+                  <span class="effect-chip" title="video_effect=bubbles"><span class="dot" aria-hidden="true"></span>气泡上升</span>
+                </div>
+              </div>
+              <div class="dish-price">€1.00</div>
+            </div>
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">🍜</div>
+              <div class="dish-body">
+                <div class="dish-name">201 红烧牛肉</div>
+                <div class="dish-meta">
+                  <span>热菜 · 有静图、无动图（可进批量）</span>
+                </div>
+              </div>
+              <div class="dish-price">€12.50</div>
+            </div>
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">🥩<span class="play">▶</span></div>
+              <div class="dish-body">
+                <div class="dish-name">202 宫保鸡丁</div>
+                <div class="dish-meta">
+                  <span>热菜 · [R]</span>
+                  <span class="effect-chip" title="video_effect=steam"><span class="dot" aria-hidden="true"></span>热气腾腾</span>
+                </div>
+              </div>
+              <div class="dish-price">€11.00</div>
+            </div>
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">🍰<span class="play">▶</span></div>
+              <div class="dish-body">
+                <div class="dish-name">401 提拉米苏</div>
+                <div class="dish-meta">
+                  <span>甜点</span>
+                  <span class="effect-chip" title="video_effect=gloss"><span class="dot" aria-hidden="true"></span>光泽扫过</span>
+                </div>
+              </div>
+              <div class="dish-price">€5.50</div>
+            </div>
+            <div class="dish-row" role="listitem">
+              <div class="thumb" aria-hidden="true">🥗</div>
+              <div class="dish-body">
+                <div class="dish-name">204 时蔬拼盘</div>
+                <div class="dish-meta">
+                  <span>热菜 · 无静图（不进批量、无效果）</span>
+                </div>
+              </div>
+              <div class="dish-price">€6.50</div>
+            </div>
+          </div>
+        </div>
+        <p class="out">效果文案唯一来源：<code>DISH_VIDEO_EFFECT_MESSAGE_KEYS</code>（推近 / 热气腾腾 / 光泽扫过 / 镜头横移 / 气泡上升 / 冰爽闪光）。</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <h2>推荐终态 · 进度状态一览</h2>
+        <span class="tag">同一控件，不同文案</span>
+      </div>
+      <div class="panel-b states">
+        <div class="state-row">
+          <strong>1. 待生成（有候选）</strong>
+          <div class="dash">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline">▶ 批量生成动图（12）</span>
+              <span class="sep"></span>
+              <span class="btn linkish">本页全部上架</span>
+            </div>
+          </div>
+        </div>
+        <div class="state-row">
+          <strong>2. 生成中（第 0 道刚开始 → 做到一半）</strong>
+          <div class="dash">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline" aria-disabled="true">
+                <span class="spin"></span>
+                <span class="run-label">
+                  <span>生成动图&nbsp;</span>
+                  <span class="num" style="min-width:2ch">0</span><span>/</span><span class="num" style="min-width:2ch">12</span><span>…</span>
+                </span>
+              </span>
+              <span class="sep"></span>
+              <span class="btn linkish">本页全部上架</span>
+            </div>
+            <div class="meter"><i style="width:0%"></i></div>
+          </div>
+          <div class="dash" style="margin-top:8px">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline" aria-disabled="true">
+                <span class="spin"></span>
+                <span class="run-label">
+                  <span>生成动图&nbsp;</span>
+                  <span class="num" style="min-width:2ch">7</span><span>/</span><span class="num" style="min-width:2ch">12</span><span>…</span>
+                </span>
+              </span>
+              <span class="sep"></span>
+              <span class="btn linkish">本页全部上架</span>
+            </div>
+            <div class="meter"><i style="width:58%"></i></div>
+          </div>
+          <div class="dash" style="margin-top:8px">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline" aria-disabled="true">
+                <span class="spin"></span>
+                <span class="run-label">
+                  <span>生成动图&nbsp;</span>
+                  <span class="num" style="min-width:3ch">99</span><span>/</span><span class="num" style="min-width:3ch">120</span><span>…</span>
+                </span>
+              </span>
+              <span class="sep"></span>
+              <span class="btn linkish">本页全部上架</span>
+            </div>
+            <div class="meter"><i style="width:82%"></i></div>
+            <p class="note-line" style="margin-top:8px">三位数同样按 total 位数定宽，9→10→100 控件不抖。</p>
+          </div>
+        </div>
+        <div class="state-row">
+          <strong>3. 跑完</strong>
+          <div class="dash">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline">▶ 批量生成动图（3）</span>
+              <span class="note-line ok" style="margin:0">已为 12 道菜生成动图（效果：热气腾腾）</span>
+            </div>
+          </div>
+          <div class="dash" style="margin-top:8px">
+            <div class="toolbar">
+              <span class="btn add">+ 添加菜品</span>
+              <span class="btn outline">▶ 批量生成动图（2）</span>
+              <span class="note-line warn" style="margin:0">10 道成功，2 道失败</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="note">
+    文件：<code>docs/design/mockups/2026-10-31-dish-video-batch-progress.html</code>
+    · 本页为静态设计示意，不是线上页面。确认后再改产品代码。
+  </footer>
+
+  <script>
+    const fileLink = document.getElementById('file-link');
+    fileLink.href = location.href;
+    fileLink.textContent = location.href;
+
+    const demoBtn = document.getElementById('demo-btn');
+    const demoSpin = document.getElementById('demo-spin');
+    const demoLabel = document.getElementById('demo-label');
+    const demoNote = document.getElementById('demo-note');
+    const demoMeter = document.getElementById('demo-meter');
+    const demoFill = document.getElementById('demo-meter-fill');
+    const demoOut = document.getElementById('demo-out');
+    const tabs = document.querySelectorAll('.demo-bar button');
+
+    let timer = null;
+    let done = 3;
+    const total = 12;
+    const digitSlots = String(total).length;
+    const digitCh = `${digitSlots}ch`;
+
+    function stopTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function setIdleLabel(text) {
+      demoLabel.className = '';
+      demoLabel.removeAttribute('aria-label');
+      demoLabel.textContent = text;
+    }
+
+    function setRunCounts(current) {
+      if (!demoLabel.classList.contains('run-label')) {
+        demoLabel.className = 'run-label';
+        demoLabel.innerHTML =
+          '<span>生成动图&nbsp;</span>' +
+          `<span class="num" data-part="done" style="min-width:${digitCh}">0</span>` +
+          '<span>/</span>' +
+          `<span class="num" data-part="total" style="min-width:${digitCh}">${total}</span>` +
+          '<span>…</span>';
+      }
+      const d = demoLabel.querySelector('[data-part="done"]');
+      const t = demoLabel.querySelector('[data-part="total"]');
+      d.style.minWidth = digitCh;
+      t.style.minWidth = digitCh;
+      d.textContent = String(current);
+      t.textContent = String(total);
+      demoLabel.setAttribute('aria-label', `生成动图 ${current}/${total}`);
+    }
+
+    function paint(mode) {
+      stopTimer();
+      tabs.forEach((b) => b.classList.toggle('active', b.dataset.demo === mode));
+
+      if (mode === 'idle') {
+        demoSpin.hidden = true;
+        demoBtn.setAttribute('aria-disabled', 'false');
+        setIdleLabel('▶ 批量生成动图（12）');
+        demoNote.textContent = '';
+        demoNote.className = 'note-line';
+        demoMeter.hidden = true;
+        demoFill.style.width = '0%';
+        demoOut.textContent = '状态：待生成 · 可点打开确认面板';
+        return;
+      }
+
+      if (mode === 'run') {
+        done = 0;
+        demoSpin.hidden = false;
+        demoBtn.setAttribute('aria-disabled', 'true');
+        demoNote.textContent = '';
+        demoNote.className = 'note-line';
+        demoMeter.hidden = false;
+        const tick = () => {
+          setRunCounts(done);
+          demoFill.style.width = `${Math.round((done / total) * 100)}%`;
+          demoOut.textContent =
+            `状态：生成中 · 等宽 ${digitSlots} 位 · 「${done}/${total}」进位不晃`;
+          if (done >= total) {
+            stopTimer();
+            paint('done');
+            return;
+          }
+          done += 1;
+        };
+        tick();
+        timer = setInterval(tick, 650);
+        return;
+      }
+
+      if (mode === 'done') {
+        demoSpin.hidden = true;
+        demoBtn.setAttribute('aria-disabled', 'false');
+        setIdleLabel('▶ 批量生成动图（0）');
+        demoNote.textContent = '已为 12 道菜生成动图（效果：热气腾腾）';
+        demoNote.className = 'note-line ok';
+        demoMeter.hidden = true;
+        demoFill.style.width = '100%';
+        demoOut.textContent = '状态：全部成功 · 按钮恢复，旁路成功提示';
+        return;
+      }
+
+      if (mode === 'partial') {
+        demoSpin.hidden = true;
+        demoBtn.setAttribute('aria-disabled', 'false');
+        setIdleLabel('▶ 批量生成动图（2）');
+        demoNote.textContent = '10 道成功，2 道失败';
+        demoNote.className = 'note-line warn';
+        demoMeter.hidden = true;
+        demoOut.textContent = '状态：部分失败 · 失败菜仍可再进候选';
+      }
+    }
+
+    tabs.forEach((b) => b.addEventListener('click', () => paint(b.dataset.demo)));
+    paint('run');
+  </script>
+</body>
+</html>

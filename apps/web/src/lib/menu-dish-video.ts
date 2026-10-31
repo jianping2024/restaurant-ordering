@@ -32,6 +32,47 @@ export function menuItemEligibleForDishVideoBatch(item: {
   return Boolean(item.image_url) && !item.video_url;
 }
 
+/**
+ * Dashboard dish list: sole message-key for the motion effect chip / thumb a11y.
+ * Has `video_url` + valid `video_effect` → label key from {@link DISH_VIDEO_EFFECT_MESSAGE_KEYS};
+ * otherwise null (no generic “has video” copy).
+ */
+export function menuItemDishVideoListEffectLabelKey(item: {
+  video_url?: string | null;
+  video_effect?: string | null;
+}): (typeof DISH_VIDEO_EFFECT_MESSAGE_KEYS)[DishVideoEffect]['label'] | null {
+  if (!item.video_url || !isDishVideoEffect(item.video_effect)) return null;
+  return DISH_VIDEO_EFFECT_MESSAGE_KEYS[item.video_effect].label;
+}
+
+/**
+ * Split `dishVideoBatchRunning` (“…{done}/{total}…”) so UI can render fixed-width digit slots
+ * (tabular-nums + minWidth from total’s digit count — no layout jump on 9→10).
+ */
+export function splitDishVideoBatchRunningTemplate(
+  template: string,
+  done: number,
+  total: number,
+): {
+  before: string;
+  mid: string;
+  after: string;
+  done: number;
+  total: number;
+  digitSlots: number;
+} {
+  const [before = '', rest = ''] = template.split('{done}');
+  const [mid = '', after = ''] = rest.split('{total}');
+  return {
+    before,
+    mid,
+    after,
+    done,
+    total,
+    digitSlots: String(Math.max(0, total)).length,
+  };
+}
+
 /** Same cap as the photo bucket limit — each mp4 must fit. */
 export const DISH_VIDEO_MAX_BYTES = MENU_IMAGE_MAX_BYTES;
 

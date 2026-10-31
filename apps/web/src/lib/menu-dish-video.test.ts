@@ -8,8 +8,10 @@ import {
   dishVideoDeviceAllows,
   dishVideoObjectPath,
   isDishVideoEffect,
+  menuItemDishVideoListEffectLabelKey,
   menuItemEligibleForDishVideoBatch,
   pickDishVideoTierWithinCap,
+  splitDishVideoBatchRunningTemplate,
   stripMenuItemVideoFields,
 } from './menu-dish-video';
 import {
@@ -37,6 +39,22 @@ describe('dish video catalog', () => {
     assert.equal(menuItemEligibleForDishVideoBatch({ image_url: 'p', video_url: 'v' }), false);
     assert.equal(menuItemEligibleForDishVideoBatch({ image_url: null, video_url: null }), false);
     assert.equal(menuItemEligibleForDishVideoBatch({ image_url: '', video_url: null }), false);
+  });
+
+  it('list effect label key is only when video_url + valid effect', () => {
+    assert.equal(menuItemDishVideoListEffectLabelKey({ video_url: 'v', video_effect: 'steam' }), 'dishVideoEffectSteam');
+    assert.equal(menuItemDishVideoListEffectLabelKey({ video_url: 'v', video_effect: 'nope' }), null);
+    assert.equal(menuItemDishVideoListEffectLabelKey({ video_url: null, video_effect: 'steam' }), null);
+    assert.equal(menuItemDishVideoListEffectLabelKey({ video_url: '', video_effect: 'push' }), null);
+  });
+
+  it('batch running template splits with digit slots from total', () => {
+    const parts = splitDishVideoBatchRunningTemplate('生成动图 {done}/{total}…', 9, 12);
+    assert.equal(parts.before, '生成动图 ');
+    assert.equal(parts.mid, '/');
+    assert.equal(parts.after, '…');
+    assert.equal(parts.digitSlots, 2);
+    assert.equal(splitDishVideoBatchRunningTemplate('Generating {done}/{total}…', 0, 100).digitSlots, 3);
   });
 
   it('caps each mp4 at the photo bucket limit', () => {

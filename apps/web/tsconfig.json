@@ -51,7 +51,8 @@
     ".next-uat-pirata-roles/types/**/*.ts",
     ".next-uat-gtpwa4/types/**/*.ts",
     ".next-uat-batch/types/**/*.ts",
-    ".next-uat-dvbatch/types/**/*.ts"
+    ".next-uat-dvbatch/types/**/*.ts",
+    ".next-uat-progress/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

@@ -31,7 +31,7 @@ export function MenuItemListThumb({
 }: {
   item: CatalogThumbItem;
   size?: MenuItemListThumbSize;
-  /** Dashboard menu list: corner ▶ when the dish has a Pro motion video (label = a11y/title). */
+  /** Dashboard menu list: corner ▶ when the dish has motion; label = effect name (a11y/title). */
   videoBadgeLabel?: string;
 }) {
   const src = resolveMenuImageDisplayUrl(item.image_url);

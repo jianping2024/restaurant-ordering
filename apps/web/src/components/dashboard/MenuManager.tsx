@@ -4,7 +4,8 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonClasses } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
@@ -21,7 +22,9 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
   DISH_VIDEO_EFFECT_MESSAGE_KEYS,
+  menuItemDishVideoListEffectLabelKey,
   menuItemEligibleForDishVideoBatch,
+  splitDishVideoBatchRunningTemplate,
   type DishVideoEffect,
 } from '@/lib/menu-dish-video';
 import { dishVideoEncodingSupported, encodeDishVideos } from '@/lib/menu-dish-video-encode';
@@ -695,8 +698,8 @@ export function MenuManager({
     let ok = 0;
     let failed = 0;
     const effectLabel = t[DISH_VIDEO_EFFECT_MESSAGE_KEYS[effect].label];
+    setDishVideoBatch({ done: 0, total: todo.length });
     for (let i = 0; i < todo.length; i++) {
-      setDishVideoBatch({ done: i, total: todo.length });
       const item = todo[i];
       try {
         const photoUrl = resolveMenuImageDisplayUrl(item.image_url);
@@ -713,6 +716,7 @@ export function MenuManager({
       } catch {
         failed++;
       }
+      setDishVideoBatch({ done: ok + failed, total: todo.length });
     }
     setDishVideoBatch(null);
     setDishVideoBatchSnapshot([]);
@@ -722,6 +726,14 @@ export function MenuManager({
         : t.dishVideoBatchPartial.replace('{ok}', String(ok)).replace('{failed}', String(failed)),
     );
   };
+
+  const dishVideoBatchRunningParts = dishVideoBatch
+    ? splitDishVideoBatchRunningTemplate(
+        t.dishVideoBatchRunning,
+        dishVideoBatch.done,
+        dishVideoBatch.total,
+      )
+    : null;
 
   const isImageError = itemError === t.imageTooLarge || itemError === t.imageTypeInvalid;
 
@@ -1488,20 +1500,63 @@ export function MenuManager({
               <Button type="button" size="sm" onClick={openItemCreateModal}>
                 + {t.addItem}
               </Button>
-              {dishVideoBatch || (itemsEligibleDishVideoBatch.length > 0 && dishVideoEncodeReady) ? (
+              {dishVideoBatchRunningParts ? (
+                <div className="inline-flex flex-col gap-1 min-w-0">
+                  <span
+                    className={`${buttonClasses({ variant: 'outline', size: 'sm' })} cursor-wait opacity-90`}
+                    aria-busy="true"
+                    aria-live="polite"
+                    aria-label={t.dishVideoBatchRunning
+                      .replace('{done}', String(dishVideoBatchRunningParts.done))
+                      .replace('{total}', String(dishVideoBatchRunningParts.total))}
+                  >
+                    <Spinner className="h-3.5 w-3.5" />
+                    <span className="inline-flex items-baseline tabular-nums">
+                      {dishVideoBatchRunningParts.before}
+                      <span
+                        className="inline-block text-right"
+                        style={{ minWidth: `${dishVideoBatchRunningParts.digitSlots}ch` }}
+                      >
+                        {dishVideoBatchRunningParts.done}
+                      </span>
+                      {dishVideoBatchRunningParts.mid}
+                      <span
+                        className="inline-block text-right"
+                        style={{ minWidth: `${dishVideoBatchRunningParts.digitSlots}ch` }}
+                      >
+                        {dishVideoBatchRunningParts.total}
+                      </span>
+                      {dishVideoBatchRunningParts.after}
+                    </span>
+                  </span>
+                  <span
+                    className="block h-1 w-full rounded-full bg-brand-border/50 overflow-hidden"
+                    aria-hidden
+                  >
+                    <span
+                      className="block h-full rounded-full bg-brand-gold transition-[width] duration-200 ease-out"
+                      style={{
+                        width: `${
+                          dishVideoBatchRunningParts.total > 0
+                            ? Math.round(
+                                (dishVideoBatchRunningParts.done /
+                                  dishVideoBatchRunningParts.total) *
+                                  100,
+                              )
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </span>
+                </div>
+              ) : itemsEligibleDishVideoBatch.length > 0 && dishVideoEncodeReady ? (
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  loading={dishVideoBatch != null}
-                  disabled={dishVideoBatch != null}
                   onClick={openDishVideoBatchModal}
                 >
-                  {dishVideoBatch
-                    ? t.dishVideoBatchRunning
-                        .replace('{done}', String(dishVideoBatch.done))
-                        .replace('{total}', String(dishVideoBatch.total))
-                    : `▶ ${t.dishVideoBatch.replace('{n}', String(itemsEligibleDishVideoBatch.length))}`}
+                  {`▶ ${t.dishVideoBatch.replace('{n}', String(itemsEligibleDishVideoBatch.length))}`}
                 </Button>
               ) : null}
               {dishVideoBatchNote ? (
@@ -1607,6 +1662,12 @@ export function MenuManager({
                   >
                     {visibleItems.map((item, index) => {
                       const catalogLabel = formatMenuCatalogItemLabel(item, lang);
+                      const dishVideoEffectLabelKey = dishVideoPro
+                        ? menuItemDishVideoListEffectLabelKey(item)
+                        : null;
+                      const dishVideoEffectLabel = dishVideoEffectLabelKey
+                        ? t[dishVideoEffectLabelKey]
+                        : undefined;
                       const nameEn = item.name_en?.trim() || t.listNameEmpty;
                       const nameZh = item.name_zh?.trim() || t.listNameEmpty;
                       const categoryLine = getItemCategoryLine(item);
@@ -1661,7 +1722,7 @@ export function MenuManager({
                                 ) : null}
                                 <MenuItemListThumb
                                   item={item}
-                                  videoBadgeLabel={dishVideoPro && item.video_url ? t.dishVideoBadge : undefined}
+                                  videoBadgeLabel={dishVideoEffectLabel}
                                 />
                               </div>
                               <div className="flex-1 min-w-0 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
@@ -1673,6 +1734,14 @@ export function MenuManager({
                                     >
                                       {catalogLabel}
                                     </p>
+                                    {dishVideoEffectLabel ? (
+                                      <span
+                                        className="shrink-0 max-w-[7.5rem] truncate text-[10px] px-1.5 py-px rounded-full border border-brand-gold/40 bg-brand-gold/10 text-brand-gold leading-tight"
+                                        title={dishVideoEffectLabel}
+                                      >
+                                        {dishVideoEffectLabel}
+                                      </span>
+                                    ) : null}
                                     {!item.available ? (
                                       <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
                                         {t.unavailableBadge}

@@ -15,6 +15,7 @@ import { isDependencyFailure } from '@/lib/dependency-unavailable';
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { createRouteHandlerSupabaseAuth } from '@/lib/supabase/route-handler-auth';
+import { signOutThisDevice } from '@/lib/supabase/sign-out';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffLoginRequiresPasswordChange } from '@/lib/auth/account-password-policy';
 import {
@@ -135,7 +136,7 @@ export async function POST(req: Request) {
     );
 
     if (redirect.kind === 'staff_error') {
-      await supabase.auth.signOut();
+      await signOutThisDevice(supabase);
       authLoginRecordFailure(email, ip);
       const response = NextResponse.json({ error: redirect.code }, { status: 403 });
       attachCookies(response);
@@ -185,7 +186,7 @@ export async function POST(req: Request) {
     attachCookies(response);
     return response;
   } catch (e) {
-    await supabase.auth.signOut();
+    await signOutThisDevice(supabase);
     if (isDependencyFailure(e)) {
       const response = dependencyUnavailableJsonResponse();
       attachCookies(response);

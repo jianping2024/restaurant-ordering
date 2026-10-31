@@ -27,6 +27,25 @@ export function pwaShellCacheName(version: string | null | undefined): string {
   return `${PWA_SHELL_CACHE_PREFIX}:${normalizePwaShellSwVersion(version)}`;
 }
 
+/**
+ * Browser-side: drop every shell cache on an account boundary (login success / sign-out).
+ * Navigations paint the cached document first, so without this the next account would
+ * hydrate the previous account's page (old slug → 401 → auto-exit kills the new login).
+ */
+export async function clearPwaShellCaches(): Promise<void> {
+  if (typeof caches === 'undefined') return;
+  try {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((key) => key.startsWith(`${PWA_SHELL_CACHE_PREFIX}:`))
+        .map((key) => caches.delete(key)),
+    );
+  } catch {
+    // Storage blocked (private mode / quota) — navigation still goes to network.
+  }
+}
+
 /** Register URL — `?v=` busts the browser’s SW script cache; body version must match. */
 export function pwaShellSwRegisterUrl(version: string | null | undefined): string {
   const v = normalizePwaShellSwVersion(version);

@@ -9,6 +9,7 @@ import {
   isDependencyFailure,
   isDependencyUnavailableCode,
 } from '@/lib/dependency-unavailable';
+import { clearPwaShellCaches } from '@/lib/pwa/shell-sw';
 
 export type AuthLoginResponse = {
   ok?: boolean;
@@ -94,6 +95,7 @@ export function useAuthLogin(options: Options = {}) {
         json.path === '/auth/staff/change-password'
           ? `/auth/staff/change-password?r=${Date.now()}`
           : json.path!;
+      await clearPwaShellCaches();
       window.location.replace(path);
     } catch (err) {
       setError(isDependencyFailure(err) ? t.serviceUnavailable : t.network);

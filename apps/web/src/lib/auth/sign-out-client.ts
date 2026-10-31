@@ -1,7 +1,9 @@
 'use client';
 
 import { clearCustomerMenuCatalogCache } from '@/lib/customer-menu-catalog-client-cache';
+import { clearPwaShellCaches } from '@/lib/pwa/shell-sw';
 import { createClient } from '@/lib/supabase/client';
+import { signOutThisDevice } from '@/lib/supabase/sign-out';
 
 async function signOutViaServer(): Promise<boolean> {
   try {
@@ -21,7 +23,7 @@ export async function signOutFromSupabase(): Promise<void> {
   if (ok) return;
 
   const supabase = createClient();
-  await supabase.auth.signOut();
+  await signOutThisDevice(supabase);
 }
 
 /** Sign out then hard-navigate — one path for dashboard, staff boards, and auth flows. */
@@ -30,6 +32,7 @@ export async function signOutAndRedirect(loginPath: string): Promise<void> {
     await signOutFromSupabase();
   } finally {
     clearCustomerMenuCatalogCache();
+    await clearPwaShellCaches();
     window.location.replace(loginPath);
   }
 }

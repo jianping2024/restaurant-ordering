@@ -13,6 +13,7 @@ import {
   isInvalidRefreshTokenError,
   shouldBypassMiddlewareSession,
 } from '@/lib/supabase/middleware-session-policy';
+import { signOutThisDevice } from '@/lib/supabase/sign-out';
 import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 import { createServerClient } from '@supabase/ssr';
 
@@ -55,7 +56,7 @@ export async function updateSession(request: NextRequest) {
 
   if (isInvalidRefreshTokenError(userError)) {
     // Clear bad cookies once so Edge/Auth stop thrashing on every request.
-    await supabase.auth.signOut();
+    await signOutThisDevice(supabase);
   }
 
   const sessionUser = isInvalidRefreshTokenError(userError) ? null : user;

@@ -574,6 +574,12 @@ sole `clientIpFromRequest` — prefer `CF-Connecting-IP`, else rightmost `X-Forw
 
 sole script `buildPwaShellServiceWorkerScript` + route `/mesa-pwa-shell-sw.js` + `PwaShellSwRegister`; cache version only via `getWebAppBuildInfo()` (never a parallel MESA_PWA_* version); never cache `/api/*`; not offline POS.
 
+账号边界（登录成功 / 登出）sole `clearPwaShellCaches` —— `useAuthLogin` 跳转前与 `signOutAndRedirect` 各调一次；否则导航先画上个账号的缓存页（旧 slug → 401 → auto-exit 把新登录踢掉，2026-10-31 luckytee 登录两次）。
+
+### Sign-out scope
+
+sole `signOutThisDevice`（`scope:'local'`）；never bare `auth.signOut()`（auth-js 默认 global，会踢掉共用账号的其他设备）。踢全部会话只走 admin `kickStaffUserSessions`。
+
 ### PWA guest table install
 
 sole JSON shape `buildGuestTableManifest` in `site-manifest.ts`; sole path + URL builders `PWA_GUEST_TABLE_MANIFEST_PATH` / `guestTableMenuStartUrl` / `guestTableManifestHref` in `guest-table-pwa-manifest.ts` (middleware + menu/route — keep out of client shell SW); sole HTTP `mesa-pwa-guest-table.webmanifest`; menu `generateMetadata` points install at that href — never a second start_url builder or client-supplied start_url.

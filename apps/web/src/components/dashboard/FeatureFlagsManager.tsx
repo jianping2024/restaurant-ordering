@@ -36,12 +36,15 @@ import {
   ORDER_COOLDOWN_SECONDS_MIN,
 } from '@/lib/order-submit-cooldown-client';
 import { FEATURES_INTEGER_INPUT } from '@/components/dashboard/feature-settings-control-chrome';
+import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
 
 type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
   /** Pro-gated toggles not effective for this restaurant: shown locked with an upgrade link. */
   proLockedFeatureKeys?: readonly RestaurantFeatureKey[];
+  /** Ops-owned buffet mode; sushi round card only when sushi. */
+  buffetServiceMode: BuffetServiceMode;
   initialOrderCooldownSeconds: number;
   initialOperationLogRetentionDays: number;
   initialKitchenReadyAfterMinutes: number;
@@ -58,6 +61,7 @@ export function FeatureFlagsManager({
   embedded,
   initialFlags,
   proLockedFeatureKeys = [],
+  buffetServiceMode,
   initialOrderCooldownSeconds,
   initialOperationLogRetentionDays,
   initialKitchenReadyAfterMinutes,
@@ -104,6 +108,7 @@ export function FeatureFlagsManager({
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const showSushiRoundSettings = isSushiBuffetMode(buffetServiceMode);
 
   const handleSave = async () => {
     setSaving(true);
@@ -127,12 +132,16 @@ export function FeatureFlagsManager({
           operationLogRetentionDays,
           kitchenReadyAfterMinutes,
           takeawayVatRate,
-          sushiRoundOrderingEnabled,
-          sushiPerPersonPerRoundCap,
-          sushiRoundConfirmTimeoutSeconds,
-          sushiRoundCooldownSeconds,
-          sushiMenuVegetarianFilterEnabled,
-          sushiMenuAllergenFilterEnabled,
+          ...(showSushiRoundSettings
+            ? {
+                sushiRoundOrderingEnabled,
+                sushiPerPersonPerRoundCap,
+                sushiRoundConfirmTimeoutSeconds,
+                sushiRoundCooldownSeconds,
+                sushiMenuVegetarianFilterEnabled,
+                sushiMenuAllergenFilterEnabled,
+              }
+            : {}),
         }),
       });
 
@@ -330,122 +339,124 @@ export function FeatureFlagsManager({
           </div>
         </section>
 
-        <section>
-          <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleSushiRound}</h2>
-          <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
-            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={sushiRoundOrderingEnabled}
-                onChange={(e) => setSushiRoundOrderingEnabled(e.target.checked)}
-                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-              />
-              <span className="min-w-0">
-                <span className="block text-[15px] font-medium text-brand-text">
-                  {t.sushiRoundOrderingEnabled}
-                </span>
-                <span className="block text-[13px] text-brand-text-muted mt-0.5">
-                  {t.sushiRoundOrderingEnabledDesc}
-                </span>
-              </span>
-            </label>
-            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={sushiMenuVegetarianFilterEnabled}
-                onChange={(e) => setSushiMenuVegetarianFilterEnabled(e.target.checked)}
-                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-              />
-              <span className="min-w-0">
-                <span className="block text-[15px] font-medium text-brand-text">
-                  {t.sushiMenuVegetarianFilterEnabled}
-                </span>
-                <span className="block text-[13px] text-brand-text-muted mt-0.5">
-                  {t.sushiMenuVegetarianFilterEnabledDesc}
-                </span>
-              </span>
-            </label>
-            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={sushiMenuAllergenFilterEnabled}
-                onChange={(e) => setSushiMenuAllergenFilterEnabled(e.target.checked)}
-                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-              />
-              <span className="min-w-0">
-                <span className="block text-[15px] font-medium text-brand-text">
-                  {t.sushiMenuAllergenFilterEnabled}
-                </span>
-                <span className="block text-[13px] text-brand-text-muted mt-0.5">
-                  {t.sushiMenuAllergenFilterEnabledDesc}
-                </span>
-              </span>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.sushiPerPersonPerRoundCap}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.sushiPerPersonPerRoundCapDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={sushiPerPersonPerRoundCap}
-                  min={SUSHI_PER_PERSON_PER_ROUND_CAP_MIN}
-                  max={SUSHI_PER_PERSON_PER_ROUND_CAP_MAX}
-                  onChange={setSushiPerPersonPerRoundCap}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.sushiPerPersonPerRoundCap}
+        {showSushiRoundSettings ? (
+          <section>
+            <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleSushiRound}</h2>
+            <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
+              <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sushiRoundOrderingEnabled}
+                  onChange={(e) => setSushiRoundOrderingEnabled(e.target.checked)}
+                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                 />
-                <span className="text-[13px] text-brand-text-muted">
-                  {t.sushiPerPersonPerRoundCapUnit}
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-medium text-brand-text">
+                    {t.sushiRoundOrderingEnabled}
+                  </span>
+                  <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                    {t.sushiRoundOrderingEnabledDesc}
+                  </span>
                 </span>
-              </div>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.sushiRoundConfirmTimeoutSeconds}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.sushiRoundConfirmTimeoutSecondsDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={sushiRoundConfirmTimeoutSeconds}
-                  min={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MIN}
-                  max={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MAX}
-                  onChange={setSushiRoundConfirmTimeoutSeconds}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.sushiRoundConfirmTimeoutSeconds}
+              </label>
+              <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sushiMenuVegetarianFilterEnabled}
+                  onChange={(e) => setSushiMenuVegetarianFilterEnabled(e.target.checked)}
+                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                 />
-                <span className="text-[13px] text-brand-text-muted">
-                  {t.sushiRoundConfirmTimeoutSecondsUnit}
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-medium text-brand-text">
+                    {t.sushiMenuVegetarianFilterEnabled}
+                  </span>
+                  <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                    {t.sushiMenuVegetarianFilterEnabledDesc}
+                  </span>
                 </span>
-              </div>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.sushiRoundCooldownSeconds}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.sushiRoundCooldownSecondsDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={sushiRoundCooldownSeconds}
-                  min={SUSHI_ROUND_COOLDOWN_SECONDS_MIN}
-                  max={SUSHI_ROUND_COOLDOWN_SECONDS_MAX}
-                  onChange={setSushiRoundCooldownSeconds}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.sushiRoundCooldownSeconds}
+              </label>
+              <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sushiMenuAllergenFilterEnabled}
+                  onChange={(e) => setSushiMenuAllergenFilterEnabled(e.target.checked)}
+                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
                 />
-                <span className="text-[13px] text-brand-text-muted">
-                  {t.sushiRoundCooldownSecondsUnit}
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-medium text-brand-text">
+                    {t.sushiMenuAllergenFilterEnabled}
+                  </span>
+                  <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                    {t.sushiMenuAllergenFilterEnabledDesc}
+                  </span>
                 </span>
-              </div>
-            </label>
-          </div>
-        </section>
+              </label>
+              <label className="block px-4 py-4">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiPerPersonPerRoundCap}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                  {t.sushiPerPersonPerRoundCapDesc}
+                </span>
+                <div className="flex items-center gap-2">
+                  <IntegerInput
+                    value={sushiPerPersonPerRoundCap}
+                    min={SUSHI_PER_PERSON_PER_ROUND_CAP_MIN}
+                    max={SUSHI_PER_PERSON_PER_ROUND_CAP_MAX}
+                    onChange={setSushiPerPersonPerRoundCap}
+                    className={FEATURES_INTEGER_INPUT}
+                    aria-label={t.sushiPerPersonPerRoundCap}
+                  />
+                  <span className="text-[13px] text-brand-text-muted">
+                    {t.sushiPerPersonPerRoundCapUnit}
+                  </span>
+                </div>
+              </label>
+              <label className="block px-4 py-4">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiRoundConfirmTimeoutSeconds}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                  {t.sushiRoundConfirmTimeoutSecondsDesc}
+                </span>
+                <div className="flex items-center gap-2">
+                  <IntegerInput
+                    value={sushiRoundConfirmTimeoutSeconds}
+                    min={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MIN}
+                    max={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MAX}
+                    onChange={setSushiRoundConfirmTimeoutSeconds}
+                    className={FEATURES_INTEGER_INPUT}
+                    aria-label={t.sushiRoundConfirmTimeoutSeconds}
+                  />
+                  <span className="text-[13px] text-brand-text-muted">
+                    {t.sushiRoundConfirmTimeoutSecondsUnit}
+                  </span>
+                </div>
+              </label>
+              <label className="block px-4 py-4">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiRoundCooldownSeconds}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                  {t.sushiRoundCooldownSecondsDesc}
+                </span>
+                <div className="flex items-center gap-2">
+                  <IntegerInput
+                    value={sushiRoundCooldownSeconds}
+                    min={SUSHI_ROUND_COOLDOWN_SECONDS_MIN}
+                    max={SUSHI_ROUND_COOLDOWN_SECONDS_MAX}
+                    onChange={setSushiRoundCooldownSeconds}
+                    className={FEATURES_INTEGER_INPUT}
+                    aria-label={t.sushiRoundCooldownSeconds}
+                  />
+                  <span className="text-[13px] text-brand-text-muted">
+                    {t.sushiRoundCooldownSecondsUnit}
+                  </span>
+                </div>
+              </label>
+            </div>
+          </section>
+        ) : null}
 
         <section>
           <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleCheckoutTakeaway}</h2>

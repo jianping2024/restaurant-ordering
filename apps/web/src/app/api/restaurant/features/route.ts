@@ -33,7 +33,11 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTakeawayVatRatePatch, resolveTakeawayVatRate } from '@/lib/checkout-takeaway';
 import { assertCanDisableTakeawayOrdering } from '@/lib/instore-takeaway-server';
-import { isRestaurantFeatureEnabled, isRestaurantSuspended } from '@mesa/shared';
+import {
+  isRestaurantFeatureEnabled,
+  isRestaurantSuspended,
+  isSushiBuffetMode,
+} from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import { computePremiumLockedFeatureKeys, loadRestaurantProEntitledKeys } from '@/lib/premium/access';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
@@ -263,7 +267,7 @@ export async function PATCH(req: Request) {
   const { data: row, error: readError } = await admin
     .from('restaurants')
     .select(
-      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, suspended_at, plan, pro_valid_until, license_valid_until, ${SUSHI_ROUND_SELECT}`,
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, takeaway_vat_rate, print_locale, buffet_service_mode, suspended_at, plan, pro_valid_until, license_valid_until, ${SUSHI_ROUND_SELECT}`,
     )
     .eq('id', loaded.principal.restaurantId)
     .maybeSingle();
@@ -358,40 +362,49 @@ export async function PATCH(req: Request) {
   if (printLocale !== undefined && printLocale !== null) {
     updatePayload.print_locale = printLocale;
   }
-  if (sushiRoundPatch) {
-    if (sushiRoundPatch.sushi_round_ordering_enabled !== undefined) {
-      updatePayload.sushi_round_ordering_enabled = sushiRoundPatch.sushi_round_ordering_enabled;
+  // Classic buffet mode: ignore sushi round writes (UI hides the card; keep stored values).
+  const effectiveSushiRoundPatch = isSushiBuffetMode(row?.buffet_service_mode)
+    ? sushiRoundPatch
+    : undefined;
+  if (effectiveSushiRoundPatch) {
+    if (effectiveSushiRoundPatch.sushi_round_ordering_enabled !== undefined) {
+      updatePayload.sushi_round_ordering_enabled =
+        effectiveSushiRoundPatch.sushi_round_ordering_enabled;
     }
-    if (sushiRoundPatch.sushi_per_person_per_round_cap !== undefined) {
-      updatePayload.sushi_per_person_per_round_cap = sushiRoundPatch.sushi_per_person_per_round_cap;
+    if (effectiveSushiRoundPatch.sushi_per_person_per_round_cap !== undefined) {
+      updatePayload.sushi_per_person_per_round_cap =
+        effectiveSushiRoundPatch.sushi_per_person_per_round_cap;
     }
-    if (sushiRoundPatch.sushi_round_confirm_timeout_seconds !== undefined) {
+    if (effectiveSushiRoundPatch.sushi_round_confirm_timeout_seconds !== undefined) {
       updatePayload.sushi_round_confirm_timeout_seconds =
-        sushiRoundPatch.sushi_round_confirm_timeout_seconds;
+        effectiveSushiRoundPatch.sushi_round_confirm_timeout_seconds;
     }
-    if (sushiRoundPatch.sushi_round_cooldown_seconds !== undefined) {
-      updatePayload.sushi_round_cooldown_seconds = sushiRoundPatch.sushi_round_cooldown_seconds;
+    if (effectiveSushiRoundPatch.sushi_round_cooldown_seconds !== undefined) {
+      updatePayload.sushi_round_cooldown_seconds =
+        effectiveSushiRoundPatch.sushi_round_cooldown_seconds;
     }
-    if (sushiRoundPatch.sushi_menu_vegetarian_filter_enabled !== undefined) {
+    if (effectiveSushiRoundPatch.sushi_menu_vegetarian_filter_enabled !== undefined) {
       updatePayload.sushi_menu_vegetarian_filter_enabled =
-        sushiRoundPatch.sushi_menu_vegetarian_filter_enabled;
+        effectiveSushiRoundPatch.sushi_menu_vegetarian_filter_enabled;
     }
-    if (sushiRoundPatch.sushi_menu_allergen_filter_enabled !== undefined) {
+    if (effectiveSushiRoundPatch.sushi_menu_allergen_filter_enabled !== undefined) {
       updatePayload.sushi_menu_allergen_filter_enabled =
-        sushiRoundPatch.sushi_menu_allergen_filter_enabled;
+        effectiveSushiRoundPatch.sushi_menu_allergen_filter_enabled;
     }
   }
 
-  const { error } = await admin
-    .from('restaurants')
-    .update(updatePayload)
-    .eq('id', loaded.principal.restaurantId);
+  if (Object.keys(updatePayload).length > 0) {
+    const { error } = await admin
+      .from('restaurants')
+      .update(updatePayload)
+      .eq('id', loaded.principal.restaurantId);
 
-  if (error) {
-    if (isDbMigrationRequiredError(error)) {
-      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    if (error) {
+      if (isDbMigrationRequiredError(error)) {
+        return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+      }
+      return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
   }
 
   if (
@@ -414,7 +427,7 @@ export async function PATCH(req: Request) {
   );
   const nextSushiRound: SushiRoundSettings = {
     ...parseSushiRoundSettingsFromRestaurantRow(row ?? undefined),
-    ...(sushiRoundPatch ?? {}),
+    ...(effectiveSushiRoundPatch ?? {}),
   };
 
   return NextResponse.json({

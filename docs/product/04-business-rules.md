@@ -141,6 +141,7 @@
 #### 业态与页面
 
 - 餐厅业态：`restaurants.buffet_service_mode` = `classic` | `sushi`（**仅 Ops** 开店必选 / 餐厅详情可改；店内 Dashboard **不展示、不可改**；默认 classic）
+- 功能设置「寿司同桌轮次」整卡：仅 `sushi` 业态展示；`classic` 不展示，保存与 `PATCH /api/restaurant/features` 均不写入该组字段（库内已有值保留）
 - On-prem：认领快照与 check-in 同步该字段到本机营业库
 - 顾客 URL **不变**（`/{slug}/menu`）；`sushi` 渲染 **SushiMenuPage**（轮次 UI），`classic` 渲染 **ClassicMenuPage**
 

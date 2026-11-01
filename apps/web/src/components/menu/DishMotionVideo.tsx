@@ -8,7 +8,7 @@ import {
   dishMotionVideoShouldPlay,
   type DishMotionVideoLayer,
 } from '@/lib/menu-dish-video-playback';
-import { MENU_IMAGE_OBJECT_FIT_CLASS } from '@/lib/menu-image';
+import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_WELL_BG_CLASS } from '@/lib/menu-image';
 
 /** How many detail-layer players are mounted (sheet open). Rails yield while > 0. */
 let detailOpenCount = 0;
@@ -51,6 +51,14 @@ function deviceAllowsDishVideo(): boolean {
 /** Still layer inside the well — hidden while motion covers (opacity only; keeps layout). */
 const DISH_MOTION_STILL_CLASS =
   'absolute inset-0 flex items-center justify-center transition-opacity duration-300 motion-reduce:transition-none';
+
+/**
+ * Sole motion `<video>` face in a media well.
+ * `mesa-dish-motion-video` (globals) + white well fill: list thumbs are square while
+ * rail/detail mp4 is 4:3 — without a white element fill, Safari letterboxes black and
+ * paints a black fringe on the rounded clip while the page scrolls.
+ */
+const DISH_MOTION_VIDEO_CLASS = `mesa-dish-motion-video pointer-events-none absolute inset-0 h-full w-full ${MENU_IMAGE_WELL_BG_CLASS} ${MENU_IMAGE_OBJECT_FIT_CLASS} transition-opacity duration-300 motion-reduce:transition-none`;
 
 /**
  * Sole guest dish motion video in a media well (list thumb, recommended rail,
@@ -159,9 +167,7 @@ export function DishMotionVideo(props: {
           disablePictureInPicture
           onPlaying={() => setReady(true)}
           onError={() => setFailed(true)}
-          className={`pointer-events-none absolute inset-0 h-full w-full ${MENU_IMAGE_OBJECT_FIT_CLASS} transition-opacity duration-300 motion-reduce:transition-none ${
-            ready ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`${DISH_MOTION_VIDEO_CLASS} ${ready ? 'opacity-100' : 'opacity-0'}`}
         />
       ) : null}
     </>

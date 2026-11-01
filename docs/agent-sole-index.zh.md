@@ -19,6 +19,10 @@ never present 多半/应该是/大概 as root cause; conclusions need checkable 
 
 presence of copy or a CSS class is not enough — screenshot the bar and assert the new control shares the designed row/alignment with neighbors (e.g. same vertical mid as the account menu); stretched flex items with top-aligned text will look like a second row.
 
+### Staff top-bar restaurant name
+
+sole fit `fitStaffTopBarRestaurantName` + sole node `ProductTopBarRestaurantName` (drop words from the right, then ellipsis); never a parallel CSS `truncate` / second name calculator on the staff chrome brand.
+
 ### 顾头不顾腚
 
 before “不用改 / 不用 push / 只重试某一步”, check the **whole producer→consumer path on what is actually running** (caller expectations vs deployed callee; local branch ahead of `origin`/prod = gap). Do not answer from one step’s happy path while the other side’s live contract is unverified.

@@ -12,7 +12,7 @@ import {
 import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 describe('staffTopBarChrome', () => {
-  it('keeps full store name on brand; nav cluster fills leftover and packs right; no header overflow clip', () => {
+  it('brand yields; name is one-line fitted slot; right keeps actions on mobile', () => {
     assert.equal(STAFF_TOP_BAR_CONTENT_HEIGHT, '3.5rem');
     assert.equal(
       STAFF_TOP_BAR_TOTAL_HEIGHT,
@@ -22,6 +22,7 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.headerClassName, /pt-\[env\(safe-area-inset-top/);
     assert.doesNotMatch(staffTopBarChrome.headerClassName, /overflow-/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
+    assert.match(staffTopBarChrome.rowClassName, /flex-nowrap/);
     assert.match(staffTopBarChrome.rowClassName, /max-w-\[120rem\]/);
     assert.match(staffTopBarChrome.rowClassName, /mx-auto/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
@@ -29,24 +30,28 @@ describe('staffTopBarChrome', () => {
       staffTopBarChrome.rowClassName.replace(STAFF_SHELL_CONTENT_CLASS, ''),
       /pl-\[|pr-\[/,
     );
-    assert.match(staffTopBarChrome.brandClassName, /shrink-0/);
-    assert.match(staffTopBarChrome.brandClassName, /items-baseline/);
-    assert.doesNotMatch(staffTopBarChrome.brandClassName, /flex-1/);
-    assert.doesNotMatch(staffTopBarChrome.brandClassName, /overflow-hidden/);
+    assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
+    assert.match(staffTopBarChrome.brandClassName, /flex-1/);
+    assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /min-w-\[7rem\]/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /font-heading/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /\btext-base\b/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /text-brand-text/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /whitespace-nowrap/);
-    assert.match(staffTopBarChrome.restaurantNameClassName, /shrink-0/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /overflow-hidden/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /min-w-0/);
+    assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /shrink-0/);
     assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /\btruncate\b/);
-    assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /min-w-0/);
     assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /text-brand-text-muted/);
     assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /\btext-sm\b/);
+    assert.match(staffTopBarChrome.restaurantNameMeasureClassName, /whitespace-nowrap/);
+    assert.match(staffTopBarChrome.restaurantNameMeasureClassName, /font-heading/);
+    assert.doesNotMatch(staffTopBarChrome.restaurantNameMeasureClassName, /max-w-full/);
     assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /min-w-0/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /flex-1/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /shrink-0/);
     assert.match(staffTopBarChrome.rightClusterClassName, /justify-end/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /lg:flex-1/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /lg:min-w-0/);
     assert.doesNotMatch(staffTopBarChrome.rightClusterClassName, /max-w-\[calc\(100%-7rem\)\]/);
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,

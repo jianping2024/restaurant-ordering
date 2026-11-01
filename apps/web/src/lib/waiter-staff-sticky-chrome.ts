@@ -7,11 +7,11 @@
  * Horizontal inset lives solely on `STAFF_SHELL_CONTENT_CLASS` (same as main).
  *
  * Layout end-state (no header overflow-clip):
- * - brand is `shrink-0`: FARVOO + full restaurant name (never truncate / never clip to 0)
- * - right cluster takes remaining width (`min-w-0 flex-1`) and packs children with
- *   `justify-end` so nav + trailing sit flush right (role label at the content edge;
- *   chips grow leftward from trailing — never start after the brand)
- * - desktop nav scrolls inside via sole `.mesa-chip-scroll` + `max-w-full`
+ * - brand is `min-w-0 flex-1`: FARVOO stays intrinsic; store name yields into the
+ *   leftover slot via sole `fitStaffTopBarRestaurantName` (drop words from the
+ *   right, then ellipsize the last word) — never CSS `truncate` as a second path
+ * - right cluster: mobile `shrink-0` so ☰ + account stay clickable; `lg:flex-1
+ *   lg:min-w-0` so desktop chip nav can scroll inside `.mesa-chip-scroll`
  * - hamburger + trailing stay shrink-0 inside the cluster
  * - row width uses sole `STAFF_SHELL_CONTENT_CLASS` (same column as DashboardShell)
  *
@@ -39,29 +39,34 @@ export const staffTopBarChrome = {
   headerClassName:
     'sticky top-0 z-30 min-w-0 shrink-0 border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
   /**
-   * Content row. Brand keeps intrinsic FARVOO + full store name; cluster fills the rest
-   * and packs nav + trailing to the right edge.
+   * Content row. Brand yields width; right cluster keeps actions (mobile) / chip scroll (lg+).
    * Width + X-pad = sole `STAFF_SHELL_CONTENT_CLASS` (no second pl/pr here).
    */
   rowClassName: [
     STAFF_SHELL_CONTENT_CLASS,
-    'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2',
+    'flex h-14 min-w-0 flex-nowrap items-center gap-1.5 sm:gap-2',
   ].join(' '),
-  /** Logo + restaurant name — intrinsic width; never shrink under the nav cluster. */
-  brandClassName: 'flex shrink-0 items-baseline',
+  /** Logo + fitted store name — takes leftover after the right cluster. */
+  brandClassName: 'flex min-w-0 flex-1 items-center',
   /**
-   * Store name beside FARVOO — full string, one line, never truncate.
-   * Sole staff-chrome restaurant label class (ProductTopBarBrand only).
+   * Fitted store name beside FARVOO — one line; text from
+   * `fitStaffTopBarRestaurantName` only (ProductTopBarRestaurantName).
+   * Full literal for Tailwind JIT (do not compose with ${}).
    */
   restaurantNameClassName:
-    'shrink-0 whitespace-nowrap font-heading text-base font-medium text-brand-text sm:text-lg',
+    'block max-w-full min-w-0 overflow-hidden whitespace-nowrap font-heading text-base font-medium leading-none text-brand-text sm:text-lg',
   /**
-   * Nav + hamburger + trailing. Fills leftover width; `justify-end` keeps the pack
-   * flush right (role at the edge; chips left of trailing). Desktop nav scrolls inside
-   * (`.mesa-chip-scroll`), never squeezes the brand/store name.
+   * Offscreen width probe — same type metrics as the visible name, no max-w clamp.
+   * Sole companion to `restaurantNameClassName` for measure callbacks.
+   */
+  restaurantNameMeasureClassName:
+    'whitespace-nowrap font-heading text-base font-medium leading-none text-brand-text sm:text-lg',
+  /**
+   * Nav + hamburger + trailing. Mobile: shrink-0 so actions stay clickable.
+   * lg+: flex-1 min-w-0 so chip nav scrolls inside `.mesa-chip-scroll`.
    */
   rightClusterClassName:
-    'ml-auto flex min-w-0 flex-1 shrink items-center justify-end self-stretch',
+    'ml-auto flex shrink-0 items-center justify-end self-stretch lg:min-w-0 lg:flex-1 lg:shrink',
 } as const;
 
 /**

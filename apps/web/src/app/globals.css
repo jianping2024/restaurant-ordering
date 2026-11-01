@@ -311,17 +311,31 @@ body {
 }
 
 /*
- * Thumb photo: no inset ring / well overlay.
- * The old `::after` `inset 0 0 0 1px` hairline read as a black frame and flickered
- * on/off while scrolling on mobile Safari (overflow + radius subpixel compositing).
+ * List / rail media wells that host DishMotionVideo.
+ * No inset `::after` ring (that hairline flickered as a black frame).
+ * Safari paints a black fringe on a rounded `overflow:hidden` well while the page
+ * scrolls when a `<video>` compositor layer is clipped — `clip-path` rounds the
+ * same radius without that fringe; white fill on `.mesa-dish-motion-video` keeps
+ * 4:3→square letterbox from going black.
  */
 .mesa-menu-item-card-thumb {
-  /* Own layer so rounded clip stays clean while the card translates on press/scroll. */
+  isolation: isolate;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  clip-path: inset(0 round var(--mesa-menu-card-thumb-radius));
+}
+.mesa-menu-item-card-thumb img,
+.mesa-menu-item-card-thumb video {
+  border-radius: var(--mesa-menu-card-thumb-radius);
 }
 .mesa-menu-item-card-thumb img {
   transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Sole motion video face — paired with DishMotionVideo `mesa-dish-motion-video`. */
+.mesa-dish-motion-video {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* Press: card sinks — not when the gold action / qty pill is the thing pressed. */
@@ -380,10 +394,16 @@ body {
   outline: 2px solid rgb(var(--color-brand-text) / 0.55);
   outline-offset: 3px;
 }
-/* Same as list thumb: no inset hairline (flickers as a black frame on mobile). */
+/* Same Safari video-fringe fix as list thumbs (`rounded-lg` = 0.5rem). */
 .mesa-recommended-poster-thumb {
+  isolation: isolate;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  clip-path: inset(0 round 0.5rem);
+}
+.mesa-recommended-poster-thumb img,
+.mesa-recommended-poster-thumb video {
+  border-radius: 0.5rem;
 }
 .mesa-recommended-poster-thumb img,
 .mesa-recommended-poster-thumb-emoji {

@@ -47,6 +47,12 @@ export {
 } from '@/lib/permissions/role-permission-set';
 
 export {
+  permissionKeysHiddenWithoutPremium,
+  filterPermissionTreeByHiddenKeys,
+  mergePreservedHiddenPermissions,
+} from '@/lib/permissions/permission-premium-visibility';
+
+export {
   ensureRestaurantPresetRoles,
   listRestaurantRoles,
   getRestaurantRole,

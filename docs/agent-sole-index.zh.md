@@ -259,7 +259,7 @@ identity separate from actions (mobile stack / desktop identity-left + compact a
 
 ### Guest catalog card depth
 
-sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `--mesa-menu-card-hl/shade`; thumb well inset via `.mesa-menu-item-card-thumb::after`); press-sink skips `.mesa-menu-item-card-action`; mouse hover lift + tilt via sole `menuItemCardTiltFromPointer` → `--mesa-menu-card-tilt-x/y` (no React state); reduced-motion off. Gold `+` / qty pill keep their own look — never add depth chrome to the action.
+sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `--mesa-menu-card-hl/shade`; thumb has no inset hairline/`::after` well — that 1px ring flickered as a black frame on mobile Safari); press-sink skips `.mesa-menu-item-card-action`; mouse hover lift + tilt via sole `menuItemCardTiltFromPointer` → `--mesa-menu-card-tilt-x/y` (no React state); reduced-motion off. Gold `+` / qty pill keep their own look — never add depth chrome to the action.
 
 ### Guest menu catalog categories
 

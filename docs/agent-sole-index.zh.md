@@ -382,7 +382,7 @@ sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound
 
 ### Kitchen ready-after minutes
 
-sole `FeatureFlagsManager` + `PATCH /api/restaurant/features`; do not keep a Hub card or `…/staff/kitchen/settings`.
+sole `FeatureFlagsManager` + `PATCH /api/restaurant/features`; sushi round card + sushi PATCH writes only when `isSushiBuffetMode(buffet_service_mode)`; do not keep a Hub card or `…/staff/kitchen/settings`.
 
 ### Floor opener label
 

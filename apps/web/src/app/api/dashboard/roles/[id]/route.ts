@@ -8,7 +8,12 @@ import {
   listStaffUserIdsOnRole,
   updateRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
+import {
+  mergePreservedHiddenPermissions,
+  permissionKeysHiddenWithoutPremium,
+} from '@/lib/permissions/permission-premium-visibility';
 import { normalizeRolePermissions } from '@/lib/permissions/role-permission-set';
+import { loadRestaurantProEntitledKeys } from '@/lib/premium/access';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { templatePermissions, isRolePresetKey } from '@/lib/permissions/role-templates';
@@ -78,7 +83,20 @@ export async function PATCH(
     }
     patch.permissions = templatePermissions(existing.preset_key);
   } else if (Array.isArray(body.permissions)) {
-    patch.permissions = normalizeRolePermissions(body.permissions);
+    const { data: restaurant } = await admin
+      .from('restaurants')
+      .select('plan, pro_valid_until, license_valid_until')
+      .eq('id', auth.principal.restaurantId)
+      .maybeSingle();
+    const entitledKeys = await loadRestaurantProEntitledKeys(auth.principal.restaurantId);
+    const hiddenKeys = new Set(
+      permissionKeysHiddenWithoutPremium(restaurant ?? {}, entitledKeys),
+    );
+    patch.permissions = mergePreservedHiddenPermissions(
+      normalizeRolePermissions(body.permissions),
+      existing.permissions,
+      hiddenKeys,
+    );
   }
 
   if (body.disabled === true) patch.disabled = true;

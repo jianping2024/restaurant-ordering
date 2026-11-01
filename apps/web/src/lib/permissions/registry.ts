@@ -3,6 +3,8 @@
  * Nav, routes, buttons, and API gates all reference these — never role enums.
  */
 
+import type { PremiumKey } from '@mesa/shared';
+
 export const PERMISSION_GROUPS = [
   'dashboard_nav',
   'settings',
@@ -25,6 +27,11 @@ export type PermissionDef = {
   labelKey: string;
   dangerous?: boolean;
   requires?: readonly string[];
+  /**
+   * When set: role-editor checkbox is hidden unless this Pro feature is effective.
+   * Stored grants are kept; save merges them back if the parent `requires` are still on.
+   */
+  premiumKey?: PremiumKey;
 };
 
 /**
@@ -52,6 +59,7 @@ export const PERMISSIONS = {
     group: 'dashboard_nav',
     labelKey: 'menuDishVideoManage',
     requires: ['dashboard.menu.view'],
+    premiumKey: 'menu_dish_video',
   },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
   /** Dining KPI A/C wings only. Table-card headcount stays on the board itself. */

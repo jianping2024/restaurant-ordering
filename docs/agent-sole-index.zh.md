@@ -490,9 +490,13 @@ settled gold + muted uncollected (`gold/40`) with 已收/未收 labels; hide `+`
 
 唯一列表是里斯本当天 + `{ items, page, pageSize, total }` + 本店 `open`/`billing` 会话 Set 标 `session_open`；禁止 `.in('id', sessionIds)`（Kong `URI too long`）、cursor/`loadMore`、20/50/100 平行档位。筛选条与操作记录同款横排工具条（无字段标题）；桌号筛选唯一 `DashboardTableMultiSelect` + `table_ids`；菜名/编号搜索唯一 `DASHBOARD_COMPACT_SEARCH_CLASS` 的 `type="search"`（与操作记录共用）；`q` 与桌号均走 `useDashboardListQuery` 防抖实时查，禁止平行搜索按钮、`Input` 大表单搜索或第二套桌号下拉。
 
-### 后台管理员（`owner_id`）capabilities
+### 超级管理员（`owner_id`）capabilities
 
-唯一写法是 `resolveCapabilitiesForOwner() → '*'`；顶栏/中间件也只认 `can(capabilities)`（无平行 `OWNER_NAV_*` / owner path 白名单）；禁止再拼 `ROLE_TEMPLATES.owner` + settings 补丁列表；店主员工 preset 仍走 `restaurant_roles.permissions`。
+唯一写法是 `resolveCapabilitiesForOwner() → '*'`；顶栏/中间件也只认 `can(capabilities)`（无平行 `OWNER_NAV_*` / owner path 白名单）；禁止再拼 `ROLE_TEMPLATES.owner` + settings 补丁列表；「店主」员工 preset 仍走 `restaurant_roles.permissions`（与其它角色一样看勾选，不是全开）。
+
+### 角色权限页 × Pro 子项可见性
+
+唯一写法：registry `PERMISSIONS[key].premiumKey` + `permissionKeysHiddenWithoutPremium` / `filterPermissionTreeByHiddenKeys`（编辑树隐藏）+ `mergePreservedHiddenPermissions`（无 Pro 保存时保留已勾、父项仍在则不洗掉）；禁止平行「硬编码藏某一项」或第二套 Pro 权限表。当前仅 `dashboard.menu.video.manage` → `menu_dish_video`。
 
 ### Landing (v2)
 

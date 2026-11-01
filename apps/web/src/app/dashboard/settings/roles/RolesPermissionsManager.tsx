@@ -13,6 +13,7 @@ import {
   resolvePermissionTreeLabel,
   type PermissionTreeNode,
 } from '@/lib/permissions/permission-page-tree';
+import { filterPermissionTreeByHiddenKeys } from '@/lib/permissions/permission-premium-visibility';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { applyPermissionToggle } from '@/lib/permissions/role-permission-set';
 import type { RestaurantRoleRow } from '@/lib/permissions/types';
@@ -104,7 +105,12 @@ function PermissionTreeCheckboxList(props: {
   );
 }
 
-export function RolesPermissionsManager() {
+export function RolesPermissionsManager({
+  hiddenPermissionKeys = [],
+}: {
+  /** Registry premiumKey not effective — hide checkboxes; draft/save still keep stored grants. */
+  hiddenPermissionKeys?: readonly PermissionKey[];
+}) {
   const { lang } = useLanguage();
   const t = rolePermissionsMessages(lang);
 
@@ -116,6 +122,11 @@ export function RolesPermissionsManager() {
   const [saving, setSaving] = useState(false);
   const [pending, setPending] = useState<PendingConfirm>(null);
   const [confirming, setConfirming] = useState(false);
+
+  const visiblePermissionTree = filterPermissionTreeByHiddenKeys(
+    ROLE_PERMISSION_PAGE_TREE,
+    new Set<PermissionKey>(hiddenPermissionKeys),
+  );
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -520,7 +531,7 @@ export function RolesPermissionsManager() {
 
           <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border overflow-hidden">
             <PermissionTreeCheckboxList
-              nodes={ROLE_PERMISSION_PAGE_TREE}
+              nodes={visiblePermissionTree}
               depth={0}
               selected={draft.permissions}
               onToggle={togglePerm}

@@ -53,7 +53,8 @@
     ".next-uat-batch/types/**/*.ts",
     ".next-uat-dvbatch/types/**/*.ts",
     ".next-uat-progress/types/**/*.ts",
-    ".next-uat-name-yield/types/**/*.ts"
+    ".next-uat-name-yield/types/**/*.ts",
+    ".next-uat-dish-qty/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

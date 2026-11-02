@@ -49,7 +49,7 @@ describe('buildWaiterBoardCardViewModel', () => {
 
   it('idle card: seats meta only, idleHint below rule, no amount or status badge', () => {
     const view = buildWaiterBoardCardViewModel({
-      card: summary(),
+      card: summary({ orderedDishQty: 5 }),
       boardState: 'idle',
       action: { kind: 'open_table_sheet' },
       session: undefined,
@@ -62,6 +62,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.equal(view.statusLabel, '空闲');
     assert.equal(view.tableTitle, '002');
+    assert.equal(view.orderedDishQtyText, null);
     assert.equal(view.statusBadge, null);
     assert.equal(view.openerName, null);
     assert.deepEqual(
@@ -99,17 +100,17 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.idleHint, null);
     assert.equal(chipText(view, 'seats'), '2–4 座');
     assert.equal(chipText(view, 'time'), '2时00分');
-    assert.equal(chipText(view, 'dishes'), '×0');
+    assert.equal(view.orderedDishQtyText, '×0');
     assert.deepEqual(
       view.metaChips.map((c) => c.kind),
-      ['seats', 'time', 'dishes'],
+      ['seats', 'time'],
     );
     assert.equal(view.amountText, '€89.90');
     assert.equal(view.ctaLabel, '详情');
     assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
   });
 
-  it('dining card shows ordered dish qty as ×N after time (incl. zero)', () => {
+  it('dining card shows ordered dish qty as ×N beside title (incl. zero)', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ orderedDishQty: 12, sessionTotal: 40 }),
       boardState: 'dining',
@@ -128,12 +129,13 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.deepEqual(
       view.metaChips.map((c) => c.kind),
-      ['seats', 'time', 'dishes'],
+      ['seats', 'time'],
     );
-    assert.equal(chipText(view, 'dishes'), '×12');
+    assert.equal(view.orderedDishQtyText, '×12');
+    assert.equal(chipText(view, 'dishes'), null);
   });
 
-  it('checkout card also shows ×N after time', () => {
+  it('checkout card also shows ×N beside title', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ orderedDishQty: 3, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -150,8 +152,8 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(chipText(view, 'dishes'), '×3');
-    assert.ok(view.metaChips.map((c) => c.kind).includes('dishes'));
+    assert.equal(view.orderedDishQtyText, '×3');
+    assert.equal(view.metaChips.map((c) => c.kind).includes('dishes' as never), false);
   });
 
   it('dining card hides amountText when showAmounts is false (slot still empty, not idle hint)', () => {

@@ -19,7 +19,7 @@ export type WaiterBoardTableSummary = {
   seatMax: number;
   buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
-  /** Sole dish-portion count for board meta (`×N`); from waiter card. */
+  /** Sole dish-portion count for board title-row `×N`; from waiter card. */
   orderedDishQty: number;
   hasBuffet: boolean;
   occupied: boolean;

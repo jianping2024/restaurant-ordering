@@ -25,15 +25,15 @@ export type WaiterBoardCardDisplayLabels = {
   cardTransferredBadge: string;
 };
 
-/** Meta row only — seats, dining duration, ordered dish qty (opener / idle hint are not chips). */
-export type WaiterBoardCardMetaChipKind = 'seats' | 'time' | 'dishes';
+/** Meta row only — seats ± dining duration (opener / idle hint / dish qty are not chips). */
+export type WaiterBoardCardMetaChipKind = 'seats' | 'time';
 
 export type WaiterBoardCardMetaChip = {
   kind: WaiterBoardCardMetaChipKind;
   text: string;
 };
 
-/** Sole floor-card dish-portion label — bare `×N` (no icon, all locales). */
+/** Sole floor-card dish-portion label — bare `×N` (no icon, all locales). Title-row only. */
 export function formatWaiterBoardOrderedDishQty(orderedDishQty: number): string {
   return `×${Math.max(0, Math.floor(Number(orderedDishQty) || 0))}`;
 }
@@ -49,7 +49,8 @@ export type WaiterBoardStatusBadge = {
 
 /**
  * Sole floor-card display shape (6-col dense).
- * Title = tableTitle only; meta = seats/time/dishes (`×N`);
+ * Title row = tableTitle + orderedDishQtyText (`×N`, dining/checkout only);
+ * meta = seats ± time only;
  * status rail = statusLabel + statusBadge (headcount, not seat capacity);
  * below rule = opener slot (name or empty) then amountText XOR idleHint.
  * amountText gated by showAmounts (same canViewTableDetailAmounts as table detail);
@@ -58,6 +59,11 @@ export type WaiterBoardStatusBadge = {
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
   tableTitle: string;
+  /**
+   * Sole dish-portion face beside the table title (`×N`), or null when idle.
+   * Not a meta chip — keeps ×N out of the narrow seats/time row.
+   */
+  orderedDishQtyText: string | null;
   /** Vertical status glyph on the status rail. */
   statusLabel: string;
   /**
@@ -153,7 +159,6 @@ function diningDurationText(
 function buildMetaChips(input: {
   boardState: WaiterTableBoardState;
   capacityText: string;
-  orderedDishQty: number;
   session: WaiterTableSessionMeta | undefined;
   checkoutRequestedAt: string | null;
   lang: UILanguage;
@@ -176,7 +181,6 @@ function buildMetaChips(input: {
   if (timeText) {
     chips.push({ kind: 'time', text: timeText });
   }
-  chips.push({ kind: 'dishes', text: formatWaiterBoardOrderedDishQty(input.orderedDishQty) });
 
   return chips;
 }
@@ -193,6 +197,7 @@ function openerNameForState(
 function buildAriaLabel(view: Omit<WaiterBoardCardViewModel, 'ariaLabel'>): string {
   const parts = [
     view.tableTitle,
+    view.orderedDishQtyText,
     view.openerName,
     view.statusLabel,
     view.statusBadge ? waiterBoardStatusBadgeAriaText(view.statusBadge) : null,
@@ -235,6 +240,9 @@ export function buildWaiterBoardCardViewModel(input: {
   const draft: Omit<WaiterBoardCardViewModel, 'ariaLabel'> = {
     boardState: input.boardState,
     tableTitle: input.card.displayName,
+    orderedDishQtyText: isIdle
+      ? null
+      : formatWaiterBoardOrderedDishQty(input.card.orderedDishQty),
     statusLabel: statusLabelForState(input.boardState, input.statusLabels),
     statusBadge: formatWaiterBoardStatusBadge({
       boardState: input.boardState,
@@ -246,7 +254,6 @@ export function buildWaiterBoardCardViewModel(input: {
     metaChips: buildMetaChips({
       boardState: input.boardState,
       capacityText,
-      orderedDishQty: input.card.orderedDishQty,
       session: input.session,
       checkoutRequestedAt: input.checkoutRequestedAt,
       lang: input.lang,

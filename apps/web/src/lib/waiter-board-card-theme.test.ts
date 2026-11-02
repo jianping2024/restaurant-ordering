@@ -88,9 +88,13 @@ describe('waiter-board-card-theme theme tokens', () => {
 
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     // Floor title + amount: body face only (no font-heading / .mesa-money).
+    // Title shares a row with shrink-0 dish qty — title takes flex-1 + truncate.
     assert.doesNotMatch(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardTitle, /\btext-4xl\b/);
-    assert.doesNotMatch(waiterBoardType.cardTitle, /\bflex-1\b/);
+    assert.match(waiterBoardType.cardTitle, /\bflex-1\b/);
+    assert.match(waiterBoardType.cardTitleRow, /\bflex\b/);
+    assert.match(waiterBoardType.cardDishQty, /\bshrink-0\b/);
+    assert.match(waiterBoardType.cardDishQty, /tabular-nums/);
     assert.doesNotMatch(waiterBoardType.cardTitle, /\btext-(?:lg|xl|2xl|3xl)\b/);
     assert.doesNotMatch(waiterBoardType.kpiCount, /font-heading|mesa-money/);
     assert.match(waiterBoardType.kpiCount, /tabular-nums/);
@@ -173,7 +177,9 @@ describe('waiter-board-card-theme theme tokens', () => {
   it('card surface roles are complete — no parallel badge/meta/cta/status class strings at call sites', () => {
     const keys = Object.keys(waiterBoardType);
     for (const key of [
+      'cardTitleRow',
       'cardTitle',
+      'cardDishQty',
       'cardOpener',
       'cardOpenerSlot',
       'cardBadge',

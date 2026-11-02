@@ -28,11 +28,22 @@ export const waiterBoardType = {
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   /**
+   * Sole floor-card title row — table number + optional dish qty (`×N`).
+   * Dish qty is shrink-0 so long seats/time in meta never clip it.
+   */
+  cardTitleRow: 'flex min-h-[1.25rem] min-w-0 items-baseline gap-1.5',
+  /**
    * Sole floor-card table number — body face, ≥2× former text-lg → text-4xl.
-   * Full title-row width (status-rail badge no longer shares this row).
+   * Shares the title row with `cardDishQty` (status-rail badge stays on the rail).
    */
   cardTitle:
-    'min-w-0 truncate text-left text-4xl font-bold leading-none',
+    'min-w-0 flex-1 truncate text-left text-4xl font-bold leading-none',
+  /**
+   * Sole dish-portion face beside the table title — bare `×N`, shrink-0.
+   * Not a meta chip (meta = seats ± time only).
+   */
+  cardDishQty:
+    'shrink-0 text-lg font-semibold tabular-nums leading-none text-brand-text',
   /**
    * Sole opener face — below card rule only (not title-row, not a meta chip).
    * Vertical place = `cardOpenerSlot` (no mt here — empty/filled same height).
@@ -57,8 +68,9 @@ export const waiterBoardType = {
    */
   cardBadgeStack: 'flex flex-col items-center gap-1',
   /**
-   * Sole meta row — seats ± time ± dishes (`×N`), always one line. No wrap: extra
-   * chips must not grow card height when dining halls replace idle-only halls.
+   * Sole meta row — seats ± time only, always one line. No wrap: duration must not
+   * grow card height when dining halls replace idle-only halls. Dish qty lives on
+   * the title row (`cardDishQty`), not here.
    */
   cardMeta:
     'mt-1.5 flex h-4 min-w-0 flex-nowrap items-center gap-x-2.5 overflow-hidden text-xs leading-none text-brand-text',

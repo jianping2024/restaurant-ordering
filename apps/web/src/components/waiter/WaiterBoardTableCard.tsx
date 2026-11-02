@@ -51,9 +51,7 @@ const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 
 function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
   if (kind === 'seats') return <WaiterSeatCapacityIcon className={CHIP_ICON} />;
-  if (kind === 'time') return <WaiterClockIcon className={CHIP_ICON} />;
-  // dishes: text-only `×N` (no icon — product choice).
-  return null;
+  return <WaiterClockIcon className={CHIP_ICON} />;
 }
 
 export function WaiterBoardTableCard({
@@ -113,13 +111,16 @@ export function WaiterBoardTableCard({
   const body = (
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[1.25rem] items-center">
+        <div className={waiterBoardType.cardTitleRow}>
           <p
             className={`${waiterBoardType.cardTitle} ${theme.title}`}
             title={view.tableTitle}
           >
             {view.tableTitle}
           </p>
+          {view.orderedDishQtyText ? (
+            <span className={waiterBoardType.cardDishQty}>{view.orderedDishQtyText}</span>
+          ) : null}
         </div>
 
         <div className={waiterBoardType.cardMeta}>

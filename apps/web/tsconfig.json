@@ -54,7 +54,8 @@
     ".next-uat-dvbatch/types/**/*.ts",
     ".next-uat-progress/types/**/*.ts",
     ".next-uat-name-yield/types/**/*.ts",
-    ".next-uat-dish-qty/types/**/*.ts"
+    ".next-uat-dish-qty/types/**/*.ts",
+    ".next-uat-title-gap/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

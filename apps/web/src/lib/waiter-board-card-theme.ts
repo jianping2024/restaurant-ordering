@@ -31,7 +31,7 @@ export const waiterBoardType = {
    * Sole floor-card title row — table number + optional dish qty (`×N`).
    * Dish qty is shrink-0 so long seats/time in meta never clip it.
    */
-  cardTitleRow: 'flex min-h-[1.25rem] min-w-0 items-baseline gap-1.5',
+  cardTitleRow: 'flex min-h-[1.25rem] min-w-0 items-baseline gap-2.5',
   /**
    * Sole floor-card table number — body face, ≥2× former text-lg → text-4xl.
    * Shares the title row with `cardDishQty` (status-rail badge stays on the rail).

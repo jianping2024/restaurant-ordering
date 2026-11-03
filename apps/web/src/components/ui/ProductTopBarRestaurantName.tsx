@@ -11,7 +11,8 @@ import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 export function ProductTopBarRestaurantName({ name }: { name: string }) {
   const slotRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState('');
+  // Prefer full name for intrinsic brand width (desktop three-zone); fit only when the slot is actually clamped.
+  const [display, setDisplay] = useState(name);
 
   const measure = useCallback((text: string) => {
     const el = probeRef.current;
@@ -21,7 +22,14 @@ export function ProductTopBarRestaurantName({ name }: { name: string }) {
   }, []);
 
   const recompute = useCallback(() => {
-    const budget = slotRef.current?.getBoundingClientRect().width ?? 0;
+    const slot = slotRef.current;
+    if (!slot) return;
+    const budget = slot.getBoundingClientRect().width;
+    // Unclamped / not yet laid out: keep full name so brand can size to content (lg:flex-initial).
+    if (budget <= 0) {
+      setDisplay(name.trim().replace(/\s+/g, ' '));
+      return;
+    }
     setDisplay(fitStaffTopBarRestaurantName(name, budget, measure).display);
   }, [measure, name]);
 
@@ -38,7 +46,7 @@ export function ProductTopBarRestaurantName({ name }: { name: string }) {
   }, [recompute]);
 
   return (
-    <div ref={slotRef} className="min-w-0 flex-1 overflow-hidden">
+    <div ref={slotRef} className="min-w-0 overflow-hidden max-lg:flex-1">
       <span className={staffTopBarChrome.restaurantNameClassName} title={name}>
         {display || '\u00a0'}
       </span>

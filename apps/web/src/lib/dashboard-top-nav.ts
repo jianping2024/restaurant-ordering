@@ -110,11 +110,12 @@ export function topNavDesktopLinkClass(active: boolean): string {
 
 /**
  * Staff top bar desktop nav (lg+): sole bounded scroll strip inside
- * `staffTopBarChrome.rightClusterClassName`. `max-w-full` + `.mesa-chip-scroll`
- * — no parallel “More” overflow UI. Hamburger below lg.
+ * `staffTopBarChrome.navClassName`. `w-full min-w-0 max-w-full` + `.mesa-chip-scroll`
+ * fills brand→trailing; chips start after the brand — no parallel “More” overflow UI.
+ * Hamburger below lg.
  */
 export function topNavDesktopScrollNavClassName(): string {
-  return 'mesa-chip-scroll hidden min-h-full min-w-0 max-w-full items-center lg:flex';
+  return 'mesa-chip-scroll hidden min-h-full min-w-0 w-full max-w-full items-center lg:flex';
 }
 
 export function topNavMenuRowClass(active: boolean): string {

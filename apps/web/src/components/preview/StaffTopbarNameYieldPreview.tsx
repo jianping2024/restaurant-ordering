@@ -112,10 +112,12 @@ function MockTopBar({
             <ProductTopBarRestaurantName name={name} />
           </div>
         </div>
-        <div className={staffTopBarChrome.rightClusterClassName}>
+        <div className={staffTopBarChrome.navClassName}>
           <span className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center px-2 text-lg leading-none text-brand-text-muted">
             ☰
           </span>
+        </div>
+        <div className={staffTopBarChrome.trailingClassName}>
           <span
             className={`inline-flex h-11 ${STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS} shrink-0 flex-nowrap items-center gap-1 overflow-hidden whitespace-nowrap px-2 text-sm font-medium text-brand-text-muted`}
           >

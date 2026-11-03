@@ -23,7 +23,7 @@ type Props = {
   onNavigate?: () => void;
 };
 
-/** Sticky personal-app top bar — brand (logo + fitted store name), hamburger / desktop bounded scroll nav, account menu. */
+/** Sticky personal-app top bar — brand | nav (fills middle) | trailing (flush right). */
 export function StaffPersonalTopBar({
   logoHref,
   restaurantName,
@@ -50,7 +50,7 @@ export function StaffPersonalTopBar({
           <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
         </div>
 
-        <div className={staffTopBarChrome.rightClusterClassName}>
+        <div className={staffTopBarChrome.navClassName}>
           <ProductTopBarMenu
             items={navItems}
             pathname={pathname}
@@ -61,7 +61,9 @@ export function StaffPersonalTopBar({
             onOpenChange={setNavOpen}
             onNavigate={onNavigate}
           />
+        </div>
 
+        <div className={staffTopBarChrome.trailingClassName}>
           <ProductTopBarTrailing>
             {trailingStart}
             {settingsMenu}

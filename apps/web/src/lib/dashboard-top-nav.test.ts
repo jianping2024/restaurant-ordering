@@ -126,13 +126,13 @@ describe('buildDashboardTopNavItems', () => {
 });
 
 describe('topNavDesktopScrollNavClassName', () => {
-  it('uses mesa-chip-scroll + max-w-full bounded strip at lg without flex-1', () => {
+  it('uses mesa-chip-scroll + w-full bounded strip at lg (fills nav zone)', () => {
     const className = topNavDesktopScrollNavClassName();
     assert.match(className, /mesa-chip-scroll/);
+    assert.match(className, /\bw-full\b/);
     assert.match(className, /max-w-full/);
     assert.match(className, /min-w-0/);
     assert.match(className, /lg:flex/);
-    assert.doesNotMatch(className, /flex-1/);
   });
 });
 

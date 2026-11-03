@@ -93,6 +93,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.cardTitle, /\btext-4xl\b/);
     assert.match(waiterBoardType.cardTitle, /\bflex-1\b/);
     assert.match(waiterBoardType.cardTitleRow, /\bflex\b/);
+    assert.match(waiterBoardType.cardTitleRow, /\bgap-2\.5\b/);
     assert.match(waiterBoardType.cardDishQty, /\bshrink-0\b/);
     assert.match(waiterBoardType.cardDishQty, /tabular-nums/);
     assert.doesNotMatch(waiterBoardType.cardTitle, /\btext-(?:lg|xl|2xl|3xl)\b/);

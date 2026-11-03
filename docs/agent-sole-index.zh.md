@@ -23,6 +23,10 @@ presence of copy or a CSS class is not enough — screenshot the bar and assert 
 
 sole fit `fitStaffTopBarRestaurantName` + sole node `ProductTopBarRestaurantName` (drop words from the right, then ellipsis); never a parallel CSS `truncate` / second name calculator on the staff chrome brand.
 
+### Staff top-bar zones
+
+sole three zones `staffTopBarChrome` `brand` | `nav` | `trailing` — desktop nav fills brand→trailing (chips start after name); trailing flush right; never one `rightCluster` + `justify-end` that leaves a dead middle while chips hide in scroll.
+
 ### 顾头不顾腚
 
 before “不用改 / 不用 push / 只重试某一步”, check the **whole producer→consumer path on what is actually running** (caller expectations vs deployed callee; local branch ahead of `origin`/prod = gap). Do not answer from one step’s happy path while the other side’s live contract is unverified.

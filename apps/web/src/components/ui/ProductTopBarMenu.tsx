@@ -194,7 +194,7 @@ type Props = {
   onNavigate?: () => void;
 };
 
-/** Mobile hamburger nav + desktop bounded chip-scroll links (cluster-capped). */
+/** Mobile hamburger nav + desktop bounded chip-scroll links (fills `staffTopBarChrome.navClassName`). */
 export function ProductTopBarMenu({
   items,
   pathname,

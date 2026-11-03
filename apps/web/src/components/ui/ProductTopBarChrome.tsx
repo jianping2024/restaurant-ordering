@@ -12,7 +12,7 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 sm:gap-2.5">
+    <div className="flex min-w-0 w-full flex-nowrap items-center gap-2 sm:gap-2.5 lg:w-auto">
       <Link href={href} className="shrink-0 leading-none">
         <ProductLogo size="sm" tone="ink" />
       </Link>
@@ -21,7 +21,7 @@ export function ProductTopBarBrand({
   );
 }
 
-/** Trailing actions slot (account menu, license meta, etc.) — inside `staffTopBarChrome.rightClusterClassName`. */
+/** Trailing actions slot (account menu, license meta, etc.) — inside `staffTopBarChrome.trailingClassName`. */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
   return (
     <div className="flex shrink-0 items-center gap-1 self-stretch">

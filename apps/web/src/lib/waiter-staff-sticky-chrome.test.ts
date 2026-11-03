@@ -12,7 +12,7 @@ import {
 import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 describe('staffTopBarChrome', () => {
-  it('brand yields; name is one-line fitted slot; right keeps actions on mobile', () => {
+  it('three zones: brand yields on mobile; nav fills middle on lg; trailing flush right', () => {
     assert.equal(STAFF_TOP_BAR_CONTENT_HEIGHT, '3.5rem');
     assert.equal(
       STAFF_TOP_BAR_TOTAL_HEIGHT,
@@ -32,6 +32,7 @@ describe('staffTopBarChrome', () => {
     );
     assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
     assert.match(staffTopBarChrome.brandClassName, /flex-1/);
+    assert.match(staffTopBarChrome.brandClassName, /lg:flex-initial/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /min-w-\[7rem\]/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /font-heading/);
@@ -47,12 +48,14 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.restaurantNameMeasureClassName, /whitespace-nowrap/);
     assert.match(staffTopBarChrome.restaurantNameMeasureClassName, /font-heading/);
     assert.doesNotMatch(staffTopBarChrome.restaurantNameMeasureClassName, /max-w-full/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /shrink-0/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /justify-end/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /lg:flex-1/);
-    assert.match(staffTopBarChrome.rightClusterClassName, /lg:min-w-0/);
-    assert.doesNotMatch(staffTopBarChrome.rightClusterClassName, /max-w-\[calc\(100%-7rem\)\]/);
+    assert.match(staffTopBarChrome.navClassName, /shrink-0/);
+    assert.match(staffTopBarChrome.navClassName, /lg:flex-1/);
+    assert.match(staffTopBarChrome.navClassName, /lg:min-w-0/);
+    assert.doesNotMatch(staffTopBarChrome.navClassName, /ml-auto/);
+    assert.doesNotMatch(staffTopBarChrome.navClassName, /justify-end/);
+    assert.match(staffTopBarChrome.trailingClassName, /shrink-0/);
+    assert.doesNotMatch(staffTopBarChrome.trailingClassName, /flex-1/);
+    assert.doesNotMatch(staffTopBarChrome.trailingClassName, /justify-end/);
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,
       'top-[calc(3.5rem+env(safe-area-inset-top,0px))]',

@@ -241,7 +241,7 @@ restaurant_pro_feature_grants (restaurant_id: uuid FK -> restaurants.id, feature
 platform_pro_settings (id: text PK default 'default', premium_keys: jsonb, wechat_url: text nullable, whatsapp_url: text nullable, updated_at: timestamptz) — legacy singleton; do not use for new gates (pricing+grants tables above)  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  
-restaurants.order_radius_meters: 10..10000 (column default 1000; existing rows unchanged by default migration)  
+restaurants.order_radius_meters: 10..10000 (column default 500; existing rows unchanged by default migration)  
 table_sessions.status: open | billing | closed
 
 ## Indexes

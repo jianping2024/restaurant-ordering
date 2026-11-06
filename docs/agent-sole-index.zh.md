@@ -261,6 +261,10 @@ sole `isBillableSessionRowOnPaper` / `buildPaperBillableSessionItems` (`billable
 
 ## 顾客菜单 / 菜卡 / sushi round
 
+### Guest geo fence browser position
+
+sole `getBrowserPositionForGeoFence` (high accuracy then coarse) for settings anchor + `resolveCustomerGeoForOrder`; default `order_radius_meters` 500 — never a parallel guest-only coarse `PositionOptions` beside settings.
+
 ### Menu dish list row
 
 identity separate from actions (mobile stack / desktop identity-left + compact action cluster right); one cluster for unavailable badge (when off) + € + thin toggle + text edit/delete (`items-center` `gap-3`, extra air after toggle) — never 已下架 on the name row / `items-baseline` vs €, never `justify-between` price∥controls desert, never switch jammed on 编辑, never name∥price/toggle on one band, never list `⋯` overflow, never PT·EN·ZH one-line title.

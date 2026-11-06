@@ -157,7 +157,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 ① 限量预检  车内有限量菜且 session 不新鲜 → 一次 refresh('full')；否则用缓存 recent_orders
          （整段在 submitting=true 下；无限量菜不为此拉 full）
 ② 门禁     ensureGuestCanPlaceOrder（缓存可跳过网络）
-③ 定位     餐厅有 geo → resolveCustomerGeoForOrder（warm / 粗定位；非 waiter_flow）
+③ 定位     餐厅有 geo → resolveCustomerGeoForOrder（warm / 高精度优先；非 waiter_flow）
 ④ 请求     POST append { table_id, items, latitude?, longitude?, client_request_id }
 ⑤ 后置     scheduleMenuOrderPostSubmitEffects（入队 + session 刷新，不阻塞 UI）
 ⑥ 反馈     completeGuestOrderSubmit（清车 + 底栏 ✓ 提示，不弹 toast）

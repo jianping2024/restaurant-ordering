@@ -77,7 +77,7 @@ export interface Restaurant {
   business_hours?: unknown;
   /** Guest storefront intro { pt, en, zh }. */
   storefront_intro?: unknown;
-  /** Max distance (m) from restaurant coords for customer orders; default 50. */
+  /** Max distance (m) from restaurant coords for customer orders; default 500. */
   order_radius_meters?: number;
   /** Min seconds between two customer add-to-cart submissions; default 5. */
   order_cooldown_seconds?: number;

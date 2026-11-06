@@ -1,5 +1,5 @@
-/** Default fence when unset — coarse “near the restaurant”, not doorway GPS. */
-export const DEFAULT_ORDER_RADIUS_METERS = 1000;
+/** Default fence when unset — near-restaurant with high-accuracy browser geo. */
+export const DEFAULT_ORDER_RADIUS_METERS = 500;
 export const MIN_ORDER_RADIUS_METERS = 10;
 export const MAX_ORDER_RADIUS_METERS = 10_000;
 

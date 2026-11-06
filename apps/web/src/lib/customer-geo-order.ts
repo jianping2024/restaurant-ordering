@@ -2,6 +2,7 @@ import {
   resolveActiveGeoOrderCoords,
   type GeoOrderRestrictionFields,
 } from '@mesa/shared';
+import { getBrowserPositionForGeoFence } from '@/lib/browser-geolocation';
 import { distanceMeters } from '@/lib/geo-distance';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 
@@ -21,16 +22,6 @@ type RestaurantGeoConfig = GeoOrderRestrictionFields & {
 
 /** Reuse entry/submit coords when still within TTL and inside fence. */
 export const CUSTOMER_GEO_WARM_TTL_MS = 90_000;
-
-/**
- * Sole browser PositionOptions for guest fence entry + submit cold path.
- * Coarse anti-remote (≤~1 km OK) — not doorway GPS / high-accuracy.
- */
-const CUSTOMER_GEO_BROWSER_OPTIONS: PositionOptions = {
-  enableHighAccuracy: false,
-  timeout: 10_000,
-  maximumAge: 120_000,
-};
 
 /** Localhost / loopback only — matches server append geo bypass hosts. */
 export function isCustomerGeoLocalDevHost(): boolean {
@@ -72,17 +63,6 @@ function coordsWithinFence(
   return distanceMeters(latitude, longitude, anchor.latitude, anchor.longitude) <= maxMeters;
 }
 
-/** One geolocation entry for warm + submit — always {@link CUSTOMER_GEO_BROWSER_OPTIONS}. */
-async function getCoarseBrowserLocation() {
-  if (typeof window === 'undefined' || !navigator.geolocation) {
-    throw new Error('not-supported');
-  }
-
-  return new Promise<GeolocationPosition>((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, CUSTOMER_GEO_BROWSER_OPTIONS);
-  });
-}
-
 function classifyGeoError(error: unknown): CustomerGeoOrderFailure {
   const geoError = error as GeolocationPositionError | Error;
   if ('code' in geoError && geoError.code === 1) return 'permission_denied';
@@ -121,7 +101,7 @@ export async function resolveCustomerGeoForOrder(params: {
 
   let position: GeolocationPosition;
   try {
-    position = await getCoarseBrowserLocation();
+    position = await getBrowserPositionForGeoFence();
   } catch (error) {
     if (isLocalDevHost) {
       return {

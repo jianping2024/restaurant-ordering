@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import type { RestaurantSettingsProfile } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { getBrowserPositionForGeoFence } from '@/lib/browser-geolocation';
 import {
   MAX_ORDER_RADIUS_METERS,
   MIN_ORDER_RADIUS_METERS,
@@ -54,27 +55,6 @@ export function SettingsForm({
   const [locating, setLocating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-
-  const getCurrentPositionWithFallback = async () => {
-    const attempt = (options: PositionOptions) =>
-      new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, options);
-      });
-
-    try {
-      return await attempt({
-        enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 0,
-      });
-    } catch {
-      return attempt({
-        enableHighAccuracy: false,
-        timeout: 20000,
-        maximumAge: 120000,
-      });
-    }
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,7 +317,7 @@ export function SettingsForm({
                   setLocating(true);
                   setError('');
                   try {
-                    const position = await getCurrentPositionWithFallback();
+                    const position = await getBrowserPositionForGeoFence();
                     setForm((prev) => ({
                       ...prev,
                       geo_latitude: position.coords.latitude.toFixed(6),

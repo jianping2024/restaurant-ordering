@@ -43,7 +43,7 @@ INSERT INTO public.restaurants (
 ) VALUES (
   '19ad30c9-6c10-4845-8c89-583f3898274d', '巨好吃餐厅', 'restaurant-mo9y14xc', '40bb02de-21e0-47e7-a3d6-caab3d8bb059', NULL, NULL, NULL, 'free',
   '1234', '5678', NULL, NULL, 'pt', '{"poll":{"after_print_interval_sec":5,"busy_interval_sec":5,"closed_check_sec":60,"error_interval_sec":5,"idle_interval_sec":10,"warm_after_activity_sec":1800,"warm_interval_sec":5},"schedule":{"timezone":"Europe/Lisbon","weekday":{"windows":[{"end":"18:00","start":"09:00"},{"end":"23:00","start":"19:10"}]}}}'::jsonb,
-  1, 4, 1000, '18:00:00'
+  1, 4, 500, '18:00:00'
 ) ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, slug = EXCLUDED.slug, owner_id = EXCLUDED.owner_id, kitchen_password = EXCLUDED.kitchen_password,
   waiter_password = EXCLUDED.waiter_password, print_locale = EXCLUDED.print_locale, print_agent_config = EXCLUDED.print_agent_config,

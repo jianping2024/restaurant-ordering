@@ -481,6 +481,11 @@ export const MESSAGES = {
       invalidOverLimitPrice: '请填写有效的超额单价',
       limitRequiresOveragePrice: '设置每人限量时必须同时填写超额单价',
       deleteConfirm: '确定删除',
+      deleteBlockedTitle: '无法删除',
+      errDeleteItemInUse: '这道菜已有点单记录，不能删除。如需对顾客隐藏，请先下架。',
+      errDeleteFail: '删除失败，请重试',
+      errDeleteCategoryItemsInUse:
+        '分类下有菜品已有点单记录，不能一并删除。请先下架相关菜品，或把菜迁移到其他分类后再删分类。',
       deleteCategoryTitle: '删除分类',
       deleteCategoryWithDishes:
         '分类「{name}」及其 {childCount} 个子分类下共有 {count} 道菜。可迁移到其他分类后删除整棵分类树，或一并删除全部菜品与子分类。',
@@ -2356,6 +2361,12 @@ export const MESSAGES = {
       invalidOverLimitPrice: 'Enter a valid overage unit price',
       limitRequiresOveragePrice: 'Overage price is required when a per-person limit is set',
       deleteConfirm: 'Delete',
+      deleteBlockedTitle: 'Cannot delete',
+      errDeleteItemInUse:
+        'This dish already has order records and cannot be deleted. To hide it from guests, unpublish it first.',
+      errDeleteFail: 'Delete failed, please retry',
+      errDeleteCategoryItemsInUse:
+        'Some dishes in this category already have order records, so they cannot be deleted together. Unpublish those dishes first, or move them to another category before deleting this one.',
       deleteCategoryTitle: 'Delete category',
       deleteCategoryWithDishes:
         'Category "{name}" and {childCount} subcategory(ies) contain {count} dish(es). Move them elsewhere, or delete the whole subtree.',
@@ -3776,6 +3787,12 @@ export const MESSAGES = {
       invalidOverLimitPrice: 'Indique um preco extra valido',
       limitRequiresOveragePrice: 'Com limite por pessoa e obrigatorio o preco extra',
       deleteConfirm: 'Eliminar',
+      deleteBlockedTitle: 'Nao e possivel eliminar',
+      errDeleteItemInUse:
+        'Este prato ja tem registos de pedido e nao pode ser eliminado. Para o ocultar dos clientes, desative-o primeiro.',
+      errDeleteFail: 'Falha ao eliminar, tente novamente',
+      errDeleteCategoryItemsInUse:
+        'Ha pratos nesta categoria com registos de pedido; nao e possivel elimina-los em conjunto. Desative esses pratos primeiro, ou mova-os para outra categoria antes de eliminar esta.',
       deleteCategoryTitle: 'Eliminar categoria',
       deleteCategoryWithDishes:
         'A categoria «{name}» e {childCount} subcategoria(s) têm {count} prato(s). Mova ou elimine toda a árvore.',

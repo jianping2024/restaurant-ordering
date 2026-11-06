@@ -38,7 +38,7 @@ async function loadRestaurantNameContext(
 
 /**
  * Sole stamp of table_sessions.opened_by_name — call only when inserting an open session.
- * Uses resolveStaffOperatorName (staff display/login → Auth → owner).
+ * Uses resolveStaffOperatorName (staff display else login → Auth → owner).
  */
 export async function resolveOpenedByNameForOpen(
   admin: SupabaseClient,

@@ -402,7 +402,7 @@ sole `FeatureFlagsManager` + `PATCH /api/restaurant/features`; sushi round card 
 
 ### Floor opener label
 
-sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameForOpen`; board/live/history read the column only — never resolve-on-read for opener display; fixed `cardOpenerSlot` (no card height change).
+sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameForOpen` → `resolveStaffOperatorDisplayName` (**display_name** when set, else **login_name**); board/live/history read the column only — never resolve-on-read for opener display; fixed `cardOpenerSlot` (no card height change). same ladder for audit + order-history operator labels.
 
 ### 开台确认
 

@@ -9,15 +9,18 @@ export function staffAuditActor(
   return { kind: 'staff', userId, displayName, role };
 }
 
-/** Operator label for staff audits: login name (never role name/label). */
+/**
+ * Operator label for staff audits / board opener / order history:
+ * display name when set, else login name (never role name/label).
+ */
 export function resolveStaffOperatorDisplayName(account: {
   login_name?: string | null;
   display_name?: string | null;
 }): string {
-  const login = account.login_name?.trim();
-  if (login) return login;
   const display = account.display_name?.trim();
   if (display) return display;
+  const login = account.login_name?.trim();
+  if (login) return login;
   return '';
 }
 

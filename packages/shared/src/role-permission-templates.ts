@@ -22,19 +22,19 @@ export const ROLE_PRESET_DEFAULT_NAMES: Record<RolePresetKey, string> = {
 
 /**
  * Sole default permission matrix for new restaurants +「恢复默认」.
- * Source: Pirata live `restaurant_roles.permissions` for each preset_key.
+ * Base: Pirata live presets (2026-10-28); pruned dead unused keys 2026-11-06
+ * (`checkout.apply_discount`, `checkout.request_whole_table`, `orders.print_receipt`,
+ * `print_agent.manage`) — see migration `20261106180000_drop_unused_permission_keys`.
  */
 export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
   kitchen: ['floor.kitchen_board.view', 'orders.kitchen_update'],
   waiter: [
     'dashboard.waiter_board.view',
     'orders.append',
-    'orders.print_receipt',
     'tables.open_session',
     'tables.transfer',
   ],
   cashier: [
-    'checkout.apply_discount',
     'checkout.assist_bill',
     'checkout.confirm_payment',
     'checkout.open_pending_tables',
@@ -45,7 +45,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
     'dashboard.waiter_board.view',
     'orders.append',
     'orders.menu_decrement',
-    'orders.print_receipt',
     'print_agent.receipt_printers.read',
     'tables.checkout_close',
     'tables.force_close',
@@ -55,12 +54,10 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
     'tables.transfer',
   ],
   frontdesk: [
-    'checkout.apply_discount',
     'checkout.assist_bill',
     'checkout.confirm_payment',
     'checkout.open_pending_tables',
     'checkout.print_pre_bill',
-    'checkout.request_whole_table',
     'checkout.sync_bill',
     'dashboard.checkout.view',
     'dashboard.guest_notice.view',
@@ -73,7 +70,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly string[]> = {
     'dashboard.waiter_board.view',
     'orders.append',
     'orders.menu_decrement',
-    'orders.print_receipt',
     'print_agent.receipt_printers.read',
     'tables.checkout_close',
     'tables.force_close',

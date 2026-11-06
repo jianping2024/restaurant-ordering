@@ -1,12 +1,5 @@
-import { canAny, type Capabilities } from '@/lib/permissions/can';
-import type { PermissionKey } from '@/lib/permissions/registry';
+import { can, type Capabilities } from '@/lib/permissions/can';
 import { createClient } from '@/lib/supabase/server';
-
-/** Capabilities that authorize staff-assisted checkout request (guest QR + staff). */
-export const CHECKOUT_REQUEST_PERMISSIONS: readonly PermissionKey[] = [
-  'checkout.request_whole_table',
-  'checkout.assist_bill',
-];
 
 export type CheckoutRequestCaller =
   | { kind: 'customer' }
@@ -17,7 +10,8 @@ export type CheckoutRequestCaller =
 export function checkoutRequestCallerFromCapabilities(
   capabilities: Capabilities,
 ): 'authorized_staff' | 'forbidden_staff' {
-  if (canAny(capabilities, CHECKOUT_REQUEST_PERMISSIONS)) {
+  // Sole staff gate: checkout.assist_bill (ensure-entry + checkout/request).
+  if (can(capabilities, 'checkout.assist_bill')) {
     return 'authorized_staff';
   }
   return 'forbidden_staff';

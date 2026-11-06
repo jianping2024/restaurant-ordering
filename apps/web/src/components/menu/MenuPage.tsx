@@ -164,6 +164,7 @@ export function MenuPage({
           recommendedItemIds={recommendedItemIds}
           menuTimeSlots={menuTimeSlots}
           notePresetCatalog={notePresetCatalog}
+          choiceCatalog={choiceCatalog}
           catalogReady={catalogReady}
           guestListMotionEnabled={guestListMotionEnabled}
           tableId={tableId}

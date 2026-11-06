@@ -57,7 +57,9 @@
     ".next-uat-dish-qty/types/**/*.ts",
     ".next-uat-title-gap/types/**/*.ts",
     ".next-uat-choice/types/**/*.ts",
-    ".next-uat-sushi-choice/types/**/*.ts"
+    ".next-uat-sushi-choice/types/**/*.ts",
+    ".next-uat-settings/types/**/*.ts",
+    ".next-clear-biz/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

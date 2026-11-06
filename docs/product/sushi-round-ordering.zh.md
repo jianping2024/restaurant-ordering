@@ -62,7 +62,7 @@
 | `sushi_menu_allergen_filter_enabled` | `false` | bool | 仅寿司点餐页：过敏源避开筛选 |
 | `sushi_per_person_per_round_cap` | `8` | 1–20 | 每人每轮免费菜份数上限 |
 | `sushi_round_confirm_timeout_seconds` | `25` | 15–45 | 发起送厨后倒计时秒数；到点自动送厨 |
-| `sushi_round_cooldown_seconds` | `120` | 30–600 | 送厨成功后 **session 级**冷却 |
+| `sushi_round_cooldown_seconds` | `120` | 30–600 | 送厨成功后 **session 级送厨冷却**（只拦再送厨，不拦点免费菜进下一篮） |
 | `sushi_round_rules_notice` | 空 | 多语 JSON 可选 | 顾客 intro / 顶栏「?」 |
 
 保留现有 `order_cooldown_seconds`（5–1800）：**本机**提交按钮冷却，与桌级冷却职责不同。
@@ -82,10 +82,10 @@
 
 ```text
 idle          — 无活跃轮次（或上一轮已 closed）
-collecting    — 有人加免费菜后自动进入；可继续加免费菜
+collecting    — 有人加免费菜后自动进入；可继续加免费菜（含桌级送厨冷却期间）
 pending_confirm — 已发起送厨；倒计时中（仍可改篮，见 §7）
-cooldown      — append 成功；至 cooldown_until
-closed        — session 结束 / 并桌作废 / 强制关台归档
+closed        — finalize 成功 / session 结束 / 并桌作废 / 强制关台归档
+（历史 status=`cooldown` 仅兼容旧行；settle 会关成 closed 并把 until 抄到 session）
 ```
 
 ### 5.1 转移
@@ -94,8 +94,9 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 |----|------|-----|
 | — | 首条免费菜入 round | `collecting` |
 | `collecting` | `POST …/round/submit-request` | `pending_confirm` |
-| `pending_confirm` | 倒计时到点 finalize 成功 | `cooldown` |
-| `cooldown` | `now >= cooldown_until` → 唯一 `settle_expired_table_order_round_cooldown`（GET snapshot 与 upsert 都调）关成 `closed` | `idle`（无活跃 round；下次写才 mint collecting） |
+| `pending_confirm` | 倒计时到点 finalize 成功 | `closed`（同时写 `table_sessions.sushi_round_cooldown_until`） |
+| （session 冷却未到期） | 仍可 mint/`collecting` 写篮；`submit-request` 拒绝 | — |
+| （session 冷却到期） | 唯一 `settle_expired_table_order_round_cooldown` 清 session 时钟（GET / upsert / submit 都调） | 可再 `submit-request` |
 | 任意 | session `billing` / `closed` / 并桌来源 session | `closed` |
 | `collecting` | 行数清零且超时无活动（可选 housekeeping） | `idle` |
 
@@ -247,16 +248,16 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 |------|------|
 | 顶栏 | `本桌 N 人 ·` 后**唯一短句槽**（sole `formatSushiStickyRoundLimit`；固定一行高度，不另起第二行）：无未送厨份数（含已送厨冷却中）`每轮最多 M`（英 `max M` / 葡 `máx. M`）/ 有未送厨份数（`tableReviewQty`）`本轮 x/M`（英 `round x/M`）。**只**表份数；倒计时 / 冷却 / 未送厨状态只在底栏送厨引导（§12.2），不在此槽重复。人数与短句不截断；素食筛选芯片文案 sole `dietaryFilterVegetarian`（短形如 `Veg.` / 中文 `素食`）。**无**送厨按钮 |
 | pending_confirm | 底栏送厨引导倒计时 + 核单顶部同一提示（§12.2）；同桌轻弹窗一次；不锁篮 |
-| 底栏 | 与 classic 同一 `CustomerMenuFooter`（寿司另挂送厨引导条，§12.2）：购物车有菜 → 主按钮为提交文案（sole `resolveSushiCartSubmitLabel`：仅免费 **加入本轮** / 仅收费 **去下单** / 混合 **下单并加入本轮**，购物车抽屉提交按钮同文案）；本桌有未送厨免费菜（`tableReviewQty`，不限本机）→ **去送厨 · N 道**（打开核单，不直接送厨）；倒计时 / 送厨失败 → **查看本轮**；已送厨 → **查看已点**。左侧本轮图标为托盘（`CustomerRoundTrayIcon`，角标=本机本轮份数），不复用购物车图标 |
+| 底栏 | 与 classic 同一 `CustomerMenuFooter`（寿司另挂送厨引导条，§12.2）：购物车有菜 → 主按钮为提交文案（sole `resolveSushiCartSubmitLabel`：仅免费 **加入本轮** / 仅收费 **去下单** / 混合 **下单并加入本轮**，购物车抽屉提交按钮同文案）；本桌有未送厨免费菜（`tableReviewQty`，含冷却中下一篮）→ **去送厨 · N 道**（打开核单；冷却中送厨按钮不可用）；倒计时 / 送厨失败 → **查看本轮**；冷却中篮空 → **查看已点**。左侧本轮图标为托盘（`CustomerRoundTrayIcon`，角标=本机本轮份数），不复用购物车图标 |
 | 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**加份前**本机预检桌上限 + 整餐单菜额度（sole `previewGuestRoundCartDraftGates`：已进篮 `lines_qty_total` + 本机草稿；看不见别机草稿）；**下单**才写入 round lines |
 | 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；提交前同一 `previewGuestRoundCartDraftGates`；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **唯一送厨入口**（同一张核单）。可送厨时：顶部「还差一步」提醒 + 大按钮 **送厨 · N 道** + 弱化 **再加点**；不可送厨时（倒计时等）：普通标题 + **继续点餐** + 顶部同底栏送厨引导提示。本次提交含收费菜时，核单内短暂提示「✓ 收费菜 N 份已下单」（瞬间反馈，不是列表）。底部只读分组 **收费菜 · 已直接送厨**（sole `buildRoundPaidSentLines`：本轮 `created_at` 之后整桌收费菜单行，✓ 数量，不可改、不计入 N 道、不参与送厨；无活跃轮次则无此组）。定位失败：原因红字写在核单内，核单保持打开，关掉确认窗 |
-| 核单自动打开 | sole `shouldAutoOpenRoundReview`（本桌有未送厨免费菜，且非倒计时 / 非桌级冷却）：① 本机购物车下单成功后（仅免费 / 混合 / 只下收费但桌上仍有未送，都开）；② 进入页 / 刷新 / 重扫码，snapshot 就绪后每人一次；③ 熄屏或切后台再回来。同桌别人加菜 **不** 给本机自动开。员工代点不受影响 |
-| 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/**购物车抽屉**/已点/详情 + toast「本轮已送厨」；**不清**本机购物车草稿（免费/收费均保留；草稿仅本机「下单」成功后由 `clearSubmitCart` 清空）。判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
+| 核单自动打开 | sole `shouldAutoOpenRoundReview`（本桌有未送厨免费菜，且非送厨倒计时；**桌级冷却不拦开核单**）：① 本机购物车下单成功后（仅免费 / 混合 / 只下收费但桌上仍有未送，都开）；② 进入页 / 刷新 / 重扫码，snapshot 就绪后每人一次；③ 熄屏或切后台再回来。同桌别人加菜 **不** 给本机自动开。员工代点不受影响 |
+| 送厨成功回到点餐 | 唯一：finalize 成功 → round `closed` + session 冷却时钟出现（非首屏已在冷却）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/**购物车抽屉**/已点/详情 + toast「本轮已送厨」；**不清**本机购物车草稿。判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。加份前 sole `previewGuestRoundLineSetGates`（桌上限 + 整餐单菜）。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append；混合提交成功提示 `placedMixed`（收费菜已送厨 · 免费菜已加入本轮） |
-| Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示未送厨时点「去送厨」→「送厨 · N」）→ 下一轮（冷却；收费菜可继续点，免费菜等下一轮） |
+| Intro | 一次；三步：加入本轮（同桌共用）→ 送厨（底栏提示未送厨时点「去送厨」→「送厨 · N」）→ 下一轮（冷却期间仍可点进本轮，冷却结束才能再送厨） |
 
 Classic **不得**出现轮次 UI 组件。
 
@@ -282,7 +283,7 @@ Classic **不得**出现轮次 UI 组件。
 | unsent | collecting（或无 status 但有行）且 `tableReviewQty > 0` | 当前 · 送厨 | 本桌 N 道菜，厨房还没收到；满额时「本轮已满 x/M，先送厨再点」 |
 | countdown | pending_confirm | 当前 · `{s}s` | {s} 秒后自动送厨 · 同桌还能加 |
 | failed | finalize_failed | 当前 · ! | 送厨未成功，正在重试；一直不行请叫服务员 |
-| sent | cooldown 且未到 `cooldown_until` | ✓ 已送厨 | 已送厨 · 收费菜可继续点 · {s} 秒后开下一轮 |
+| sent | session `sushi_round_cooldown_until` 未到期（或遗留 round cooldown） | qty=0：可继续点；qty>0：已点 N 道；满轮另句 | 可继续点 / 已点 N 道 / 本轮已满 · {s} 秒后可送厨 |
 | — | 其它 | 不显示 | — |
 
 - 引导条高度 sole `--mesa-bottom-dock-extra`（`[data-mesa-bottom-dock-guidance]` 挂载时 4.5rem）：同时抬高菜单滚动底距与 toast 位置。Classic 不传 `guidance`，零变化。

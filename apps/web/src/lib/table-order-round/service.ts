@@ -19,8 +19,7 @@ import {
 } from '@/lib/table-order-round/settings';
 import {
   guestClientSeatLimit,
-  isCooldownActive,
-  isCooldownExpired,
+  isSessionKitchenCooldownActive,
   isSubmitDeadlinePassed,
   roundCapTotal,
 } from '@/lib/table-order-round/status';
@@ -104,7 +103,7 @@ async function enqueueStationTicketsAfterRoundFinalize(params: {
   }
 }
 
-/** Active round for session (collecting / pending_confirm / cooldown / finalize_failed). */
+/** Active round for session (collecting / pending_confirm / finalize_failed). Cooldown no longer occupies the slot. */
 export async function loadActiveRound(
   admin: SupabaseClient,
   sessionId: string,
@@ -113,15 +112,15 @@ export async function loadActiveRound(
     .from('table_order_rounds')
     .select(ROUND_SELECT)
     .eq('session_id', sessionId)
-    .in('status', ['collecting', 'pending_confirm', 'cooldown', 'finalize_failed'])
+    .in('status', ['collecting', 'pending_confirm', 'finalize_failed'])
     .maybeSingle();
   if (error) return null;
   return asRound(data);
 }
 
 /**
- * Sole TS entry for expired-cooldown settle (SQL `settle_expired_table_order_round_cooldown`).
- * Closes expired cooldown; does not mint collecting (empty active → empty snapshot).
+ * Sole TS entry for kitchen-cooldown settle (SQL `settle_expired_table_order_round_cooldown`).
+ * Clears expired session clock; closes legacy cooldown rounds (copies until onto session).
  */
 export async function settleExpiredTableOrderRoundCooldown(
   admin: SupabaseClient,
@@ -133,6 +132,30 @@ export async function settleExpiredTableOrderRoundCooldown(
   if (error) return 'noop';
   if (data === 'cooldown_active' || data === 'closed' || data === 'noop') return data;
   return 'noop';
+}
+
+async function loadSessionKitchenCooldownUntil(
+  admin: SupabaseClient,
+  sessionId: string,
+): Promise<string | null> {
+  const { data } = await admin
+    .from('table_sessions')
+    .select('sushi_round_cooldown_until')
+    .eq('id', sessionId)
+    .maybeSingle();
+  const until = data?.sushi_round_cooldown_until;
+  return typeof until === 'string' && until.length > 0 ? until : null;
+}
+
+async function setSessionKitchenCooldownUntil(
+  admin: SupabaseClient,
+  sessionId: string,
+  cooldownUntil: string,
+): Promise<void> {
+  await admin
+    .from('table_sessions')
+    .update({ sushi_round_cooldown_until: cooldownUntil })
+    .eq('id', sessionId);
 }
 
 async function loadRoundLines(
@@ -290,6 +313,7 @@ export async function getRoundSnapshot(params: {
   }
 
   const round = await loadActiveRound(params.admin, params.sessionId);
+  const sessionCooldownUntil = await loadSessionKitchenCooldownUntil(params.admin, params.sessionId);
 
   if (!round) {
     return {
@@ -299,6 +323,7 @@ export async function getRoundSnapshot(params: {
       live_guest_count: liveGuestCount,
       round_cap_total: roundCapTotal(settings.sushi_per_person_per_round_cap, liveGuestCount),
       lines_qty_total: 0,
+      session_cooldown_until: sessionCooldownUntil,
     };
   }
 
@@ -320,6 +345,7 @@ export async function getRoundSnapshot(params: {
     live_guest_count: liveGuestCount,
     round_cap_total: roundCapTotal(perCap, capGuests),
     lines_qty_total: linesQty,
+    session_cooldown_until: sessionCooldownUntil,
   };
 }
 
@@ -553,15 +579,18 @@ export async function submitRequest(params: {
   });
   if (!reg.ok) return reg;
 
+  await settleExpiredTableOrderRoundCooldown(admin, sessionId);
+  const sessionCooldownUntil = await loadSessionKitchenCooldownUntil(admin, sessionId);
+  if (isSessionKitchenCooldownActive(sessionCooldownUntil)) {
+    return { ok: false, status: 409, error: 'round_cooldown_active' };
+  }
+
   const round = await loadActiveRound(admin, sessionId);
   if (!round) {
     return { ok: false, status: 404, error: 'round_not_found' };
   }
   if (round.status === 'pending_confirm') {
     return { ok: false, status: 409, error: 'round_confirm_pending' };
-  }
-  if (isCooldownActive(round.status, round.cooldown_until)) {
-    return { ok: false, status: 409, error: 'round_cooldown_active' };
   }
   if (round.status !== 'collecting') {
     return { ok: false, status: 409, error: 'round_not_collecting' };
@@ -646,45 +675,6 @@ export async function finalizeRound(params: {
     return { ok: false, status: 404, error: 'round_not_found' };
   }
 
-  // Idempotent success: already in cooldown with append id
-  if (
-    round.status === 'cooldown' &&
-    round.append_client_request_id &&
-    !isCooldownExpired(round.status, round.cooldown_until)
-  ) {
-    const snapshot = await getRoundSnapshot({
-      admin,
-      restaurantId,
-      sessionId,
-      sessionOrders: params.sessionOrders,
-      settings,
-      skipExpirySettle: true,
-    });
-    const { data: idemRow } = await admin
-      .from('order_append_idempotency')
-      .select('order_id, batch_id, status')
-      .eq('session_id', sessionId)
-      .eq('client_request_id', round.append_client_request_id)
-      .maybeSingle();
-    const orderId =
-      idemRow?.status === 'completed' && typeof idemRow.order_id === 'string'
-        ? idemRow.order_id
-        : undefined;
-    const batchId =
-      idemRow?.status === 'completed' && typeof idemRow.batch_id === 'string'
-        ? idemRow.batch_id
-        : undefined;
-    return {
-      ok: true,
-      data: {
-        snapshot,
-        order_id: orderId,
-        batch_id: batchId,
-        idempotent_replay: true,
-      },
-    };
-  }
-
   if (round.status !== 'pending_confirm' && round.status !== 'finalize_failed') {
     return { ok: false, status: 409, error: 'round_not_pending_confirm' };
   }
@@ -742,7 +732,6 @@ export async function finalizeRound(params: {
       },
       secret,
     );
-    // Ensure cooldown state
     const nowIso = new Date().toISOString();
     const cooldownUntil = new Date(
       Date.now() + settings.sushi_round_cooldown_seconds * 1000,
@@ -750,12 +739,14 @@ export async function finalizeRound(params: {
     await admin
       .from('table_order_rounds')
       .update({
-        status: 'cooldown',
+        status: 'closed',
         cooldown_until: cooldownUntil,
+        append_client_request_id: clientRequestId,
         updated_at: nowIso,
       })
       .eq('id', round.id)
       .in('status', ['pending_confirm', 'finalize_failed', 'cooldown']);
+    await setSessionKitchenCooldownUntil(admin, sessionId, cooldownUntil);
 
     // Replay may follow a prior write that never printed; DB unique (order, batch, station) skips already-enqueued tickets.
     await enqueueStationTicketsAfterRoundFinalize({
@@ -850,10 +841,10 @@ export async function finalizeRound(params: {
     Date.now() + settings.sushi_round_cooldown_seconds * 1000,
   ).toISOString();
 
-  const { data: cooled } = await admin
+  const { data: closed } = await admin
     .from('table_order_rounds')
     .update({
-      status: 'cooldown',
+      status: 'closed',
       cooldown_until: cooldownUntil,
       append_client_request_id: clientRequestId,
       updated_at: nowIso,
@@ -863,22 +854,19 @@ export async function finalizeRound(params: {
     .select(ROUND_SELECT)
     .maybeSingle();
 
-  // If condition update lost the race, another finalize won — still ok if cooldown
-  if (!cooled) {
-    const again = await loadActiveRound(admin, sessionId);
-    if (again?.status !== 'cooldown') {
-      // Append already written; mark cooldown best-effort
-      await admin
-        .from('table_order_rounds')
-        .update({
-          status: 'cooldown',
-          cooldown_until: cooldownUntil,
-          append_client_request_id: clientRequestId,
-          updated_at: nowIso,
-        })
-        .eq('id', round.id);
-    }
+  // Append already written; ensure round closed + session clock even if the status race lost.
+  if (!closed) {
+    await admin
+      .from('table_order_rounds')
+      .update({
+        status: 'closed',
+        cooldown_until: cooldownUntil,
+        append_client_request_id: clientRequestId,
+        updated_at: nowIso,
+      })
+      .eq('id', round.id);
   }
+  await setSessionKitchenCooldownUntil(admin, sessionId, cooldownUntil);
 
   const enqueue_token = signOrderEnqueueToken(
     {

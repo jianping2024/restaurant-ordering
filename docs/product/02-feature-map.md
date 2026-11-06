@@ -108,7 +108,7 @@
 ### 寿司同桌轮次（`buffet_service_mode = sushi`，**已实现**）
 
 - 契约：[`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md)
-- 免费菜（`price=0`）：同桌 round 合单 → 发起送厨 → 冷却后可再开轮；功能设置可配轮次上限、冷却秒数（5–1800）
+- 免费菜（`price=0`）：同桌 round 合单 → 发起送厨 → 冷却期间仍可点进下一篮、冷却后才能再送厨；功能设置可配轮次上限、冷却秒数
 - 收费菜：不进 round，即时 append
 - 同 URL；`SushiMenuPage` vs `ClassicMenuPage` 服务端分支
 - Realtime：`table_order_round_*` postgres_changes；**禁止**顾客端 interval 轮询

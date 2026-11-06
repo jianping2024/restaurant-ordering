@@ -52,8 +52,25 @@ describe('formatSushiSendGuidanceMessage', () => {
     );
     assert.equal(formatSushiSendGuidanceMessage({ kind: 'failed' }, zh), zh.guidanceFailed);
     assert.equal(
-      formatSushiSendGuidanceMessage({ kind: 'sent', seconds: 90 }, zh),
-      '已送厨 · 收费菜可继续点 · 90 秒后开下一轮',
+      formatSushiSendGuidanceMessage(
+        { kind: 'sent', seconds: 90, qty: 0, full: false, cap: 16 },
+        zh,
+      ),
+      '可继续点 · 90 秒后可送厨',
+    );
+    assert.equal(
+      formatSushiSendGuidanceMessage(
+        { kind: 'sent', seconds: 90, qty: 3, full: false, cap: 16 },
+        zh,
+      ),
+      '已点 3 道 · 90 秒后可送厨',
+    );
+    assert.equal(
+      formatSushiSendGuidanceMessage(
+        { kind: 'sent', seconds: 90, qty: 16, full: true, cap: 16 },
+        zh,
+      ),
+      '本轮已满 16/16 · 90 秒后可送厨',
     );
   });
 });
@@ -86,7 +103,7 @@ describe('messageForSushiRoundError', () => {
       cap: 16,
     });
     assert.match(msg, /16\/16/);
-    assert.match(msg, /本轮核单/);
+    assert.match(msg, /送厨或从核单减份/);
     assert.doesNotMatch(msg, /\{used\}|\{cap\}/);
   });
 

@@ -388,7 +388,7 @@ sole `guestClientSeatLimit` (max(n+2, 2n); 0 = no cap) in `registerGuestClient` 
 
 ### Sushi round cooldown settle
 
-sole SQL `settle_expired_table_order_round_cooldown` (GET `getRoundSnapshot` + upsert both); never leave expired cooldown lines in snapshot as a live cap beside that settle.
+sole SQL `settle_expired_table_order_round_cooldown` + session clock `table_sessions.sushi_round_cooldown_until` (GET / upsert / submit); finalize closes the round immediately — cooldown blocks send only, not free-dish basket writes; never leave a live `cooldown` round occupying the active slot beside that settle.
 
 ### Sushi round due-submit settle
 

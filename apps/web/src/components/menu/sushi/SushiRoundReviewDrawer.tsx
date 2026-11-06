@@ -83,7 +83,8 @@ export function SushiRoundReviewDrawer({
   onOwnLineQtyChange,
 }: Props) {
   const urgent = canSend && tableQty > 0;
-  const notice = !urgent && guidance && guidance.kind !== 'sent' ? guidance : null;
+  // Show cooling / countdown / failed notice while send is not urgent.
+  const notice = !urgent && guidance ? guidance : null;
   const sendLabel = urgent
     ? labels.sendRoundCount.replace('{count}', String(tableQty))
     : labels.sendRound;

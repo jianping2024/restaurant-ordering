@@ -5,41 +5,84 @@ import {
   kitchenSendSuccessDedupeKey,
 } from './kitchen-send-success-ui';
 
+const until = '2026-10-26T12:02:00.000Z';
+const nowMs = Date.parse('2026-10-26T12:00:00.000Z');
+
 describe('isKitchenSendSuccessStatusTransition', () => {
-  it('fires pending_confirm → cooldown', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('pending_confirm', 'cooldown'), true);
+  it('fires pending_confirm → null with live session cooldown', () => {
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: 'pending_confirm',
+        next: null,
+        sessionCooldownUntil: until,
+        nowMs,
+      }),
+      true,
+    );
   });
 
-  it('fires finalize_failed → cooldown (retry succeeded)', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('finalize_failed', 'cooldown'), true);
+  it('fires finalize_failed → collecting with live session cooldown', () => {
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: 'finalize_failed',
+        next: 'collecting',
+        sessionCooldownUntil: until,
+        nowMs,
+      }),
+      true,
+    );
   });
 
-  it('fires collecting → cooldown (missed pending snapshot)', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('collecting', 'cooldown'), true);
+  it('fires legacy pending_confirm → cooldown', () => {
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: 'pending_confirm',
+        next: 'cooldown',
+        nowMs,
+      }),
+      true,
+    );
+  });
+
+  it('does not fire empty-basket reset without session cooldown', () => {
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: 'pending_confirm',
+        next: 'collecting',
+        sessionCooldownUntil: null,
+        nowMs,
+      }),
+      false,
+    );
   });
 
   it('does not fire on mount (prev null)', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition(null, 'cooldown'), false);
-    assert.equal(isKitchenSendSuccessStatusTransition(undefined, 'cooldown'), false);
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: null,
+        next: null,
+        sessionCooldownUntil: until,
+        nowMs,
+      }),
+      false,
+    );
   });
 
   it('does not fire while staying on cooldown', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('cooldown', 'cooldown'), false);
-  });
-
-  it('does not fire on finalize_failed alone', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('pending_confirm', 'finalize_failed'), false);
-    assert.equal(isKitchenSendSuccessStatusTransition('finalize_failed', 'finalize_failed'), false);
-  });
-
-  it('does not fire cooldown → collecting', () => {
-    assert.equal(isKitchenSendSuccessStatusTransition('cooldown', 'collecting'), false);
+    assert.equal(
+      isKitchenSendSuccessStatusTransition({
+        prev: 'cooldown',
+        next: 'cooldown',
+        nowMs,
+      }),
+      false,
+    );
   });
 });
 
 describe('kitchenSendSuccessDedupeKey', () => {
-  it('returns trimmed round id', () => {
-    assert.equal(kitchenSendSuccessDedupeKey('  abc  '), 'abc');
+  it('returns trimmed session cooldown until', () => {
+    assert.equal(kitchenSendSuccessDedupeKey(`  ${until}  `), until);
   });
 
   it('returns null for empty', () => {

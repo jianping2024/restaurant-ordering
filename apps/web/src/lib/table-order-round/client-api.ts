@@ -31,6 +31,10 @@ function parseSnapshot(json: unknown, fallbackSettings: SushiRoundSettings): Rou
     live_guest_count: Number(raw.live_guest_count) || 0,
     round_cap_total: Number(raw.round_cap_total) || 0,
     lines_qty_total: Number(raw.lines_qty_total) || 0,
+    session_cooldown_until:
+      typeof raw.session_cooldown_until === 'string' && raw.session_cooldown_until.length > 0
+        ? raw.session_cooldown_until
+        : null,
     ok: raw.ok === true,
     enqueue_token: typeof raw.enqueue_token === 'string' ? raw.enqueue_token : undefined,
     order_id: typeof raw.order_id === 'string' ? raw.order_id : undefined,

@@ -121,7 +121,7 @@ import {
 import type { MenuOrderingRestaurant } from '@/components/menu/MenuOrderingController';
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
-import { isCooldownActive } from '@/lib/table-order-round/status';
+import { effectiveKitchenCooldownUntil } from '@/lib/table-order-round/status';
 import {
   isKitchenSendSuccessStatusTransition,
   kitchenSendSuccessDedupeKey,
@@ -493,36 +493,16 @@ export function SushiMenuPage({
       let nextQty = Number(rawNextQty);
       if (!Number.isFinite(nextQty) || nextQty <= 0) nextQty = 0;
 
-      if (isSushiRoundFreeMenuPrice(item.price)) {
-        const status = round.snapshot.round?.status;
-        if (
-          status === 'cooldown' &&
-          isCooldownActive(status, round.snapshot.round?.cooldown_until ?? null)
-        ) {
-          showToast(roundT.cooldownActive, 'info');
-          return;
-        }
-        if (nextQty > 0) {
-          const proposed = upsertCartItemQty(cartRef.current, item, nextQty);
-          if (!assertFreeCartDraftOk(proposed)) return;
-        }
+      if (isSushiRoundFreeMenuPrice(item.price) && nextQty > 0) {
+        const proposed = upsertCartItemQty(cartRef.current, item, nextQty);
+        if (!assertFreeCartDraftOk(proposed)) return;
       }
 
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
       commitCartQty(item, nextQty);
       if (nextQty <= 0 && cartRef.current.length === 0) setCartOpen(false);
     },
-    [
-      assertFreeCartDraftOk,
-      catalogReady,
-      commitCartQty,
-      ensureGuestCanPlaceOrder,
-      lang,
-      menuItems,
-      round.snapshot.round?.cooldown_until,
-      round.snapshot.round?.status,
-      roundT,
-    ],
+    [assertFreeCartDraftOk, catalogReady, commitCartQty, ensureGuestCanPlaceOrder, lang, menuItems],
   );
 
   const openDishDetail = useCallback((itemId: string) => {
@@ -686,16 +666,6 @@ export function SushiMenuPage({
       setDraftConfigWarn(warn);
       return;
     }
-    if (isSushiRoundFreeMenuPrice(detailItem.price)) {
-      const status = round.snapshot.round?.status;
-      if (
-        status === 'cooldown' &&
-        isCooldownActive(status, round.snapshot.round?.cooldown_until ?? null)
-      ) {
-        showToast(roundT.cooldownActive, 'info');
-        return;
-      }
-    }
     const prev = cartRef.current;
     const next = upsertCartLineByConfig(
       prev,
@@ -728,9 +698,6 @@ export function SushiMenuPage({
     ensureGuestCanPlaceOrder,
     lang,
     menuItems,
-    round.snapshot.round?.cooldown_until,
-    round.snapshot.round?.status,
-    roundT.cooldownActive,
   ]);
 
   const detailCartEntry = detailItem
@@ -816,9 +783,13 @@ export function SushiMenuPage({
   });
 
   const roundStatus = round.snapshot.round?.status;
-  const inTableCooldown =
-    roundStatus === 'cooldown' &&
-    isCooldownActive(roundStatus, round.snapshot.round?.cooldown_until ?? null);
+  const inTableCooldown = Boolean(
+    effectiveKitchenCooldownUntil({
+      sessionCooldownUntil: round.snapshot.session_cooldown_until,
+      status: roundStatus,
+      roundCooldownUntil: round.snapshot.round?.cooldown_until ?? null,
+    }),
+  );
   const canSendRound =
     round.tableReviewQty > 0 &&
     (roundStatus === 'collecting' || roundStatus == null) &&
@@ -1317,7 +1288,7 @@ export function SushiMenuPage({
   useEffect(() => {
     if (!round.snapshotReady) return;
     const status = round.snapshot.round?.status ?? null;
-    const roundId = round.snapshot.round?.id ?? null;
+    const sessionCooldownUntil = round.snapshot.session_cooldown_until;
 
     if (!roundStatusBootstrappedRef.current) {
       roundStatusBootstrappedRef.current = true;
@@ -1328,9 +1299,17 @@ export function SushiMenuPage({
     const prev = prevRoundStatusRef.current;
     prevRoundStatusRef.current = status;
 
-    if (!isKitchenSendSuccessStatusTransition(prev, status)) return;
+    if (
+      !isKitchenSendSuccessStatusTransition({
+        prev,
+        next: status,
+        sessionCooldownUntil,
+      })
+    ) {
+      return;
+    }
 
-    const dedupeKey = kitchenSendSuccessDedupeKey(roundId);
+    const dedupeKey = kitchenSendSuccessDedupeKey(sessionCooldownUntil);
     if (!dedupeKey || kitchenSendDismissedRoundIdRef.current === dedupeKey) return;
     kitchenSendDismissedRoundIdRef.current = dedupeKey;
 
@@ -1343,8 +1322,8 @@ export function SushiMenuPage({
     activeSession?.id,
     dismissToMenuAfterKitchenSend,
     refreshSessionContext,
-    round.snapshot.round?.id,
     round.snapshot.round?.status,
+    round.snapshot.session_cooldown_until,
     round.snapshotReady,
     roundT.sentToast,
     signalSubmitFeedback,
@@ -1524,7 +1503,8 @@ export function SushiMenuPage({
           viewBill: t.viewBillLink,
           viewOrdered: t.viewOrdered,
           viewRoundReview:
-            sendGuidance?.kind === 'unsent'
+            sendGuidance?.kind === 'unsent' ||
+            (sendGuidance?.kind === 'sent' && sendGuidance.qty > 0)
               ? formatCountLabel(roundT.goToSend, sendGuidance.qty)
               : roundT.viewRoundReview,
           roundReviewCount: (count) => formatCountLabel(roundT.roundReviewCount, count),

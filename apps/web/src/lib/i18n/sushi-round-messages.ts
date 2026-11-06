@@ -35,8 +35,12 @@ export const SUSHI_ROUND_MESSAGES: Record<
     /** {seconds} until auto send. */
     guidanceCountdown: string;
     guidanceFailed: string;
-    /** {seconds} of table cooldown left. */
+    /** Cooldown, empty next basket: {seconds}. */
     guidanceSent: string;
+    /** Cooldown with unsent qty: {qty} {seconds}. */
+    guidanceSentBasket: string;
+    /** Cooldown and round full: {qty} {cap} {seconds}. */
+    guidanceSentFull: string;
     /** Footer CTA → round review while the table round is unsent; {count} = table qty. */
     goToSend: string;
     /** Round review dismiss while sendable (再加点). */
@@ -100,7 +104,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: '本轮已满 {qty}/{cap}，先送厨再点',
     guidanceCountdown: '{seconds} 秒后自动送厨 · 同桌还能加',
     guidanceFailed: '送厨未成功，正在重试；一直不行请叫服务员',
-    guidanceSent: '已送厨 · 收费菜可继续点 · {seconds} 秒后开下一轮',
+    guidanceSent: '可继续点 · {seconds} 秒后可送厨',
+    guidanceSentBasket: '已点 {qty} 道 · {seconds} 秒后可送厨',
+    guidanceSentFull: '本轮已满 {qty}/{cap} · {seconds} 秒后可送厨',
     goToSend: '去送厨 · {count} 道',
     reviewAddMore: '再加点',
     addToRound: '加入本轮',
@@ -110,7 +116,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ 收费菜 {count} 份已下单',
     reviewPaidSentTitle: '收费菜 · 已直接送厨',
     confirmTitle: '送厨这 {count} 道？',
-    confirmMessage: '同桌点好了吗？{confirm} 秒后送出，之后 {cooldown} 秒内不能点免费菜。',
+    confirmMessage:
+      '同桌点好了吗？{confirm} 秒后送出；之后 {cooldown} 秒内不能再送厨，期间仍可点菜进下一轮。',
     confirmAction: '确认送厨',
     confirmCancel: '再看看',
     peerNotifyTitle: '同桌已发起送厨',
@@ -118,9 +125,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: '知道了',
     sentToast: '本轮已送厨',
     guestCountRequired: '请先让服务员登记用餐人数',
-    roundCapExceeded: '本轮免费菜已满（{used}/{cap}），请先从「本轮核单」送厨后再点',
+    roundCapExceeded: '本轮免费菜已满（{used}/{cap}），请先送厨或从核单减份后再点',
     basketLocked: '送厨处理中，暂不可改免费菜',
-    cooldownActive: '免费菜等下一轮；收费菜可继续点',
+    cooldownActive: '冷却中，结束后才能送厨；现在仍可点菜进本轮',
     emptyRound: '请先添加免费菜',
     guestClientLimit: '本桌点餐手机已满，请找服务员帮忙点单',
     submitFailed: '操作失败，请重试',
@@ -131,7 +138,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: '送厨',
     introStep2Body: '底部提示未送厨时，点「去送厨」→「送厨 · N」；倒计时结束自动送出。',
     introStep3Title: '下一轮',
-    introStep3Body: '送厨后有冷却；收费菜可继续点，免费菜等下一轮。',
+    introStep3Body: '送厨后有冷却：期间仍可点菜进本轮，冷却结束才能再送厨。',
     introCta: '开始点餐',
   },
   en: {
@@ -153,7 +160,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: 'Round full ({qty}/{cap}) — send first',
     guidanceCountdown: 'Sends in {seconds}s · table can still add',
     guidanceFailed: 'Send failed — retrying · ask staff if stuck',
-    guidanceSent: 'Sent · paid OK · next free round in {seconds}s',
+    guidanceSent: 'Keep ordering · send again in {seconds}s',
+    guidanceSentBasket: '{qty} in basket · send in {seconds}s',
+    guidanceSentFull: 'Round full {qty}/{cap} · send in {seconds}s',
     goToSend: 'Send · {count}',
     reviewAddMore: 'Add more',
     addToRound: 'Add to round',
@@ -163,7 +172,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ {count} paid ordered',
     reviewPaidSentTitle: 'Paid · already sent',
     confirmTitle: 'Send these {count}?',
-    confirmMessage: 'Table ready? Sends in {confirm}s · no free dishes for {cooldown}s.',
+    confirmMessage:
+      'Table ready? Sends in {confirm}s · then {cooldown}s before the next kitchen send (you can still add to the basket).',
     confirmAction: 'Confirm',
     confirmCancel: 'Back',
     peerNotifyTitle: 'Someone started send',
@@ -171,9 +181,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: 'OK',
     sentToast: 'Round sent',
     guestCountRequired: 'Ask staff to set guest count first',
-    roundCapExceeded: 'Round full ({used}/{cap}). Send from “This round” first.',
+    roundCapExceeded: 'Round full ({used}/{cap}). Send or reduce from “This round”.',
     basketLocked: 'Sending — free dishes locked',
-    cooldownActive: 'Free dishes wait for next round · paid OK',
+    cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
     submitFailed: 'Failed — try again',
@@ -184,7 +194,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: 'Send',
     introStep2Body: 'When the bar says not sent, tap “Send · N” and confirm. Countdown, then auto-send.',
     introStep3Title: 'Next round',
-    introStep3Body: 'After send, a short wait. Paid OK now; free dishes wait for next round.',
+    introStep3Body:
+      'After send, a short wait: keep adding to the basket; send again when cooldown ends.',
     introCta: 'Start ordering',
   },
   pt: {
@@ -206,7 +217,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: 'Ronda cheia ({qty}/{cap}) — envie primeiro',
     guidanceCountdown: 'Envia em {seconds}s · a mesa ainda pode pedir',
     guidanceFailed: 'Falha no envio — a repetir · chame o staff',
-    guidanceSent: 'Enviado · pagos OK · próxima grátis em {seconds}s',
+    guidanceSent: 'Pode pedir · envia de novo em {seconds}s',
+    guidanceSentBasket: '{qty} na ronda · envia em {seconds}s',
+    guidanceSentFull: 'Ronda cheia {qty}/{cap} · envia em {seconds}s',
     goToSend: 'Enviar · {count}',
     reviewAddMore: 'Pedir mais',
     addToRound: 'Juntar à ronda',
@@ -216,7 +229,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ {count} pagos pedidos',
     reviewPaidSentTitle: 'Pagos · já enviados',
     confirmTitle: 'Enviar estes {count}?',
-    confirmMessage: 'A mesa está pronta? Envia em {confirm}s · sem grátis por {cooldown}s.',
+    confirmMessage:
+      'A mesa está pronta? Envia em {confirm}s · depois {cooldown}s sem novo envio (ainda pode adicionar à ronda).',
     confirmAction: 'Confirmar',
     confirmCancel: 'Voltar',
     peerNotifyTitle: 'Alguém iniciou o envio',
@@ -224,9 +238,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: 'OK',
     sentToast: 'Ronda enviada',
     guestCountRequired: 'Peça ao staff para registar as pessoas',
-    roundCapExceeded: 'Ronda cheia ({used}/{cap}). Envie em “Esta ronda” primeiro.',
+    roundCapExceeded: 'Ronda cheia ({used}/{cap}). Envie ou reduza em “Esta ronda”.',
     basketLocked: 'A enviar — grátis bloqueados',
-    cooldownActive: 'Grátis na próxima ronda · pagos OK',
+    cooldownActive: 'Em espera — só depois pode enviar; ainda pode adicionar grátis',
     emptyRound: 'Adicione pratos grátis primeiro',
     guestClientLimit: 'Demasiados telemóveis nesta mesa — peça ao staff',
     submitFailed: 'Falhou — tente de novo',
@@ -237,7 +251,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: 'Enviar',
     introStep2Body: 'Quando a barra disser por enviar, toque “Enviar · N” e confirme. Depois envia sozinho.',
     introStep3Title: 'Próxima ronda',
-    introStep3Body: 'Após enviar, há espera. Pagos OK; grátis na próxima ronda.',
+    introStep3Body: 'Após enviar, há espera: pode continuar a adicionar; só depois envia de novo.',
     introCta: 'Começar',
   },
   es: {
@@ -259,7 +273,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: 'Ronda llena ({qty}/{cap}) — envía primero',
     guidanceCountdown: 'Envía en {seconds}s · la mesa aún puede pedir',
     guidanceFailed: 'Envío fallido — reintentando · avisa al personal',
-    guidanceSent: 'Enviado · de pago OK · siguiente gratis en {seconds}s',
+    guidanceSent: 'Sigue pidiendo · reenvío en {seconds}s',
+    guidanceSentBasket: '{qty} en la ronda · envío en {seconds}s',
+    guidanceSentFull: 'Ronda llena {qty}/{cap} · envío en {seconds}s',
     goToSend: 'Enviar · {count}',
     reviewAddMore: 'Pedir más',
     addToRound: 'Añadir a ronda',
@@ -269,7 +285,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ {count} de pago pedidos',
     reviewPaidSentTitle: 'De pago · ya enviados',
     confirmTitle: '¿Enviar estos {count}?',
-    confirmMessage: '¿Mesa lista? Envía en {confirm}s · sin gratis por {cooldown}s.',
+    confirmMessage:
+      '¿Mesa lista? Envía en {confirm}s · luego {cooldown}s sin nuevo envío (aún puedes añadir a la ronda).',
     confirmAction: 'Confirmar',
     confirmCancel: 'Volver',
     peerNotifyTitle: 'Alguien inició el envío',
@@ -277,9 +294,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: 'OK',
     sentToast: 'Ronda enviada',
     guestCountRequired: 'Pide al personal que registre comensales',
-    roundCapExceeded: 'Ronda llena ({used}/{cap}). Envía en “Esta ronda” primero.',
+    roundCapExceeded: 'Ronda llena ({used}/{cap}). Envía o reduce en “Esta ronda”.',
     basketLocked: 'Enviando — gratis bloqueados',
-    cooldownActive: 'Gratis en la siguiente ronda · de pago OK',
+    cooldownActive: 'En espera — luego podrás enviar; aún puedes añadir gratis',
     emptyRound: 'Añade platos gratis primero',
     guestClientLimit: 'Demasiados móviles en esta mesa — pide al personal',
     submitFailed: 'Falló — reintenta',
@@ -290,7 +307,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: 'Enviar',
     introStep2Body: 'Cuando la barra diga sin enviar, toca “Enviar · N” y confirma. Luego se envía solo.',
     introStep3Title: 'Siguiente ronda',
-    introStep3Body: 'Tras enviar, hay espera. De pago OK; gratis en la siguiente.',
+    introStep3Body: 'Tras enviar, hay espera: sigue añadiendo; envía de nuevo al terminar.',
     introCta: 'Empezar',
   },
   fr: {
@@ -312,7 +329,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: 'Round full ({qty}/{cap}) — send first',
     guidanceCountdown: 'Sends in {seconds}s · table can still add',
     guidanceFailed: 'Send failed — retrying · ask staff if stuck',
-    guidanceSent: 'Sent · paid OK · next free round in {seconds}s',
+    guidanceSent: 'Keep ordering · send again in {seconds}s',
+    guidanceSentBasket: '{qty} in basket · send in {seconds}s',
+    guidanceSentFull: 'Round full {qty}/{cap} · send in {seconds}s',
     goToSend: 'Send · {count}',
     reviewAddMore: 'Add more',
     addToRound: 'Add to round',
@@ -322,7 +341,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ {count} paid ordered',
     reviewPaidSentTitle: 'Paid · already sent',
     confirmTitle: 'Send these {count}?',
-    confirmMessage: 'Table ready? Sends in {confirm}s · no free dishes for {cooldown}s.',
+    confirmMessage:
+      'Table ready? Sends in {confirm}s · then {cooldown}s before the next kitchen send (you can still add to the basket).',
     confirmAction: 'Confirm',
     confirmCancel: 'Back',
     peerNotifyTitle: 'Someone started send',
@@ -330,9 +350,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: 'OK',
     sentToast: 'Round sent',
     guestCountRequired: 'Ask staff to set guest count first',
-    roundCapExceeded: 'Round full ({used}/{cap}). Send from “This round” first.',
+    roundCapExceeded: 'Round full ({used}/{cap}). Send or reduce from “This round”.',
     basketLocked: 'Sending — free dishes locked',
-    cooldownActive: 'Free dishes wait for next round · paid OK',
+    cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
     submitFailed: 'Failed — try again',
@@ -343,7 +363,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: 'Send',
     introStep2Body: 'When the bar says not sent, tap “Send · N” and confirm. Countdown, then auto-send.',
     introStep3Title: 'Next round',
-    introStep3Body: 'After send, a short wait. Paid OK now; free dishes wait for next round.',
+    introStep3Body:
+      'After send, a short wait: keep adding to the basket; send again when cooldown ends.',
     introCta: 'Start ordering',
   },
   de: {
@@ -365,7 +386,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     guidanceFull: 'Round full ({qty}/{cap}) — send first',
     guidanceCountdown: 'Sends in {seconds}s · table can still add',
     guidanceFailed: 'Send failed — retrying · ask staff if stuck',
-    guidanceSent: 'Sent · paid OK · next free round in {seconds}s',
+    guidanceSent: 'Keep ordering · send again in {seconds}s',
+    guidanceSentBasket: '{qty} in basket · send in {seconds}s',
+    guidanceSentFull: 'Round full {qty}/{cap} · send in {seconds}s',
     goToSend: 'Send · {count}',
     reviewAddMore: 'Add more',
     addToRound: 'Add to round',
@@ -375,7 +398,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     reviewPaidJustOrdered: '✓ {count} paid ordered',
     reviewPaidSentTitle: 'Paid · already sent',
     confirmTitle: 'Send these {count}?',
-    confirmMessage: 'Table ready? Sends in {confirm}s · no free dishes for {cooldown}s.',
+    confirmMessage:
+      'Table ready? Sends in {confirm}s · then {cooldown}s before the next kitchen send (you can still add to the basket).',
     confirmAction: 'Confirm',
     confirmCancel: 'Back',
     peerNotifyTitle: 'Someone started send',
@@ -383,9 +407,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     peerNotifyAction: 'OK',
     sentToast: 'Round sent',
     guestCountRequired: 'Ask staff to set guest count first',
-    roundCapExceeded: 'Round full ({used}/{cap}). Send from “This round” first.',
+    roundCapExceeded: 'Round full ({used}/{cap}). Send or reduce from “This round”.',
     basketLocked: 'Sending — free dishes locked',
-    cooldownActive: 'Free dishes wait for next round · paid OK',
+    cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
     submitFailed: 'Failed — try again',
@@ -396,7 +420,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introStep2Title: 'Send',
     introStep2Body: 'When the bar says not sent, tap “Send · N” and confirm. Countdown, then auto-send.',
     introStep3Title: 'Next round',
-    introStep3Body: 'After send, a short wait. Paid OK now; free dishes wait for next round.',
+    introStep3Body:
+      'After send, a short wait: keep adding to the basket; send again when cooldown ends.',
     introCta: 'Start ordering',
   },
 };
@@ -434,6 +459,17 @@ export function formatSushiSendGuidanceMessage(guidance: SushiSendGuidance, t: S
     case 'failed':
       return t.guidanceFailed;
     case 'sent':
+      if (guidance.full && guidance.cap > 0) {
+        return t.guidanceSentFull
+          .replace('{qty}', String(guidance.qty))
+          .replace('{cap}', String(guidance.cap))
+          .replace('{seconds}', String(guidance.seconds));
+      }
+      if (guidance.qty > 0) {
+        return t.guidanceSentBasket
+          .replace('{qty}', String(guidance.qty))
+          .replace('{seconds}', String(guidance.seconds));
+      }
       return t.guidanceSent.replace('{seconds}', String(guidance.seconds));
   }
 }

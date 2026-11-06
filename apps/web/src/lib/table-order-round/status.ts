@@ -22,20 +22,50 @@ export function canMutateRoundLines(status: TableOrderRoundStatus): boolean {
   return status === 'collecting' || status === 'pending_confirm';
 }
 
+/** Session kitchen-send cooldown (authoritative after session-clock migration). */
+export function isSessionKitchenCooldownActive(
+  until: string | null | undefined,
+  nowMs = Date.now(),
+): boolean {
+  if (!until) return false;
+  const at = Date.parse(until);
+  if (!Number.isFinite(at)) return false;
+  return nowMs < at;
+}
+
+/** Legacy round.status === cooldown clock (settle closes these and copies onto the session). */
 export function isCooldownActive(status: TableOrderRoundStatus, cooldownUntil: string | null, nowMs = Date.now()): boolean {
   if (status !== 'cooldown') return false;
-  if (!cooldownUntil) return false;
-  const until = Date.parse(cooldownUntil);
-  if (!Number.isFinite(until)) return false;
-  return nowMs < until;
+  return isSessionKitchenCooldownActive(cooldownUntil, nowMs);
 }
 
 export function isCooldownExpired(status: TableOrderRoundStatus, cooldownUntil: string | null, nowMs = Date.now()): boolean {
   if (status !== 'cooldown') return false;
   if (!cooldownUntil) return true;
-  const until = Date.parse(cooldownUntil);
-  if (!Number.isFinite(until)) return true;
-  return nowMs >= until;
+  return !isSessionKitchenCooldownActive(cooldownUntil, nowMs);
+}
+
+/**
+ * Sole effective kitchen-send cooldown until for guidance / send gates:
+ * prefer live session clock; else legacy active cooldown round.
+ */
+export function effectiveKitchenCooldownUntil(input: {
+  sessionCooldownUntil?: string | null;
+  status?: TableOrderRoundStatus | null;
+  roundCooldownUntil?: string | null;
+  nowMs?: number;
+}): string | null {
+  const nowMs = input.nowMs ?? Date.now();
+  if (isSessionKitchenCooldownActive(input.sessionCooldownUntil, nowMs)) {
+    return input.sessionCooldownUntil ?? null;
+  }
+  if (
+    input.status === 'cooldown' &&
+    isCooldownActive('cooldown', input.roundCooldownUntil ?? null, nowMs)
+  ) {
+    return input.roundCooldownUntil ?? null;
+  }
+  return null;
 }
 
 export function isSubmitDeadlinePassed(submitDeadlineAt: string | null, nowMs = Date.now()): boolean {

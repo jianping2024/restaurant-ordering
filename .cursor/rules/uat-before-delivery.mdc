@@ -34,9 +34,20 @@ Lint / unit / `npm run build` alone **do not** satisfy this gate.
 Follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** and `.cursor/rules/local-product-testing.mdc`:
 
 1. `mesa-local-uat` (stack-health + login + API asserts for the touched path)
-2. Chrome DevTools (or IDE browser) on localhost — exercise the changed UI; for layout/chrome, **screenshot + measure**, not “class exists”
+2. Chrome DevTools (or IDE browser) on localhost — **必须按真实页面点击测完改动面**（打开页面 → 点按钮/填表/走流程 → 看结果）；layout/chrome 另加 **screenshot + measure**，不是 “class exists”
 3. Report each item **pass** / **fail**; `skip` only when truly blocked (same rule as local-product-testing)
 4. **业务场景报告** — 中文《本次改动业务场景测试报告》+ 落盘 `docs/test-scenarios/`；多角色/顺序/并发/恢复/回归粒度。完整标准：always-on [`.cursor/rules/business-scenario-testing.mdc`](./business-scenario-testing.mdc)。禁止只写笼统「正常/异常/边界」。
+
+### 禁止糊弄（硬 · Will）
+
+以下 **不算** UI UAT 通过，不得据此交付 / 合 main / 报「已验证」：
+
+- 只跑 API / `mesa-local-uat`、不打开改动页面点操作
+- 只看代码、快照里「有文案/有 class」、或截一张静态图不下手点
+- 用「逻辑上应该没问题」「和邻页一样」代替实点
+- 用单元测试 / lint / typecheck 冒充产品 UAT
+
+改了哪块界面，就要在 localhost **真点那块**；点不到须写 blocker，标 **fail** 或 **未验证**，不得写成 pass。
 
 If UAT **fails**: fix or report fail — do not merge/deliver. If blocked: report blocker; do not claim delivery. Incomplete scenario coverage or unverified critical invariants → report「验证未完成」, not「开发完成」.
 

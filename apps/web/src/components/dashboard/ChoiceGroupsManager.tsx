@@ -130,7 +130,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[13px] text-brand-text-muted">
-          全店共用口味分组。建好后到「菜品」编辑里勾选；顾客点餐时每组单选必选一。
+          全店共用口味分组。建好后到「菜品」编辑里勾选分组（不用勾组内单项）；顾客点餐时每组单选必选一。
         </p>
         <Button type="button" size="sm" onClick={() => setPrompt({ kind: 'group' })} disabled={busy}>
           + 分组

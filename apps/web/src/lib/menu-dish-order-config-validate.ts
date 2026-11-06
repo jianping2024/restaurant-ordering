@@ -15,7 +15,7 @@ export type DishOrderConfigValidationError = {
 
 /**
  * Validate dish choice_bindings against the restaurant dictionary.
- * Drops empty groups; rejects unknown group/option or option not in group.
+ * Empty option_ids = whole group; rejects unknown group/option or option not in group.
  */
 export function validateChoiceBindingsForRestaurant(
   raw: unknown,

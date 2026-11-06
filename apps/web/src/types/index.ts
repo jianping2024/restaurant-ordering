@@ -171,7 +171,7 @@ export interface MenuItem {
   flavor_codes?: string[];
   /**
    * Order-time choice bindings (口味分组): [{ group_id, option_ids[] }].
-   * Guest single-select required per bound group. Not flavor_codes.
+   * Empty option_ids = all options in group. Guest single-select required per bound group. Not flavor_codes.
    */
   choice_bindings?: import('@/lib/menu-choice-options').MenuChoiceBinding[];
   /**

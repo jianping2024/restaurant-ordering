@@ -50,7 +50,11 @@ export type MenuChoiceCatalog = {
   groups: MenuChoiceCatalogGroup[];
 };
 
-/** Dish binding: which options from a group are offered (guest picks one). */
+/**
+ * Dish binding: which choice groups this dish offers.
+ * Empty `option_ids` = all active options in the group (dashboard only picks groups).
+ * Non-empty `option_ids` kept for older rows until the dish is re-saved.
+ */
 export type MenuChoiceBinding = {
   group_id: string;
   option_ids: string[];
@@ -91,25 +95,38 @@ export function parseMenuChoiceNameFields(
 export function normalizeChoiceBindings(raw: unknown): MenuChoiceBinding[] {
   if (!Array.isArray(raw)) return [];
   const out: MenuChoiceBinding[] = [];
+  const seenGroups = new Set<string>();
   for (const row of raw) {
     if (!row || typeof row !== 'object') continue;
     const rec = row as Record<string, unknown>;
     const groupId = parseTableIdParam(rec.group_id);
-    if (!groupId) continue;
+    if (!groupId || seenGroups.has(groupId)) continue;
+    seenGroups.add(groupId);
     const optionIdsRaw = rec.option_ids;
-    if (!Array.isArray(optionIdsRaw)) continue;
+    // Missing or non-array option_ids → treat as whole group ([]).
     const option_ids: string[] = [];
-    const seen = new Set<string>();
-    for (const id of optionIdsRaw) {
-      const oid = parseTableIdParam(id);
-      if (!oid || seen.has(oid)) continue;
-      seen.add(oid);
-      option_ids.push(oid);
+    if (Array.isArray(optionIdsRaw)) {
+      const seen = new Set<string>();
+      for (const id of optionIdsRaw) {
+        const oid = parseTableIdParam(id);
+        if (!oid || seen.has(oid)) continue;
+        seen.add(oid);
+        option_ids.push(oid);
+      }
     }
-    if (option_ids.length === 0) continue;
     out.push({ group_id: groupId, option_ids });
   }
   return out;
+}
+
+/** Dashboard form: one row per group; empty option_ids = whole group. */
+export function choiceBindingsForDishForm(
+  bindings: readonly MenuChoiceBinding[],
+): MenuChoiceBinding[] {
+  return normalizeChoiceBindings(bindings).map((b) => ({
+    group_id: b.group_id,
+    option_ids: [],
+  }));
 }
 
 /** Resolve guest-facing sections for a dish from catalog + bindings. */
@@ -124,8 +141,10 @@ export function resolveDishChoiceSections(
   for (const binding of bindings) {
     const group = catalog.groups.find((g) => g.id === binding.group_id);
     if (!group) continue;
-    const allow = new Set(binding.option_ids);
-    const options = group.options.filter((o) => allow.has(o.id));
+    const options =
+      binding.option_ids.length === 0
+        ? group.options
+        : group.options.filter((o) => binding.option_ids.includes(o.id));
     if (options.length === 0) continue;
     out.push({ group, options });
   }

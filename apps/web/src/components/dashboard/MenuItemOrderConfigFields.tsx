@@ -1,11 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import type { Language, MenuCategory, MenuItem } from '@/types';
 import {
   menuChoiceLocalizedName,
   type MenuChoiceBinding,
   type MenuChoiceGroup,
-  type MenuChoiceOption,
 } from '@/lib/menu-choice-options';
 import type { MenuToppingBinding } from '@/lib/menu-topping-binding';
 import { mesaSelectionChipShellClass, mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
@@ -15,7 +15,6 @@ import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 type Props = {
   lang: Language;
   groups: MenuChoiceGroup[];
-  options: MenuChoiceOption[];
   categories: MenuCategory[];
   items: MenuItem[];
   editingItemId: string | null;
@@ -37,17 +36,19 @@ type Props = {
     toppingAllInCategory: string;
     toppingRequired: string;
     toppingPickItems: string;
+    toppingAdd: string;
+    toppingAddSearch: string;
+    toppingAddEmpty: string;
     toppingNoItems: string;
   };
 };
 
 /**
- * Dish form: 口味分组勾选 + 浇头（选一个类别再勾菜 / 全选本类）。
+ * Dish form: 口味只选分组 + 浇头（先选类别；子集只展示已选，添加从剩余挑）。
  */
 export function MenuItemOrderConfigFields({
   lang,
   groups,
-  options,
   categories,
   items,
   editingItemId,
@@ -58,12 +59,17 @@ export function MenuItemOrderConfigFields({
   onManageChoiceGroups,
   labels,
 }: Props) {
+  const [toppingAddOpen, setToppingAddOpen] = useState(false);
+  const [toppingAddQuery, setToppingAddQuery] = useState('');
+
   const activeGroups = groups.filter((g) => g.active);
+  const boundGroupIds = new Set(choiceBindings.map((b) => b.group_id));
   const toppingEnabled = toppingBinding != null;
   const toppingCategoryId = toppingBinding?.category_id ?? '';
   const toppingAll =
     toppingBinding != null && toppingBinding.item_ids.length === 0;
-  const toppingItemIds = new Set(toppingBinding?.item_ids ?? []);
+  const toppingItemIds = toppingBinding?.item_ids ?? [];
+  const toppingItemIdSet = new Set(toppingItemIds);
 
   const toppingCandidates = toppingCategoryId
     ? items.filter(
@@ -74,23 +80,32 @@ export function MenuItemOrderConfigFields({
       )
     : [];
 
-  function toggleChoiceOption(groupId: string, optionId: string) {
-    const existing = choiceBindings.find((b) => b.group_id === groupId);
-    if (!existing) {
-      onChoiceBindingsChange([...choiceBindings, { group_id: groupId, option_ids: [optionId] }]);
-      return;
-    }
-    const has = existing.option_ids.includes(optionId);
-    const option_ids = has
-      ? existing.option_ids.filter((id) => id !== optionId)
-      : [...existing.option_ids, optionId];
-    if (option_ids.length === 0) {
+  const selectedToppings = toppingItemIds
+    .map((id) => toppingCandidates.find((d) => d.id === id))
+    .filter((d): d is MenuItem => d != null);
+
+  const addQueryNorm = toppingAddQuery.trim().toLowerCase();
+  const unselectedToppings = toppingCandidates.filter((d) => {
+    if (toppingItemIdSet.has(d.id)) return false;
+    if (!addQueryNorm) return true;
+    const name = resolveMenuItemLocalizedName(d, lang).toLowerCase();
+    const code = (d.item_code ?? '').toLowerCase();
+    return name.includes(addQueryNorm) || (code.length > 0 && code.includes(addQueryNorm));
+  });
+
+  function toggleChoiceGroup(groupId: string) {
+    if (boundGroupIds.has(groupId)) {
       onChoiceBindingsChange(choiceBindings.filter((b) => b.group_id !== groupId));
       return;
     }
-    onChoiceBindingsChange(
-      choiceBindings.map((b) => (b.group_id === groupId ? { ...b, option_ids } : b)),
-    );
+    onChoiceBindingsChange([...choiceBindings, { group_id: groupId, option_ids: [] }]);
+  }
+
+  function setToppingIds(nextIds: string[]) {
+    if (!toppingBinding) return;
+    // Subset mode must keep ≥1 id — empty item_ids means「该类全部」.
+    if (nextIds.length === 0) return;
+    onToppingBindingChange({ ...toppingBinding, item_ids: nextIds });
   }
 
   return (
@@ -110,37 +125,18 @@ export function MenuItemOrderConfigFields({
         {activeGroups.length === 0 ? (
           <p className="text-[13px] text-brand-text-muted">{labels.choiceEmpty}</p>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
             {activeGroups.map((g) => {
-              const opts = options.filter((o) => o.group_id === g.id && o.active);
-              const bound = choiceBindings.find((b) => b.group_id === g.id);
+              const checked = boundGroupIds.has(g.id);
               return (
-                <div
+                <button
                   key={g.id}
-                  className="rounded-xl border border-brand-border bg-brand-card p-3"
+                  type="button"
+                  onClick={() => toggleChoiceGroup(g.id)}
+                  className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
                 >
-                  <p className="text-[13px] font-medium text-brand-text">
-                    {menuChoiceLocalizedName(g, lang)}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {opts.map((o) => {
-                      const checked = bound?.option_ids.includes(o.id) === true;
-                      return (
-                        <button
-                          key={o.id}
-                          type="button"
-                          onClick={() => toggleChoiceOption(g.id, o.id)}
-                          className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
-                        >
-                          {menuChoiceLocalizedName(o, lang)}
-                        </button>
-                      );
-                    })}
-                    {opts.length === 0 ? (
-                      <span className="text-[12px] text-brand-text-muted">—</span>
-                    ) : null}
-                  </div>
-                </div>
+                  {menuChoiceLocalizedName(g, lang)}
+                </button>
               );
             })}
           </div>
@@ -156,6 +152,8 @@ export function MenuItemOrderConfigFields({
             checked={toppingEnabled}
             onChange={(e) => {
               if (!e.target.checked) {
+                setToppingAddOpen(false);
+                setToppingAddQuery('');
                 onToppingBindingChange(null);
                 return;
               }
@@ -180,6 +178,8 @@ export function MenuItemOrderConfigFields({
                 value={toppingCategoryId}
                 onChange={(e) => {
                   const category_id = e.target.value;
+                  setToppingAddOpen(false);
+                  setToppingAddQuery('');
                   onToppingBindingChange({
                     category_id,
                     item_ids: [],
@@ -205,9 +205,13 @@ export function MenuItemOrderConfigFields({
                 checked={toppingAll}
                 disabled={!toppingCategoryId}
                 onChange={(e) => {
+                  setToppingAddOpen(false);
+                  setToppingAddQuery('');
                   onToppingBindingChange({
                     ...toppingBinding,
-                    item_ids: e.target.checked ? [] : toppingCandidates.slice(0, 1).map((d) => d.id),
+                    item_ids: e.target.checked
+                      ? []
+                      : toppingCandidates.slice(0, 1).map((d) => d.id),
                   });
                 }}
               />
@@ -226,34 +230,67 @@ export function MenuItemOrderConfigFields({
             </label>
 
             {!toppingAll && toppingCategoryId ? (
-              <div>
-                <p className="mb-2 text-[13px] text-brand-text-muted">{labels.toppingPickItems}</p>
+              <div className="space-y-2">
+                <p className="text-[13px] text-brand-text-muted">{labels.toppingPickItems}</p>
                 {toppingCandidates.length === 0 ? (
                   <p className="text-[13px] text-brand-text-muted">{labels.toppingNoItems}</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {toppingCandidates.map((d) => {
-                      const checked = toppingItemIds.has(d.id);
-                      return (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedToppings.map((d) => (
                         <button
                           key={d.id}
                           type="button"
                           onClick={() => {
-                            const next = new Set(toppingItemIds);
-                            if (checked) next.delete(d.id);
-                            else next.add(d.id);
-                            onToppingBindingChange({
-                              ...toppingBinding,
-                              item_ids: Array.from(next),
-                            });
+                            if (selectedToppings.length <= 1) return;
+                            setToppingIds(toppingItemIds.filter((id) => id !== d.id));
                           }}
-                          className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
+                          className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(true)}`}
                         >
                           {d.emoji} {resolveMenuItemLocalizedName(d, lang)}
                         </button>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="text-xs text-brand-gold underline-offset-2 hover:underline sm:text-sm"
+                      onClick={() => {
+                        setToppingAddOpen((open) => !open);
+                        if (toppingAddOpen) setToppingAddQuery('');
+                      }}
+                    >
+                      {labels.toppingAdd}
+                    </button>
+                    {toppingAddOpen ? (
+                      <div className="rounded-lg border border-brand-border bg-brand-card p-3 space-y-2">
+                        <input
+                          type="search"
+                          value={toppingAddQuery}
+                          onChange={(e) => setToppingAddQuery(e.target.value)}
+                          placeholder={labels.toppingAddSearch}
+                          className={`h-10 w-full rounded-lg border border-brand-border bg-brand-bg px-3 text-sm text-brand-text ${FORM_CONTROL_PLACEHOLDER_CLASS}`}
+                        />
+                        {unselectedToppings.length === 0 ? (
+                          <p className="text-[13px] text-brand-text-muted">{labels.toppingAddEmpty}</p>
+                        ) : (
+                          <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
+                            {unselectedToppings.map((d) => (
+                              <button
+                                key={d.id}
+                                type="button"
+                                onClick={() => {
+                                  setToppingIds([...toppingItemIds, d.id]);
+                                }}
+                                className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(false)}`}
+                              >
+                                {d.emoji} {resolveMenuItemLocalizedName(d, lang)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </>
                 )}
               </div>
             ) : null}

@@ -62,7 +62,12 @@ import {
 import { NotePresetsManager } from '@/components/dashboard/NotePresetsManager';
 import { ChoiceGroupsManager } from '@/components/dashboard/ChoiceGroupsManager';
 import { MenuItemOrderConfigFields } from '@/components/dashboard/MenuItemOrderConfigFields';
-import type { MenuChoiceBinding, MenuChoiceGroup, MenuChoiceOption } from '@/lib/menu-choice-options';
+import {
+  choiceBindingsForDishForm,
+  type MenuChoiceBinding,
+  type MenuChoiceGroup,
+  type MenuChoiceOption,
+} from '@/lib/menu-choice-options';
 import type { MenuToppingBinding } from '@/lib/menu-topping-binding';
 import {
   menuItemHasDuplicateCode,
@@ -678,7 +683,7 @@ export function MenuManager({
       note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
       flavor_codes: item.flavor_codes || [],
-      choice_bindings: item.choice_bindings || [],
+      choice_bindings: choiceBindingsForDishForm(item.choice_bindings || []),
       topping_binding: item.topping_binding ?? null,
       per_person_qty_limit:
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
@@ -2294,7 +2299,6 @@ export function MenuManager({
           <MenuItemOrderConfigFields
             lang={lang}
             groups={choiceGroups}
-            options={choiceOptions}
             categories={categories}
             items={items}
             editingItemId={editingItem?.id ?? null}
@@ -2323,6 +2327,9 @@ export function MenuManager({
               toppingAllInCategory: t.itemToppingAllInCategory,
               toppingRequired: t.itemToppingRequired,
               toppingPickItems: t.itemToppingPickItems,
+              toppingAdd: t.itemToppingAdd,
+              toppingAddSearch: t.itemToppingAddSearch,
+              toppingAddEmpty: t.itemToppingAddEmpty,
               toppingNoItems: t.itemToppingNoItems,
             }}
           />

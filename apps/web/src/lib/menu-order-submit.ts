@@ -9,6 +9,10 @@ import {
   composeCartLineNote,
   type MenuNotePresetCatalog,
 } from '@/lib/menu-note-presets';
+import {
+  composeChoicePickLabels,
+  type MenuChoiceCatalog,
+} from '@/lib/menu-choice-options';
 
 export type MenuOrderSubmitFlow = 'guest' | 'staff_assisted';
 
@@ -55,16 +59,26 @@ type AppendApiResponse = {
 export type CartNoteComposeContext = {
   catalog: MenuNotePresetCatalog;
   lang: Language;
+  /** Active choice dictionary for kitchen-visible choice labels on the main dish note. */
+  choiceCatalog?: MenuChoiceCatalog;
 };
 
-/** Sole cart→wire note (chips + free text). */
+/** Sole cart→wire note (choice labels + chips + free text). */
 export function cartItemWireNote(item: CartItem, ctx: CartNoteComposeContext): string {
-  return composeCartLineNote({
+  const choiceLabels = ctx.choiceCatalog
+    ? composeChoicePickLabels({
+        picks: item.choicePicks || {},
+        catalog: ctx.choiceCatalog,
+        lang: ctx.lang,
+      })
+    : [];
+  const notePart = composeCartLineNote({
     freeText: item.note || '',
     selectedNotePresetIds: item.selectedNotePresetIds || [],
     catalog: ctx.catalog,
     lang: ctx.lang,
   });
+  return [...choiceLabels, notePart].filter(Boolean).join(' · ');
 }
 
 /** Stable fingerprint so network retries reuse the same client_request_id for one cart. */
@@ -99,19 +113,32 @@ export function resolveAppendClientRequestId(params: {
   };
 }
 
-/** Trusted append lines from local cart state (menu_item_id + qty + note only). */
+/**
+ * Trusted append lines from local cart: main dish (note includes choice labels) +
+ * each topping expanded as its own menu line (qty × main qty).
+ */
 export function appendCartLinesFromCart(
   cart: CartItem[],
   ctx: CartNoteComposeContext,
 ): AppendCartLineInput[] {
-  return cart.map((c) => {
+  const out: AppendCartLineInput[] = [];
+  for (const c of cart) {
     const note = cartItemWireNote(c, ctx);
-    return {
+    const mainQty = coerceCartQty(c.qty);
+    out.push({
       menu_item_id: c.menuItemId,
-      qty: coerceCartQty(c.qty),
+      qty: mainQty,
       ...(note ? { note } : {}),
-    };
-  });
+    });
+    for (const top of c.toppingPicks ?? []) {
+      if (!top.menuItemId || !(top.qty > 0)) continue;
+      out.push({
+        menu_item_id: top.menuItemId,
+        qty: coerceCartQty(top.qty * mainQty),
+      });
+    }
+  }
+  return out;
 }
 
 export function mapAppendErrorCode(error: string | undefined): AppendOrderFailureCode {

@@ -16,6 +16,7 @@ describe('isMenuManagerTab', () => {
     assert.equal(isMenuManagerTab('items'), true);
     assert.equal(isMenuManagerTab('recommended'), true);
     assert.equal(isMenuManagerTab('note_presets'), true);
+    assert.equal(isMenuManagerTab('choice_groups'), true);
     assert.equal(isMenuManagerTab('tables'), false);
     assert.equal(isMenuManagerTab(null), false);
   });

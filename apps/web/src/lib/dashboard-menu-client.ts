@@ -170,6 +170,8 @@ export type MenuItemMutationInput = {
   note_preset_group_ids: string[];
   allergen_codes: string[];
   flavor_codes: string[];
+  choice_bindings?: import('@/lib/menu-choice-options').MenuChoiceBinding[];
+  topping_binding?: import('@/lib/menu-topping-binding').MenuToppingBinding | null;
   is_vegetarian?: boolean;
   station_print_pt?: boolean;
   station_print_en?: boolean;

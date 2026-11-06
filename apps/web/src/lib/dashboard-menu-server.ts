@@ -32,6 +32,13 @@ import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import { normalizeMenuItemNotePresetGroupIds } from '@/lib/menu-note-presets';
 import { listRestaurantNotePresetGroupIds } from '@/lib/menu-note-presets-query';
+import { listMenuChoiceDictionary } from '@/lib/menu-choice-options-server';
+import {
+  validateChoiceBindingsForRestaurant,
+  validateToppingBindingForRestaurant,
+} from '@/lib/menu-dish-order-config-validate';
+import { normalizeChoiceBindings } from '@/lib/menu-choice-options';
+import { normalizeToppingBinding } from '@/lib/menu-topping-binding';
 import {
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
@@ -446,6 +453,8 @@ type MenuItemInput = {
   note_preset_group_ids: string[];
   allergen_codes: string[];
   flavor_codes: string[];
+  choice_bindings: import('@/lib/menu-choice-options').MenuChoiceBinding[];
+  topping_binding: import('@/lib/menu-topping-binding').MenuToppingBinding | null;
   is_vegetarian: boolean;
   station_print_pt: boolean;
   station_print_en: boolean;
@@ -528,6 +537,8 @@ function buildMenuItemPayload(
     note_preset_group_ids: input.note_preset_group_ids,
     allergen_codes: input.allergen_codes,
     flavor_codes: input.flavor_codes,
+    choice_bindings: input.choice_bindings,
+    topping_binding: input.topping_binding,
     is_vegetarian: input.is_vegetarian,
     // A name that is empty can never be ticked (station-slip-multilang-names §7).
     station_print_pt: input.station_print_pt,
@@ -562,6 +573,42 @@ async function withValidatedNotePresetGroupIds(
   return { ...input, note_preset_group_ids: keys };
 }
 
+async function withValidatedDishOrderConfig(
+  admin: SupabaseClient,
+  restaurantId: string,
+  input: MenuItemInput,
+  mainDishId?: string | null,
+): Promise<MenuItemInput | MenuMutationError> {
+  const dict = await listMenuChoiceDictionary(admin, restaurantId);
+  if ('error' in dict) {
+    return { error: dict.error, message: dict.message, status: dict.status };
+  }
+  const bindings = validateChoiceBindingsForRestaurant(
+    input.choice_bindings,
+    dict.groups,
+    dict.options,
+  );
+  if ('error' in bindings) return bindings;
+
+  const categories = await loadActiveCategories(admin, restaurantId);
+  if ('error' in categories) return categories;
+  const items = await loadMenuItems(admin, restaurantId);
+  if ('error' in items) return items;
+
+  const topping = validateToppingBindingForRestaurant(input.topping_binding, {
+    categoryIds: new Set(categories.map((c) => c.id)),
+    items,
+    mainDishId,
+  });
+  if (topping && 'error' in topping) return topping;
+
+  return {
+    ...input,
+    choice_bindings: bindings,
+    topping_binding: topping ?? null,
+  };
+}
+
 async function assertMenuItemPrintStationIds(
   admin: SupabaseClient,
   restaurantId: string,
@@ -587,7 +634,9 @@ export async function createMenuItem(
   restaurantId: string,
   input: MenuItemInput,
 ): Promise<{ item: MenuItem } | MenuMutationError> {
-  const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
+  const noteValidated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
+  if ('error' in noteValidated) return noteValidated;
+  const validated = await withValidatedDishOrderConfig(admin, restaurantId, noteValidated);
   if ('error' in validated) return validated;
 
   const stationErr = await assertMenuItemPrintStationIds(
@@ -706,7 +755,14 @@ export async function updateMenuItem(
     return { error: 'invalid_item_id', status: 400 };
   }
 
-  const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
+  const noteValidated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
+  if ('error' in noteValidated) return noteValidated;
+  const validated = await withValidatedDishOrderConfig(
+    admin,
+    restaurantId,
+    noteValidated,
+    id,
+  );
   if ('error' in validated) return validated;
 
   const stationErr = await assertMenuItemPrintStationIds(
@@ -1213,6 +1269,19 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     return { error: 'invalid_flavor_codes', status: 400 };
   }
 
+  const choiceBindings =
+    raw.choice_bindings === undefined ? [] : normalizeChoiceBindings(raw.choice_bindings);
+  if (raw.choice_bindings !== undefined && !Array.isArray(raw.choice_bindings)) {
+    return { error: 'invalid_choice_bindings', status: 400 };
+  }
+
+  let toppingBinding =
+    raw.topping_binding === undefined ? null : normalizeToppingBinding(raw.topping_binding);
+  if (raw.topping_binding != null && toppingBinding == null) {
+    return { error: 'invalid_topping_binding', status: 400 };
+  }
+  if (raw.topping_binding === null) toppingBinding = null;
+
   let timeSlotId: string | null = null;
   if (raw.time_slot_id != null && raw.time_slot_id !== '') {
     timeSlotId = typeof raw.time_slot_id === 'string' ? parseTableIdParam(raw.time_slot_id) : null;
@@ -1244,6 +1313,8 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     note_preset_group_ids: raw.note_preset_group_ids,
     allergen_codes: allergenCodes,
     flavor_codes: flavorCodes,
+    choice_bindings: choiceBindings,
+    topping_binding: toppingBinding,
     is_vegetarian: raw.is_vegetarian === true,
     station_print_pt: raw.station_print_pt !== false,
     station_print_en: raw.station_print_en === true,

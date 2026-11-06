@@ -60,6 +60,10 @@ import {
   mesaSelectionChipSoftClass,
 } from '@/lib/mesa-selection-chip';
 import { NotePresetsManager } from '@/components/dashboard/NotePresetsManager';
+import { ChoiceGroupsManager } from '@/components/dashboard/ChoiceGroupsManager';
+import { MenuItemOrderConfigFields } from '@/components/dashboard/MenuItemOrderConfigFields';
+import type { MenuChoiceBinding, MenuChoiceGroup, MenuChoiceOption } from '@/lib/menu-choice-options';
+import type { MenuToppingBinding } from '@/lib/menu-topping-binding';
 import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
@@ -138,6 +142,8 @@ interface MenuManagerProps {
   initialRecommendedItemIds: string[];
   initialNotePresetGroups: MenuNotePresetGroup[];
   initialNotePresets: MenuNotePreset[];
+  initialChoiceGroups: MenuChoiceGroup[];
+  initialChoiceOptions: MenuChoiceOption[];
   initialTab?: MenuManagerTab;
   /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
   canManagePrintStations?: boolean;
@@ -174,6 +180,8 @@ type ItemForm = {
   note_preset_group_ids: string[];
   allergen_codes: string[];
   flavor_codes: string[];
+  choice_bindings: MenuChoiceBinding[];
+  topping_binding: MenuToppingBinding | null;
   per_person_qty_limit: string;
   over_limit_unit_price: string;
   /** '' = all day. */
@@ -206,6 +214,8 @@ const defaultItemForm: ItemForm = {
   note_preset_group_ids: [],
   allergen_codes: [],
   flavor_codes: [],
+  choice_bindings: [],
+  topping_binding: null,
   per_person_qty_limit: '',
   over_limit_unit_price: '',
   time_slot_id: '',
@@ -282,6 +292,8 @@ export function MenuManager({
   initialRecommendedItemIds,
   initialNotePresetGroups,
   initialNotePresets,
+  initialChoiceGroups,
+  initialChoiceOptions,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
   canManageDishVideo = false,
@@ -333,6 +345,8 @@ export function MenuManager({
   const [notePresetGroups, setNotePresetGroups] =
     useState<MenuNotePresetGroup[]>(initialNotePresetGroups);
   const [notePresets, setNotePresets] = useState<MenuNotePreset[]>(initialNotePresets);
+  const [choiceGroups, setChoiceGroups] = useState<MenuChoiceGroup[]>(initialChoiceGroups);
+  const [choiceOptions, setChoiceOptions] = useState<MenuChoiceOption[]>(initialChoiceOptions);
 
   const notePresetEditorGroups = useMemo(
     () => buildMenuNotePresetEditorGroups(notePresetGroups, notePresets),
@@ -664,6 +678,8 @@ export function MenuManager({
       note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
       flavor_codes: item.flavor_codes || [],
+      choice_bindings: item.choice_bindings || [],
+      topping_binding: item.topping_binding ?? null,
       per_person_qty_limit:
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
       over_limit_unit_price:
@@ -818,6 +834,8 @@ export function MenuManager({
       note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
       flavor_codes: itemForm.flavor_codes,
+      choice_bindings: itemForm.choice_bindings,
+      topping_binding: itemForm.topping_binding,
       print_station_ids: normalizePrintStationIds(itemForm.print_station_ids),
       item_code: normalizedItemCode,
       per_person_qty_limit: itemForm.per_person_qty_limit.trim()
@@ -1283,6 +1301,17 @@ export function MenuManager({
         </button>
         <button
           type="button"
+          onClick={() => switchTab('choice_groups')}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'choice_groups'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
+        >
+          {t.tabChoiceGroups}
+        </button>
+        <button
+          type="button"
           onClick={() => switchTab('note_presets')}
           className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
             activeTab === 'note_presets'
@@ -1501,6 +1530,15 @@ export function MenuManager({
             )}
           </div>
         </div>
+      ) : activeTab === 'choice_groups' ? (
+        <ChoiceGroupsManager
+          groups={choiceGroups}
+          options={choiceOptions}
+          onChange={({ groups, options }) => {
+            setChoiceGroups(groups);
+            setChoiceOptions(options);
+          }}
+        />
       ) : activeTab === 'note_presets' ? (
         <NotePresetsManager
           groups={notePresetGroups}
@@ -2252,6 +2290,42 @@ export function MenuManager({
               </div>
             </div>
           ) : null}
+
+          <MenuItemOrderConfigFields
+            lang={lang}
+            groups={choiceGroups}
+            options={choiceOptions}
+            categories={categories}
+            items={items}
+            editingItemId={editingItem?.id ?? null}
+            choiceBindings={itemForm.choice_bindings}
+            toppingBinding={itemForm.topping_binding}
+            onChoiceBindingsChange={(choice_bindings) =>
+              setItemForm((f) => ({ ...f, choice_bindings }))
+            }
+            onToppingBindingChange={(topping_binding) =>
+              setItemForm((f) => ({ ...f, topping_binding }))
+            }
+            onManageChoiceGroups={() => {
+              closeItemModal();
+              switchTab('choice_groups');
+            }}
+            labels={{
+              choiceTitle: t.itemChoiceTitle,
+              choiceHint: t.itemChoiceHint,
+              choiceManageLink: t.itemChoiceManageLink,
+              choiceEmpty: t.itemChoiceEmpty,
+              toppingTitle: t.itemToppingTitle,
+              toppingHint: t.itemToppingHint,
+              toppingEnable: t.itemToppingEnable,
+              toppingCategory: t.itemToppingCategory,
+              toppingCategoryPlaceholder: t.itemToppingCategoryPlaceholder,
+              toppingAllInCategory: t.itemToppingAllInCategory,
+              toppingRequired: t.itemToppingRequired,
+              toppingPickItems: t.itemToppingPickItems,
+              toppingNoItems: t.itemToppingNoItems,
+            }}
+          />
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
             <div className="flex flex-wrap items-baseline gap-3">

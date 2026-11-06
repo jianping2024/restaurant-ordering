@@ -34,6 +34,9 @@ import { VegetarianMark } from '@/components/menu/VegetarianMark';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { CustomerDishOrderConfigFields } from '@/components/menu/CustomerDishOrderConfigFields';
+import type { MenuChoiceCatalog } from '@/lib/menu-choice-options';
+import { dishNeedsOrderConfig } from '@/lib/menu-dish-order-config';
 
 type DetailLabels = Pick<
   (typeof MENU_PAGE_MESSAGES)[Language],
@@ -71,6 +74,16 @@ type Props = {
   onClose: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
+  /** When set, dish uses draft choice/topping before add. */
+  choiceCatalog?: MenuChoiceCatalog;
+  allMenuItems?: readonly MenuItem[];
+  choicePicks?: Readonly<Record<string, string>>;
+  toppingPicks?: readonly { menuItemId: string; qty: number }[];
+  orderConfigWarn?: string;
+  onChoicePick?: (groupId: string, optionId: string) => void;
+  onToppingQty?: (menuItemId: string, qty: number) => void;
+  /** Configured dish: primary confirms draft into cart instead of qty stepper. */
+  onConfirmConfiguredAdd?: () => void;
 };
 
 /** Sole customer dish detail (phone fullscreen / lg+ centered dialog). */
@@ -91,6 +104,14 @@ export function CustomerMenuItemDetailSheet({
   onClose,
   onIncrement,
   onDecrement,
+  choiceCatalog,
+  allMenuItems = [],
+  choicePicks = {},
+  toppingPicks = [],
+  orderConfigWarn,
+  onChoicePick,
+  onToppingQty,
+  onConfirmConfiguredAdd,
 }: Props) {
   const t = MENU_PAGE_MESSAGES[lang] as DetailLabels;
   const [entered, setEntered] = useState(false);
@@ -119,6 +140,11 @@ export function CustomerMenuItemDetailSheet({
 
   if (!open || !item) return null;
 
+  const needsConfig = dishNeedsOrderConfig({
+    choiceBindings: item.choice_bindings,
+    toppingBinding: item.topping_binding,
+    choiceCatalog,
+  });
   const label = formatMenuCatalogItemLabel(item, lang);
   const desc = resolveMenuItemLocalizedDescription(item, lang);
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
@@ -131,14 +157,20 @@ export function CustomerMenuItemDetailSheet({
 
   const primaryLabel = !item.available
     ? t.itemSoldOut
-    : cartQty > 0
-      ? t.itemDetailDone
-      : isRoundFree
-        ? t.itemDetailAddToRound
-        : t.itemDetailAddToCart;
+    : needsConfig
+      ? t.itemDetailAddToCart
+      : cartQty > 0
+        ? t.itemDetailDone
+        : isRoundFree
+          ? t.itemDetailAddToRound
+          : t.itemDetailAddToCart;
 
   const onPrimary = () => {
     if (!item.available) return;
+    if (needsConfig) {
+      onConfirmConfiguredAdd?.();
+      return;
+    }
     if (cartQty <= 0) onIncrement();
     onClose();
   };
@@ -236,6 +268,34 @@ export function CustomerMenuItemDetailSheet({
               )}
             </div>
 
+            {choiceCatalog && onChoicePick && onToppingQty ? (
+              <CustomerDishOrderConfigFields
+                lang={lang}
+                item={item}
+                choiceCatalog={choiceCatalog}
+                choicePicks={choicePicks}
+                toppingPicks={toppingPicks}
+                allMenuItems={allMenuItems}
+                disabled={!item.available}
+                warn={orderConfigWarn}
+                labels={{
+                  choicesTitle: 'Choices',
+                  toppingsTitle:
+                    lang === 'zh' ? '浇头' : lang === 'pt' ? 'Coberturas' : 'Toppings',
+                  toppingsOptional:
+                    lang === 'zh' ? '可选' : lang === 'pt' ? 'Opcional' : 'Optional',
+                  toppingsRequired:
+                    lang === 'zh'
+                      ? '必选：至少选一种'
+                      : lang === 'pt'
+                        ? 'Obrigatório: escolha pelo menos uma'
+                        : 'Required: pick at least one',
+                }}
+                onChoicePick={onChoicePick}
+                onToppingQty={onToppingQty}
+              />
+            ) : null}
+
             <div className="mt-5">
               <h2 className="text-sm font-semibold text-brand-text">{t.itemDetailNotesTitle}</h2>
               <div className="mt-2">
@@ -260,19 +320,21 @@ export function CustomerMenuItemDetailSheet({
 
         <div className={customerMenuItemDetailFooterClass}>
           <div className={customerMenuItemDetailFooterRowClass}>
-            <div className="min-w-[6.75rem] shrink-0">
-              {item.available ? (
-                <CartQtyStepper
-                  qty={cartQty}
-                  max={APPEND_CART_QTY_MAX}
-                  onDecrement={onDecrement}
-                  onIncrement={onIncrement}
-                  incrementDisabled={incrementDisabled}
-                />
-              ) : (
-                <span className={CUSTOMER_MENU_TYPE.itemSoldOut}>{t.itemSoldOut}</span>
-              )}
-            </div>
+            {!needsConfig ? (
+              <div className="min-w-[6.75rem] shrink-0">
+                {item.available ? (
+                  <CartQtyStepper
+                    qty={cartQty}
+                    max={APPEND_CART_QTY_MAX}
+                    onDecrement={onDecrement}
+                    onIncrement={onIncrement}
+                    incrementDisabled={incrementDisabled}
+                  />
+                ) : (
+                  <span className={CUSTOMER_MENU_TYPE.itemSoldOut}>{t.itemSoldOut}</span>
+                )}
+              </div>
+            ) : null}
             <Button
               type="button"
               variant="gold"

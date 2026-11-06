@@ -10,6 +10,13 @@ import {
   type MenuNotePresetCatalog,
 } from '@/lib/menu-note-presets';
 import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
+import {
+  buildMenuChoiceCatalog,
+  normalizeChoiceBindings,
+  type MenuChoiceCatalog,
+} from '@/lib/menu-choice-options';
+import { listMenuChoiceDictionary } from '@/lib/menu-choice-options-server';
+import { normalizeToppingBinding } from '@/lib/menu-topping-binding';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
 
@@ -61,9 +68,19 @@ export type CustomerMenuCatalogRows = {
   menuCategories: MenuCategory[];
   recommendedItemIds: string[];
   notePresetCatalog: MenuNotePresetCatalog;
+  /** Active 口味分组 dictionary for guest detail picks. */
+  choiceCatalog: MenuChoiceCatalog;
   /** Slot windows for `menu_items.time_slot_id` (guest filters per table session). */
   menuTimeSlots: MenuTimeSlot[];
 };
+
+function normalizeCatalogMenuItems(rows: MenuItem[]): MenuItem[] {
+  return rows.map((row) => ({
+    ...row,
+    choice_bindings: normalizeChoiceBindings(row.choice_bindings),
+    topping_binding: normalizeToppingBinding(row.topping_binding ?? null),
+  }));
+}
 
 /** Cached shape: display rows + the restaurant fields the dish-video gate needs (never sent to guests). */
 export type CustomerMenuCatalogCached = CustomerMenuCatalogRows & {
@@ -82,6 +99,7 @@ async function loadCustomerMenuCatalogUncached(
     { data: menuCategories },
     { data: recommended },
     noteDictionary,
+    choiceDictionary,
     menuTimeSlots,
     { data: dishVideoGate },
   ] = await Promise.all([
@@ -103,6 +121,7 @@ async function loadCustomerMenuCatalogUncached(
       .eq('restaurant_id', restaurantId)
       .order('sort_order'),
     listMenuNotePresetDictionary(admin, restaurantId),
+    listMenuChoiceDictionary(admin, restaurantId),
     loadMenuTimeSlots(admin, restaurantId),
     admin.from('restaurants').select(DISH_VIDEO_GATE_RESTAURANT_COLUMNS).eq('id', restaurantId).maybeSingle(),
   ]);
@@ -110,14 +129,21 @@ async function loadCustomerMenuCatalogUncached(
   if ('error' in noteDictionary) {
     throw new Error(noteDictionary.message || noteDictionary.error);
   }
+  if ('error' in choiceDictionary) {
+    throw new Error(choiceDictionary.message || choiceDictionary.error);
+  }
 
   return {
-    menuItems: (menuItems || []) as MenuItem[],
+    menuItems: normalizeCatalogMenuItems((menuItems || []) as MenuItem[]),
     menuCategories: (menuCategories || []) as MenuCategory[],
     recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
     notePresetCatalog: buildMenuNotePresetCatalog(
       noteDictionary.groups,
       noteDictionary.presets,
+    ),
+    choiceCatalog: buildMenuChoiceCatalog(
+      choiceDictionary.groups,
+      choiceDictionary.options,
     ),
     menuTimeSlots,
     dishVideoGate: (dishVideoGate as DishVideoGateRestaurant | null) ?? null,

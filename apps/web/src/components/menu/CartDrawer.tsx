@@ -26,11 +26,11 @@ interface CartDrawerProps {
   notePresetCatalog: MenuNotePresetCatalog;
   lang: Language;
   onClose: () => void;
-  onUpdateQty: (id: string, qty: number) => void;
+  onUpdateQty: (lineId: string, qty: number) => void;
   /** Empty cart + close drawer (same path as post-submit clear). */
   onClearCart: () => void;
-  onUpdateNote: (id: string, note: string) => void;
-  onToggleNotePreset: (menuItemId: string, presetId: string) => void;
+  onUpdateNote: (lineId: string, note: string) => void;
+  onToggleNotePreset: (lineId: string, presetId: string) => void;
   onSubmit: () => void;
   submitting: boolean;
   submitCooldownRemaining?: number;
@@ -107,7 +107,7 @@ export function CartDrawer({
       >
         <div className="space-y-4">
           {cart.map((item) => (
-            <div key={item.menuItemId} className="rounded-xl border border-brand-border p-4">
+            <div key={item.lineId} className="rounded-xl border border-brand-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <PeerFloatDishThumb
@@ -131,18 +131,18 @@ export function CartDrawer({
                     disabled={cartLocked}
                     onDecrement={() => {
                       const q = Number(item.qty);
-                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
+                      onUpdateQty(item.lineId, (Number.isFinite(q) ? q : 0) - 1);
                     }}
                     onIncrement={() => {
                       const q = Number(item.qty);
-                      onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
+                      onUpdateQty(item.lineId, (Number.isFinite(q) ? q : 0) + 1);
                     }}
                   />
                   <RowRemoveIconButton
                     removable
                     disabled={cartLocked}
                     ariaLabel={t.cartRemoveLineAria}
-                    onRemove={() => onUpdateQty(item.menuItemId, 0)}
+                    onRemove={() => onUpdateQty(item.lineId, 0)}
                   />
                 </div>
               </div>
@@ -154,8 +154,8 @@ export function CartDrawer({
                   notePresetGroupIds={item.notePresetGroupIds || []}
                   selectedNotePresetIds={item.selectedNotePresetIds || []}
                   note={item.note || ''}
-                  onUpdateNote={(note) => onUpdateNote(item.menuItemId, note)}
-                  onToggleNotePreset={(presetId) => onToggleNotePreset(item.menuItemId, presetId)}
+                  onUpdateNote={(note) => onUpdateNote(item.lineId, note)}
+                  onToggleNotePreset={(presetId) => onToggleNotePreset(item.lineId, presetId)}
                 />
               </div>
             </div>

@@ -1,5 +1,6 @@
 import type { MenuCategory, MenuItem } from '@/types';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
+import type { MenuChoiceCatalog } from '@/lib/menu-choice-options';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 
 export type CustomerMenuCatalog = {
@@ -9,6 +10,8 @@ export type CustomerMenuCatalog = {
   recommendedItemIds: string[];
   /** Active note-preset groups/items for guest cart chips. */
   notePresetCatalog: MenuNotePresetCatalog;
+  /** Active 口味分组 for guest detail picks. */
+  choiceCatalog: MenuChoiceCatalog;
   /** Slot windows for `menu_items.time_slot_id`. */
   menuTimeSlots: MenuTimeSlot[];
   /** Sole guest list-card motion gate (from resolveDishVideoAccess.guestListVisible). */
@@ -28,8 +31,8 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-/** v7: catalog carries `guestListMotionEnabled` (list-card Pro motion). */
-const CACHE_SCHEMA_VERSION = 7;
+/** v8: catalog carries `choiceCatalog` (口味分组 dictionary). */
+const CACHE_SCHEMA_VERSION = 8;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -64,6 +67,23 @@ function isMenuNotePresetCatalog(value: unknown): value is MenuNotePresetCatalog
   });
 }
 
+function isMenuChoiceCatalog(value: unknown): value is MenuChoiceCatalog {
+  if (!value || typeof value !== 'object') return false;
+  const groups = (value as { groups?: unknown }).groups;
+  if (!Array.isArray(groups)) return false;
+  return groups.every((group) => {
+    if (!group || typeof group !== 'object') return false;
+    const row = group as Record<string, unknown>;
+    return (
+      typeof row.id === 'string' &&
+      typeof row.name_en === 'string' &&
+      typeof row.name_pt === 'string' &&
+      typeof row.name_zh === 'string' &&
+      Array.isArray(row.options)
+    );
+  });
+}
+
 function readStorage(restaurantId: string): CacheEntry | null {
   if (typeof localStorage === 'undefined') return null;
   try {
@@ -76,6 +96,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (!parsed.catalog?.menuItems || !parsed.catalog?.menuCategories) return null;
     if (!Array.isArray(parsed.catalog.recommendedItemIds)) return null;
     if (!isMenuNotePresetCatalog(parsed.catalog.notePresetCatalog)) return null;
+    if (!isMenuChoiceCatalog(parsed.catalog.choiceCatalog)) return null;
     if (!Array.isArray(parsed.catalog.menuTimeSlots)) return null;
     if (typeof parsed.catalog.guestListMotionEnabled !== 'boolean') return null;
     return parsed;
@@ -181,6 +202,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     !Array.isArray(row.menuCategories) ||
     !Array.isArray(row.recommendedItemIds) ||
     !isMenuNotePresetCatalog(row.notePresetCatalog) ||
+    !isMenuChoiceCatalog(row.choiceCatalog) ||
     !Array.isArray(row.menuTimeSlots)
   ) {
     throw new Error('menu_catalog_invalid_body');
@@ -194,6 +216,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     menuCategories: row.menuCategories as MenuCategory[],
     recommendedItemIds: row.recommendedItemIds as string[],
     notePresetCatalog: row.notePresetCatalog,
+    choiceCatalog: row.choiceCatalog,
     menuTimeSlots: row.menuTimeSlots as MenuTimeSlot[],
     guestListMotionEnabled: row.guestListMotionEnabled === true,
   };
@@ -255,6 +278,7 @@ export function ensureCustomerMenuCatalog(params: {
         menuCategories: body.menuCategories,
         recommendedItemIds: body.recommendedItemIds,
         notePresetCatalog: body.notePresetCatalog,
+        choiceCatalog: body.choiceCatalog,
         menuTimeSlots: body.menuTimeSlots,
         guestListMotionEnabled: body.guestListMotionEnabled,
       });

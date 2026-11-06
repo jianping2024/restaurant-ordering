@@ -313,6 +313,10 @@ sole chrome `mesaSelectionChipStrongClass`/`mesaSelectionChipSoftClass` + `mesaS
 
 sole dictionary is `menu_note_preset_groups` + `menu_note_presets` (seed via SQL `seed_default_menu_note_presets`); dish sole link `note_preset_group_ids` (groups only); guest chips via catalog + `toggleCartNotePresetSelection` / `composeCartLineNote` (one pick per group) — never hardcode `NOTE_PRESETS` / `note-presets.ts`, never dish-level preset-id checkboxes beside group ids.
 
+### Dish order config (口味分组 + 浇头)
+
+sole dictionary `menu_choice_groups`/`menu_choice_options` + dish `choice_bindings` / `topping_binding` (`docs/product/menu-choice-topping.zh.md`); gate list→detail via sole `dishNeedsOrderConfig`; cart merge sole `cartConfigIdentityKey`/`cartLineIdentityKey` + `lineId`; append expand sole `appendCartLinesFromCart` (choice labels in main note + topping lines). Never reuse `flavor_codes` or note presets as order-time options; topping = one category then item subset (empty `item_ids` = all in category).
+
 ### Sushi roundReview cart badge
 
 sole `round.ownReviewQty` → footer `roundOwnQty` (本机本轮份数, `CustomerRoundTrayIcon` badge — never the cart glyph);整桌 `tableReviewQty` only drives footer phase (`roundTableQty`) + send guidance + round review — never the badge.

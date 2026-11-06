@@ -39,6 +39,8 @@ export default async function MenuPage({ searchParams }: Props) {
         initialRecommendedItemIds={loaded.recommendedItemIds}
         initialNotePresetGroups={loaded.notePresetGroups}
         initialNotePresets={loaded.notePresets}
+        initialChoiceGroups={loaded.choiceGroups}
+        initialChoiceOptions={loaded.choiceOptions}
         menuTimeSlots={loaded.menuTimeSlots}
       />
     </Suspense>

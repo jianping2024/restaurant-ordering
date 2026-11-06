@@ -41,12 +41,24 @@ import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useSessionMenuTimeSlotId } from '@/lib/use-session-menu-time-slot';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
+import {
+  choicePicksSatisfied,
+  type MenuChoiceCatalog,
+} from '@/lib/menu-choice-options';
+import { dishNeedsOrderConfig } from '@/lib/menu-dish-order-config';
+import { toppingsSatisfied } from '@/lib/menu-topping-binding';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
-import { upsertCartItemQty } from '@/lib/customer-cart-lines';
+import {
+  setCartLineQtyByLineId,
+  updateCartLineNoteByLineId,
+  updateCartLineNotePresetsByLineId,
+  upsertCartItemQty,
+  upsertCartLineByConfig,
+} from '@/lib/customer-cart-lines';
 import { showToast } from '@/components/ui/Toast';
 import {
   completeGuestOrderSubmit,
@@ -165,6 +177,7 @@ interface Props {
   /** Slot windows from the catalog (`menu_items.time_slot_id`). */
   menuTimeSlots: MenuTimeSlot[];
   notePresetCatalog?: MenuNotePresetCatalog;
+  choiceCatalog?: MenuChoiceCatalog;
   /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
   catalogReady?: boolean;
   /** From catalog `guestListMotionEnabled` (Pro list add-on × store switch). */
@@ -192,6 +205,7 @@ export function MenuOrderingController({
   recommendedItemIds = [],
   menuTimeSlots,
   notePresetCatalog = { groups: [] },
+  choiceCatalog = { groups: [] },
   catalogReady = true,
   guestListMotionEnabled = false,
   tableId,
@@ -231,6 +245,13 @@ export function MenuOrderingController({
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
+  const [draftChoicePicks, setDraftChoicePicks] = useState<Record<string, string>>({});
+  const [draftToppingPicks, setDraftToppingPicks] = useState<
+    { menuItemId: string; qty: number }[]
+  >([]);
+  const [draftNote, setDraftNote] = useState('');
+  const [draftNotePresets, setDraftNotePresets] = useState<string[]>([]);
+  const [draftConfigWarn, setDraftConfigWarn] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [staffOverageDialog, setStaffOverageDialog] = useState<StaffOverageDialog | null>(null);
   const submittingRef = useRef(false);
@@ -491,50 +512,78 @@ export function MenuOrderingController({
     if (!raw || !menuItemVisibleForOrderingChannel(raw, orderingChannel)) return null;
     return menuItemWithChannelDisplayPrice(raw, orderingChannel);
   }, [detailMenuItemId, menuItems, orderingChannel]);
+  const detailNeedsConfig = detailItem
+    ? dishNeedsOrderConfig({
+        choiceBindings: detailItem.choice_bindings,
+        toppingBinding: detailItem.topping_binding,
+        choiceCatalog,
+      })
+    : false;
   const detailCartEntry = detailItem
     ? cart.find((c) => c.menuItemId === detailItem.id)
     : undefined;
-  const detailCartQty = coerceCartQty(detailCartEntry?.qty);
+  const detailCartQty = detailNeedsConfig
+    ? 0
+    : coerceCartQty(detailCartEntry?.qty);
 
-  // 更新备注（手写）
-  const updateNote = (menuItemId: string, note: string) => {
+  const openDishDetail = useCallback((itemId: string) => {
+    setDraftChoicePicks({});
+    setDraftToppingPicks([]);
+    setDraftNote('');
+    setDraftNotePresets([]);
+    setDraftConfigWarn('');
+    setDetailMenuItemId(itemId);
+  }, []);
+
+  // 更新备注（手写）— cart drawer uses lineId
+  const updateNote = (lineId: string, note: string) => {
     setCartTracked((prev) =>
-      prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
+      updateCartLineNoteByLineId(prev, lineId, clampAppendCartNote(note)),
     );
   };
 
   const updateDetailNote = (note: string) => {
     if (!detailItem) return;
+    const next = clampAppendCartNote(note);
+    if (detailNeedsConfig) {
+      setDraftNote(next);
+      return;
+    }
     const id = detailItem.id;
     setCartTracked((prev) => {
       const base = prev.some((c) => c.menuItemId === id)
         ? prev
         : upsertCartItemQty(prev, detailItem, 1);
       return base.map((c) =>
-        c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+        c.menuItemId === id ? { ...c, note: next } : c,
       );
     });
   };
 
-  const toggleNotePreset = (menuItemId: string, presetId: string) => {
-    setCartTracked((prev) =>
-      prev.map((c) =>
-        c.menuItemId === menuItemId
-          ? {
-              ...c,
-              selectedNotePresetIds: toggleCartNotePresetSelection(
-                c.selectedNotePresetIds || [],
-                notePresetCatalog,
-                presetId,
-              ),
-            }
-          : c,
-      ),
-    );
+  const toggleNotePreset = (lineId: string, presetId: string) => {
+    setCartTracked((prev) => {
+      const line = prev.find((c) => c.lineId === lineId);
+      if (!line) return prev;
+      return updateCartLineNotePresetsByLineId(
+        prev,
+        lineId,
+        toggleCartNotePresetSelection(
+          line.selectedNotePresetIds || [],
+          notePresetCatalog,
+          presetId,
+        ),
+      );
+    });
   };
 
   const toggleDetailNotePreset = (presetId: string) => {
     if (!detailItem) return;
+    if (detailNeedsConfig) {
+      setDraftNotePresets((prev) =>
+        toggleCartNotePresetSelection(prev, notePresetCatalog, presetId),
+      );
+      return;
+    }
     const id = detailItem.id;
     setCartTracked((prev) => {
       const base = prev.some((c) => c.menuItemId === id)
@@ -554,6 +603,73 @@ export function MenuOrderingController({
       );
     });
   };
+
+  const confirmConfiguredDetailAdd = useCallback(async () => {
+    if (!detailItem || !detailNeedsConfig) return;
+    const gate = await ensureGuestCanPlaceOrder();
+    if (!gate.canPlace) {
+      showToast(guestOrderingActionHint(lang, gate.sessionStatus, gate.individualHold), 'info');
+      return;
+    }
+    if (
+      !choicePicksSatisfied(
+        detailItem.choice_bindings ?? [],
+        choiceCatalog,
+        draftChoicePicks,
+      )
+    ) {
+      setDraftConfigWarn(
+        lang === 'zh'
+          ? '请为每个口味分组选一项。'
+          : lang === 'pt'
+            ? 'Escolha uma opção em cada grupo.'
+            : 'Pick one option in each choice group.',
+      );
+      return;
+    }
+    if (!toppingsSatisfied(detailItem.topping_binding, draftToppingPicks.map((p) => ({
+      menu_item_id: p.menuItemId,
+      qty: p.qty,
+    })))) {
+      setDraftConfigWarn(
+        lang === 'zh'
+          ? '此菜浇头为必选：请至少选一种并设置数量。'
+          : lang === 'pt'
+            ? 'Cobertura obrigatória: escolha pelo menos uma.'
+            : 'Topping required: pick at least one.',
+      );
+      return;
+    }
+    const prev = cartRef.current;
+    const next = upsertCartLineByConfig(
+      prev,
+      detailItem,
+      {
+        choicePicks: draftChoicePicks,
+        toppingPicks: draftToppingPicks,
+        note: draftNote,
+        selectedNotePresetIds: draftNotePresets,
+      },
+      1,
+      menuItems,
+    );
+    cartRef.current = next;
+    setCartTracked(next);
+    bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
+    setDetailMenuItemId(null);
+  }, [
+    choiceCatalog,
+    detailItem,
+    detailNeedsConfig,
+    draftChoicePicks,
+    draftNote,
+    draftNotePresets,
+    draftToppingPicks,
+    ensureGuestCanPlaceOrder,
+    lang,
+    menuItems,
+    setCartTracked,
+  ]);
 
   const t = MENU_PAGE_MESSAGES[lang];
   const detailLimitHint = useMemo(() => {
@@ -779,7 +895,7 @@ export function MenuOrderingController({
         }
       }
 
-      const noteContext = { catalog: notePresetCatalog, lang };
+      const noteContext = { catalog: notePresetCatalog, lang, choiceCatalog };
       const intent = resolveAppendClientRequestId({
         cart,
         noteContext,
@@ -878,7 +994,11 @@ export function MenuOrderingController({
       if (preview.status === 'overage') {
         setStaffOverageDialog({
           kind: 'submit',
-          cartFingerprint: appendCartFingerprint(cart, { catalog: notePresetCatalog, lang }),
+          cartFingerprint: appendCartFingerprint(cart, {
+            catalog: notePresetCatalog,
+            lang,
+            choiceCatalog,
+          }),
           title: t.staffOverageSubmitTitle,
           message: formatStaffSubmitOverageMessage(
             preview.lines.map((line) => {
@@ -910,7 +1030,11 @@ export function MenuOrderingController({
       }
       return;
     }
-    const fingerprint = appendCartFingerprint(cart, { catalog: notePresetCatalog, lang });
+    const fingerprint = appendCartFingerprint(cart, {
+      catalog: notePresetCatalog,
+      lang,
+      choiceCatalog,
+    });
     setStaffOverageDialog(null);
     if (fingerprint !== dialog.cartFingerprint) {
       await submitOrder();
@@ -1062,7 +1186,14 @@ export function MenuOrderingController({
         ) : (
           <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
             {currentItems.map((item) => {
-              const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+              const needsConfig = dishNeedsOrderConfig({
+                choiceBindings: item.choice_bindings,
+                toppingBinding: item.topping_binding,
+                choiceCatalog,
+              });
+              const cartQty = needsConfig
+                ? 0
+                : coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);
               const limitHint = hintParts
                 ? t.sushiLimitHint
@@ -1082,9 +1213,17 @@ export function MenuOrderingController({
                   onOpenDetail={() => {
                     setCartOpen(false);
                     setOrderedOpen(false);
-                    setDetailMenuItemId(item.id);
+                    openDishDetail(item.id);
                   }}
-                  onIncrement={() => bumpCartItem(item, 1)}
+                  onIncrement={() => {
+                    if (needsConfig) {
+                      setCartOpen(false);
+                      setOrderedOpen(false);
+                      openDishDetail(item.id);
+                      return;
+                    }
+                    bumpCartItem(item, 1);
+                  }}
                   onDecrement={() => bumpCartItem(item, -1)}
                 />
               );
@@ -1135,8 +1274,12 @@ export function MenuOrderingController({
         limitHint={detailLimitHint}
         flavorHintsEnabled={flavorHintsEnabled}
         notePresetCatalog={notePresetCatalog}
-        note={detailCartEntry?.note || ''}
-        selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}
+        note={detailNeedsConfig ? draftNote : detailCartEntry?.note || ''}
+        selectedNotePresetIds={
+          detailNeedsConfig
+            ? draftNotePresets
+            : detailCartEntry?.selectedNotePresetIds || []
+        }
         onUpdateNote={updateDetailNote}
         onToggleNotePreset={toggleDetailNotePreset}
         onClose={() => setDetailMenuItemId(null)}
@@ -1145,6 +1288,26 @@ export function MenuOrderingController({
         }}
         onDecrement={() => {
           if (detailItem) bumpCartItem(detailItem, -1);
+        }}
+        choiceCatalog={choiceCatalog}
+        allMenuItems={menuItems}
+        choicePicks={draftChoicePicks}
+        toppingPicks={draftToppingPicks}
+        orderConfigWarn={draftConfigWarn}
+        onChoicePick={(groupId, optionId) => {
+          setDraftChoicePicks((prev) => ({ ...prev, [groupId]: optionId }));
+          setDraftConfigWarn('');
+        }}
+        onToppingQty={(menuItemId, qty) => {
+          setDraftToppingPicks((prev) => {
+            const next = prev.filter((p) => p.menuItemId !== menuItemId);
+            if (qty > 0) next.push({ menuItemId, qty });
+            return next;
+          });
+          setDraftConfigWarn('');
+        }}
+        onConfirmConfiguredAdd={() => {
+          void confirmConfiguredDetailAdd();
         }}
       />
 
@@ -1156,8 +1319,12 @@ export function MenuOrderingController({
         notePresetCatalog={notePresetCatalog}
         lang={lang}
         onClose={closeCartDrawer}
-        onUpdateQty={(id, qty) => {
-          void requestCartQtyChange(id, qty);
+        onUpdateQty={(lineId, qty) => {
+          const prev = cartRef.current;
+          const next = setCartLineQtyByLineId(prev, lineId, qty);
+          cartRef.current = next;
+          setCartTracked(next);
+          if (next.length === 0) setCartOpen(false);
         }}
         onClearCart={clearSubmitCart}
         onUpdateNote={updateNote}

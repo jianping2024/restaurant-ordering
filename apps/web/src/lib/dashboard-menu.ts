@@ -1,6 +1,10 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
 import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
+import type { MenuChoiceGroup, MenuChoiceOption } from '@/lib/menu-choice-options';
+import { listMenuChoiceDictionary } from '@/lib/menu-choice-options-server';
+import { normalizeChoiceBindings } from '@/lib/menu-choice-options';
+import { normalizeToppingBinding } from '@/lib/menu-topping-binding';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
@@ -19,6 +23,8 @@ export type DashboardMenu =
       recommendedItemIds: string[];
       notePresetGroups: MenuNotePresetGroup[];
       notePresets: MenuNotePreset[];
+      choiceGroups: MenuChoiceGroup[];
+      choiceOptions: MenuChoiceOption[];
       /** Slot choices for the dish form (`menu_items.time_slot_id`). */
       menuTimeSlots: MenuTimeSlot[];
       canManagePrintStations: boolean;
@@ -50,6 +56,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     { data: printStations, error: stationsError },
     { data: recommended, error: recommendedError },
     noteDictionary,
+    choiceDictionary,
     { data: restaurantFlags },
     menuTimeSlots,
   ] = await Promise.all([
@@ -77,6 +84,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
       .eq('restaurant_id', ctx.restaurantId)
       .order('sort_order'),
     listMenuNotePresetDictionary(ctx.admin, ctx.restaurantId),
+    listMenuChoiceDictionary(ctx.admin, ctx.restaurantId),
     ctx.admin
       .from('restaurants')
       .select(DISH_VIDEO_GATE_RESTAURANT_COLUMNS)
@@ -100,18 +108,27 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
   if ('error' in noteDictionary) {
     return { error: noteDictionary.error, status: noteDictionary.status };
   }
+  if ('error' in choiceDictionary) {
+    return { error: choiceDictionary.error, status: choiceDictionary.status };
+  }
   const dishVideo = restaurantFlags
     ? await resolveDishVideoAccess(restaurantFlags, principal?.capabilities ?? null)
     : { pro: false, canManage: false };
 
   return {
     restaurantId: ctx.restaurantId,
-    menuItems: (menuItems || []) as MenuItem[],
+    menuItems: ((menuItems || []) as MenuItem[]).map((row) => ({
+      ...row,
+      choice_bindings: normalizeChoiceBindings(row.choice_bindings),
+      topping_binding: normalizeToppingBinding(row.topping_binding ?? null),
+    })),
     menuCategories: (menuCategories || []) as MenuCategory[],
     printStations: (printStations ?? []) as PrintStation[],
     recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
     notePresetGroups: noteDictionary.groups,
     notePresets: noteDictionary.presets,
+    choiceGroups: choiceDictionary.groups,
+    choiceOptions: choiceDictionary.options,
     menuTimeSlots,
     canManagePrintStations,
     canManageDishVideo: dishVideo.canManage,

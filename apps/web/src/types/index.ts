@@ -169,6 +169,16 @@ export interface MenuItem {
   allergen_codes?: string[];
   /** Display-only flavor hint codes; empty = none shown. Guest UI gated by menu_flavor_hints_enabled. */
   flavor_codes?: string[];
+  /**
+   * Order-time choice bindings (口味分组): [{ group_id, option_ids[] }].
+   * Guest single-select required per bound group. Not flavor_codes.
+   */
+  choice_bindings?: import('@/lib/menu-choice-options').MenuChoiceBinding[];
+  /**
+   * Topping link: one category + item subset (empty item_ids = all in category) + required.
+   * Null/missing = no topping step.
+   */
+  topping_binding?: import('@/lib/menu-topping-binding').MenuToppingBinding | null;
   /** Owner-marked vegetarian; false/missing = not vegetarian. */
   is_vegetarian?: boolean;
   /** Menu time slot (`buffet_time_slots.id`); null/missing = served all day. */
@@ -504,6 +514,8 @@ export interface TableSession {
 
 // 购物车条目
 export interface CartItem {
+  /** Stable cart line id (merge/qty by config identity; not menu_item id). */
+  lineId: string;
   menuItemId: string;
   name_pt: string;
   name_en?: string;
@@ -517,4 +529,8 @@ export interface CartItem {
   notePresetGroupIds?: string[];
   /** Guest chip picks: at most one preset id per group. */
   selectedNotePresetIds?: string[];
+  /** Guest choice picks: group_id → option_id (one per bound group). */
+  choicePicks?: Record<string, string>;
+  /** Guest topping picks with qty (priced side dishes). */
+  toppingPicks?: { menuItemId: string; qty: number }[];
 }

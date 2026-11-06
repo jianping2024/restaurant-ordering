@@ -46,7 +46,7 @@ import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
-import { upsertCartItemQty } from '@/lib/customer-cart-lines';
+import { setCartLineQtyByLineId, upsertCartItemQty } from '@/lib/customer-cart-lines';
 import { showToast } from '@/components/ui/Toast';
 import { completeGuestOrderSubmit } from '@/lib/menu-order-submit-outcome';
 import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
@@ -614,18 +614,18 @@ export function SushiMenuPage({
       .replace('{price}', hintParts.overLimitPrice.toFixed(2));
   }, [buffetServiceMode, detailItem, t.sushiLimitHint]);
 
-  const updateNote = (menuItemId: string, note: string) => {
+  const updateNote = (lineId: string, note: string) => {
     setCart((prev) =>
       prev.map((c) =>
-        c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c,
+        c.lineId === lineId ? { ...c, note: clampAppendCartNote(note) } : c,
       ),
     );
   };
 
-  const toggleNotePreset = (menuItemId: string, presetId: string) => {
+  const toggleNotePreset = (lineId: string, presetId: string) => {
     setCart((prev) =>
       prev.map((c) =>
-        c.menuItemId === menuItemId
+        c.lineId === lineId
           ? {
               ...c,
               selectedNotePresetIds: toggleCartNotePresetSelection(
@@ -1449,8 +1449,13 @@ export function SushiMenuPage({
         notePresetCatalog={notePresetCatalog}
         lang={lang}
         onClose={() => setCartOpen(false)}
-        onUpdateQty={(id, qty) => {
-          void requestQtyChange(id, qty);
+        onUpdateQty={(lineId, qty) => {
+          setCart((prev) => {
+            const next = setCartLineQtyByLineId(prev, lineId, qty);
+            cartRef.current = next;
+            if (next.length === 0) setCartOpen(false);
+            return next;
+          });
         }}
         onClearCart={clearSubmitCart}
         onUpdateNote={updateNote}

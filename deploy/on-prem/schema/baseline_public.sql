@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict EHd0E6bJPJVV1bfuOZpSYAeEb0pDh6JR6Dju2MTSsWQUT4bOgfXyUd1almIOlyr
+\restrict 8wWwvXTjoODLEYkoHNpmZNLMqMyyS3PCG6N6ouVMjzXvBwkjXgkzShihGTrLKaM
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -582,6 +582,77 @@ CREATE FUNCTION public.checkout_round_discount_amount(p_pre_amount numeric, p_di
     AS $$
   select round(coalesce(p_pre_amount, 0) * public.checkout_discount_factor(p_discount_rate), 2);
 $$;
+
+
+--
+-- Name: clear_restaurant_business_data(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.clear_restaurant_business_data(p_restaurant_id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_exists boolean;
+BEGIN
+  IF p_restaurant_id IS NULL THEN
+    RAISE EXCEPTION 'restaurant_id_required';
+  END IF;
+
+  SELECT EXISTS (SELECT 1 FROM public.restaurants WHERE id = p_restaurant_id)
+    INTO v_exists;
+  IF NOT v_exists THEN
+    RAISE EXCEPTION 'restaurant_not_found';
+  END IF;
+
+  -- Jobs / logs / analytics (no session FK dependency for these deletes)
+  DELETE FROM public.cash_drawer_jobs WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.print_jobs WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.bill_sync_jobs WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.fiscal_clear_jobs WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.abnormal_operations WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.operation_logs WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.analytics_daily_restaurant_stats WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.analytics_daily_menu_item_stats WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.analytics_daily_menu_item_consumption WHERE restaurant_id = p_restaurant_id;
+
+  -- Session-linked (explicit before sessions; some SET NULL on session delete)
+  DELETE FROM public.dish_feedback WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.feedback_sessions WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.bill_split_ticket_calls WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_checkout_signals WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.session_collected_payments WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.order_append_idempotency WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_order_round_lines
+    WHERE round_id IN (
+      SELECT id FROM public.table_order_rounds WHERE restaurant_id = p_restaurant_id
+    );
+  DELETE FROM public.table_order_round_clients WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_order_rounds WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_session_events WHERE restaurant_id = p_restaurant_id;
+
+  UPDATE public.table_sessions
+    SET merge_into_session_id = NULL
+    WHERE restaurant_id = p_restaurant_id
+      AND merge_into_session_id IS NOT NULL;
+
+  DELETE FROM public.bill_splits WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.orders WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_sessions WHERE restaurant_id = p_restaurant_id;
+
+  DELETE FROM public.table_party_group_members WHERE restaurant_id = p_restaurant_id;
+  DELETE FROM public.table_party_groups WHERE restaurant_id = p_restaurant_id;
+
+  RETURN jsonb_build_object('ok', true, 'restaurant_id', p_restaurant_id);
+END;
+$$;
+
+
+--
+-- Name: FUNCTION clear_restaurant_business_data(p_restaurant_id uuid); Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON FUNCTION public.clear_restaurant_business_data(p_restaurant_id uuid) IS 'Owner pre-delivery wipe: runtime sessions/orders/checkout/print/analytics/logs/party groups. Keeps menu, tables, staff, print stations, devices, fiscal signing install.';
 
 
 --
@@ -1634,6 +1705,27 @@ BEGIN
       RAISE EXCEPTION 'kitchen_screen_station_limit'
         USING ERRCODE = 'check_violation';
     END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: enforce_menu_choice_option_same_restaurant(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.enforce_menu_choice_option_same_restaurant() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.menu_choice_groups g
+    WHERE g.id = NEW.group_id
+      AND g.restaurant_id = NEW.restaurant_id
+  ) THEN
+    RAISE EXCEPTION 'invalid_choice_group';
   END IF;
   RETURN NEW;
 END;
@@ -5712,6 +5804,31 @@ CREATE TABLE public.feedback_sessions (
 
 
 --
+-- Name: fiscal_clear_jobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fiscal_clear_jobs (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    restaurant_id uuid NOT NULL,
+    status text DEFAULT 'pending'::text NOT NULL,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    error_code text,
+    error_message text,
+    CONSTRAINT fiscal_clear_jobs_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'processing'::text, 'succeeded'::text, 'failed'::text, 'expired'::text])))
+);
+
+
+--
+-- Name: TABLE fiscal_clear_jobs; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.fiscal_clear_jobs IS 'Hang-queue: Agent wipes local test fiscal sales (invoices/drafts) then acks. Pre-delivery clear only.';
+
+
+--
 -- Name: fiscal_signing_installations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5847,6 +5964,57 @@ COMMENT ON COLUMN public.menu_categories.item_code IS 'Optional category code (m
 
 
 --
+-- Name: menu_choice_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.menu_choice_groups (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    restaurant_id uuid NOT NULL,
+    name_en text NOT NULL,
+    name_pt text NOT NULL,
+    name_zh text DEFAULT ''::text NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT menu_choice_groups_name_en_nonempty CHECK ((length(btrim(name_en)) > 0)),
+    CONSTRAINT menu_choice_groups_name_pt_nonempty CHECK ((length(btrim(name_pt)) > 0))
+);
+
+
+--
+-- Name: TABLE menu_choice_groups; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.menu_choice_groups IS 'Per-restaurant order-time choice groups (口味分组). Guest must pick one option per dish-bound group.';
+
+
+--
+-- Name: menu_choice_options; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.menu_choice_options (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    restaurant_id uuid NOT NULL,
+    group_id uuid NOT NULL,
+    name_en text NOT NULL,
+    name_pt text NOT NULL,
+    name_zh text DEFAULT ''::text NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT menu_choice_options_name_en_nonempty CHECK ((length(btrim(name_en)) > 0)),
+    CONSTRAINT menu_choice_options_name_pt_nonempty CHECK ((length(btrim(name_pt)) > 0))
+);
+
+
+--
+-- Name: TABLE menu_choice_options; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.menu_choice_options IS 'Options inside a choice group. Referenced by menu_items.choice_bindings.';
+
+
+--
 -- Name: menu_items; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -5887,6 +6055,9 @@ CREATE TABLE public.menu_items (
     video_url text,
     rail_video_url text,
     video_effect text,
+    choice_bindings jsonb DEFAULT '[]'::jsonb NOT NULL,
+    topping_binding jsonb,
+    CONSTRAINT menu_items_choice_bindings_is_array CHECK ((jsonb_typeof(choice_bindings) = 'array'::text)),
     CONSTRAINT menu_items_item_code_max_len_10 CHECK ((char_length(btrim((item_code)::text)) <= 10)),
     CONSTRAINT menu_items_item_code_not_blank CHECK ((btrim((item_code)::text) <> ''::text)),
     CONSTRAINT menu_items_limit_requires_overage_price CHECK ((((per_person_qty_limit IS NULL) AND (over_limit_unit_price IS NULL)) OR ((per_person_qty_limit IS NOT NULL) AND (over_limit_unit_price IS NOT NULL)))),
@@ -5894,6 +6065,7 @@ CREATE TABLE public.menu_items (
     CONSTRAINT menu_items_per_person_qty_limit_check CHECK (((per_person_qty_limit IS NULL) OR (per_person_qty_limit >= 1))),
     CONSTRAINT menu_items_takeaway_price_when_takeaway_menu CHECK (((takeaway_role <> ALL (ARRAY['sellable'::text, 'takeaway_only'::text])) OR ((takeaway_price IS NOT NULL) AND (takeaway_price > (0)::numeric)))),
     CONSTRAINT menu_items_takeaway_role_check CHECK ((takeaway_role = ANY (ARRAY['none'::text, 'sellable'::text, 'takeaway_only'::text, 'packaging'::text]))),
+    CONSTRAINT menu_items_topping_binding_object_or_null CHECK (((topping_binding IS NULL) OR (jsonb_typeof(topping_binding) = 'object'::text))),
     CONSTRAINT menu_items_vat_rate_range CHECK (((vat_rate >= (0)::numeric) AND (vat_rate <= (100)::numeric))),
     CONSTRAINT menu_items_video_effect_check CHECK (((video_effect IS NULL) OR (video_effect = ANY (ARRAY['push'::text, 'steam'::text, 'gloss'::text, 'pan'::text, 'bubbles'::text, 'frost'::text])))),
     CONSTRAINT menu_items_video_fields_together_check CHECK ((((video_url IS NULL) = (video_effect IS NULL)) AND ((video_url IS NULL) = (rail_video_url IS NULL)) AND ((video_url IS NULL) OR (image_url IS NOT NULL))))
@@ -6003,6 +6175,20 @@ COMMENT ON COLUMN public.menu_items.rail_video_url IS 'Guest recommended-rail mo
 --
 
 COMMENT ON COLUMN public.menu_items.video_effect IS 'Motion template: push|steam|gloss|pan|bubbles|frost; set/cleared with video_url.';
+
+
+--
+-- Name: COLUMN menu_items.choice_bindings; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.choice_bindings IS 'Order-time choice bindings: [{group_id, option_ids[]}]. Guest single-select required per bound group.';
+
+
+--
+-- Name: COLUMN menu_items.topping_binding; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.menu_items.topping_binding IS 'Optional topping link: {category_id, item_ids[] (empty=all in category), required}. Null = no topping step.';
 
 
 --
@@ -7204,6 +7390,14 @@ ALTER TABLE ONLY public.feedback_sessions
 
 
 --
+-- Name: fiscal_clear_jobs fiscal_clear_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fiscal_clear_jobs
+    ADD CONSTRAINT fiscal_clear_jobs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fiscal_signing_installations fiscal_signing_installations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7257,6 +7451,22 @@ ALTER TABLE ONLY public.menu_catalog_signals
 
 ALTER TABLE ONLY public.menu_categories
     ADD CONSTRAINT menu_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: menu_choice_groups menu_choice_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_choice_groups
+    ADD CONSTRAINT menu_choice_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: menu_choice_options menu_choice_options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_choice_options
+    ADD CONSTRAINT menu_choice_options_pkey PRIMARY KEY (id);
 
 
 --
@@ -7739,6 +7949,13 @@ CREATE INDEX idx_feedback_sessions_restaurant_created ON public.feedback_session
 
 
 --
+-- Name: idx_fiscal_clear_jobs_restaurant_status_created; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_fiscal_clear_jobs_restaurant_status_created ON public.fiscal_clear_jobs USING btree (restaurant_id, status, created_at DESC);
+
+
+--
 -- Name: idx_kitchen_screen_stations_station; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -7771,6 +7988,20 @@ CREATE INDEX idx_menu_categories_print_station ON public.menu_categories USING b
 --
 
 CREATE INDEX idx_menu_categories_restaurant ON public.menu_categories USING btree (restaurant_id, parent_id, sort_order);
+
+
+--
+-- Name: idx_menu_choice_groups_restaurant_sort; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_menu_choice_groups_restaurant_sort ON public.menu_choice_groups USING btree (restaurant_id, sort_order, created_at);
+
+
+--
+-- Name: idx_menu_choice_options_restaurant_group_sort; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_menu_choice_options_restaurant_group_sort ON public.menu_choice_options USING btree (restaurant_id, group_id, sort_order, created_at);
 
 
 --
@@ -8397,6 +8628,13 @@ CREATE TRIGGER menu_categories_print_station_restaurant BEFORE INSERT OR UPDATE 
 
 
 --
+-- Name: menu_choice_options menu_choice_options_same_restaurant; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER menu_choice_options_same_restaurant BEFORE INSERT OR UPDATE OF restaurant_id, group_id ON public.menu_choice_options FOR EACH ROW EXECUTE FUNCTION public.enforce_menu_choice_option_same_restaurant();
+
+
+--
 -- Name: menu_items menu_items_print_station_ids_restaurant; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -8758,6 +8996,14 @@ ALTER TABLE ONLY public.feedback_sessions
 
 
 --
+-- Name: fiscal_clear_jobs fiscal_clear_jobs_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fiscal_clear_jobs
+    ADD CONSTRAINT fiscal_clear_jobs_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
 -- Name: fiscal_signing_installations fiscal_signing_installations_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -8843,6 +9089,30 @@ ALTER TABLE ONLY public.menu_categories
 
 ALTER TABLE ONLY public.menu_categories
     ADD CONSTRAINT menu_categories_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_choice_groups menu_choice_groups_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_choice_groups
+    ADD CONSTRAINT menu_choice_groups_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_choice_options menu_choice_options_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_choice_options
+    ADD CONSTRAINT menu_choice_options_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.menu_choice_groups(id) ON DELETE RESTRICT;
+
+
+--
+-- Name: menu_choice_options menu_choice_options_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_choice_options
+    ADD CONSTRAINT menu_choice_options_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
 
 
 --
@@ -9722,6 +9992,12 @@ ALTER TABLE public.dish_feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedback_sessions ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: fiscal_clear_jobs; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fiscal_clear_jobs ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: fiscal_signing_installations; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -9835,6 +10111,68 @@ CREATE POLICY menu_categories_owner_all ON public.menu_categories USING ((restau
 --
 
 CREATE POLICY menu_categories_public_read ON public.menu_categories FOR SELECT USING (true);
+
+
+--
+-- Name: menu_choice_groups; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.menu_choice_groups ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: menu_choice_groups menu_choice_groups_frontdesk_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_groups_frontdesk_all ON public.menu_choice_groups TO authenticated USING (public.is_active_restaurant_staff(restaurant_id, ARRAY['frontdesk'::text, 'owner'::text])) WITH CHECK (public.is_active_restaurant_staff(restaurant_id, ARRAY['frontdesk'::text, 'owner'::text]));
+
+
+--
+-- Name: menu_choice_groups menu_choice_groups_owner_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_groups_owner_all ON public.menu_choice_groups USING ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid))))) WITH CHECK ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid)))));
+
+
+--
+-- Name: menu_choice_groups menu_choice_groups_select; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_groups_select ON public.menu_choice_groups FOR SELECT USING (true);
+
+
+--
+-- Name: menu_choice_options; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.menu_choice_options ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: menu_choice_options menu_choice_options_frontdesk_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_options_frontdesk_all ON public.menu_choice_options TO authenticated USING (public.is_active_restaurant_staff(restaurant_id, ARRAY['frontdesk'::text, 'owner'::text])) WITH CHECK (public.is_active_restaurant_staff(restaurant_id, ARRAY['frontdesk'::text, 'owner'::text]));
+
+
+--
+-- Name: menu_choice_options menu_choice_options_owner_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_options_owner_all ON public.menu_choice_options USING ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid))))) WITH CHECK ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid)))));
+
+
+--
+-- Name: menu_choice_options menu_choice_options_select; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_choice_options_select ON public.menu_choice_options FOR SELECT USING (true);
 
 
 --
@@ -10569,5 +10907,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EHd0E6bJPJVV1bfuOZpSYAeEb0pDh6JR6Dju2MTSsWQUT4bOgfXyUd1almIOlyr
+\unrestrict 8wWwvXTjoODLEYkoHNpmZNLMqMyyS3PCG6N6ouVMjzXvBwkjXgkzShihGTrLKaM
 

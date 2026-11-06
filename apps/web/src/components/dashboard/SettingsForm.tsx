@@ -19,14 +19,17 @@ import {
   RestaurantStorefrontSettingsSection,
   restaurantStorefrontDraftFromProfile,
 } from '@/components/dashboard/RestaurantStorefrontSettingsSection';
-import { dashboardStickyToolbarShellClass } from '@/lib/waiter-staff-sticky-chrome';
+import { ClearBusinessDataSection } from '@/components/dashboard/ClearBusinessDataSection';
 
 export function SettingsForm({
   restaurant,
   embedded,
+  isOwner = false,
 }: {
   restaurant: RestaurantSettingsProfile;
   embedded?: boolean;
+  /** Backend owner (`restaurants.owner_id`) only — clear business data gate. */
+  isOwner?: boolean;
 }) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -148,24 +151,6 @@ export function SettingsForm({
       )}
 
       <form onSubmit={handleSave} className="w-full space-y-4">
-        <div className={dashboardStickyToolbarShellClass}>
-          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-            {error ? (
-              <p className="mesa-alert-danger order-first mr-auto w-full px-3 py-1.5 text-sm sm:w-auto">
-                {error}
-              </p>
-            ) : null}
-            {success ? (
-              <p className="order-first mr-auto w-full rounded-lg border border-green-400/20 bg-green-400/10 px-3 py-1.5 text-sm text-green-400 sm:w-auto">
-                ✓ {t.saved}
-              </p>
-            ) : null}
-            <Button type="submit" loading={saving} className="w-full sm:w-auto">
-              {t.save}
-            </Button>
-          </div>
-        </div>
-
         <div className="rounded-2xl border border-brand-border bg-brand-card p-6">
           <div className="space-y-5">
             <Input
@@ -351,7 +336,45 @@ export function SettingsForm({
             </fieldset>
           </div>
         </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+          {error ? (
+            <p className="mesa-alert-danger order-first mr-auto w-full px-3 py-1.5 text-sm sm:w-auto">
+              {error}
+            </p>
+          ) : null}
+          {success ? (
+            <p className="order-first mr-auto w-full rounded-lg border border-green-400/20 bg-green-400/10 px-3 py-1.5 text-sm text-green-400 sm:w-auto">
+              ✓ {t.saved}
+            </p>
+          ) : null}
+          <Button type="submit" loading={saving} className="w-full sm:w-auto">
+            {t.save}
+          </Button>
+        </div>
       </form>
+
+      <ClearBusinessDataSection
+        slug={restaurant.slug}
+        isOwner={isOwner}
+        copy={{
+          title: t.clearBusinessDataTitle,
+          desc: t.clearBusinessDataDesc,
+          slugLabel: t.clearBusinessDataSlugLabel,
+          slugPlaceholder: t.clearBusinessDataSlugPlaceholder,
+          openConfirm: t.clearBusinessDataOpenConfirm,
+          confirmTitle: t.clearBusinessDataConfirmTitle,
+          confirmMessage: t.clearBusinessDataConfirmMessage,
+          confirmLabel: t.clearBusinessDataConfirmLabel,
+          cancelLabel: t.clearBusinessDataCancel,
+          success: t.clearBusinessDataSuccess,
+          fail: t.clearBusinessDataFail,
+          slugMismatch: t.clearBusinessDataSlugMismatch,
+          ownerOnly: t.clearBusinessDataOwnerOnly,
+          fiscalTimeout: t.clearBusinessDataFiscalTimeout,
+          fiscalFail: t.clearBusinessDataFiscalFail,
+        }}
+      />
     </div>
   );
 }

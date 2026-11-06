@@ -24,5 +24,11 @@ export default async function SettingsPage() {
   if (dest.kind === 'empty') return <SettingsHubEmpty />;
 
   const restaurant = await requireRestaurantForSettingsPermission('settings.profile.manage');
-  return <SettingsForm embedded restaurant={toSettingsProfile(restaurant)} />;
+  return (
+    <SettingsForm
+      embedded
+      restaurant={toSettingsProfile(restaurant)}
+      isOwner={auth.principal.kind === 'owner'}
+    />
+  );
 }

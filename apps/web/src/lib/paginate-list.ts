@@ -7,7 +7,7 @@ export type PaginatedList<T> = {
 };
 
 /** Shared page-size choices for dashboard list footers (staff, abnormal ops, …). */
-export const LIST_PAGE_SIZES = [10, 20] as const;
+export const LIST_PAGE_SIZES = [10, 20, 50] as const;
 export type ListPageSize = (typeof LIST_PAGE_SIZES)[number];
 export const LIST_DEFAULT_PAGE_SIZE: ListPageSize = 10;
 

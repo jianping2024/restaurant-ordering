@@ -14,11 +14,12 @@ import {
 } from './ops-list-pagination';
 
 describe('ops-list-pagination', () => {
-  it('exposes 10/20 page sizes with default 20', () => {
-    assert.deepEqual([...OPS_LIST_PAGE_SIZES], [10, 20]);
+  it('exposes 10/20/50 page sizes with default 20', () => {
+    assert.deepEqual([...OPS_LIST_PAGE_SIZES], [10, 20, 50]);
     assert.equal(OPS_LIST_DEFAULT_PAGE_SIZE, 20);
     assert.equal(isOpsListPageSize(10), true);
     assert.equal(isOpsListPageSize(20), true);
+    assert.equal(isOpsListPageSize(50), true);
     assert.equal(isOpsListPageSize(30), false);
   });
 

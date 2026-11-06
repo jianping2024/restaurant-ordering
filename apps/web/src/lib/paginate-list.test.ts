@@ -33,11 +33,13 @@ describe('paginateList', () => {
 });
 
 describe('list page sizes', () => {
-  it('exposes 10 and 20 only, default 10', () => {
-    assert.deepEqual([...LIST_PAGE_SIZES], [10, 20]);
+  it('exposes 10, 20 and 50 only, default 10', () => {
+    assert.deepEqual([...LIST_PAGE_SIZES], [10, 20, 50]);
     assert.equal(LIST_DEFAULT_PAGE_SIZE, 10);
     assert.equal(isListPageSize(10), true);
     assert.equal(isListPageSize(20), true);
+    assert.equal(isListPageSize(50), true);
+    assert.equal(isListPageSize(100), false);
     assert.equal(isListPageSize(15), false);
   });
 });

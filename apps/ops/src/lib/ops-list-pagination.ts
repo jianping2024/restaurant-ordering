@@ -1,5 +1,5 @@
 /** Allowed page sizes for ops list footers (default 20). */
-export const OPS_LIST_PAGE_SIZES = [10, 20] as const;
+export const OPS_LIST_PAGE_SIZES = [10, 20, 50] as const;
 export type OpsListPageSize = (typeof OPS_LIST_PAGE_SIZES)[number];
 export const OPS_LIST_DEFAULT_PAGE_SIZE: OpsListPageSize = 20;
 

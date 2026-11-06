@@ -94,9 +94,12 @@ export function MenuItemPhotoField({
   const existingVideoUrl = resolveMenuImageDisplayUrl(existing?.video_url);
   const [picked, setPicked] = useState<PickedPhoto | null>(null);
   const [stripImage, setStripImage] = useState(false);
-  const [effect, setEffect] = useState<EffectChoice>(
-    isDishVideoEffect(existing?.video_effect) ? existing.video_effect : DEFAULT_DISH_VIDEO_EFFECT,
-  );
+  const [effect, setEffect] = useState<EffectChoice>(() => {
+    if (isDishVideoEffect(existing?.video_effect)) return existing.video_effect;
+    // Rare: video row without a valid effect — keep a real effect so preview isn't stripped.
+    if (existingVideoUrl) return DEFAULT_DISH_VIDEO_EFFECT;
+    return 'none';
+  });
   const [generated, setGenerated] = useState<Generated | null>(null);
   const [generating, setGenerating] = useState(false);
   const [videoError, setVideoError] = useState<'unsupported' | 'failed' | null>(null);
@@ -156,14 +159,6 @@ export function MenuItemPhotoField({
     },
     [canManageDishVideo, existingImageUrl],
   );
-
-  // Old dish with a photo but no video: prepare one with the default effect on open.
-  useEffect(() => {
-    if (canManageDishVideo && existingImageUrl && !existingVideoUrl) {
-      void regenerate(null, DEFAULT_DISH_VIDEO_EFFECT);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount (fresh key per modal open)
-  }, []);
 
   useEffect(() => {
     onDraftChange({

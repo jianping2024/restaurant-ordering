@@ -53,6 +53,10 @@ type DetailLabels = Pick<
   | 'itemDetailAddToRound'
   | 'itemDetailAddToCart'
   | 'itemDetailDone'
+  | 'itemDetailChoicesTitle'
+  | 'itemDetailRelatedDishesTitle'
+  | 'itemDetailRelatedDishesOptional'
+  | 'itemDetailRelatedDishesRequired'
   | 'itemSoldOut'
 >;
 
@@ -279,17 +283,10 @@ export function CustomerMenuItemDetailSheet({
                 disabled={!item.available}
                 warn={orderConfigWarn}
                 labels={{
-                  choicesTitle: 'Choices',
-                  toppingsTitle:
-                    lang === 'zh' ? '浇头' : lang === 'pt' ? 'Coberturas' : 'Toppings',
-                  toppingsOptional:
-                    lang === 'zh' ? '可选' : lang === 'pt' ? 'Opcional' : 'Optional',
-                  toppingsRequired:
-                    lang === 'zh'
-                      ? '必选：至少选一种'
-                      : lang === 'pt'
-                        ? 'Obrigatório: escolha pelo menos uma'
-                        : 'Required: pick at least one',
+                  choicesTitle: t.itemDetailChoicesTitle,
+                  toppingsTitle: t.itemDetailRelatedDishesTitle,
+                  toppingsOptional: t.itemDetailRelatedDishesOptional,
+                  toppingsRequired: t.itemDetailRelatedDishesRequired,
                 }}
                 onChoicePick={onChoicePick}
                 onToppingQty={onToppingQty}

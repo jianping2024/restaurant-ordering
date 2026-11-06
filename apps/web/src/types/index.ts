@@ -175,8 +175,8 @@ export interface MenuItem {
    */
   choice_bindings?: import('@/lib/menu-choice-options').MenuChoiceBinding[];
   /**
-   * Topping link: one category + item subset (empty item_ids = all in category) + required.
-   * Null/missing = no topping step.
+   * Related dishes (关联菜品) via topping_binding: one category + item subset
+   * (empty item_ids = all in category) + required. Null/missing = no related-dish step.
    */
   topping_binding?: import('@/lib/menu-topping-binding').MenuToppingBinding | null;
   /** Owner-marked vegetarian; false/missing = not vegetarian. */

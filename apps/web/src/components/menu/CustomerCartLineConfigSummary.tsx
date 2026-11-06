@@ -23,7 +23,7 @@ type Props = {
 };
 
 /**
- * Sole read-only cart-line order-config summary (口味 labels + 浇头 rows).
+ * Sole read-only cart-line order-config summary (口味 labels + 关联菜品 rows).
  * Edit stays on dish detail — do not mount CustomerDishOrderConfigFields here.
  */
 export function CustomerCartLineConfigSummary({

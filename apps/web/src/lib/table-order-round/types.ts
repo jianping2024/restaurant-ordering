@@ -44,6 +44,11 @@ export type RoundSnapshot = {
   /** Cap for collecting: per_person_cap × live_guest_count (or round.per_person_cap × snapshot when pending). */
   round_cap_total: number;
   lines_qty_total: number;
+  /**
+   * Table kitchen-send cooldown end on the session (null = not cooling).
+   * Blocks submit/finalize only — free-dish basket writes stay allowed.
+   */
+  session_cooldown_until: string | null;
 };
 
 export type TableOrderRoundErrorCode =

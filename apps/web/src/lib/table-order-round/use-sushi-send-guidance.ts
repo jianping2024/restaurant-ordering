@@ -20,6 +20,7 @@ export function useSushiSendGuidance(input: {
   const round = input.snapshot.round;
   const guidance = resolveSushiSendGuidance({
     status: round?.status,
+    sessionCooldownUntil: input.snapshot.session_cooldown_until,
     cooldownUntil: round?.cooldown_until,
     submitDeadlineAt: round?.submit_deadline_at,
     tableReviewQty: input.tableReviewQty,

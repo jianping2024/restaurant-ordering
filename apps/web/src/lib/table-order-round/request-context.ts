@@ -159,6 +159,7 @@ export function roundSnapshotJson(snapshot: {
   live_guest_count: number;
   round_cap_total: number;
   lines_qty_total: number;
+  session_cooldown_until: string | null;
 }) {
   return {
     ok: true as const,
@@ -168,6 +169,7 @@ export function roundSnapshotJson(snapshot: {
     live_guest_count: snapshot.live_guest_count,
     round_cap_total: snapshot.round_cap_total,
     lines_qty_total: snapshot.lines_qty_total,
+    session_cooldown_until: snapshot.session_cooldown_until,
   };
 }
 

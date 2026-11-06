@@ -6,6 +6,7 @@ const nowMs = Date.parse('2026-10-26T12:00:00.000Z');
 const plus = (s: number) => new Date(nowMs + s * 1000).toISOString();
 const base = {
   status: null,
+  sessionCooldownUntil: null,
   cooldownUntil: null,
   submitDeadlineAt: null,
   tableReviewQty: 0,
@@ -53,17 +54,45 @@ describe('resolveSushiSendGuidance', () => {
     });
   });
 
-  it('shows sent only while cooldown is active', () => {
-    assert.deepEqual(resolveSushiSendGuidance({ ...base, status: 'cooldown', cooldownUntil: plus(90) }), {
-      kind: 'sent',
-      seconds: 90,
-    });
+  it('shows session cooldown with optional next-basket qty', () => {
+    assert.deepEqual(
+      resolveSushiSendGuidance({ ...base, status: 'collecting', sessionCooldownUntil: plus(90) }),
+      { kind: 'sent', seconds: 90, qty: 0, full: false, cap: 5 },
+    );
+    assert.deepEqual(
+      resolveSushiSendGuidance({
+        ...base,
+        status: 'collecting',
+        sessionCooldownUntil: plus(90),
+        tableReviewQty: 3,
+      }),
+      { kind: 'sent', seconds: 90, qty: 3, full: false, cap: 5 },
+    );
+    assert.deepEqual(
+      resolveSushiSendGuidance({
+        ...base,
+        status: 'collecting',
+        sessionCooldownUntil: plus(90),
+        tableReviewQty: 5,
+      }),
+      { kind: 'sent', seconds: 90, qty: 5, full: true, cap: 5 },
+    );
+  });
+
+  it('falls back to legacy round cooldown status', () => {
+    assert.deepEqual(
+      resolveSushiSendGuidance({ ...base, status: 'cooldown', cooldownUntil: plus(90) }),
+      { kind: 'sent', seconds: 90, qty: 0, full: false, cap: 5 },
+    );
     assert.equal(resolveSushiSendGuidance({ ...base, status: 'cooldown', cooldownUntil: plus(-1) }), null);
   });
 
   it('ticks only for countdown and sent', () => {
     assert.equal(sushiSendGuidanceTicks({ kind: 'countdown', seconds: 3 }), true);
-    assert.equal(sushiSendGuidanceTicks({ kind: 'sent', seconds: 3 }), true);
+    assert.equal(
+      sushiSendGuidanceTicks({ kind: 'sent', seconds: 3, qty: 0, full: false, cap: 5 }),
+      true,
+    );
     assert.equal(sushiSendGuidanceTicks({ kind: 'unsent', qty: 1, full: false, cap: 5 }), false);
     assert.equal(sushiSendGuidanceTicks(null), false);
   });

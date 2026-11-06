@@ -1,5 +1,5 @@
 import type { TableOrderRoundStatus } from '@/lib/table-order-round/types';
-import { isCooldownActive } from '@/lib/table-order-round/status';
+import { effectiveKitchenCooldownUntil } from '@/lib/table-order-round/status';
 
 /**
  * Sole sushi「送厨」guidance state (footer guidance strip + round-review notice).
@@ -10,10 +10,20 @@ export type SushiSendGuidance =
   | { kind: 'unsent'; qty: number; full: boolean; cap: number }
   | { kind: 'countdown'; seconds: number }
   | { kind: 'failed' }
-  | { kind: 'sent'; seconds: number };
+  | {
+      kind: 'sent';
+      seconds: number;
+      /** Unsent free dishes already in the next basket during cooldown. */
+      qty: number;
+      full: boolean;
+      cap: number;
+    };
 
 export function resolveSushiSendGuidance(input: {
   status: TableOrderRoundStatus | null | undefined;
+  /** Authoritative session kitchen-send cooldown. */
+  sessionCooldownUntil?: string | null | undefined;
+  /** Legacy round.cooldown_until while status === cooldown. */
   cooldownUntil: string | null | undefined;
   submitDeadlineAt: string | null | undefined;
   /** Unsent table round qty (`useTableOrderRound().tableReviewQty`). */
@@ -27,9 +37,23 @@ export function resolveSushiSendGuidance(input: {
     return { kind: 'countdown', seconds: secondsUntil(input.submitDeadlineAt, nowMs) };
   }
   if (input.status === 'finalize_failed') return { kind: 'failed' };
-  if (input.status === 'cooldown') {
-    if (!isCooldownActive('cooldown', input.cooldownUntil ?? null, nowMs)) return null;
-    return { kind: 'sent', seconds: secondsUntil(input.cooldownUntil, nowMs) };
+
+  const coolingUntil = effectiveKitchenCooldownUntil({
+    sessionCooldownUntil: input.sessionCooldownUntil,
+    status: input.status,
+    roundCooldownUntil: input.cooldownUntil,
+    nowMs,
+  });
+  if (coolingUntil) {
+    const qty = Math.max(0, Math.floor(input.tableReviewQty));
+    const cap = Math.max(0, Math.floor(input.roundCapTotal));
+    return {
+      kind: 'sent',
+      seconds: secondsUntil(coolingUntil, nowMs),
+      qty,
+      full: cap > 0 && qty >= cap,
+      cap,
+    };
   }
 
   const qty = Math.max(0, Math.floor(input.tableReviewQty));

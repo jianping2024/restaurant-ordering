@@ -85,21 +85,27 @@ export function SushiSendGuidanceStrip({
   lang: Language;
 }) {
   const t = SUSHI_ROUND_MESSAGES[lang];
-  const sent = guidance.kind === 'sent';
+  const sentIdle = guidance.kind === 'sent' && guidance.qty < 1;
+  const sentWaiting = guidance.kind === 'sent' && guidance.qty > 0;
   const sendLabel =
-    guidance.kind === 'countdown'
+    guidance.kind === 'countdown' || sentWaiting
       ? `${guidance.seconds}s`
-      : sent
+      : sentIdle
         ? t.guidanceStepSent
         : t.guidanceStepSend;
-  const sendMark = guidance.kind === 'countdown' ? '…' : guidance.kind === 'failed' ? '!' : '2';
+  const sendMark =
+    guidance.kind === 'countdown' || sentWaiting
+      ? '…'
+      : guidance.kind === 'failed'
+        ? '!'
+        : '2';
 
   return (
     <div className={customerMenuBottomBarGuidanceClass} data-mesa-bottom-dock-guidance="">
       <div className="flex h-6 min-w-0 items-center gap-2" aria-hidden>
         <Step state="done" mark="1" label={t.guidanceStepJoin} />
         <span className="h-0.5 w-8 shrink-0 rounded-full bg-brand-gold sm:w-12" />
-        <Step state={sent ? 'done' : 'current'} mark={sendMark} label={sendLabel} />
+        <Step state={sentIdle ? 'done' : 'current'} mark={sendMark} label={sendLabel} />
       </div>
       <SushiSendGuidanceNotice guidance={guidance} lang={lang} />
     </div>

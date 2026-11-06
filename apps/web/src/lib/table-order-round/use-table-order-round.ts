@@ -15,7 +15,7 @@ import {
   type RoundApiSnapshot,
   upsertRoundLineClient,
 } from '@/lib/table-order-round/client-api';
-import { canMutateRoundLines, isCooldownActive } from '@/lib/table-order-round/status';
+import { canMutateRoundLines, isSessionKitchenCooldownActive } from '@/lib/table-order-round/status';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
 
 const REALTIME_DEBOUNCE_MS = 2000;
@@ -28,6 +28,7 @@ function emptySnapshot(settings: SushiRoundSettings): RoundSnapshot {
     live_guest_count: 0,
     round_cap_total: 0,
     lines_qty_total: 0,
+    session_cooldown_until: null,
   };
 }
 
@@ -83,6 +84,7 @@ export function useTableOrderRound(params: {
       live_guest_count: next.live_guest_count,
       round_cap_total: next.round_cap_total,
       lines_qty_total: next.lines_qty_total,
+      session_cooldown_until: next.session_cooldown_until ?? null,
     });
     setSettings((prev) => {
       const n = next.settings;
@@ -264,28 +266,26 @@ export function useTableOrderRound(params: {
     return () => clearTimeout(timer);
   }, [enabled, refresh, snapshot.round?.status, snapshot.round?.submit_deadline_at]);
 
-  /** When table cooldown ends (or snapshot still shows expired cooldown), refresh so GET settles → empty basket. */
-  const cooldownUntil = snapshot.round?.status === 'cooldown' ? snapshot.round.cooldown_until : null;
-  const cooldownRoundId = snapshot.round?.status === 'cooldown' ? snapshot.round.id : null;
+  /** When session kitchen cooldown ends, refresh so GET clears the clock and send unlocks. */
+  const sessionCooldownUntil = snapshot.session_cooldown_until;
   const expiredCooldownSettledKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!enabled || !cooldownRoundId || !cooldownUntil) {
+    if (!enabled || !sessionCooldownUntil) {
       expiredCooldownSettledKeyRef.current = null;
       return;
     }
-    if (isCooldownActive('cooldown', cooldownUntil)) {
-      const untilMs = Date.parse(cooldownUntil);
+    if (isSessionKitchenCooldownActive(sessionCooldownUntil)) {
+      const untilMs = Date.parse(sessionCooldownUntil);
       const ms = Number.isFinite(untilMs) ? Math.max(0, untilMs - Date.now()) + 150 : 0;
       const timer = setTimeout(() => {
         void refresh();
       }, ms);
       return () => clearTimeout(timer);
     }
-    const key = `${cooldownRoundId}:${cooldownUntil}`;
-    if (expiredCooldownSettledKeyRef.current === key) return;
-    expiredCooldownSettledKeyRef.current = key;
+    if (expiredCooldownSettledKeyRef.current === sessionCooldownUntil) return;
+    expiredCooldownSettledKeyRef.current = sessionCooldownUntil;
     void refresh();
-  }, [cooldownRoundId, cooldownUntil, enabled, refresh]);
+  }, [enabled, refresh, sessionCooldownUntil]);
 
   const roundStatus = snapshot.round?.status;
   const roundReviewActive =

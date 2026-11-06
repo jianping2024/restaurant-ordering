@@ -1,25 +1,37 @@
 import type { TableOrderRoundStatus } from '@/lib/table-order-round/types';
+import { isSessionKitchenCooldownActive } from '@/lib/table-order-round/status';
 
 /**
- * Sole client rule: kitchen-send success UI exit when round status enters `cooldown`
- * from a different known status (not mount/bootstrap).
+ * Sole client rule: kitchen-send success UI exit after a successful finalize.
  *
- * - `finalize_failed` → `cooldown` counts (retry succeeded).
- * - Mount already on `cooldown` does not (prev null / first sample).
- * - Staying on `cooldown` does not (refresh replay).
+ * New path: pending_confirm / finalize_failed → no active round (or fresh collecting)
+ * while the session kitchen cooldown clock is live.
+ * Legacy path: any known status → cooldown (settle still closes those rounds).
+ *
+ * Empty-basket reset (pending → collecting without a session clock) must not fire.
  */
-export function isKitchenSendSuccessStatusTransition(
-  prev: TableOrderRoundStatus | null | undefined,
-  next: TableOrderRoundStatus | null | undefined,
-): boolean {
-  if (next !== 'cooldown') return false;
+export function isKitchenSendSuccessStatusTransition(input: {
+  prev: TableOrderRoundStatus | null | undefined;
+  next: TableOrderRoundStatus | null | undefined;
+  sessionCooldownUntil?: string | null;
+  nowMs?: number;
+}): boolean {
+  const { prev, next } = input;
   if (prev == null) return false;
-  if (prev === 'cooldown') return false;
-  return true;
+
+  if (next === 'cooldown' && prev !== 'cooldown') return true;
+
+  const fromSend =
+    prev === 'pending_confirm' || prev === 'finalize_failed' || prev === 'collecting';
+  if (!fromSend) return false;
+  if (next !== null && next !== 'collecting') return false;
+  return isSessionKitchenCooldownActive(input.sessionCooldownUntil, input.nowMs);
 }
 
-/** Sole dedupe key for one success toast / dismiss per round. */
-export function kitchenSendSuccessDedupeKey(roundId: string | null | undefined): string | null {
-  const id = typeof roundId === 'string' ? roundId.trim() : '';
-  return id.length > 0 ? id : null;
+/** Sole dedupe key for one success toast / dismiss per send (session cooldown stamp). */
+export function kitchenSendSuccessDedupeKey(
+  sessionCooldownUntil: string | null | undefined,
+): string | null {
+  const until = typeof sessionCooldownUntil === 'string' ? sessionCooldownUntil.trim() : '';
+  return until.length > 0 ? until : null;
 }

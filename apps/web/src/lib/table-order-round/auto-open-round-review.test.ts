@@ -18,14 +18,14 @@ describe('shouldAutoOpenRoundReview', () => {
     );
   });
 
-  it('does not open during countdown or cooldown', () => {
+  it('does not open during send countdown; cooldown no longer blocks', () => {
     assert.equal(
       shouldAutoOpenRoundReview({ tableReviewQty: 4, status: 'pending_confirm' }),
       false,
     );
     assert.equal(
       shouldAutoOpenRoundReview({ tableReviewQty: 4, status: 'cooldown' }),
-      false,
+      true,
     );
   });
 

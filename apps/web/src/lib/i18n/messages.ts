@@ -1055,7 +1055,8 @@ export const MESSAGES = {
         '发起送厨后，整桌等待的秒数；到点自动送厨（15–45，默认 25）。',
       sushiRoundConfirmTimeoutSecondsUnit: '秒',
       sushiRoundCooldownSeconds: '桌级送厨冷却',
-      sushiRoundCooldownSecondsDesc: '送厨成功后整桌等待秒数，期间不可再开新轮（30–600，默认 120）。',
+      sushiRoundCooldownSecondsDesc:
+        '送厨成功后整桌等待秒数，期间不能再送厨（仍可点菜进本轮；30–600，默认 120）。',
       sushiRoundCooldownSecondsUnit: '秒',
       sushiRoundInvalid: '寿司轮次设置数值无效，请检查范围后重试',
       moduleOperationLogs: '操作记录',
@@ -2732,7 +2733,7 @@ export const MESSAGES = {
       sushiRoundConfirmTimeoutSecondsUnit: 'seconds',
       sushiRoundCooldownSeconds: 'Table kitchen cooldown',
       sushiRoundCooldownSecondsDesc:
-        'Seconds the whole table must wait after a successful kitchen send before a new round (30–600, default 120).',
+        'Seconds after a successful kitchen send before the table may send again (ordering into the next basket stays allowed; 30–600, default 120).',
       sushiRoundCooldownSecondsUnit: 'seconds',
       sushiRoundInvalid: 'Invalid sushi round setting; check the allowed ranges and retry',
       moduleOperationLogs: 'Operation logs',
@@ -4153,7 +4154,7 @@ export const MESSAGES = {
       sushiRoundConfirmTimeoutSecondsUnit: 'segundos',
       sushiRoundCooldownSeconds: 'Refracao da mesa apos cozinha',
       sushiRoundCooldownSecondsDesc:
-        'Segundos que a mesa espera apos envio com sucesso antes de nova rodada (30–600, padrao 120).',
+        'Segundos apos envio com sucesso antes de poder enviar de novo (ainda pode pedir para a ronda; 30–600, padrao 120).',
       sushiRoundCooldownSecondsUnit: 'segundos',
       sushiRoundInvalid: 'Definicao de rodada sushi invalida; verifique os intervalos e tente novamente',
       moduleOperationLogs: 'Registos de operacao',

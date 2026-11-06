@@ -220,7 +220,7 @@ describe('buildWaiterTableCard', () => {
     assert.equal(mealLine?.unitPrice, 150);
   });
 
-  it('merges identical menu lines with the billable catalog key (ignores notes)', () => {
+  it('splits identical menu lines when notes differ; merges when note matches', () => {
     const card = buildWaiterTableCard(
       't1',
       '001',
@@ -272,6 +272,7 @@ describe('buildWaiterTableCard', () => {
               price: 1.85,
               emoji: '💧',
               item_code: '001',
+              note: 'cold',
             },
           ],
           total_amount: 1.85,
@@ -283,14 +284,13 @@ describe('buildWaiterTableCard', () => {
       capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
 
-    assert.equal(card.orderLines.length, 1);
-    assert.equal(card.orderLines[0]?.itemCode, '001');
-    assert.equal(card.orderLines[0]?.label, 'Água 500ml');
-    assert.equal(card.orderLines[0]?.unitPrice, 1.85);
-    assert.equal(card.orderLines[0]?.quantityLabel, '× 3');
-    assert.equal(card.orderLines[0]?.canDecrement, true);
-    assert.equal(card.orderLines[0]?.orderId, 'o1');
-    assert.equal(card.orderLines[0]?.itemIdx, 0);
+    assert.equal(card.orderLines.length, 2);
+    const cold = card.orderLines.find((l) => l.note === 'cold');
+    const room = card.orderLines.find((l) => l.note === 'room');
+    assert.equal(cold?.quantityLabel, '× 2');
+    assert.equal(room?.quantityLabel, '× 1');
+    assert.equal(cold?.canDecrement, true);
+    assert.equal(card.orderedDishQty, 3);
   });
 
   it('keeps menu lines separate when unit price differs', () => {

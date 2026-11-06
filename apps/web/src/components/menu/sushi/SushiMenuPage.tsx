@@ -1619,6 +1619,7 @@ export function SushiMenuPage({
         menuItems={menuItems}
         menuItemCodeById={menuItemCodeById}
         notePresetCatalog={notePresetCatalog}
+        choiceCatalog={choiceCatalog}
         lang={lang}
         onClose={() => setCartOpen(false)}
         onUpdateQty={(lineId, qty) => {

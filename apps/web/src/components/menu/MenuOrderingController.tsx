@@ -1299,6 +1299,7 @@ export function MenuOrderingController({
         menuItems={menuItems}
         menuItemCodeById={menuItemCodeById}
         notePresetCatalog={notePresetCatalog}
+        choiceCatalog={choiceCatalog}
         lang={lang}
         onClose={closeCartDrawer}
         onUpdateQty={(lineId, qty) => {

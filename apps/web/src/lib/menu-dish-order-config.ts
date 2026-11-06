@@ -1,6 +1,11 @@
 import type { MenuChoiceBinding, MenuChoiceCatalog } from '@/lib/menu-choice-options';
-import { resolveDishChoiceSections } from '@/lib/menu-choice-options';
+import {
+  choicePicksSatisfied,
+  resolveDishChoiceSections,
+} from '@/lib/menu-choice-options';
 import type { MenuToppingBinding, MenuToppingPick } from '@/lib/menu-topping-binding';
+import { toppingsSatisfied } from '@/lib/menu-topping-binding';
+import type { UILanguage } from '@/lib/i18n';
 
 /** Whether guest list + must open detail instead of silent add. */
 export function dishNeedsOrderConfig(params: {
@@ -15,6 +20,41 @@ export function dishNeedsOrderConfig(params: {
     return true;
   }
   return params.toppingBinding != null;
+}
+
+/**
+ * Sole draft gate before upserting a configured dish into the cart.
+ * Returns warn copy when choice/topping rules fail; null when ok to add.
+ */
+export function configuredDishDraftWarn(params: {
+  lang: UILanguage;
+  choiceBindings: readonly MenuChoiceBinding[] | null | undefined;
+  choiceCatalog: MenuChoiceCatalog;
+  choicePicks: Readonly<Record<string, string>>;
+  toppingBinding: MenuToppingBinding | null | undefined;
+  toppingPicks: readonly { menuItemId: string; qty: number }[];
+}): string | null {
+  if (
+    !choicePicksSatisfied(
+      params.choiceBindings ?? [],
+      params.choiceCatalog,
+      params.choicePicks,
+    )
+  ) {
+    if (params.lang === 'zh') return '请为每个口味分组选一项。';
+    if (params.lang === 'pt') return 'Escolha uma opção em cada grupo.';
+    return 'Pick one option in each choice group.';
+  }
+  const wireTops: MenuToppingPick[] = params.toppingPicks.map((p) => ({
+    menu_item_id: p.menuItemId,
+    qty: p.qty,
+  }));
+  if (!toppingsSatisfied(params.toppingBinding, wireTops)) {
+    if (params.lang === 'zh') return '此菜浇头为必选：请至少选一种并设置数量。';
+    if (params.lang === 'pt') return 'Cobertura obrigatória: escolha pelo menos uma.';
+    return 'Topping required: pick at least one.';
+  }
+  return null;
 }
 
 /** Cart line identity for merge: choices + toppings + notes. */

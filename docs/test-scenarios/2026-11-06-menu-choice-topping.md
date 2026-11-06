@@ -71,10 +71,10 @@
 - 经典 `MenuOrderingController` 同门禁：【已实现】主仓已合入；白云本机无挂 choice 的菜（with_choice=0），本轮未另开经典店全路径点击
 - 后台 Tab 可见：【已验证】场景 1
 
-## 清冗余（UAT 前）
+## 清冗余
 
-- **Scanned:** `SushiMenuPage` / `MenuPage` choiceCatalog 传入；`dishNeedsOrderConfig`、`appendCartLinesFromCart`、`confirmConfiguredDetailAdd`
-- **None found:** 寿司侧复用既有 sole helpers，无第二套口味判定或平行 expand；`rg` 调用点均指向同一符号
+- **已收：** 经典/寿司双份口味·浇头警告文案 → sole `configuredDishDraftWarn`；删除 `/demo/dish-options` 演示面（page、Demo 组件、catalog、public redirect）
+- **仍各控制器本地：** `confirmConfiguredDetailAdd` 外壳（下单门禁 / 寿司免费轮次冷却与 `assertFreeCartDraftOk` 不同）——规则校验已共用
 
 ## 实际测试结果
 

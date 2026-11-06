@@ -3,11 +3,21 @@ import { describe, it } from 'node:test';
 import { resolveStaffOperatorDisplayName } from '@/lib/audit/resolve-actor';
 
 describe('resolveStaffOperatorDisplayName', () => {
-  it('prefers login_name over display_name', () => {
+  it('prefers display_name over login_name', () => {
     assert.equal(
       resolveStaffOperatorDisplayName({
         login_name: 'qiantai1',
         display_name: '前台',
+      }),
+      '前台',
+    );
+  });
+
+  it('uses login_name when display_name empty', () => {
+    assert.equal(
+      resolveStaffOperatorDisplayName({
+        login_name: 'qiantai1',
+        display_name: '  ',
       }),
       'qiantai1',
     );

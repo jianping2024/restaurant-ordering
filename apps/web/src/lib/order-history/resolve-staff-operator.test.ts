@@ -46,9 +46,9 @@ describe('resolveStaffOperatorNames', () => {
       userIds: ['u-login-only', 'u-both', 'u-admin', 'owner-1'],
     });
 
-    // resolveStaffOperatorDisplayName: login wins when present
+    // resolveStaffOperatorDisplayName: display wins when present
     assert.equal(names.get('u-login-only'), 'siyu');
-    assert.equal(names.get('u-both'), 'zhangsan');
+    assert.equal(names.get('u-both'), '张三');
     assert.equal(names.get('u-admin'), 'admin');
     assert.equal(names.get('owner-1'), 'Pirata');
   });

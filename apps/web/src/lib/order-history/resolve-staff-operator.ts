@@ -7,8 +7,8 @@ import {
 
 /**
  * Resolve staff/owner labels for board opener + order-history operators.
- * Same ladder as audit actors: staff row via {@link resolveStaffOperatorDisplayName},
- * then Auth username, then owner restaurant name.
+ * Same ladder as audit actors: staff row via {@link resolveStaffOperatorDisplayName}
+ * (display name, else login name), then Auth username, then owner restaurant name.
  */
 export async function resolveStaffOperatorNames(
   admin: SupabaseClient,

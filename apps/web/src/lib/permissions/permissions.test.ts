@@ -44,12 +44,10 @@ describe('permissions registry integrity', () => {
     assert.deepEqual(sorted(ROLE_TEMPLATES.waiter), sorted([
       'dashboard.waiter_board.view',
       'orders.append',
-            'orders.print_receipt',
       'tables.open_session',
       'tables.transfer',
     ]));
     assert.deepEqual(sorted(ROLE_TEMPLATES.cashier), sorted([
-      'checkout.apply_discount',
       'checkout.assist_bill',
       'checkout.confirm_payment',
       'checkout.open_pending_tables',
@@ -59,8 +57,7 @@ describe('permissions registry integrity', () => {
       'dashboard.waiter_board.table_detail_amounts.view',
       'dashboard.waiter_board.view',
       'orders.append',
-            'orders.menu_decrement',
-      'orders.print_receipt',
+      'orders.menu_decrement',
       'print_agent.receipt_printers.read',
       'tables.checkout_close',
       'tables.force_close',
@@ -70,12 +67,10 @@ describe('permissions registry integrity', () => {
       'tables.transfer',
     ]));
     assert.deepEqual(sorted(ROLE_TEMPLATES.frontdesk), sorted([
-      'checkout.apply_discount',
       'checkout.assist_bill',
       'checkout.confirm_payment',
       'checkout.open_pending_tables',
       'checkout.print_pre_bill',
-      'checkout.request_whole_table',
       'checkout.sync_bill',
       'dashboard.checkout.view',
       'dashboard.guest_notice.view',
@@ -87,8 +82,7 @@ describe('permissions registry integrity', () => {
       'dashboard.waiter_board.table_detail_amounts.view',
       'dashboard.waiter_board.view',
       'orders.append',
-            'orders.menu_decrement',
-      'orders.print_receipt',
+      'orders.menu_decrement',
       'print_agent.receipt_printers.read',
       'tables.checkout_close',
       'tables.force_close',
@@ -111,7 +105,7 @@ describe('permissions registry integrity', () => {
     ]));
   });
 
-  it('cloud align + drop-orders.edit migrations match ROLE_TEMPLATES (one matrix)', () => {
+  it('cloud align + drop-dead-permission migrations match ROLE_TEMPLATES (one matrix)', () => {
     const resolveMigration = (name: string) =>
       [
         path.resolve(process.cwd(), `supabase/migrations/${name}`),
@@ -120,36 +114,56 @@ describe('permissions registry integrity', () => {
 
     const alignFile = resolveMigration('20261028140000_cloud_roles_align_pirata_defaults.sql');
     assert.ok(alignFile, 'align migration file missing');
-    const dropFile = resolveMigration('20261028210000_drop_unused_orders_edit_permission.sql');
-    assert.ok(dropFile, 'drop orders.edit migration file missing');
-    const dropSql = fs.readFileSync(dropFile!, 'utf8');
-    assert.match(dropSql, /orders\.edit/);
-    assert.match(dropSql, /jsonb_agg/);
+    const dropEditFile = resolveMigration('20261028210000_drop_unused_orders_edit_permission.sql');
+    assert.ok(dropEditFile, 'drop orders.edit migration file missing');
+    const dropEditSql = fs.readFileSync(dropEditFile!, 'utf8');
+    assert.match(dropEditSql, /orders\.edit/);
+    assert.match(dropEditSql, /jsonb_agg/);
+
+    const dropDeadFile = resolveMigration('20261106180000_drop_unused_permission_keys.sql');
+    assert.ok(dropDeadFile, 'drop unused permission keys migration file missing');
+    const dropDeadSql = fs.readFileSync(dropDeadFile!, 'utf8');
+    for (const key of [
+      'checkout.apply_discount',
+      'checkout.request_whole_table',
+      'orders.print_receipt',
+      'print_agent.manage',
+    ]) {
+      assert.match(dropDeadSql, new RegExp(key.replace(/\./g, '\\.')));
+    }
 
     const sql = fs.readFileSync(alignFile!, 'utf8');
     const sorted = (keys: readonly string[]) => [...keys].sort();
-    const withoutDeadEdit = (keys: readonly string[]) =>
-      keys.filter((k) => k !== 'orders.edit');
+    const DEAD_PERMISSION_KEYS = new Set([
+      'orders.edit',
+      'checkout.apply_discount',
+      'checkout.request_whole_table',
+      'orders.print_receipt',
+      'print_agent.manage',
+    ]);
+    const withoutDeadKeys = (keys: readonly string[]) =>
+      keys.filter((k) => !DEAD_PERMISSION_KEYS.has(k));
     for (const preset of ROLE_PRESET_KEYS) {
-      // Align migration is historical (may still list dead orders.edit); live matrix =
-      // those arrays after 20261028210000 strips orders.edit.
+      // Align migration is historical; live matrix = those arrays after drop migrations.
       const all = [...sql.matchAll(new RegExp(`'${preset}'(?:::text)?[\\s\\S]*?'(\\[[\\s\\S]*?\\])'::jsonb`, 'g'))];
       assert.ok(all.length >= 1, `migration missing ${preset}`);
       for (const m of all) {
         const parsed = JSON.parse(m[1]!) as string[];
         assert.deepEqual(
-          sorted(withoutDeadEdit(parsed)),
+          sorted(withoutDeadKeys(parsed)),
           sorted(ROLE_TEMPLATES[preset]),
           preset,
         );
       }
     }
     for (const preset of ROLE_PRESET_KEYS) {
-      assert.equal(
-        ROLE_TEMPLATES[preset].includes('orders.edit' as never),
-        false,
-        `${preset} must not list dead orders.edit`,
-      );
+      for (const dead of DEAD_PERMISSION_KEYS) {
+        assert.equal(
+          ROLE_TEMPLATES[preset].includes(dead as never),
+          false,
+          `${preset} must not list dead ${dead}`,
+        );
+      }
     }
   });
 

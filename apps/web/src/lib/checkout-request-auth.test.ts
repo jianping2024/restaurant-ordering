@@ -2,37 +2,27 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { capabilitiesFromKeys } from './permissions/can';
 import {
-  CHECKOUT_REQUEST_PERMISSIONS,
   checkoutRequestCallerFromCapabilities,
   resolveCheckoutRequestCaller,
 } from './checkout-request-auth';
 
-describe('CHECKOUT_REQUEST_PERMISSIONS', () => {
-  it('uses checkout capability keys only', () => {
-    assert.deepEqual(CHECKOUT_REQUEST_PERMISSIONS, [
-      'checkout.request_whole_table',
-      'checkout.assist_bill',
-    ]);
-  });
-});
-
 describe('checkoutRequestCallerFromCapabilities', () => {
-  it('authorizes request_whole_table or assist_bill', () => {
-    assert.equal(
-      checkoutRequestCallerFromCapabilities(
-        capabilitiesFromKeys(['checkout.request_whole_table']),
-      ),
-      'authorized_staff',
-    );
+  it('authorizes assist_bill only', () => {
     assert.equal(
       checkoutRequestCallerFromCapabilities(capabilitiesFromKeys(['checkout.assist_bill'])),
       'authorized_staff',
     );
   });
 
-  it('forbids staff without checkout request capabilities', () => {
+  it('forbids staff without assist_bill', () => {
     assert.equal(
       checkoutRequestCallerFromCapabilities(capabilitiesFromKeys(['dashboard.waiter_board.view'])),
+      'forbidden_staff',
+    );
+    assert.equal(
+      checkoutRequestCallerFromCapabilities(
+        capabilitiesFromKeys(['checkout.confirm_payment', 'tables.checkout_close']),
+      ),
       'forbidden_staff',
     );
   });
@@ -52,4 +42,3 @@ describe('resolveCheckoutRequestCaller guest phone', () => {
     );
   });
 });
-

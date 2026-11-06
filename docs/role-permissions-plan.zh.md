@@ -1,8 +1,9 @@
 # 店内角色权限（自研 Capability RBAC）— 设计与实施计划
 
-> 状态：**设计稿**（尚未落地代码；**2026-06-26** 审查修订）  
+> 状态：**设计稿**（历史；落地后以 `registry.ts` + [`product/role-permissions-menu-guide.zh.md`](./product/role-permissions-menu-guide.zh.md) 为准）  
 > 关联：`docs/staff-accounts-plan.md`、`docs/ai-schema.md`、`apps/web/src/lib/staff-api-auth.ts`  
-> **架构评审**（变与不变、模式、目录、确认项）：[`role-permissions-architecture.zh.md`](./role-permissions-architecture.zh.md)
+> **架构评审**（变与不变、模式、目录、确认项）：[`role-permissions-architecture.zh.md`](./role-permissions-architecture.zh.md)  
+> **2026-11-06：** 删除从未独立接线的勾选：`checkout.apply_discount`、`checkout.request_whole_table`、`orders.print_receipt`、`print_agent.manage`（折扣/小票跟 `checkout.confirm_payment`；员工发起结账只认 `checkout.assist_bill`；打印助手设备管理跟 `settings.print_assistant.manage`）。下文表格若仍列这些 key，视为过时。
 
 ## 0. 角色与命名对照（必读）
 

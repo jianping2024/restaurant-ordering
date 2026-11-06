@@ -115,14 +115,9 @@ export const PERMISSIONS = {
   },
 
   // Checkout actions
+  /** Confirm payment + pre-collect discount (one gate; no separate discount key). */
   'checkout.confirm_payment': { group: 'checkout', labelKey: 'checkoutConfirmPayment', dangerous: true },
-  'checkout.apply_discount': {
-    group: 'checkout',
-    labelKey: 'checkoutApplyDiscount',
-    dangerous: true,
-    requires: ['checkout.confirm_payment'],
-  },
-  'checkout.request_whole_table': { group: 'checkout', labelKey: 'checkoutRequestWholeTable' },
+  /** Sole staff gate for assisted checkout request (ensure-entry + checkout/request). */
   'checkout.assist_bill': { group: 'checkout', labelKey: 'checkoutAssistBill' },
   'checkout.print_pre_bill': { group: 'checkout', labelKey: 'checkoutPrintPreBill' },
   'checkout.open_pending_tables': { group: 'checkout', labelKey: 'checkoutOpenPendingTables' },
@@ -143,7 +138,6 @@ export const PERMISSIONS = {
   'orders.menu_decrement': { group: 'orders', labelKey: 'ordersMenuDecrement', dangerous: true },
   'orders.kitchen_update': { group: 'orders', labelKey: 'ordersKitchenUpdate' },
   'orders.serve_to_table': { group: 'orders', labelKey: 'ordersServeToTable' },
-  'orders.print_receipt': { group: 'orders', labelKey: 'ordersPrintReceipt' },
 
   // Floor boards
   'floor.kitchen_board.view': { group: 'floor', labelKey: 'floorKitchenBoard' },
@@ -157,8 +151,7 @@ export const PERMISSIONS = {
   // Dish history (当日菜品)
   'dashboard.dish_history.view': { group: 'dashboard_nav', labelKey: 'dashboardDishHistory' },
 
-  // Print agent dashboard
-  'print_agent.manage': { group: 'print', labelKey: 'printAgentManage', dangerous: true },
+  // Print agent dashboard (device/pair/settings UI = settings.print_assistant.manage)
   'print_agent.receipt_printers.read': { group: 'print', labelKey: 'printAgentReceiptPrinters' },
 } as const satisfies Record<string, PermissionDef>;
 

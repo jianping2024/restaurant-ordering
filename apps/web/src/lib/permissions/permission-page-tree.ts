@@ -42,10 +42,6 @@ function settingsTabNodes(): PermissionTreeNode[] {
         label: { source: 'settingsTab', labelKey: item.labelKey },
         children: [
           {
-            permission: 'print_agent.manage',
-            label: { source: 'action', labelKey: 'printAgentManage' },
-          },
-          {
             permission: 'print_agent.receipt_printers.read',
             label: { source: 'action', labelKey: 'printAgentReceiptPrinters' },
           },
@@ -87,14 +83,6 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
     {
       permission: 'checkout.confirm_payment',
       label: { source: 'action', labelKey: 'checkoutConfirmPayment' },
-    },
-    {
-      permission: 'checkout.apply_discount',
-      label: { source: 'action', labelKey: 'checkoutApplyDiscount' },
-    },
-    {
-      permission: 'checkout.request_whole_table',
-      label: { source: 'action', labelKey: 'checkoutRequestWholeTable' },
     },
     {
       permission: 'checkout.assist_bill',
@@ -172,10 +160,6 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
     {
       permission: 'orders.serve_to_table',
       label: { source: 'action', labelKey: 'ordersServeToTable' },
-    },
-    {
-      permission: 'orders.print_receipt',
-      label: { source: 'action', labelKey: 'ordersPrintReceipt' },
     },
   ]),
   {

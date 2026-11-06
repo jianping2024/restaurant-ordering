@@ -46,18 +46,28 @@ import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
-import { setCartLineQtyByLineId, upsertCartItemQty } from '@/lib/customer-cart-lines';
+import {
+  setCartLineQtyByLineId,
+  upsertCartItemQty,
+  upsertCartLineByConfig,
+} from '@/lib/customer-cart-lines';
 import { showToast } from '@/components/ui/Toast';
 import { completeGuestOrderSubmit } from '@/lib/menu-order-submit-outcome';
 import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
 import {
+  appendCartLinesFromCart,
   appendFailureNeedsSessionRefresh,
-  cartItemWireNote,
   executeMenuOrderSubmit,
   resolveAppendClientRequestId,
   type MenuOrderSubmitFailure,
 } from '@/lib/menu-order-submit';
 import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
+import {
+  choicePicksSatisfied,
+  type MenuChoiceCatalog,
+} from '@/lib/menu-choice-options';
+import { dishNeedsOrderConfig } from '@/lib/menu-dish-order-config';
+import { toppingsSatisfied } from '@/lib/menu-topping-binding';
 import {
   resolveCustomerGeoForOrder,
   warmCustomerGeoForOrder,
@@ -141,6 +151,8 @@ type Props = {
   /** Slot windows from the catalog (`menu_items.time_slot_id`). */
   menuTimeSlots: MenuTimeSlot[];
   notePresetCatalog?: import('@/lib/menu-note-presets').MenuNotePresetCatalog;
+  /** Active 口味分组 dictionary for guest detail picks. */
+  choiceCatalog?: MenuChoiceCatalog;
   catalogReady?: boolean;
   guestListMotionEnabled?: boolean;
   tableId: string;
@@ -158,6 +170,7 @@ export function SushiMenuPage({
   recommendedItemIds = [],
   menuTimeSlots,
   notePresetCatalog = { groups: [] },
+  choiceCatalog = { groups: [] },
   catalogReady = true,
   guestListMotionEnabled = false,
   tableId,
@@ -190,6 +203,13 @@ export function SushiMenuPage({
   /** Geo/send failure copy kept inside 核单 while it stays open. */
   const [roundSendError, setRoundSendError] = useState<string | null>(null);
   const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
+  const [draftChoicePicks, setDraftChoicePicks] = useState<Record<string, string>>({});
+  const [draftToppingPicks, setDraftToppingPicks] = useState<
+    { menuItemId: string; qty: number }[]
+  >([]);
+  const [draftNote, setDraftNote] = useState('');
+  const [draftNotePresets, setDraftNotePresets] = useState<string[]>([]);
+  const [draftConfigWarn, setDraftConfigWarn] = useState('');
   const [dietaryPrefs, setDietaryPrefs] = useState<CustomerMenuDietaryFilterPrefs>(
     EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
   );
@@ -413,7 +433,7 @@ export function SushiMenuPage({
       }
       const freeCart = proposedCart.filter((c) => isSushiRoundFreeMenuPrice(c.price));
       if (freeCart.length === 0) return true;
-      const noteContext = { catalog: notePresetCatalog, lang };
+      const noteContext = { catalog: notePresetCatalog, lang, choiceCatalog };
       const draftGate = previewGuestRoundCartDraftGates({
         linesQtyTotal: round.snapshot.lines_qty_total,
         roundCapTotal: round.snapshot.round_cap_total,
@@ -422,16 +442,16 @@ export function SushiMenuPage({
         sessionOrders: recentOrders,
         roundLines: round.snapshot.lines,
         guestClientId: round.guestClientId,
-        cart: freeCart.map((c) => {
-          const limitItem = resolveLimitItem(c.menuItemId) ?? {
-            price: c.price,
+        cart: appendCartLinesFromCart(freeCart, noteContext).map((line) => {
+          const limitItem = resolveLimitItem(line.menu_item_id) ?? {
+            price: 0,
             per_person_qty_limit: null,
             over_limit_unit_price: null,
           };
           return {
-            menuItemId: c.menuItemId,
-            qty: coerceCartQty(c.qty),
-            note: cartItemWireNote(c, noteContext),
+            menuItemId: line.menu_item_id,
+            qty: coerceCartQty(line.qty),
+            note: line.note ?? '',
             item: limitItem,
           };
         }),
@@ -444,6 +464,7 @@ export function SushiMenuPage({
     },
     [
       buffetServiceMode,
+      choiceCatalog,
       lang,
       notePresetCatalog,
       recentOrders,
@@ -504,7 +525,31 @@ export function SushiMenuPage({
     ],
   );
 
+  const openDishDetail = useCallback((itemId: string) => {
+    setDraftChoicePicks({});
+    setDraftToppingPicks([]);
+    setDraftNote('');
+    setDraftNotePresets([]);
+    setDraftConfigWarn('');
+    setDetailMenuItemId(itemId);
+  }, []);
+
   const bumpItem = (item: MenuItem, delta: number) => {
+    if (
+      dishNeedsOrderConfig({
+        choiceBindings: item.choice_bindings,
+        toppingBinding: item.topping_binding,
+        choiceCatalog,
+      })
+    ) {
+      if (delta > 0) {
+        setCartOpen(false);
+        setOrderedOpen(false);
+        closeRoundReview();
+        openDishDetail(item.id);
+      }
+      return;
+    }
     if (isSushiRoundFreeMenuPrice(item.price)) {
       const cartEntry = cart.find((c) => c.menuItemId === item.id);
       const current = sushiFreeItemDisplayQty({
@@ -522,6 +567,13 @@ export function SushiMenuPage({
     () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
     [detailMenuItemId, menuItems],
   );
+  const detailNeedsConfig = detailItem
+    ? dishNeedsOrderConfig({
+        choiceBindings: detailItem.choice_bindings,
+        toppingBinding: detailItem.topping_binding,
+        choiceCatalog,
+      })
+    : false;
 
   useEffect(() => {
     if (!detailMenuItemId) return;
@@ -532,6 +584,15 @@ export function SushiMenuPage({
 
   const ensureDetailCartLine = useCallback(
     (item: MenuItem) => {
+      if (
+        dishNeedsOrderConfig({
+          choiceBindings: item.choice_bindings,
+          toppingBinding: item.topping_binding,
+          choiceCatalog,
+        })
+      ) {
+        return;
+      }
       const prev = cartRef.current;
       if (prev.some((c) => c.menuItemId === item.id)) return;
       if (isSushiRoundFreeMenuPrice(item.price)) {
@@ -543,12 +604,17 @@ export function SushiMenuPage({
       setCart(next);
       bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
     },
-    [assertFreeCartDraftOk],
+    [assertFreeCartDraftOk, choiceCatalog],
   );
 
   const updateDetailNote = useCallback(
     (note: string) => {
       if (!detailItem) return;
+      const next = clampAppendCartNote(note);
+      if (detailNeedsConfig) {
+        setDraftNote(next);
+        return;
+      }
       if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) {
         ensureDetailCartLine(detailItem);
       }
@@ -556,19 +622,25 @@ export function SushiMenuPage({
       const id = detailItem.id;
       setCart((prev) => {
         if (!prev.some((c) => c.menuItemId === id)) return prev;
-        const next = prev.map((c) =>
-          c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+        const mapped = prev.map((c) =>
+          c.menuItemId === id ? { ...c, note: next } : c,
         );
-        cartRef.current = next;
-        return next;
+        cartRef.current = mapped;
+        return mapped;
       });
     },
-    [detailItem, ensureDetailCartLine],
+    [detailItem, detailNeedsConfig, ensureDetailCartLine],
   );
 
   const toggleDetailNotePreset = useCallback(
     (presetId: string) => {
       if (!detailItem) return;
+      if (detailNeedsConfig) {
+        setDraftNotePresets((prev) =>
+          toggleCartNotePresetSelection(prev, notePresetCatalog, presetId),
+        );
+        return;
+      }
       if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) {
         ensureDetailCartLine(detailItem);
       }
@@ -576,7 +648,7 @@ export function SushiMenuPage({
       const id = detailItem.id;
       setCart((prev) => {
         if (!prev.some((c) => c.menuItemId === id)) return prev;
-        const next = prev.map((c) =>
+        const mapped = prev.map((c) =>
           c.menuItemId === id
             ? {
                 ...c,
@@ -588,23 +660,114 @@ export function SushiMenuPage({
               }
             : c,
         );
-        cartRef.current = next;
-        return next;
+        cartRef.current = mapped;
+        return mapped;
       });
     },
-    [detailItem, ensureDetailCartLine, notePresetCatalog],
+    [detailItem, detailNeedsConfig, ensureDetailCartLine, notePresetCatalog],
   );
+
+  const confirmConfiguredDetailAdd = useCallback(async () => {
+    if (!detailItem || !detailNeedsConfig) return;
+    const gate = await ensureGuestCanPlaceOrder();
+    if (!gate.canPlace) {
+      showToast(guestOrderingActionHint(lang, gate.sessionStatus, gate.individualHold), 'info');
+      return;
+    }
+    if (
+      !choicePicksSatisfied(
+        detailItem.choice_bindings ?? [],
+        choiceCatalog,
+        draftChoicePicks,
+      )
+    ) {
+      setDraftConfigWarn(
+        lang === 'zh'
+          ? '请为每个口味分组选一项。'
+          : lang === 'pt'
+            ? 'Escolha uma opção em cada grupo.'
+            : 'Pick one option in each choice group.',
+      );
+      return;
+    }
+    if (
+      !toppingsSatisfied(
+        detailItem.topping_binding,
+        draftToppingPicks.map((p) => ({
+          menu_item_id: p.menuItemId,
+          qty: p.qty,
+        })),
+      )
+    ) {
+      setDraftConfigWarn(
+        lang === 'zh'
+          ? '此菜浇头为必选：请至少选一种并设置数量。'
+          : lang === 'pt'
+            ? 'Cobertura obrigatória: escolha pelo menos uma.'
+            : 'Topping required: pick at least one.',
+      );
+      return;
+    }
+    if (isSushiRoundFreeMenuPrice(detailItem.price)) {
+      const status = round.snapshot.round?.status;
+      if (
+        status === 'cooldown' &&
+        isCooldownActive(status, round.snapshot.round?.cooldown_until ?? null)
+      ) {
+        showToast(roundT.cooldownActive, 'info');
+        return;
+      }
+    }
+    const prev = cartRef.current;
+    const next = upsertCartLineByConfig(
+      prev,
+      detailItem,
+      {
+        choicePicks: draftChoicePicks,
+        toppingPicks: draftToppingPicks,
+        note: draftNote,
+        selectedNotePresetIds: draftNotePresets,
+      },
+      1,
+      menuItems,
+    );
+    if (isSushiRoundFreeMenuPrice(detailItem.price) && !assertFreeCartDraftOk(next)) {
+      return;
+    }
+    cartRef.current = next;
+    setCart(next);
+    bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
+    setDetailMenuItemId(null);
+  }, [
+    assertFreeCartDraftOk,
+    choiceCatalog,
+    detailItem,
+    detailNeedsConfig,
+    draftChoicePicks,
+    draftNote,
+    draftNotePresets,
+    draftToppingPicks,
+    ensureGuestCanPlaceOrder,
+    lang,
+    menuItems,
+    round.snapshot.round?.cooldown_until,
+    round.snapshot.round?.status,
+    roundT.cooldownActive,
+  ]);
+
   const detailCartEntry = detailItem
     ? cart.find((c) => c.menuItemId === detailItem.id)
     : undefined;
-  const detailCartQty = detailItem
-    ? isSushiRoundFreeMenuPrice(detailItem.price)
-      ? sushiFreeItemDisplayQty({
-          cartHasItem: !!detailCartEntry,
-          cartQty: detailCartEntry?.qty,
-        })
-      : coerceCartQty(detailCartEntry?.qty)
-    : 0;
+  const detailCartQty = detailNeedsConfig
+    ? 0
+    : detailItem
+      ? isSushiRoundFreeMenuPrice(detailItem.price)
+        ? sushiFreeItemDisplayQty({
+            cartHasItem: !!detailCartEntry,
+            cartQty: detailCartEntry?.qty,
+          })
+        : coerceCartQty(detailCartEntry?.qty)
+      : 0;
   const detailLimitHint = useMemo(() => {
     if (!detailItem) return null;
     const hintParts = sushiLimitHintParts(buffetServiceMode, detailItem);
@@ -880,7 +1043,7 @@ export function SushiMenuPage({
     let postFreeTableQty: number | undefined;
     let postFreeStatus: TableOrderRoundStatus | null | undefined;
 
-    const noteContext = { catalog: notePresetCatalog, lang };
+    const noteContext = { catalog: notePresetCatalog, lang, choiceCatalog };
 
     submittingRef.current = true;
     setSubmitting(true);
@@ -891,9 +1054,10 @@ export function SushiMenuPage({
           return;
         }
         let freeSessionOrders = recentOrders;
-        const freeQtyRows = freeCart.map((c) => ({
-          menuItemId: c.menuItemId,
-          qty: coerceCartQty(c.qty),
+        const freeExpanded = appendCartLinesFromCart(freeCart, noteContext);
+        const freeQtyRows = freeExpanded.map((line) => ({
+          menuItemId: line.menu_item_id,
+          qty: coerceCartQty(line.qty),
         }));
         const freeNeedsOrders = guestCartHasLimitedSushiItems({
           serviceMode: buffetServiceMode,
@@ -912,16 +1076,16 @@ export function SushiMenuPage({
           sessionOrders: freeSessionOrders,
           roundLines: round.snapshot.lines,
           guestClientId: round.guestClientId,
-          cart: freeCart.map((c) => {
-            const item = resolveLimitItem(c.menuItemId) ?? {
-              price: c.price,
+          cart: freeExpanded.map((line) => {
+            const item = resolveLimitItem(line.menu_item_id) ?? {
+              price: 0,
               per_person_qty_limit: null,
               over_limit_unit_price: null,
             };
             return {
-              menuItemId: c.menuItemId,
-              qty: coerceCartQty(c.qty),
-              note: cartItemWireNote(c, noteContext),
+              menuItemId: line.menu_item_id,
+              qty: coerceCartQty(line.qty),
+              note: line.note ?? '',
               item,
             };
           }),
@@ -931,10 +1095,10 @@ export function SushiMenuPage({
           return;
         }
         const result = await round.commitCartToRound(
-          freeCart.map((c) => ({
-            menuItemId: c.menuItemId,
-            qty: coerceCartQty(c.qty),
-            note: cartItemWireNote(c, noteContext),
+          freeExpanded.map((line) => ({
+            menuItemId: line.menu_item_id,
+            qty: line.qty,
+            note: line.note ?? '',
           })),
         );
         if (!result.ok) {
@@ -1316,7 +1480,7 @@ export function SushiMenuPage({
                 setCartOpen(false);
                 setOrderedOpen(false);
                 closeRoundReview();
-                setDetailMenuItemId(menuItemId);
+                openDishDetail(menuItemId);
               }}
             />
           ) : null
@@ -1329,13 +1493,20 @@ export function SushiMenuPage({
         ) : (
           <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
             {currentItems.map((item) => {
+              const needsConfig = dishNeedsOrderConfig({
+                choiceBindings: item.choice_bindings,
+                toppingBinding: item.topping_binding,
+                choiceCatalog,
+              });
               const cartEntry = cart.find((c) => c.menuItemId === item.id);
-              const cartQty = isSushiRoundFreeMenuPrice(item.price)
-                ? sushiFreeItemDisplayQty({
-                    cartHasItem: !!cartEntry,
-                    cartQty: cartEntry?.qty,
-                  })
-                : coerceCartQty(cartEntry?.qty);
+              const cartQty = needsConfig
+                ? 0
+                : isSushiRoundFreeMenuPrice(item.price)
+                  ? sushiFreeItemDisplayQty({
+                      cartHasItem: !!cartEntry,
+                      cartQty: cartEntry?.qty,
+                    })
+                  : coerceCartQty(cartEntry?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);
               const limitHint = hintParts
                 ? t.sushiLimitHint
@@ -1356,7 +1527,7 @@ export function SushiMenuPage({
                     setCartOpen(false);
                     setOrderedOpen(false);
                     closeRoundReview();
-                    setDetailMenuItemId(item.id);
+                    openDishDetail(item.id);
                   }}
                   onIncrement={() => bumpItem(item, 1)}
                   onDecrement={() => bumpItem(item, -1)}
@@ -1428,16 +1599,40 @@ export function SushiMenuPage({
         limitHint={detailLimitHint}
         flavorHintsEnabled={flavorHintsEnabled}
         notePresetCatalog={notePresetCatalog}
-        note={detailCartEntry?.note || ''}
-        selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}
+        note={detailNeedsConfig ? draftNote : detailCartEntry?.note || ''}
+        selectedNotePresetIds={
+          detailNeedsConfig
+            ? draftNotePresets
+            : detailCartEntry?.selectedNotePresetIds || []
+        }
         onUpdateNote={updateDetailNote}
         onToggleNotePreset={toggleDetailNotePreset}
         onClose={() => setDetailMenuItemId(null)}
         onIncrement={() => {
-          if (detailItem) bumpItem(detailItem, 1);
+          if (detailItem && !detailNeedsConfig) bumpItem(detailItem, 1);
         }}
         onDecrement={() => {
-          if (detailItem) bumpItem(detailItem, -1);
+          if (detailItem && !detailNeedsConfig) bumpItem(detailItem, -1);
+        }}
+        choiceCatalog={choiceCatalog}
+        allMenuItems={menuItems}
+        choicePicks={draftChoicePicks}
+        toppingPicks={draftToppingPicks}
+        orderConfigWarn={draftConfigWarn}
+        onChoicePick={(groupId, optionId) => {
+          setDraftChoicePicks((prev) => ({ ...prev, [groupId]: optionId }));
+          setDraftConfigWarn('');
+        }}
+        onToppingQty={(menuItemId, qty) => {
+          setDraftToppingPicks((prev) => {
+            const next = prev.filter((p) => p.menuItemId !== menuItemId);
+            if (qty > 0) next.push({ menuItemId, qty });
+            return next;
+          });
+          setDraftConfigWarn('');
+        }}
+        onConfirmConfiguredAdd={() => {
+          void confirmConfiguredDetailAdd();
         }}
       />
 

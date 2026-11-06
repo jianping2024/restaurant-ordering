@@ -315,7 +315,7 @@ sole dictionary is `menu_note_preset_groups` + `menu_note_presets` (seed via SQL
 
 ### Dish order config (口味分组 + 浇头)
 
-sole dictionary `menu_choice_groups`/`menu_choice_options` + dish `choice_bindings` / `topping_binding` (`docs/product/menu-choice-topping.zh.md`); gate list→detail via sole `dishNeedsOrderConfig`; cart merge sole `cartConfigIdentityKey`/`cartLineIdentityKey` + `lineId`; append expand sole `appendCartLinesFromCart` (choice labels in main note + topping lines). Never reuse `flavor_codes` or note presets as order-time options; topping = one category then item subset (empty `item_ids` = all in category).
+sole dictionary `menu_choice_groups`/`menu_choice_options` + dish `choice_bindings` / `topping_binding` (`docs/product/menu-choice-topping.zh.md`); gate list→detail via sole `dishNeedsOrderConfig` on **both** `MenuOrderingController` and `SushiMenuPage` (sushi must open detail + draft confirm — never silent list `+`); cart merge sole `cartConfigIdentityKey`/`cartLineIdentityKey` + `lineId`; append expand sole `appendCartLinesFromCart` (choice labels in main note + topping lines). Never reuse `flavor_codes` or note presets as order-time options; topping = one category then item subset (empty `item_ids` = all in category).
 
 ### Sushi roundReview cart badge
 

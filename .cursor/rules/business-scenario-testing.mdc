@@ -97,6 +97,8 @@ alwaysApply: true
 
 优先高风险场景；不以用例数量衡量质量。执行手段仍走 `mesa-local-product-test`（`mesa-local-uat` + 浏览器 MCP）。
 
+**页面相关场景：** 必须在 localhost **实点页面**跑通（打开 → 点击/填写 → 看结果）；禁止只写预期、只跑 API、或凭代码推断标【已验证】——对齐 `uat-before-delivery.mdc`「禁止糊弄」。
+
 ## 交付物
 
 ### 聊天 / 交付回复：中文《本次改动业务场景测试报告》

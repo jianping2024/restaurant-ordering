@@ -11,7 +11,7 @@ alwaysApply: true
 2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
 3. [`best-practice-not-patches.mdc`](./best-practice-not-patches.mdc) — best-practice end-state only; never lead with补丁/workaround options
 4. [`redundancy-cleanup-before-uat.mdc`](./redundancy-cleanup-before-uat.mdc) — after implement, **before UAT**: clear confirmed redundancy on the task surface
-5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
+5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done；UI 须**实点页面**，禁止糊弄
 6. [`business-scenario-testing.mdc`](./business-scenario-testing.mdc) — 编码后中文业务场景报告 + 多角色/顺序/并发/恢复粒度；落盘 `docs/test-scenarios/`（与 UAT 叠加，不替代 API/UI 断言）
 7. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex/Cursor 共用 `gate.sh`；Cursor 强制 hook = `.cursor/hooks.json`）
 8. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback

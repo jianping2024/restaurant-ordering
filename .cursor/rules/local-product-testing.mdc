@@ -14,6 +14,10 @@ When the user asks to **开始测试**, **联调**, **手工验收**, **回归�
 
 Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`**. Mandatory stack: **`mesa-local-uat` API first** → Chrome DevTools MCP for UI → realtime dual-tab recipe when in scope → cleanup → pass/fail report (not lint-only). On `npm run dev`, use **supabase-local** / **user-supabase-local** for DB asserts.
 
+## Real page clicks (hard — Will)
+
+UI UAT **must** exercise the changed surface by **actually clicking through the live page** on localhost (open → click / fill / submit → observe result). API-only, code-read, “class exists”, static screenshot without interaction, or “should be fine” narrative **do not pass**. Same bar as always-on `uat-before-delivery.mdc`「禁止糊弄」.
+
 ## No skip unless truly blocked
 
 Default every checklist / regression item to **run** and report **`pass`** or **`fail`**.

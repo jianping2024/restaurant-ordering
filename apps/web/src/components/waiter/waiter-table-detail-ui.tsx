@@ -93,7 +93,7 @@ export const waiterDetailLayout = {
    * sm+: [code | name+dots 1fr | mid auto | balance 1fr] — mid near center (unchanged desktop).
    * Code is fixed `w-[5ch]` (display as stored, no zero-pad); name truncates; leader fills to mid.
    * Unit price is sole `orderedItemUnitPrice` from `WaiterOrderLine.unitPrice` (not in label).
-   * Chargeable hint is the only allowed secondary line (rare limited-dish note).
+   * Secondary lines: wire `note` (choice + presets + free text), then rare chargeable hint.
    */
   orderedItemRow:
     'grid max-w-full min-w-0 grid-cols-[5ch_minmax(0,1fr)_auto] items-center gap-x-1.5 sm:grid-cols-[5ch_minmax(0,1fr)_auto_minmax(0,1fr)]',
@@ -108,6 +108,7 @@ export const waiterDetailLayout = {
     'shrink-0 text-lg font-semibold tabular-nums text-brand-gold leading-snug',
   orderedItemStatus:
     'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',
+  orderedItemNote: 'mt-0.5 text-sm leading-snug text-brand-text-muted',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',
   orderedItemQty: waiterFloorType.listQty,
   orderedItemActions: 'flex shrink-0 items-center gap-2',

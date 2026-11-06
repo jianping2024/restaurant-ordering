@@ -1,15 +1,17 @@
 import type { Order, OrderItem } from '@/types';
 import {
+  billableCatalogLineAnchorAt,
   billableMenuItemMergeKey,
-  buildBillableSessionItems,
   chargeableFieldsFromBillableRow,
-  menuItemIdFromLimitedBillableKey,
+  limitedBillableMergeKey,
   sortBillableSessionItemsForWaiterDetail,
   sortOrdersForBillableCatalog,
   sumBillableMenuCatalogQty,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
+  type BillableSessionItem,
 } from '@/lib/billable-session-lines';
+import { allocateSessionSushiLimitedLines, sushiLimitedLineKey } from '@/lib/sushi-buffet-limits';
 import {
   activeBuffetLineByBuffetId,
   aggregateBuffetHeadcountForOrders,
@@ -24,7 +26,7 @@ import {
 import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import { normalizeOrderItemStatus, effectiveItemStatus } from '@/lib/order-status';
-import { isBuffetBaseItem, isMenuCatalogItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { DEFAULT_UI_LANG, type UILanguage } from '@/lib/i18n';
@@ -33,8 +35,27 @@ import {
   shouldShowKitchenItemProgress,
 } from '@/lib/kitchen-progress-display';
 
+/** Separates billable base key from wire note in waiter「已点」display keys. */
+const WAITER_ORDERED_NOTE_SEP = '\u001f';
+
+export function normalizeWaiterOrderedLineNote(note: unknown): string {
+  return typeof note === 'string' ? note.trim() : '';
+}
+
+/**
+ * Waiter detail list merge: same billable dish (+ limited) + same note → one row.
+ * Money/session totals still use {@link buildBillableSessionItems} (notes ignored).
+ */
+export function waiterOrderedDisplayMergeKey(item: OrderItem, limited: boolean): string {
+  const base = limited ? limitedBillableMergeKey(item.id) : billableMenuItemMergeKey(item);
+  return `${base}${WAITER_ORDERED_NOTE_SEP}${normalizeWaiterOrderedLineNote(item.note)}`;
+}
+
 export type WaiterOrderLine = {
-  /** Stable billable catalog key (`buffet:*`, `limited:*`, or `menuId::price`). */
+  /**
+   * Display merge key (`menuId::price` / `limited:id` + note sep + trimmed note).
+   * Not the same as paper billable merge when notes differ.
+   */
   catalogKey: string;
   orderId: string;
   itemIdx: number;
@@ -42,6 +63,8 @@ export type WaiterOrderLine = {
   itemCode: string | null;
   /** Dish name only (no item code — code is `itemCode`). Buffet headcount is not a list line. */
   label: string;
+  /** Wire note (choice labels + presets + free text); null when empty. */
+  note: string | null;
   /** Menu line unit price from order `item.price` (shown after name). */
   unitPrice: number | null;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
@@ -117,11 +140,8 @@ function resolveMenuLineActionTarget(
   kitchenEnabledStationIds: readonly string[],
 ): MenuLineActionTarget {
   const match = (item: OrderItem) => {
-    const limitedMenuItemId = menuItemIdFromLimitedBillableKey(mergeKey);
-    if (limitedMenuItemId) {
-      return item.id === limitedMenuItemId;
-    }
-    return billableMenuItemMergeKey(item) === mergeKey;
+    const limited = mergeKey.startsWith('limited:');
+    return waiterOrderedDisplayMergeKey(item, limited) === mergeKey;
   };
 
   const base = pickMenuLineActionTarget(orders, capabilities, match);
@@ -220,6 +240,80 @@ function latestOrderTimestamp(orders: Order[]): string {
   return latest;
 }
 
+type WaiterDisplayMergeGroup = {
+  item: OrderItem;
+  qty: number;
+  chargeableQty: number;
+  chargeableUnitPrice: number | null;
+};
+
+/**
+ * Waiter「已点」display rows: merge same dish+price(+limited) only when note matches.
+ * Session money still uses billable catalog (notes ignored there).
+ */
+function buildWaiterOrderedDisplayItems(orders: Order[]): BillableSessionItem[] {
+  const catalogOrders = sortOrdersForBillableCatalog(orders);
+  const buffetSummaries = listActiveBuffetLineSummaries(orders);
+  const limitAllocations = allocateSessionSushiLimitedLines(orders);
+  const merged = new Map<string, WaiterDisplayMergeGroup>();
+  const anchors = new Map<string, string>();
+
+  for (const order of catalogOrders) {
+    const items = order.items || [];
+    for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+      const item = items[itemIdx];
+      if (!item || isKitchenRemakeItem(item)) continue;
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
+      if (isBuffetBaseItem(item) && buffetSummaries.length > 0) continue;
+
+      const allocation = limitAllocations.get(sushiLimitedLineKey(order.id, itemIdx));
+      const limited = Boolean(allocation);
+      const key = waiterOrderedDisplayMergeKey(item, limited);
+      const anchor = billableCatalogLineAnchorAt(order, itemIdx, item);
+      const prevAnchor = anchors.get(key);
+      if (prevAnchor == null || anchor < prevAnchor) anchors.set(key, anchor);
+
+      const qty = Math.max(0, Number(item.qty) || 0);
+      const existing = merged.get(key);
+      if (existing) {
+        existing.qty += qty;
+        if (allocation) {
+          existing.chargeableQty += allocation.chargeableQty;
+          if (existing.chargeableUnitPrice == null) {
+            existing.chargeableUnitPrice = allocation.chargeableUnitPrice;
+          }
+        }
+        continue;
+      }
+      merged.set(key, {
+        item,
+        qty,
+        chargeableQty: allocation?.chargeableQty ?? 0,
+        chargeableUnitPrice: allocation?.chargeableUnitPrice ?? null,
+      });
+    }
+  }
+
+  const keys = Array.from(merged.keys()).sort((a, b) => {
+    const anchorA = anchors.get(a) ?? a;
+    const anchorB = anchors.get(b) ?? b;
+    if (anchorA !== anchorB) return anchorA < anchorB ? -1 : 1;
+    return a.localeCompare(b);
+  });
+
+  return keys.map((key) => {
+    const group = merged.get(key)!;
+    return {
+      key,
+      item: { ...group.item, qty: group.qty },
+      ...chargeableFieldsFromBillableRow({
+        chargeableQty: group.chargeableQty,
+        chargeableUnitPrice: group.chargeableUnitPrice ?? undefined,
+      }),
+    };
+  });
+}
+
 /** `orders` is already the table/session view (see ordersForWaiterTableView). */
 export function buildWaiterTableCard(
   tableId: string,
@@ -241,7 +335,7 @@ export function buildWaiterTableCard(
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalogOrders = sortOrdersForBillableCatalog(orders);
   const catalog = sortBillableSessionItemsForWaiterDetail(
-    buildBillableSessionItems(catalogOrders),
+    buildWaiterOrderedDisplayItems(catalogOrders),
     options.menuBrowseRankByItemId ?? new Map(),
   );
   const serveEnabled = options.serveEnabled === true;
@@ -281,12 +375,14 @@ export function buildWaiterTableCard(
         printStationId: statusItem.print_station_id,
         kitchenEnabledStationIds,
       });
+      const note = normalizeWaiterOrderedLineNote(item.note);
 
       return {
         catalogKey: row.key,
         ...action,
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
         label: resolveMenuItemLocalizedName(item, lang),
+        note: note.length > 0 ? note : null,
         unitPrice: Number.isFinite(Number(item.price)) ? Number(item.price) : null,
         statusLabel,
         quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),

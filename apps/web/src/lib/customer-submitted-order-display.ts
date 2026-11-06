@@ -20,6 +20,8 @@ export type CustomerSubmittedOrderLine = {
   /** Localized name + qty only. The thumb owns the picture. */
   label: string;
   thumb: PeerFloatThumb;
+  /** Wire note on the order line (choice labels + presets + free text); null when empty. */
+  note: string | null;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
   statusLabel: string | null;
 };
@@ -91,6 +93,7 @@ export function buildCustomerSubmittedDisplayOrders(
           })
         : null;
 
+      const noteRaw = typeof item.note === 'string' ? item.note.trim() : '';
       bucket.lines.push({
         key: `${order.id}-${idx}`,
         label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
@@ -98,6 +101,7 @@ export function buildCustomerSubmittedDisplayOrders(
           menu: menuById.get(item.id),
           fallbackEmoji: item.emoji,
         }),
+        note: noteRaw.length > 0 ? noteRaw : null,
         statusLabel,
       });
     }

@@ -59,7 +59,14 @@ export function CustomerOrderedItemsList({
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     <PeerFloatDishThumb thumb={line.thumb} />
-                    <p className="min-w-0 flex-1">{line.label}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="min-w-0">{line.label}</p>
+                      {line.note ? (
+                        <p className="mt-0.5 text-[12px] leading-snug text-brand-text-muted">
+                          {line.note}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                   {line.statusLabel ? (
                     <span className="shrink-0 text-[12px] text-brand-text-muted tabular-nums">

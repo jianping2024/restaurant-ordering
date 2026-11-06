@@ -818,6 +818,9 @@ export function WaiterTableOrderedItemsPanel({
                 ) : null}
                 <span className={waiterDetailLayout.orderedItemBalance} aria-hidden="true" />
               </div>
+              {line.note ? (
+                <p className={waiterDetailLayout.orderedItemNote}>{line.note}</p>
+              ) : null}
               {chargeableHint ? (
                 <p className={waiterDetailLayout.orderedItemChargeableHint}>{chargeableHint}</p>
               ) : null}

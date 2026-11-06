@@ -374,7 +374,11 @@ export function buildPaperBillableSessionItems(orders: Order[]): BillableSession
 
 /** Menu id used for waiter「已点」browse-rank lookup (limited rows use id in `limited:` key). */
 function menuItemIdForWaiterOrderedSort(row: BillableSessionItem): string {
-  return menuItemIdFromLimitedBillableKey(row.key) ?? row.item.id;
+  const limitedId = menuItemIdFromLimitedBillableKey(row.key);
+  if (limitedId == null) return row.item.id;
+  // Waiter display keys may append `\u001f` + note after the limited id.
+  const sep = limitedId.indexOf('\u001f');
+  return sep < 0 ? limitedId : limitedId.slice(0, sep);
 }
 
 /**

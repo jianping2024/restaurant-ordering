@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerCartItemNoteFields } from '@/components/menu/CustomerCartItemNoteFields';
+import { CustomerCartLineConfigSummary } from '@/components/menu/CustomerCartLineConfigSummary';
 import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
+import type { MenuChoiceCatalog } from '@/lib/menu-choice-options';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
@@ -20,10 +22,14 @@ import { resolvePeerFloatThumb } from '@/lib/table-order-round/sushi-peer-float-
 interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
-  /** Live catalog — cart thumbs read photo/emoji from here. */
-  menuItems: readonly Pick<MenuItem, 'id' | 'image_url' | 'emoji'>[];
+  /** Live catalog — thumbs + topping name/price resolve from here. */
+  menuItems: readonly Pick<
+    MenuItem,
+    'id' | 'image_url' | 'emoji' | 'name_pt' | 'name_en' | 'name_zh' | 'price'
+  >[];
   menuItemCodeById: Record<string, string>;
   notePresetCatalog: MenuNotePresetCatalog;
+  choiceCatalog: MenuChoiceCatalog;
   lang: Language;
   onClose: () => void;
   onUpdateQty: (lineId: string, qty: number) => void;
@@ -44,6 +50,7 @@ export function CartDrawer({
   menuItems,
   menuItemCodeById,
   notePresetCatalog,
+  choiceCatalog,
   lang,
   onClose,
   onUpdateQty,
@@ -146,6 +153,14 @@ export function CartDrawer({
                   />
                 </div>
               </div>
+
+              <CustomerCartLineConfigSummary
+                lang={lang}
+                choiceCatalog={choiceCatalog}
+                choicePicks={item.choicePicks}
+                toppingPicks={item.toppingPicks}
+                menuItems={menuItems}
+              />
 
               <div className="mt-3">
                 <CustomerCartItemNoteFields

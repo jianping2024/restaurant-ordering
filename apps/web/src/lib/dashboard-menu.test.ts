@@ -19,6 +19,7 @@ const categoryLabels = {
   depthExceeded: 'max {max} depth {depth}',
   errMigrateTargetInSubtree: 'migrate invalid',
   categoryReorderStale: 'categories stale',
+  errDeleteCategoryItemsInUse: 'category dishes in use',
   saveFail: 'save fail',
 };
 
@@ -32,6 +33,8 @@ const itemLabels = {
   imageTypeInvalid: 'bad image',
   dishReorderScopeMismatch: 'scope mismatch',
   saveFail: 'save fail',
+  errDeleteItemInUse: 'item in use',
+  errDeleteFail: 'delete fail',
 };
 
 describe('parseCategoryBody', () => {
@@ -270,6 +273,20 @@ describe('mapMenuItemApiError', () => {
     assert.equal(
       mapMenuItemApiError('reorder_scope_mismatch', undefined, itemLabels),
       'scope mismatch',
+    );
+    assert.equal(mapMenuItemApiError('menu_item_in_use', undefined, itemLabels), 'item in use');
+    assert.equal(
+      mapMenuItemApiError('delete_failed', 'violates foreign key', itemLabels),
+      'delete fail',
+    );
+  });
+});
+
+describe('mapMenuCategoryApiError menu_item_in_use', () => {
+  it('maps in-use dishes when deleting a category tree', () => {
+    assert.equal(
+      mapMenuCategoryApiError('menu_item_in_use', undefined, categoryLabels),
+      'category dishes in use',
     );
   });
 });

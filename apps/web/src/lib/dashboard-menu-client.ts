@@ -40,6 +40,7 @@ export type MenuCategoryErrorLabels = {
   depthExceeded: string;
   errMigrateTargetInSubtree: string;
   categoryReorderStale: string;
+  errDeleteCategoryItemsInUse: string;
   saveFail: string;
 };
 
@@ -53,6 +54,8 @@ export type MenuItemErrorLabels = {
   imageTypeInvalid: string;
   dishReorderScopeMismatch: string;
   saveFail: string;
+  errDeleteItemInUse: string;
+  errDeleteFail: string;
   invalidPerPersonLimit?: string;
   invalidOverLimitPrice?: string;
   limitRequiresOveragePrice?: string;
@@ -81,6 +84,8 @@ export function mapMenuCategoryApiError(
       return labels.errMigrateTargetInSubtree;
     case 'reorder_scope_mismatch':
       return labels.categoryReorderStale;
+    case 'menu_item_in_use':
+      return labels.errDeleteCategoryItemsInUse;
     default:
       return message || labels.saveFail;
   }
@@ -124,6 +129,10 @@ export function mapMenuItemApiError(
     case 'time_slot_not_found':
     case 'invalid_time_slot_id':
       return labels.errTimeSlotNotFound;
+    case 'menu_item_in_use':
+      return labels.errDeleteItemInUse;
+    case 'delete_failed':
+      return labels.errDeleteFail;
     default:
       return message || labels.saveFail;
   }

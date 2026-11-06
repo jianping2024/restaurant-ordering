@@ -94,6 +94,30 @@ function menuItemWriteError(
   return { error: fallback, message: error?.message, status: 500 };
 }
 
+/** Round lines keep `menu_item_id` with no ON DELETE — hard delete is blocked while any row remains. */
+const MENU_ITEM_ROUND_LINE_FK = 'table_order_round_lines_menu_item_id_fkey';
+
+function isMenuItemRoundLineFkError(error: { code?: string; message?: string } | null): boolean {
+  return (
+    error?.code === '23503' && (error.message ?? '').includes(MENU_ITEM_ROUND_LINE_FK)
+  );
+}
+
+async function countRoundLinesForMenuItems(
+  admin: SupabaseClient,
+  menuItemIds: string[],
+): Promise<{ ok: true; count: number } | MenuMutationError> {
+  if (menuItemIds.length === 0) return { ok: true, count: 0 };
+  const { count, error } = await admin
+    .from('table_order_round_lines')
+    .select('id', { count: 'exact', head: true })
+    .in('menu_item_id', menuItemIds);
+  if (error) {
+    return { error: 'item_query_failed', message: error.message, status: 500 };
+  }
+  return { ok: true, count: count ?? 0 };
+}
+
 function categoryDepth(categoryId: string, categories: MenuCategory[]): number {
   const row = categories.find((c) => c.id === categoryId);
   if (!row?.parent_id) return 1;
@@ -407,8 +431,13 @@ export async function deleteMenuCategory(
     if (input.mode !== 'delete_all') {
       return { error: 'category_has_linked_items', status: 409 };
     }
-    for (const item of linkedInSubtree) {
-      await removeMenuItemStorageObjects(admin, item);
+    const refs = await countRoundLinesForMenuItems(
+      admin,
+      linkedInSubtree.map((item) => item.id),
+    );
+    if ('error' in refs) return refs;
+    if (refs.count > 0) {
+      return { error: 'menu_item_in_use', status: 409 };
     }
     const { error: dishDeleteError } = await admin
       .from('menu_items')
@@ -416,7 +445,13 @@ export async function deleteMenuCategory(
       .eq('restaurant_id', restaurantId)
       .in('category_id', subtreeIds);
     if (dishDeleteError) {
+      if (isMenuItemRoundLineFkError(dishDeleteError)) {
+        return { error: 'menu_item_in_use', status: 409 };
+      }
       return { error: 'delete_items_failed', message: dishDeleteError.message, status: 500 };
+    }
+    for (const item of linkedInSubtree) {
+      await removeMenuItemStorageObjects(admin, item);
     }
   }
 
@@ -831,11 +866,20 @@ export async function deleteMenuItem(
     return { error: 'item_not_found', status: 404 };
   }
 
-  await removeMenuItemStorageObjects(admin, item);
+  const refs = await countRoundLinesForMenuItems(admin, [id]);
+  if ('error' in refs) return refs;
+  if (refs.count > 0) {
+    return { error: 'menu_item_in_use', status: 409 };
+  }
+
   const { error } = await admin.from('menu_items').delete().eq('id', id).eq('restaurant_id', restaurantId);
   if (error) {
+    if (isMenuItemRoundLineFkError(error)) {
+      return { error: 'menu_item_in_use', status: 409 };
+    }
     return { error: 'delete_failed', message: error.message, status: 500 };
   }
+  await removeMenuItemStorageObjects(admin, item);
   await invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }

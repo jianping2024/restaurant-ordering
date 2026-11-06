@@ -890,12 +890,16 @@ export function MenuManager({
     }
   };
 
-  const deleteItem = async (item: MenuItem) => {
+  const deleteItem = async (
+    item: MenuItem,
+  ): Promise<{ ok: true } | { ok: false; error: string; message?: string }> => {
     const result = await deleteMenuItemClient(item.id);
     if (result.ok) {
       setItems((prev) => prev.filter((i) => i.id !== item.id));
       setRecommendedItemIds((prev) => prev.filter((id) => id !== item.id));
+      return { ok: true };
     }
+    return { ok: false, error: result.error, message: result.message };
   };
 
   const setItemsAvailable = async (ids: string[], available: boolean) => {
@@ -1112,9 +1116,12 @@ export function MenuManager({
     });
   };
 
-  const confirmDeleteCategory = async (categoryId: string, mode: 'migrate' | 'delete_all') => {
+  const confirmDeleteCategory = async (
+    categoryId: string,
+    mode: 'migrate' | 'delete_all',
+  ): Promise<{ ok: true } | { ok: false; error: string; message?: string }> => {
     const category = categories.find((c) => c.id === categoryId);
-    if (!category) return;
+    if (!category) return { ok: false, error: 'category_not_found' };
     const subtreeIds = collectCategorySubtreeIds(category.id, categories);
     const subtreeSet = new Set(subtreeIds);
     const linkedInSubtree = items.filter(
@@ -1124,7 +1131,7 @@ export function MenuManager({
     if (mode === 'migrate' && deleteMigrateTargetId) {
       if (subtreeSet.has(deleteMigrateTargetId)) {
         setCategoryError(t.errMigrateTargetInSubtree);
-        return;
+        return { ok: false, error: 'migrate_target_in_subtree' };
       }
     }
 
@@ -1135,8 +1142,7 @@ export function MenuManager({
       migrate_target_id: apiMode === 'migrate' ? deleteMigrateTargetId : null,
     });
     if (!result.ok) {
-      setCategoryError(mapMenuCategoryApiError(result.error, result.message, t));
-      return;
+      return { ok: false, error: result.error, message: result.message };
     }
 
     if (apiMode === 'migrate' && deleteMigrateTargetId) {
@@ -1165,6 +1171,7 @@ export function MenuManager({
     setCategories((prev) => prev.filter((c) => !subtreeSet.has(c.id)));
     setSelectedCategoryId((prev) => (subtreeSet.has(prev) ? '' : prev));
     setCategoryPanelMode('none');
+    return { ok: true };
   };
 
   const runConfirmAction = async () => {
@@ -1177,8 +1184,24 @@ export function MenuManager({
     try {
       if (confirmDialog.intent === 'delete_item' && confirmDialog.itemId) {
         const item = items.find((i) => i.id === confirmDialog.itemId);
-        if (item) await deleteItem(item);
-      } else if (confirmDialog.intent === 'batch_available' && confirmDialog.batchAvailable != null) {
+        if (!item) {
+          setConfirmDialog({ open: false });
+          return;
+        }
+        const result = await deleteItem(item);
+        if (!result.ok) {
+          setConfirmDialog({
+            open: true,
+            intent: 'ack',
+            title: t.deleteBlockedTitle,
+            message: mapMenuItemApiError(result.error, result.message, t),
+          });
+          return;
+        }
+        setConfirmDialog({ open: false });
+        return;
+      }
+      if (confirmDialog.intent === 'batch_available' && confirmDialog.batchAvailable != null) {
         await batchAvailable(confirmDialog.batchAvailable);
       }
       setConfirmDialog({ open: false });
@@ -1191,7 +1214,16 @@ export function MenuManager({
     if (!confirmDialog.open || confirmDialog.intent !== 'delete_category' || !confirmDialog.categoryId) return;
     setConfirmLoading(true);
     try {
-      await confirmDeleteCategory(confirmDialog.categoryId, mode);
+      const result = await confirmDeleteCategory(confirmDialog.categoryId, mode);
+      if (!result.ok) {
+        setConfirmDialog({
+          open: true,
+          intent: 'ack',
+          title: t.deleteBlockedTitle,
+          message: mapMenuCategoryApiError(result.error, result.message, t),
+        });
+        return;
+      }
       setConfirmDialog({ open: false });
     } finally {
       setConfirmLoading(false);
@@ -2423,9 +2455,11 @@ export function MenuManager({
               </div>
             )}
             <div className="flex flex-wrap justify-end gap-2">
-              <Button variant="outline" onClick={() => setConfirmDialog({ open: false })} disabled={confirmLoading}>
-                {t.cancel}
-              </Button>
+              {confirmDialog.intent !== 'ack' ? (
+                <Button variant="outline" onClick={() => setConfirmDialog({ open: false })} disabled={confirmLoading}>
+                  {t.cancel}
+                </Button>
+              ) : null}
               {confirmDialog.intent === 'ack' ? (
                 <Button onClick={() => setConfirmDialog({ open: false })}>{t.confirm}</Button>
               ) : confirmDialog.intent === 'delete_category' && confirmDialog.categoryId ? (

@@ -34,6 +34,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   locationPermissionDenied: string;
   locationCheckFailed: string;
   locationTooFar: string;
+  /** Shown while guest menu entry geo check is in flight (no menu yet). */
+  locationChecking: string;
   locationBypassedLocal: string;
   printEnqueueNoStation: string;
   printEnqueueFailed: string;
@@ -131,10 +133,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: 'Voltar ao hub demo',
     viewCart: 'Ver carrinho',
     footerTotal: 'Total:',
-    locationNotSupported: 'Este dispositivo nao suporta localizacao. Nao foi possivel enviar o pedido.',
-    locationPermissionDenied: 'Permita o acesso a localizacao para fazer pedidos neste restaurante.',
-    locationCheckFailed: 'Nao foi possivel validar sua localizacao. Tente novamente.',
-    locationTooFar: 'Esta demasiado longe do restaurante para fazer o pedido.',
+    locationNotSupported: 'Este dispositivo nao suporta localizacao. Nao e possivel pedir aqui.',
+    locationPermissionDenied: 'Permita o acesso a localizacao para pedir neste restaurante.',
+    locationCheckFailed: 'Nao foi possivel validar sua localizacao. Atualize a pagina e tente novamente.',
+    locationTooFar: 'Volte ao restaurante para pedir.',
+    locationChecking: 'A confirmar se esta no restaurante…',
     locationBypassedLocal: 'Ambiente local detectado: validacao de localizacao foi ignorada para testes.',
     printEnqueueNoStation:
       'Pedido guardado, mas nenhum talao de estacao: ligue uma estacao de impressao na categoria ou no prato (Menu nas definicoes).',
@@ -227,10 +230,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: 'Back to demo hub',
     viewCart: 'View cart',
     footerTotal: 'Total:',
-    locationNotSupported: 'This device does not support location. Unable to place order.',
-    locationPermissionDenied: 'Please allow location access to place orders for this restaurant.',
-    locationCheckFailed: 'Unable to verify your location. Please try again.',
-    locationTooFar: 'You are too far from the restaurant to place an order.',
+    locationNotSupported: 'This device does not support location. Ordering is not available here.',
+    locationPermissionDenied: 'Please allow location access to order at this restaurant.',
+    locationCheckFailed: 'Unable to verify your location. Refresh the page and try again.',
+    locationTooFar: 'Please order when you are at the restaurant.',
+    locationChecking: 'Checking that you are at the restaurant…',
     locationBypassedLocal: 'Local environment detected: location validation was skipped for testing.',
     printEnqueueNoStation:
       'Order saved, but no station ticket was queued. Assign a print station on the category or dish in Menu settings.',
@@ -323,10 +327,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: '返回演示首页',
     viewCart: '查看购物车',
     footerTotal: '合计：',
-    locationNotSupported: '当前设备不支持定位，无法提交订单',
-    locationPermissionDenied: '请先允许定位权限，再进行下单',
-    locationCheckFailed: '定位校验失败，请重试',
-    locationTooFar: '离店过远，无法下单',
+    locationNotSupported: '当前设备不支持定位，无法点餐',
+    locationPermissionDenied: '请允许定位权限后再点餐',
+    locationCheckFailed: '定位失败，请刷新页面后重试',
+    locationTooFar: '请到店后再点餐',
+    locationChecking: '正在确认是否在店内…',
     locationBypassedLocal: '当前为本地环境，已跳过定位校验（仅用于调试）',
     printEnqueueNoStation:
       '订单已保存，但未打出品联：请在「菜单管理 → 出品档口」定义档口，并在分类或菜品上绑定。',
@@ -419,10 +424,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoBackHub: 'Volver al inicio de la demo',
     viewCart: 'Ver carrito',
     footerTotal: 'Total:',
-    locationNotSupported: 'Este dispositivo no admite ubicación. No se puede enviar el pedido.',
+    locationNotSupported: 'Este dispositivo no admite ubicación. No se puede pedir aquí.',
     locationPermissionDenied: 'Permite el acceso a la ubicación para pedir en este restaurante.',
-    locationCheckFailed: 'No se ha podido verificar tu ubicación. Inténtalo de nuevo.',
-    locationTooFar: 'Estás demasiado lejos del restaurante para pedir.',
+    locationCheckFailed: 'No se ha podido verificar tu ubicación. Actualiza la página e inténtalo de nuevo.',
+    locationTooFar: 'Vuelve al restaurante para pedir.',
+    locationChecking: 'Comprobando si estás en el restaurante…',
     locationBypassedLocal:
       'Entorno local detectado: se ha omitido la validación de ubicación para pruebas.',
     printEnqueueNoStation:
@@ -525,11 +531,13 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     viewCart: 'Voir le panier',
     footerTotal: 'Total :',
     locationNotSupported:
-      'Cet appareil ne prend pas en charge la localisation. Commande impossible.',
+      'Cet appareil ne prend pas en charge la localisation. Commande impossible ici.',
     locationPermissionDenied:
       'Autorisez l’accès à la localisation pour commander dans ce restaurant.',
-    locationCheckFailed: 'Impossible de vérifier votre position. Veuillez réessayer.',
-    locationTooFar: 'Vous êtes trop loin du restaurant pour passer commande.',
+    locationCheckFailed:
+      'Impossible de vérifier votre position. Actualisez la page et réessayez.',
+    locationTooFar: 'Venez au restaurant pour commander.',
+    locationChecking: 'Vérification de votre présence au restaurant…',
     locationBypassedLocal:
       'Environnement local détecté : la vérification de position a été ignorée pour les tests.',
     printEnqueueNoStation:
@@ -631,11 +639,13 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     viewCart: 'Warenkorb ansehen',
     footerTotal: 'Summe:',
     locationNotSupported:
-      'Dieses Gerät unterstützt keine Standortbestimmung. Bestellung nicht möglich.',
+      'Dieses Gerät unterstützt keine Standortbestimmung. Bestellen ist hier nicht möglich.',
     locationPermissionDenied:
       'Bitte Standortzugriff erlauben, um in diesem Restaurant zu bestellen.',
-    locationCheckFailed: 'Ihr Standort konnte nicht geprüft werden. Bitte erneut versuchen.',
-    locationTooFar: 'Sie sind zu weit vom Restaurant entfernt, um zu bestellen.',
+    locationCheckFailed:
+      'Ihr Standort konnte nicht geprüft werden. Bitte die Seite aktualisieren und erneut versuchen.',
+    locationTooFar: 'Bitte bestellen Sie im Restaurant.',
+    locationChecking: 'Prüfung, ob Sie im Restaurant sind…',
     locationBypassedLocal:
       'Lokale Umgebung erkannt: Die Standortprüfung wurde zum Testen übersprungen.',
     printEnqueueNoStation:

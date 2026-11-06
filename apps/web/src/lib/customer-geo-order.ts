@@ -19,11 +19,11 @@ type RestaurantGeoConfig = GeoOrderRestrictionFields & {
   order_radius_meters?: number | null;
 };
 
-/** Reuse warmed coords on submit when still within TTL and inside fence. */
+/** Reuse entry/submit coords when still within TTL and inside fence. */
 export const CUSTOMER_GEO_WARM_TTL_MS = 90_000;
 
 /**
- * Sole browser PositionOptions for guest fence warm + submit cold path.
+ * Sole browser PositionOptions for guest fence entry + submit cold path.
  * Coarse anti-remote (≤~1 km OK) — not doorway GPS / high-accuracy.
  */
 const CUSTOMER_GEO_BROWSER_OPTIONS: PositionOptions = {
@@ -31,6 +31,12 @@ const CUSTOMER_GEO_BROWSER_OPTIONS: PositionOptions = {
   timeout: 10_000,
   maximumAge: 120_000,
 };
+
+/** Localhost / loopback only — matches server append geo bypass hosts. */
+export function isCustomerGeoLocalDevHost(): boolean {
+  if (typeof window === 'undefined') return false;
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+}
 
 type WarmGeoSnapshot = {
   latitude: number;
@@ -96,34 +102,7 @@ function resolveWarmCoordsForAnchor(
   return warm;
 }
 
-/**
- * Background geo warm while guest browses menu — submit reuses cache when fresh.
- * No-op when geo restriction is off or staff-assisted flow.
- */
-export function warmCustomerGeoForOrder(params: {
-  restaurant: RestaurantGeoConfig;
-  isWaiterFlow: boolean;
-}): void {
-  if (typeof window === 'undefined' || params.isWaiterFlow) return;
-
-  const anchor = resolveActiveGeoOrderCoords(params.restaurant);
-  if (!anchor) return;
-
-  void (async () => {
-    try {
-      const position = await getCoarseBrowserLocation();
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      if (coordsWithinFence(latitude, longitude, anchor, params.restaurant.order_radius_meters)) {
-        storeWarmGeoSnapshot(latitude, longitude);
-      }
-    } catch {
-      // Warm is best-effort; submit falls back to synchronous resolve.
-    }
-  })();
-}
-
-/** Resolve optional customer coordinates before append; skips when restriction is off or waiter flow. */
+/** Resolve optional customer coordinates before menu access / append; skips when restriction is off or waiter flow. */
 export async function resolveCustomerGeoForOrder(params: {
   restaurant: RestaurantGeoConfig;
   isWaiterFlow: boolean;

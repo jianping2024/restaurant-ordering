@@ -74,9 +74,10 @@ import {
   type MenuOrderSubmitFailure,
 } from '@/lib/menu-order-submit';
 import {
+  isCustomerGeoLocalDevHost,
   resolveCustomerGeoForOrder,
-  warmCustomerGeoForOrder,
 } from '@/lib/customer-geo-order';
+import { messageForCustomerGeoFailure } from '@/lib/customer-geo-menu-access';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import {
   guestOrderGateFromCachedState,
@@ -662,9 +663,6 @@ export function MenuOrderingController({
       .replace('{perPerson}', String(hintParts.perPerson))
       .replace('{price}', hintParts.overLimitPrice.toFixed(2));
   }, [buffetServiceMode, detailItem, t.sushiLimitHint]);
-  const isLocalDevHost =
-    typeof window !== 'undefined' &&
-    ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const footer = useMemo(
     () =>
       deriveMenuPageFooter({
@@ -755,11 +753,6 @@ export function MenuOrderingController({
     onSubmittingChange?.(submitting);
   }, [onSubmittingChange, submitting]);
 
-  useEffect(() => {
-    if (isDemo || staffAssisted) return;
-    warmCustomerGeoForOrder({ restaurant, isWaiterFlow: false });
-  }, [isDemo, restaurant, staffAssisted]);
-
   const showSubmitFailure = useCallback(
     async (failure: MenuOrderSubmitFailure) => {
       if (failure.kind === 'gate') {
@@ -770,10 +763,7 @@ export function MenuOrderingController({
         return;
       }
       if (failure.kind === 'geo') {
-        if (failure.reason === 'too_far') showToast(t.locationTooFar, 'error');
-        else if (failure.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
-        else if (failure.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
-        else showToast(t.locationCheckFailed, 'error');
+        showToast(messageForCustomerGeoFailure(lang, failure.reason), 'error');
         return;
       }
       if (failure.kind === 'append') {
@@ -787,9 +777,11 @@ export function MenuOrderingController({
           showToast(t.billDisabledHint, 'info');
           return;
         }
-        if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
-        else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
-        else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
+        if (failure.code === 'location_too_far') {
+          showToast(messageForCustomerGeoFailure(lang, 'too_far'), 'error');
+        } else if (failure.code === 'location_required') {
+          showToast(messageForCustomerGeoFailure(lang, 'permission_denied'), 'error');
+        } else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (
           failure.code === 'per_person_limit_exceeded' ||
           failure.code === 'limited_item_requires_headcount' ||
@@ -903,7 +895,7 @@ export function MenuOrderingController({
           resolveCustomerGeoForOrder({
             restaurant,
             isWaiterFlow: waiterFlow,
-            isLocalDevHost,
+            isLocalDevHost: isCustomerGeoLocalDevHost(),
           }),
       });
 

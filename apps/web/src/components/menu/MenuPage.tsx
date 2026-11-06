@@ -17,6 +17,7 @@ import {
   MenuOrderingController,
   type MenuOrderingRestaurant,
 } from '@/components/menu/MenuOrderingController';
+import { CustomerGeoMenuAccessGate } from '@/components/menu/CustomerGeoMenuAccessGate';
 import { SushiMenuPage } from '@/components/menu/sushi/SushiMenuPage';
 import { CustomerMenuCatalogRealtimeLazy } from '@/components/menu/CustomerMenuCatalogRealtimeLazy';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
@@ -144,43 +145,33 @@ export function MenuPage({
     sessionChannel: initialSessionContext?.active_session?.ordering_channel,
   });
 
-  if (
+  const geoGateEnabled = !isDemo && !staffAssisted;
+
+  const menuBody =
     orderingChannel !== 'takeaway' &&
     shouldRenderSushiRoundMenuPage({
       buffetServiceMode: restaurant.buffet_service_mode,
       sushiRoundOrderingEnabled: restaurant.sushi_round_ordering_enabled,
       staffAssisted: Boolean(staffAssisted),
-    })
-  ) {
-    return (
-      <>
-        {standaloneTitle}
-        {catalogRealtime}
-        <SushiMenuPage
-          restaurant={restaurantWithNotice}
-          sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
-          menuItems={menuItems}
-          menuCategories={menuCategories}
-          recommendedItemIds={recommendedItemIds}
-          menuTimeSlots={menuTimeSlots}
-          notePresetCatalog={notePresetCatalog}
-          choiceCatalog={choiceCatalog}
-          catalogReady={catalogReady}
-          guestListMotionEnabled={guestListMotionEnabled}
-          tableId={tableId}
-          displayName={displayName}
-          orderCooldownSeconds={orderCooldownSeconds}
-          initialSessionContext={initialSessionContext}
-          isDemo={isDemo}
-        />
-      </>
-    );
-  }
-
-  return (
-    <>
-      {standaloneTitle}
-      {catalogRealtime}
+    }) ? (
+      <SushiMenuPage
+        restaurant={restaurantWithNotice}
+        sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
+        menuItems={menuItems}
+        menuCategories={menuCategories}
+        recommendedItemIds={recommendedItemIds}
+        menuTimeSlots={menuTimeSlots}
+        notePresetCatalog={notePresetCatalog}
+        choiceCatalog={choiceCatalog}
+        catalogReady={catalogReady}
+        guestListMotionEnabled={guestListMotionEnabled}
+        tableId={tableId}
+        displayName={displayName}
+        orderCooldownSeconds={orderCooldownSeconds}
+        initialSessionContext={initialSessionContext}
+        isDemo={isDemo}
+      />
+    ) : (
       <MenuOrderingController
         restaurant={restaurantWithNotice}
         menuItems={menuItems}
@@ -201,7 +192,14 @@ export function MenuPage({
         presentationMode="page"
         staffSubmitMode={staffAssisted ? 'navigate' : 'navigate'}
       />
-    </>
+    );
+
+  return (
+    <CustomerGeoMenuAccessGate restaurant={restaurant} enabled={geoGateEnabled}>
+      {standaloneTitle}
+      {catalogRealtime}
+      {menuBody}
+    </CustomerGeoMenuAccessGate>
   );
 }
 

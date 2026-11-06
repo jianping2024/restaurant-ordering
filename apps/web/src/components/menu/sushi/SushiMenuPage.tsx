@@ -68,9 +68,10 @@ import {
   dishNeedsOrderConfig,
 } from '@/lib/menu-dish-order-config';
 import {
+  isCustomerGeoLocalDevHost,
   resolveCustomerGeoForOrder,
-  warmCustomerGeoForOrder,
 } from '@/lib/customer-geo-order';
+import { messageForCustomerGeoFailure } from '@/lib/customer-geo-menu-access';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
 import {
   guestOrderGateFromCachedState,
@@ -948,15 +949,6 @@ export function SushiMenuPage({
     setCartOpen(false);
   }, []);
 
-  useEffect(() => {
-    if (isDemo) return;
-    warmCustomerGeoForOrder({ restaurant, isWaiterFlow: false });
-  }, [isDemo, restaurant]);
-
-  const isLocalDevHost =
-    typeof window !== 'undefined' &&
-    ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-
   const showSubmitFailure = useCallback(
     async (failure: MenuOrderSubmitFailure) => {
       if (failure.kind === 'gate') {
@@ -967,10 +959,7 @@ export function SushiMenuPage({
         return;
       }
       if (failure.kind === 'geo') {
-        if (failure.reason === 'too_far') showToast(t.locationTooFar, 'error');
-        else if (failure.reason === 'permission_denied') showToast(t.locationPermissionDenied, 'error');
-        else if (failure.reason === 'not_supported') showToast(t.locationNotSupported, 'error');
-        else showToast(t.locationCheckFailed, 'error');
+        showToast(messageForCustomerGeoFailure(lang, failure.reason), 'error');
         return;
       }
       if (failure.kind === 'append') {
@@ -984,9 +973,11 @@ export function SushiMenuPage({
           showToast(t.billDisabledHint, 'info');
           return;
         }
-        if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
-        else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
-        else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
+        if (failure.code === 'location_too_far') {
+          showToast(messageForCustomerGeoFailure(lang, 'too_far'), 'error');
+        } else if (failure.code === 'location_required') {
+          showToast(messageForCustomerGeoFailure(lang, 'permission_denied'), 'error');
+        } else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
         else if (
           failure.code === 'per_person_limit_exceeded' ||
           failure.code === 'limited_item_requires_headcount' ||
@@ -1167,7 +1158,7 @@ export function SushiMenuPage({
           resolveCustomerGeoForOrder({
             restaurant,
             isWaiterFlow: false,
-            isLocalDevHost,
+            isLocalDevHost: isCustomerGeoLocalDevHost(),
           }),
       });
 
@@ -1232,16 +1223,6 @@ export function SushiMenuPage({
     setDetailMenuItemId(null);
   }, [closeRoundReview, setRoundPeerNotifyOpen]);
 
-  const messageForRoundSendGeo = useCallback(
-    (reason: string) => {
-      if (reason === 'too_far') return t.locationTooFar;
-      if (reason === 'permission_denied') return t.locationPermissionDenied;
-      if (reason === 'not_supported') return t.locationNotSupported;
-      return t.locationCheckFailed;
-    },
-    [t.locationCheckFailed, t.locationNotSupported, t.locationPermissionDenied, t.locationTooFar],
-  );
-
   const handleConfirmSendRound = async () => {
     if (roundBusy || !canSendRound) return;
     setRoundBusy(true);
@@ -1249,11 +1230,11 @@ export function SushiMenuPage({
       const geo = await resolveCustomerGeoForOrder({
         restaurant,
         isWaiterFlow: false,
-        isLocalDevHost,
+        isLocalDevHost: isCustomerGeoLocalDevHost(),
       });
       if (!geo.ok) {
         setInitiatorConfirmOpen(false);
-        setRoundSendError(messageForRoundSendGeo(geo.reason));
+        setRoundSendError(messageForCustomerGeoFailure(lang, geo.reason));
         setRoundReviewOpen(true);
         return;
       }

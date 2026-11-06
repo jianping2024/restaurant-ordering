@@ -62,12 +62,11 @@ import {
   type MenuOrderSubmitFailure,
 } from '@/lib/menu-order-submit';
 import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
+import { type MenuChoiceCatalog } from '@/lib/menu-choice-options';
 import {
-  choicePicksSatisfied,
-  type MenuChoiceCatalog,
-} from '@/lib/menu-choice-options';
-import { dishNeedsOrderConfig } from '@/lib/menu-dish-order-config';
-import { toppingsSatisfied } from '@/lib/menu-topping-binding';
+  configuredDishDraftWarn,
+  dishNeedsOrderConfig,
+} from '@/lib/menu-dish-order-config';
 import {
   resolveCustomerGeoForOrder,
   warmCustomerGeoForOrder,
@@ -674,38 +673,16 @@ export function SushiMenuPage({
       showToast(guestOrderingActionHint(lang, gate.sessionStatus, gate.individualHold), 'info');
       return;
     }
-    if (
-      !choicePicksSatisfied(
-        detailItem.choice_bindings ?? [],
-        choiceCatalog,
-        draftChoicePicks,
-      )
-    ) {
-      setDraftConfigWarn(
-        lang === 'zh'
-          ? '请为每个口味分组选一项。'
-          : lang === 'pt'
-            ? 'Escolha uma opção em cada grupo.'
-            : 'Pick one option in each choice group.',
-      );
-      return;
-    }
-    if (
-      !toppingsSatisfied(
-        detailItem.topping_binding,
-        draftToppingPicks.map((p) => ({
-          menu_item_id: p.menuItemId,
-          qty: p.qty,
-        })),
-      )
-    ) {
-      setDraftConfigWarn(
-        lang === 'zh'
-          ? '此菜浇头为必选：请至少选一种并设置数量。'
-          : lang === 'pt'
-            ? 'Cobertura obrigatória: escolha pelo menos uma.'
-            : 'Topping required: pick at least one.',
-      );
+    const warn = configuredDishDraftWarn({
+      lang,
+      choiceBindings: detailItem.choice_bindings,
+      choiceCatalog,
+      choicePicks: draftChoicePicks,
+      toppingBinding: detailItem.topping_binding,
+      toppingPicks: draftToppingPicks,
+    });
+    if (warn) {
+      setDraftConfigWarn(warn);
       return;
     }
     if (isSushiRoundFreeMenuPrice(detailItem.price)) {

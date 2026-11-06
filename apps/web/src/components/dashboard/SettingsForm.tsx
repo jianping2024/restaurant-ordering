@@ -51,6 +51,7 @@ export function SettingsForm({
   const [logoUrl, setLogoUrl] = useState(storefrontSeed.logoUrl);
   const [coverUrl, setCoverUrl] = useState(storefrontSeed.coverUrl);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
@@ -307,67 +308,66 @@ export function SettingsForm({
                   </span>
                 </span>
               </label>
-              <div
-                className={`space-y-3 ${form.geoOrderRestrictionEnabled ? '' : 'opacity-60'}`}
-                aria-disabled={!form.geoOrderRestrictionEnabled}
-              >
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <Input
-                    label={t.geoLatitude}
-                    value={form.geo_latitude}
-                    onChange={(e) => setForm((f) => ({ ...f, geo_latitude: e.target.value }))}
-                    placeholder="38.7223"
-                  />
-                  <Input
-                    label={t.geoLongitude}
-                    value={form.geo_longitude}
-                    onChange={(e) => setForm((f) => ({ ...f, geo_longitude: e.target.value }))}
-                    placeholder="-9.1393"
-                  />
-                </div>
-                <p className="text-[13px] leading-relaxed text-brand-text-muted">{t.geoHint}</p>
-                <div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!navigator.geolocation) {
-                        setError(t.geoLocateFail);
-                        return;
-                      }
-                      try {
-                        const position = await getCurrentPositionWithFallback();
-                        setForm((prev) => ({
-                          ...prev,
-                          geo_latitude: position.coords.latitude.toFixed(6),
-                          geo_longitude: position.coords.longitude.toFixed(6),
-                        }));
-                        setError('');
-                      } catch {
-                        setError(t.geoLocateFail);
-                      }
-                    }}
-                    className="text-[13px] font-medium text-brand-gold hover:underline"
-                  >
-                    {t.useCurrentLocation}
-                  </button>
-                </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Input
-                  label={t.orderRadiusMeters}
-                  type="number"
-                  min={MIN_ORDER_RADIUS_METERS}
-                  max={MAX_ORDER_RADIUS_METERS}
-                  step={1}
-                  inputMode="numeric"
-                  value={form.order_radius_meters}
-                  onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
-                  placeholder={String(MIN_ORDER_RADIUS_METERS)}
+                  label={t.geoLatitude}
+                  value={form.geo_latitude}
+                  onChange={(e) => setForm((f) => ({ ...f, geo_latitude: e.target.value }))}
+                  placeholder="38.7223"
                 />
-                <p className="text-[13px] text-brand-text-muted">
-                  {t.orderRadiusHint
-                    .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
-                    .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
-                </p>
+                <Input
+                  label={t.geoLongitude}
+                  value={form.geo_longitude}
+                  onChange={(e) => setForm((f) => ({ ...f, geo_longitude: e.target.value }))}
+                  placeholder="-9.1393"
+                />
               </div>
+              <p className="text-[13px] leading-relaxed text-brand-text-muted">{t.geoHint}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={locating}
+                disabled={locating}
+                onClick={async () => {
+                  if (!navigator.geolocation) {
+                    setError(t.geoLocateFail);
+                    return;
+                  }
+                  setLocating(true);
+                  setError('');
+                  try {
+                    const position = await getCurrentPositionWithFallback();
+                    setForm((prev) => ({
+                      ...prev,
+                      geo_latitude: position.coords.latitude.toFixed(6),
+                      geo_longitude: position.coords.longitude.toFixed(6),
+                    }));
+                  } catch {
+                    setError(t.geoLocateFail);
+                  } finally {
+                    setLocating(false);
+                  }
+                }}
+              >
+                {t.useCurrentLocation}
+              </Button>
+              <Input
+                label={t.orderRadiusMeters}
+                type="number"
+                min={MIN_ORDER_RADIUS_METERS}
+                max={MAX_ORDER_RADIUS_METERS}
+                step={1}
+                inputMode="numeric"
+                value={form.order_radius_meters}
+                onChange={(e) => setForm((f) => ({ ...f, order_radius_meters: e.target.value }))}
+                placeholder={String(MIN_ORDER_RADIUS_METERS)}
+              />
+              <p className="text-[13px] text-brand-text-muted">
+                {t.orderRadiusHint
+                  .replace('{min}', String(MIN_ORDER_RADIUS_METERS))
+                  .replace('{max}', String(MAX_ORDER_RADIUS_METERS))}
+              </p>
             </fieldset>
           </div>
         </div>

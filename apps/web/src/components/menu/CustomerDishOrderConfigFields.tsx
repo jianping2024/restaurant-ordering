@@ -37,7 +37,7 @@ type Props = {
   onToppingQty: (menuItemId: string, qty: number) => void;
 };
 
-/** Guest detail: 口味单选 + 浇头数量（与风味提示 / 预选备注分开）。 */
+/** Guest detail: 口味单选 + 关联菜品数量（与风味提示 / 预选备注分开）。 */
 export function CustomerDishOrderConfigFields({
   lang,
   item,

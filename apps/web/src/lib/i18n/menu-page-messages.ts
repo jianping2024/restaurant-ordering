@@ -103,6 +103,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemDetailAddToRound: string;
   itemDetailAddToCart: string;
   itemDetailDone: string;
+  /** Dish detail: choice groups section title. */
+  itemDetailChoicesTitle: string;
+  /** Dish detail: related dishes (topping_binding) section title. */
+  itemDetailRelatedDishesTitle: string;
+  itemDetailRelatedDishesOptional: string;
+  itemDetailRelatedDishesRequired: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -200,6 +206,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: 'Adicionar à ronda',
     itemDetailAddToCart: 'Adicionar ao carrinho',
     itemDetailDone: 'Concluído',
+    itemDetailChoicesTitle: 'Escolhas',
+    itemDetailRelatedDishesTitle: 'Pratos associados',
+    itemDetailRelatedDishesOptional: 'Opcional',
+    itemDetailRelatedDishesRequired: 'Obrigatório: escolha pelo menos um',
   },
   en: {
     table: 'Table',
@@ -297,6 +307,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: 'Add to round',
     itemDetailAddToCart: 'Add to cart',
     itemDetailDone: 'Done',
+    itemDetailChoicesTitle: 'Choices',
+    itemDetailRelatedDishesTitle: 'Related dishes',
+    itemDetailRelatedDishesOptional: 'Optional',
+    itemDetailRelatedDishesRequired: 'Required: pick at least one',
   },
   zh: {
     table: '桌号',
@@ -394,6 +408,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: '加入本轮',
     itemDetailAddToCart: '加入购物车',
     itemDetailDone: '完成',
+    itemDetailChoicesTitle: '口味',
+    itemDetailRelatedDishesTitle: '关联菜品',
+    itemDetailRelatedDishesOptional: '可选',
+    itemDetailRelatedDishesRequired: '必选：至少选一种',
   },
   es: {
     table: 'Mesa',
@@ -498,6 +516,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: 'Añadir a la ronda',
     itemDetailAddToCart: 'Añadir al carrito',
     itemDetailDone: 'Listo',
+    itemDetailChoicesTitle: 'Opciones',
+    itemDetailRelatedDishesTitle: 'Platos asociados',
+    itemDetailRelatedDishesOptional: 'Opcional',
+    itemDetailRelatedDishesRequired: 'Obligatorio: elija al menos uno',
   },
   fr: {
     table: 'Table',
@@ -607,6 +629,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: 'Ajouter au tour',
     itemDetailAddToCart: 'Ajouter au panier',
     itemDetailDone: 'Terminé',
+    itemDetailChoicesTitle: 'Choix',
+    itemDetailRelatedDishesTitle: 'Plats associés',
+    itemDetailRelatedDishesOptional: 'Facultatif',
+    itemDetailRelatedDishesRequired: 'Obligatoire : choisissez au moins un',
   },
   de: {
     table: 'Tisch',
@@ -715,6 +741,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToRound: 'Zur Runde hinzufügen',
     itemDetailAddToCart: 'In den Warenkorb',
     itemDetailDone: 'Fertig',
+    itemDetailChoicesTitle: 'Auswahl',
+    itemDetailRelatedDishesTitle: 'Zugehörige Gerichte',
+    itemDetailRelatedDishesOptional: 'Optional',
+    itemDetailRelatedDishesRequired: 'Pflicht: mindestens eines wählen',
   },
 };
 

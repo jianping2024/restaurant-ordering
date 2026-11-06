@@ -1,6 +1,6 @@
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
-/** Dish topping link — pick one menu category, then subset (empty item_ids = all). */
+/** Related-dish link (product name 关联菜品; column topping_binding) — one category, then subset (empty item_ids = all). */
 export type MenuToppingBinding = {
   category_id: string;
   item_ids: string[];
@@ -32,7 +32,7 @@ export function normalizeToppingBinding(raw: unknown): MenuToppingBinding | null
   return { category_id, item_ids, required };
 }
 
-/** Resolve guest-selectable topping dishes for a main dish. */
+/** Resolve guest-selectable related dishes for a main dish. */
 export function resolveToppingMenuItems<T extends { id: string; category_id?: string | null; available?: boolean }>(
   binding: MenuToppingBinding | null | undefined,
   allItems: readonly T[],

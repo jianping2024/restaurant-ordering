@@ -16,6 +16,7 @@ import { scheduleOpenTableReceiptPrint } from '@/lib/open-table-receipt-enqueue'
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { loadOpenableBuffetIds } from '@/lib/buffet-openable-server';
+import { loadCheckoutEntrySignals } from '@/lib/buffet-checkout-entry-server';
 
 export const runtime = 'nodejs';
 
@@ -51,16 +52,40 @@ function respondWaiterBuffetFailure(
   );
 }
 
-/** 开台列表: buffets the waiter may pick right now (`buffet_openable_ids`). */
+/**
+ * 开台列表: buffets the waiter may pick right now (`buffet_openable_ids`); with `table_id`,
+ * also that table's checkout-entry signals (换套餐锁定, `hasEnteredCheckout`).
+ */
 export async function GET(
   req: Request,
   { params }: { params: { slug: string } },
 ) {
   const ctx = await tableSessionOpenAuthFromRequest(req, params.slug);
   if (!ctx) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const tableIdRaw = new URL(req.url).searchParams.get('table_id');
+  const tableId = tableIdRaw ? parseTableIdParam(tableIdRaw) : null;
+  if (tableIdRaw && !tableId) return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   try {
-    const buffetIds = await loadOpenableBuffetIds(createAdminClient(), ctx.restaurant_id);
-    return NextResponse.json({ buffet_ids: buffetIds });
+    const admin = createAdminClient();
+    const [buffetIds, session] = await Promise.all([
+      loadOpenableBuffetIds(admin, ctx.restaurant_id),
+      tableId
+        ? admin
+            .from('table_sessions')
+            .select('id')
+            .eq('restaurant_id', ctx.restaurant_id)
+            .eq('table_id', tableId)
+            .in('status', ['open', 'billing'])
+            .order('opened_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const sessionId = (session.data as { id?: string } | null)?.id ?? null;
+    const checkoutEntry = sessionId
+      ? await loadCheckoutEntrySignals(admin, ctx.restaurant_id, sessionId)
+      : null;
+    return NextResponse.json({ buffet_ids: buffetIds, checkout_entry: checkoutEntry });
   } catch (err) {
     if (isDependencyFailure(err)) return dependencyUnavailableJsonResponse();
     return NextResponse.json({ error: 'openable_lookup_failed' }, { status: 500 });

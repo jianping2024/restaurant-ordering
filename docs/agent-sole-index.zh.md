@@ -420,6 +420,10 @@ sole shape `TableBuffetSelection` `{ buffetId, adults, children }`（0+0 = 无�
 
 sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的时段 + 今天日历类型下有生效规则）; distance/calendar sole `buffet_slot_distance_seconds` / `buffet_calendar_kind`（`resolve_buffet_prices` 复用，不复制 CASE）; gate only cold open + 换套餐 in `runBuffetWaiterOpenPipeline`（409 `buffet_not_available_now`），调人数/并台/转台不拦; client list sole `useWaiterOpenableBuffetIds` + `pickableBuffetOptions`（当前套餐始终保留）; 缺价提示 sole `findMissingBuffetPriceCells` → `BuffetMissingPricesBanner`; 套餐描述 sole `BuffetDescriptionInput`（≤40 字按 `Array.from` 计）+ `parseBuffetUpdatePatch`, only shown in `WaiterBuffetPackagesEditor`.
 
+### 换套餐重算 + 并发核对
+
+sole「是否进入结账」`hasEnteredCheckout` (signals sole `loadCheckoutEntrySignals`; floor UI gets them from GET `…/staff/waiter/buffet?table_id=`); 套餐变了（X→Y / X→无 / 无→X）sole write `switchTableBuffet` → RPC `switch_table_buffet` (reprice via `planBuffetSwitchLinePrices` → `resolveMenuLinePriceFields`, the append pricing path); line predicate sole `isBuffetPricedDishLine` ≡ SQL `order_item_is_buffet_priced`; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
+
 ### 楼面跨端
 
 一直亮着的桌面只靠 Realtime；手机回前台有 visibility 兜底。只修 published bridge 不够——`useRestaurantStaffEntryReconcile` 必须含 window focus catch-up（与 visibility 同一 resume 路径，勿在 Realtime transport 再挂一份 focus）。

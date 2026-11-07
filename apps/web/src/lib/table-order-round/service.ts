@@ -20,6 +20,7 @@ import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-t
 import { resolveAppendCartItems } from '@/lib/resolve-append-cart-items';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import {
+  isSushiRoundFreeMenuPrice,
   parseSushiRoundSettingsFromRestaurantRow,
   type SushiRoundSettings,
 } from '@/lib/table-order-round/settings';
@@ -803,6 +804,12 @@ export async function finalizeRound(params: {
     await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
     return { ok: false, status: 400, error: resolved.error };
   }
+  // Same free test as adding to the draft: a dish no longer free for the table's current
+  // buffet (switched meanwhile) never rides in a free round at a paid price.
+  if (resolved.items.some((item) => !isSushiRoundFreeMenuPrice(item.price))) {
+    await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
+    return { ok: false, status: 400, error: 'menu_item_not_free' };
+  }
 
   const { data: tableRow } = await admin
     .from('restaurant_tables')
@@ -819,6 +826,7 @@ export async function finalizeRound(params: {
     sessionId,
     context: writeContext.context,
     newItems: resolved.items,
+    pricedBuffetId: resolved.pricedBuffetId,
   });
 
   if (!writeResult.ok) {

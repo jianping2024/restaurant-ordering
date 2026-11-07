@@ -70,6 +70,8 @@ type BuffetPanelProps = {
   onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
   /** False while the open list is loading (no「没有可开的套餐」flash). */
   openableLoaded: boolean;
+  /** Set after checkout entry: package choice locked (headcount still editable) + this notice. */
+  packageLockedHint?: string | null;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
   /** Session-write mutex — freeze headcount while another write is in flight. */
@@ -154,6 +156,7 @@ export function WaiterTableBuffetPanel({
   onSelectBuffet,
   onSetGuestCount,
   openableLoaded,
+  packageLockedHint = null,
   resolvedByBuffetId,
   buffetPriceLoading,
   sessionBusy = false,
@@ -180,6 +183,8 @@ export function WaiterTableBuffetPanel({
           onSelectBuffet={onSelectBuffet}
           onSetGuestCount={onSetGuestCount}
           openableLoaded={openableLoaded}
+          packageLocked={packageLockedHint != null}
+          packageLockedHint={packageLockedHint}
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}
           layout="detail"

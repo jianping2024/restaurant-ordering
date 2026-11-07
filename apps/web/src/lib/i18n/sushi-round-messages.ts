@@ -73,6 +73,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: string;
     emptyRound: string;
     guestClientLimit: string;
+    menuItemNotFree: string;
     submitFailed: string;
     introTitle: string;
     introSubtitle: string;
@@ -130,6 +131,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: '冷却中，结束后才能送厨；现在仍可点菜进本轮',
     emptyRound: '请先添加免费菜',
     guestClientLimit: '本桌点餐手机已满，请找服务员帮忙点单',
+    menuItemNotFree: '本桌套餐已更换，有菜不再免费，请从本轮移除后再送厨',
     submitFailed: '操作失败，请重试',
     introTitle: '寿司同桌轮次',
     introSubtitle: '免费菜要「送厨」厨房才做；收费菜下单即送',
@@ -186,6 +188,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
+    menuItemNotFree: 'The table changed buffet: some dishes are no longer free — remove them from this round',
     submitFailed: 'Failed — try again',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes need “Send”; paid dishes go now',
@@ -243,6 +246,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: 'Em espera — só depois pode enviar; ainda pode adicionar grátis',
     emptyRound: 'Adicione pratos grátis primeiro',
     guestClientLimit: 'Demasiados telemóveis nesta mesa — peça ao staff',
+    menuItemNotFree: 'A mesa mudou de buffet: alguns pratos deixaram de ser grátis — retire-os desta ronda',
     submitFailed: 'Falhou — tente de novo',
     introTitle: 'Rondas de sushi',
     introSubtitle: 'Grátis precisam de “Enviar”; pagos vão já',
@@ -299,6 +303,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: 'En espera — luego podrás enviar; aún puedes añadir gratis',
     emptyRound: 'Añade platos gratis primero',
     guestClientLimit: 'Demasiados móviles en esta mesa — pide al personal',
+    menuItemNotFree: 'La mesa cambió de bufé: algunos platos ya no son gratis — quítalos de esta ronda',
     submitFailed: 'Falló — reintenta',
     introTitle: 'Rondas de sushi',
     introSubtitle: 'Gratis necesitan “Enviar”; de pago van ya',
@@ -355,6 +360,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
+    menuItemNotFree: 'The table changed buffet: some dishes are no longer free — remove them from this round',
     submitFailed: 'Failed — try again',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes need “Send”; paid dishes go now',
@@ -412,6 +418,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     cooldownActive: 'Cooling down — wait to send; you can still add free dishes',
     emptyRound: 'Add free dishes first',
     guestClientLimit: 'Too many phones at this table — ask staff',
+    menuItemNotFree: 'The table changed buffet: some dishes are no longer free — remove them from this round',
     submitFailed: 'Failed — try again',
     introTitle: 'Sushi table rounds',
     introSubtitle: 'Free dishes need “Send”; paid dishes go now',
@@ -509,6 +516,8 @@ export function messageForSushiRoundError(
       return t.emptyRound;
     case 'guest_client_limit':
       return t.guestClientLimit;
+    case 'menu_item_not_free':
+      return t.menuItemNotFree;
     default:
       return t.submitFailed;
   }

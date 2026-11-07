@@ -13,6 +13,7 @@ import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
 } from '@/components/waiter/useWaiterOpenableBuffetIds';
+import { hasEnteredCheckout } from '@/lib/buffet-checkout-entry';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
@@ -307,10 +308,10 @@ function WaiterTableDetailInner({
   );
   const contextTableId = selectedTable?.id ?? tableId;
   const hasOpenSession = isTableSessionOpen(sessionMeta);
-  const { openableBuffetIds, refreshOpenableBuffetIds } = useWaiterOpenableBuffetIds(
-    restaurant.slug,
-    !isDemo,
-  );
+  const { openableBuffetIds, checkoutEntry, refreshOpenableBuffetIds } =
+    useWaiterOpenableBuffetIds(restaurant.slug, !isDemo, contextTableId);
+  /** 已进入结账：只能调人数，不能换套餐（server 409 `buffet_switch_locked` is the authority). */
+  const buffetSwitchLocked = checkoutEntry != null && hasEnteredCheckout(checkoutEntry);
   const currentBuffetId = useMemo(() => currentTableBuffet(orders)?.buffetId ?? null, [orders]);
   const buffetOptions = useMemo(
     () =>
@@ -767,6 +768,8 @@ function WaiterTableDetailInner({
           const apiErr = err as Error & { code?: string };
           if (apiErr.code === 'session_billing') {
             notifyCheckoutLocked();
+          } else if (apiErr.code === 'buffet_mismatch') {
+            showToast(t.mergeBuffetMismatch, 'error');
           } else {
             showToast(t.actionFailed, 'error');
           }
@@ -1197,6 +1200,7 @@ function WaiterTableDetailInner({
                 lang={lang}
                 buffetOptions={buffetOptions}
                 openableLoaded={isDemo || openableBuffetIds != null}
+                packageLockedHint={buffetSwitchLocked ? t.buffetSwitchLocked : null}
                 draft={buffetDraft}
                 onSelectBuffet={(buffetId) => {
                   whenDetailActionsArmed(() => {

@@ -24,6 +24,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   demoToastDesc: string;
   submitFailed: string;
   submitRateLimited: string;
+  buffetChangedRetry: string;
   demoStep: string;
   demoOpenKitchen: string;
   demoOpenWaiter: string;
@@ -133,6 +134,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: 'No ambiente real, a cozinha recebera seu pedido imediatamente.',
     submitFailed: 'Falha ao enviar pedido, tente novamente.',
     submitRateLimited: 'Demasiados pedidos; tente novamente dentro de um minuto.',
+    buffetChangedRetry: 'A mesa mudou de buffet; os preços foram atualizados. Envie novamente.',
     demoStep: 'Passo 1/3: faça o pedido na visão do cliente.',
     demoOpenKitchen: 'Abrir visão da cozinha',
     demoOpenWaiter: 'Abrir painel do garcom',
@@ -234,6 +236,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: 'In a real setup, the kitchen receives your order instantly.',
     submitFailed: 'Failed to submit order, please try again.',
     submitRateLimited: 'Too many order requests; please try again in a moment.',
+    buffetChangedRetry: 'This table switched buffet; prices were updated. Please send again.',
     demoStep: 'Step 1/3: place order from customer view.',
     demoOpenKitchen: 'Open kitchen view',
     demoOpenWaiter: 'Open waiter dashboard',
@@ -335,6 +338,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: '真实场景中，厨房会立刻收到您的订单。',
     submitFailed: '提交失败，请重试',
     submitRateLimited: '下单过于频繁，请稍后再试',
+    buffetChangedRetry: '这桌刚换了套餐，价格已更新，请再提交一次',
     demoStep: '第 1/3 步：在顾客端完成下单。',
     demoOpenKitchen: '打开后厨视图',
     demoOpenWaiter: '打开服务员看板',
@@ -436,6 +440,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: 'En un local real, la cocina recibe tu pedido al instante.',
     submitFailed: 'No se ha podido enviar el pedido. Inténtalo de nuevo.',
     submitRateLimited: 'Demasiados pedidos seguidos; inténtalo de nuevo en un momento.',
+    buffetChangedRetry: 'La mesa cambió de bufé; los precios se han actualizado. Envía de nuevo.',
     demoStep: 'Paso 1/3: haz el pedido desde la vista del cliente.',
     demoOpenKitchen: 'Abrir vista de cocina',
     demoOpenWaiter: 'Abrir panel de sala',
@@ -546,6 +551,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: 'En conditions réelles, la cuisine reçoit votre commande immédiatement.',
     submitFailed: 'Échec de l’envoi de la commande, veuillez réessayer.',
     submitRateLimited: 'Trop de commandes envoyées ; réessayez dans un instant.',
+    buffetChangedRetry: 'La table a changé de buffet ; les prix ont été mis à jour. Renvoyez la commande.',
     demoStep: 'Étape 1/3 : passez commande depuis la vue client.',
     demoOpenKitchen: 'Ouvrir la vue cuisine',
     demoOpenWaiter: 'Ouvrir le tableau de salle',
@@ -658,6 +664,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoToastDesc: 'Im echten Betrieb erhält die Küche Ihre Bestellung sofort.',
     submitFailed: 'Bestellung konnte nicht gesendet werden. Bitte erneut versuchen.',
     submitRateLimited: 'Zu viele Bestellungen; bitte in einem Moment erneut versuchen.',
+    buffetChangedRetry: 'Der Tisch hat das Buffet gewechselt; die Preise wurden aktualisiert. Bitte erneut senden.',
     demoStep: 'Schritt 1/3: In der Gastansicht bestellen.',
     demoOpenKitchen: 'Küchenansicht öffnen',
     demoOpenWaiter: 'Service-Board öffnen',

@@ -54,6 +54,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
 import {
+  repriceCartLines,
   setCartLineQtyByLineId,
   updateCartLineNoteByLineId,
   updateCartLineNotePresetsByLineId,
@@ -367,6 +368,10 @@ export function MenuOrderingController({
       ),
     [catalogMenuItems, menuItemBuffetPrices, orderingChannel, tableBuffetId],
   );
+  // Buffet switched / menu edited: cart lines follow the table's current prices.
+  useEffect(() => {
+    setCartTracked((prev) => repriceCartLines(prev, menuItems));
+  }, [menuItems, setCartTracked]);
 
   const catalogView = useMemo(
     () =>
@@ -788,6 +793,12 @@ export function MenuOrderingController({
         if (failure.code === 'individual_called') {
           markIndividualHold();
           showToast(t.individualCalledHint, 'info');
+          return;
+        }
+        if (failure.code === 'buffet_changed') {
+          // Table switched buffet meanwhile: re-read session → catalog + cart reprice.
+          await refreshSessionContext('gate');
+          showToast(t.buffetChangedRetry, 'info');
           return;
         }
         if (appendFailureNeedsSessionRefresh(failure.code)) {

@@ -363,6 +363,8 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
             displayNameById.get(sourceTableId) ?? sourceTableId.slice(0, 8);
           if (apiErr.code === 'session_billing') {
             showToast(t.checkoutLockedHint, 'error');
+          } else if (apiErr.code === 'buffet_mismatch') {
+            showToast(t.mergeBuffetMismatch, 'error');
           } else {
             showToast(
               t.partyMergePartialFailed

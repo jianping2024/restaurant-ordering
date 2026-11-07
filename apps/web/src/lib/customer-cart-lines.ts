@@ -64,6 +64,26 @@ export function cartLineUnitPrice(
   return sum;
 }
 
+/**
+ * Re-derive cart line prices from the table-priced catalog (buffet switched / menu edited).
+ * Returns the same array when nothing changed; dishes missing from the catalog keep their price.
+ */
+export function repriceCartLines(
+  cart: CartItem[],
+  allItems: readonly PricedMenuItem[],
+): CartItem[] {
+  let changed = false;
+  const next = cart.map((line) => {
+    const item = allItems.find((d) => d.id === line.menuItemId);
+    if (!item) return line;
+    const price = cartLineUnitPrice(item, line.toppingPicks, allItems);
+    if (price === line.price) return line;
+    changed = true;
+    return { ...line, price };
+  });
+  return changed ? next : cart;
+}
+
 function buildCartLine(
   item: PricedMenuItem,
   qty: number,

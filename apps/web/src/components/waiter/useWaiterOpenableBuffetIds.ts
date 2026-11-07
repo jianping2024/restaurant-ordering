@@ -1,30 +1,40 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchWaiterOpenableBuffetIdsClient } from '@/lib/staff-board-client';
+import type { CheckoutEntrySignals } from '@/lib/buffet-checkout-entry';
+import { fetchWaiterBuffetChoicesClient } from '@/lib/staff-board-client';
 import type { Buffet } from '@/types';
 
 /**
- * Sole client read of「当前可开的套餐」(GET …/staff/waiter/buffet): one fetch per mount,
- * `refresh` after a 409 `buffet_not_available_now`. null while loading / on failure.
+ * Sole client read of「当前可开的套餐」+ the table's checkout-entry signals
+ * (GET …/staff/waiter/buffet): one fetch per mount / table, `refresh` after a 409.
+ * null while loading / on failure; `checkoutEntry` null when the table has no session.
  */
-export function useWaiterOpenableBuffetIds(restaurantSlug: string, enabled: boolean) {
+export function useWaiterOpenableBuffetIds(
+  restaurantSlug: string,
+  enabled: boolean,
+  tableId: string | null = null,
+) {
   const [openableBuffetIds, setOpenableBuffetIds] = useState<string[] | null>(null);
+  const [checkoutEntry, setCheckoutEntry] = useState<CheckoutEntrySignals | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      setOpenableBuffetIds(await fetchWaiterOpenableBuffetIdsClient(restaurantSlug));
+      const choices = await fetchWaiterBuffetChoicesClient(restaurantSlug, tableId);
+      setOpenableBuffetIds(choices.openableBuffetIds);
+      setCheckoutEntry(choices.checkoutEntry);
     } catch {
       setOpenableBuffetIds(null);
+      setCheckoutEntry(null);
     }
-  }, [restaurantSlug]);
+  }, [restaurantSlug, tableId]);
 
   useEffect(() => {
     if (!enabled) return;
     void refresh();
   }, [enabled, refresh]);
 
-  return { openableBuffetIds, refreshOpenableBuffetIds: refresh };
+  return { openableBuffetIds, checkoutEntry, refreshOpenableBuffetIds: refresh };
 }
 
 /**

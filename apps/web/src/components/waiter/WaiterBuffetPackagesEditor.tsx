@@ -33,8 +33,10 @@ type Props = {
   layout?: 'sheet' | 'detail';
   /** Freeze package choice + headcount steppers (session-write mutex or takeaway lock). */
   disabled?: boolean;
-  /** Headcount only — the package choice is not offered (checkout headcount adjust). */
+  /** Headcount only — the package choice is not offered (checkout entered / headcount adjust). */
   packageLocked?: boolean;
+  /** Lock notice above the package (artboard ④「已进入结账，不能更换套餐」). */
+  packageLockedHint?: string | null;
   /** Takeaway open sheet: hide “预计合计” (no buffet charge). */
   hideEstimatedTotal?: boolean;
   /** Shown under the headcount when it is locked (takeaway). */
@@ -95,6 +97,7 @@ export function WaiterBuffetPackagesEditor({
   layout = 'sheet',
   disabled = false,
   packageLocked = false,
+  packageLockedHint = null,
   hideEstimatedTotal = false,
   lockedHint = null,
   openableLoaded = true,
@@ -109,9 +112,17 @@ export function WaiterBuffetPackagesEditor({
 
   return (
     <div className={layout === 'sheet' ? openTableSheetLayout.stack : 'space-y-4'}>
+      {packageLockedHint ? (
+        <p
+          role="status"
+          className="rounded-xl border border-brand-gold/60 bg-brand-gold/10 px-3 py-2.5 text-[13px] leading-snug text-brand-text"
+        >
+          {packageLockedHint}
+        </p>
+      ) : null}
       <fieldset className="m-0 min-w-0 border-0 p-0 space-y-2" disabled={disabled || packageLocked}>
         <legend className={`${waiterFloorType.guestLabel} mb-2`}>{t.buffetPickPackage}</legend>
-        {openableLoaded && shownOptions.length === 0 ? (
+        {openableLoaded && !packageLocked && shownOptions.length === 0 ? (
           <p className="text-[15px] font-medium mesa-text-warning">{t.buffetNoneOpenable}</p>
         ) : null}
         {shownOptions.map((buffet) => {

@@ -114,6 +114,7 @@ export async function addCheckoutTakeawayLines(input: {
     sessionId: session.id,
     context: { session, sessionOrders: [], openOrder: null },
     newItems,
+    pricedBuffetId: null,
   });
   if (!write.ok) {
     await releaseAppendIdempotencyClaim({ admin, sessionId: session.id, clientRequestId });

@@ -24,10 +24,10 @@ type WaiterBuffetFailureLog = {
   user_id?: string;
   table_id?: string;
   intent?: string;
-  buffet_count?: number;
+  buffet_id?: string;
   parse_table_id?: boolean;
   parse_intent?: boolean;
-  parse_buffets?: boolean;
+  parse_buffet?: boolean;
   status: number;
   error: string;
   code?: string;
@@ -75,7 +75,7 @@ export async function POST(
 
     let body: {
       table_id?: unknown;
-      buffets?: unknown;
+      buffet?: unknown;
       intent?: unknown;
     };
     try {
@@ -91,20 +91,19 @@ export async function POST(
     }
 
     const tableId = parseTableIdParam(body.table_id);
-    const parsedBuffets = parseBuffetWaiterRequestBody(body.buffets);
+    const parsedBuffet = parseBuffetWaiterRequestBody(body.buffet);
     const intent = parseBuffetWaiterOpenIntent(body.intent);
 
-    if (!tableId || !parsedBuffets.ok || !intent) {
+    if (!tableId || !parsedBuffet.ok || !intent) {
       return respondWaiterBuffetFailure({
         slug,
         restaurant_id: ctx.restaurant_id,
         user_id: ctx.user_id,
         table_id: tableId ?? undefined,
         intent: typeof body.intent === 'string' ? body.intent : undefined,
-        buffet_count: Array.isArray(body.buffets) ? body.buffets.length : undefined,
         parse_table_id: Boolean(tableId),
         parse_intent: Boolean(intent),
-        parse_buffets: parsedBuffets.ok,
+        parse_buffet: parsedBuffet.ok,
         status: 400,
         error: 'invalid_body',
       });
@@ -120,7 +119,7 @@ export async function POST(
         user_id: ctx.user_id,
         table_id: tableId,
         intent,
-        buffet_count: parsedBuffets.buffets.length,
+        buffet_id: parsedBuffet.buffet.buffetId,
         status: 503,
         error: 'server_misconfigured',
       });
@@ -130,7 +129,7 @@ export async function POST(
       restaurantId: ctx.restaurant_id,
       userId: ctx.user_id,
       tableId,
-      buffets: parsedBuffets.buffets,
+      buffet: parsedBuffet.buffet,
       intent,
     });
 
@@ -143,7 +142,7 @@ export async function POST(
             user_id: ctx.user_id,
             table_id: tableId,
             intent,
-            buffet_count: parsedBuffets.buffets.length,
+            buffet_id: parsedBuffet.buffet.buffetId,
             status: 503,
             error: DEPENDENCY_UNAVAILABLE,
             code: result.code,
@@ -158,7 +157,7 @@ export async function POST(
         user_id: ctx.user_id,
         table_id: tableId,
         intent,
-        buffet_count: parsedBuffets.buffets.length,
+        buffet_id: parsedBuffet.buffet.buffetId,
         status: result.status,
         error: result.error,
         code: result.code,

@@ -408,6 +408,10 @@ sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameFor
 
 idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save`, armed only by `scheduleAutosave` from a −/+ tap (never an effect on draft/orders/refs — load/refresh/Realtime realign once posted a lagging 0); total→0 on an occupied table is held behind the「人数改为 0？」confirm (`buffetDraftClearsHeadcount`), cancel = `resetDraftToAligned` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck. Floor buffet adult/child sole UI `BuffetGuestCounter` −/n/+ only (no typed qty / no `onQtyChange` on that counter). Open-time unit prices sole on `buffet_base.adult_unit_price`/`child_unit_price` via `resolvedBuffetPriceFromLockedLine` / `mergeBuffetPricesPreferLocked` (checkout adjust + headcount upsert reuse lock; never re-slot a package that already locked — RPC only when no lock yet).
 
+### 一桌一套餐
+
+sole shape `TableBuffetSelection` `{ buffetId, adults, children }`（0+0 = 无套餐）; body `POST …/staff/waiter/buffet` `buffet: {buffet_id, adult_count, child_count}` (never a `buffets[]` array); sole TS「当前套餐」`currentTableBuffetLine`/`currentTableBuffet` (newest active buffet_base line); sole editor `WaiterBuffetPackagesEditor` radio + one headcount (board sheet / detail / checkout adjust `packageLocked`); writer voids every active buffet line then appends one (`applyTableBuffetLineToOrderItems`) — never per-package snapshot / diff / sum helpers. Buffet PATCH fields sole whitelist `parseBuffetUpdatePatch` (name/is_active/vat_rate/description) — never `.update(body.patch)`.
+
 ### 楼面跨端
 
 一直亮着的桌面只靠 Realtime；手机回前台有 visibility 兜底。只修 published bridge 不够——`useRestaurantStaffEntryReconcile` 必须含 window focus catch-up（与 visibility 同一 resume 路径，勿在 Realtime transport 再挂一份 focus）。

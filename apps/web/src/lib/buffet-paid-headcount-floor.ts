@@ -3,7 +3,11 @@ import {
   isCheckoutSplitLocked,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import type { BuffetGuestCounts, BuffetGuestSnapshot } from '@/lib/buffet-order';
+import {
+  effectiveTableBuffet,
+  type BuffetGuestCounts,
+  type TableBuffetSelection,
+} from '@/lib/buffet-order';
 import type { BillSplit } from '@/types';
 
 /** Billable line key for a buffet package (matches `buildBillableSessionItems`). */
@@ -63,14 +67,16 @@ export type BuffetHeadcountFloorViolation = {
 
 /**
  * Returns the first buffet whose proposed headcount falls below a paid-allocation floor.
- * Missing packages in `target` count as 0/0 (void).
+ * A package other than the target's (or a cleared target) counts as 0/0 (void).
  */
 export function findBuffetHeadcountBelowPaidFloor(
-  target: BuffetGuestSnapshot,
+  target: TableBuffetSelection | null,
   floors: Map<string, BuffetGuestCounts>,
 ): BuffetHeadcountFloorViolation | null {
+  const effective = effectiveTableBuffet(target);
   for (const [buffetId, floor] of Array.from(floors.entries())) {
-    const proposed = target[buffetId] ?? { adults: 0, children: 0 };
+    const proposed =
+      effective?.buffetId === buffetId ? effective : { adults: 0, children: 0 };
     if (proposed.adults < floor.adults || proposed.children < floor.children) {
       return {
         buffetId,

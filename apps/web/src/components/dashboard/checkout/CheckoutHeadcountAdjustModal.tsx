@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BuffetPackagesEstimatedTotal,
   WaiterBuffetPackagesEditor,
@@ -8,24 +8,13 @@ import {
 import { Modal } from '@/components/ui/Modal';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import {
-  buildIdleBuffetDraftSnapshot,
-  buffetSnapshotFromOrders,
-  totalGuestsInBuffetSnapshot,
-  type BuffetGuestSnapshot,
+  currentTableBuffet,
+  effectiveTableBuffet,
   type ResolvedBuffetPriceRow,
+  type TableBuffetSelection,
 } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { Buffet, Order } from '@/types';
-
-function seedHeadcountSnapshot(
-  orders: Order[],
-  activeBuffetIds: string[],
-): BuffetGuestSnapshot {
-  return {
-    ...buildIdleBuffetDraftSnapshot(activeBuffetIds),
-    ...buffetSnapshotFromOrders(orders),
-  };
-}
 
 type Labels = {
   title: string;
@@ -43,10 +32,13 @@ type Props = {
   busy: boolean;
   labels: Labels;
   onClose: () => void;
-  onConfirm: (snapshot: BuffetGuestSnapshot) => void | Promise<void>;
+  onConfirm: (buffet: TableBuffetSelection) => void | Promise<void>;
 };
 
-/** Sole checkout-detail headcount editor after zero-headcount soft-confirm. */
+/**
+ * Sole checkout-detail headcount editor after zero-headcount soft-confirm.
+ * Adjusts the current package's headcount only; a table without a package picks one.
+ */
 export function CheckoutHeadcountAdjustModal({
   open,
   lang,
@@ -58,15 +50,20 @@ export function CheckoutHeadcountAdjustModal({
   onClose,
   onConfirm,
 }: Props) {
-  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
-  const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>({});
+  const [draft, setDraft] = useState<TableBuffetSelection | null>(null);
+  const [packageLocked, setPackageLocked] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setGuestSnapshot(seedHeadcountSnapshot(sessionOrders, activeBuffetIds));
-  }, [open, sessionOrders, activeBuffetIds]);
+    const current = currentTableBuffet(sessionOrders);
+    setPackageLocked(current != null);
+    setDraft(
+      current
+        ?? (activeBuffets[0] ? { buffetId: activeBuffets[0].id, adults: 0, children: 0 } : null),
+    );
+  }, [open, sessionOrders, activeBuffets]);
 
-  const headcountOk = totalGuestsInBuffetSnapshot(guestSnapshot) > 0;
+  const effectiveDraft = effectiveTableBuffet(draft);
 
   return (
     <Modal
@@ -82,31 +79,31 @@ export function CheckoutHeadcountAdjustModal({
       <div className="space-y-4">
         <WaiterBuffetPackagesEditor
           lang={lang}
-          activeBuffets={activeBuffets}
-          guestSnapshot={guestSnapshot}
-          onSetGuestCount={(buffetId, which, value) => {
-            setGuestSnapshot((prev) => {
-              const current = prev[buffetId] ?? { adults: 0, children: 0 };
-              return {
-                ...prev,
-                [buffetId]: {
-                  ...current,
-                  [which]: Math.max(0, value),
-                },
-              };
-            });
+          buffetOptions={activeBuffets}
+          draft={draft}
+          onSelectBuffet={(buffetId) => {
+            setDraft((prev) => ({
+              buffetId,
+              adults: prev?.adults ?? 0,
+              children: prev?.children ?? 0,
+            }));
+          }}
+          onSetGuestCount={(which, value) => {
+            setDraft((prev) => (prev ? { ...prev, [which]: Math.max(0, value) } : prev));
           }}
           resolvedByBuffetId={buffetPricesByBuffetId}
           priceLoading={false}
           layout="sheet"
           disabled={busy}
+          packageLocked={packageLocked}
+          hideEstimatedTotal
         />
         <BuffetPackagesEstimatedTotal
           lang={lang}
-          guestSnapshot={guestSnapshot}
+          draft={draft}
           resolvedByBuffetId={buffetPricesByBuffetId}
         />
-        {!headcountOk ? (
+        {!effectiveDraft ? (
           <p className="text-sm text-brand-text-muted">{labels.needHeadcount}</p>
         ) : null}
         <ModalConfirmActions
@@ -117,11 +114,11 @@ export function CheckoutHeadcountAdjustModal({
             onClose();
           }}
           onConfirm={() => {
-            if (busy || !headcountOk) return;
-            void onConfirm(guestSnapshot);
+            if (busy || !effectiveDraft) return;
+            void onConfirm(effectiveDraft);
           }}
           busy={busy}
-          confirmDisabled={!headcountOk}
+          confirmDisabled={!effectiveDraft}
         />
       </div>
     </Modal>

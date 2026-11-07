@@ -298,7 +298,6 @@ function WaiterTableDetailInner({
     [model?.buffets],
   );
   const contextTableId = selectedTable?.id ?? tableId;
-  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
   const hasOpenSession = isTableSessionOpen(sessionMeta);
   const buffetFormAlign = useMemo(
     () =>
@@ -306,13 +305,19 @@ function WaiterTableDetailInner({
         detailLoaded: isDemo || detailLoaded,
         hasOpenSession,
         orders,
-        activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets, detailLoaded, hasOpenSession, isDemo, orders],
+    [activeBuffets, detailLoaded, hasOpenSession, isDemo, orders],
   );
+  /** Pickable packages: active ones plus the table's current package even if since disabled. */
+  const buffetOptions = useMemo(() => {
+    const currentBuffetId =
+      buffetFormAlign.mode === 'occupied' ? buffetFormAlign.selection.buffetId : null;
+    return (model?.buffets ?? []).filter((b) => b.is_active || b.id === currentBuffetId);
+  }, [buffetFormAlign, model?.buffets]);
   const {
-    guestSnapshot,
+    draft: buffetDraft,
+    selectBuffet,
     setBuffetGuestCount,
     resetDraftToAligned,
     resolvedByBuffetId,
@@ -322,13 +327,13 @@ function WaiterTableDetailInner({
     sessionId: sessionMeta?.sessionId ?? null,
     alignState: buffetFormAlign,
     restaurantId: restaurant.id,
-    activeBuffets,
+    activeBuffets: buffetOptions,
     buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES,
     isDemo,
     supabase,
   });
   const buffetEditorReady = isBuffetPackagesEditorReady(
-    guestSnapshot,
+    buffetDraft,
     resolvedByBuffetId,
     buffetPriceLoading,
   );
@@ -958,8 +963,7 @@ function WaiterTableDetailInner({
     restaurantSlug: restaurant.slug,
     tableId,
     orders,
-    guestSnapshot,
-    activeBuffetIds,
+    draft: buffetDraft,
     hasOpenSession,
     editorReady: buffetEditorReady,
     autosave:
@@ -1174,12 +1178,19 @@ function WaiterTableDetailInner({
             {detailActions.showBuffetPanel ? (
               <WaiterTableBuffetPanel
                 lang={lang}
-                activeBuffets={activeBuffets}
-                guestSnapshot={guestSnapshot}
-                onSetGuestCount={(buffetId, which, value) => {
+                buffetOptions={buffetOptions}
+                draft={buffetDraft}
+                onSelectBuffet={(buffetId) => {
                   whenDetailActionsArmed(() => {
                     if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
-                    setBuffetGuestCount(buffetId, which, value);
+                    selectBuffet(buffetId);
+                    scheduleBuffetAutosave();
+                  });
+                }}
+                onSetGuestCount={(which, value) => {
+                  whenDetailActionsArmed(() => {
+                    if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
+                    setBuffetGuestCount(which, value);
                     scheduleBuffetAutosave();
                   });
                 }}

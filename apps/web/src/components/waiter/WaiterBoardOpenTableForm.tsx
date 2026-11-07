@@ -53,22 +53,20 @@ export function WaiterBoardOpenTableForm({
     () => model.buffets.filter((b) => b.is_active),
     [model.buffets],
   );
-  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
-
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: true,
         hasOpenSession: false,
         orders: [],
-        activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets],
+    [activeBuffets],
   );
 
   const {
-    guestSnapshot,
+    draft,
+    selectBuffet,
     setBuffetGuestCount,
     resolvedByBuffetId,
     priceLoading,
@@ -84,15 +82,14 @@ export function WaiterBoardOpenTableForm({
     lifecycle: 'ephemeral',
   });
 
-  const editorReady = isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, priceLoading);
+  const editorReady = isBuffetPackagesEditorReady(draft, resolvedByBuffetId, priceLoading);
 
   const { submitting, submit } = useWaiterBuffetOpenMutation({
     lang,
     restaurantSlug: restaurant.slug,
     tableId,
     orders: [],
-    guestSnapshot,
-    activeBuffetIds,
+    draft,
     hasOpenSession: false,
     editorReady,
   });
@@ -130,8 +127,9 @@ export function WaiterBoardOpenTableForm({
     <div className={openTableSheetLayout.stack}>
       <WaiterBuffetPackagesEditor
         lang={lang}
-        activeBuffets={activeBuffets}
-        guestSnapshot={guestSnapshot}
+        buffetOptions={activeBuffets}
+        draft={draft}
+        onSelectBuffet={selectBuffet}
         onSetGuestCount={setBuffetGuestCount}
         resolvedByBuffetId={resolvedByBuffetId}
         priceLoading={priceLoading}

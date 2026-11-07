@@ -125,6 +125,14 @@ export const openTableSheetLayout = {
   actionButton: 'w-full sm:flex-1 justify-center',
 } as const;
 
+/** One radio card in the single-select buffet package list (checked = gold border). */
+export function buffetPackageOptionClass(checked: boolean): string {
+  return [
+    'flex min-h-[60px] cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 bg-brand-bg/40',
+    checked ? 'border-2 border-brand-gold' : 'border border-brand-border/70',
+  ].join(' ');
+}
+
 export type BuffetStripEdge = 'start' | 'mid' | 'end';
 
 export function buffetStripSectionClass(edge: BuffetStripEdge, extra = ''): string {

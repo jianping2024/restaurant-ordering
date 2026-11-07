@@ -3,11 +3,9 @@ import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
-import {
-  DEFAULT_BUFFET_VAT_RATE,
-  isAllowedMenuVatRate,
-} from '@/lib/menu-vat-rate';
+import { DEFAULT_BUFFET_VAT_RATE } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseBuffetUpdatePatch } from '@/lib/buffet-update-patch';
 
 export type BuffetDashboardData = {
   buffets: Buffet[];
@@ -176,16 +174,19 @@ export async function updateBuffet(
   admin: SupabaseClient,
   restaurantId: string,
   buffetId: string,
-  patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>,
+  rawPatch: unknown,
 ): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(buffetId);
   if (!id) return { error: 'invalid_buffet_id', status: 400 };
 
-  if (patch.vat_rate !== undefined && !isAllowedMenuVatRate(patch.vat_rate)) {
-    return { error: 'invalid_vat_rate', status: 400 };
-  }
+  const parsed = parseBuffetUpdatePatch(rawPatch);
+  if (!('ok' in parsed)) return parsed;
 
-  const { error } = await admin.from('buffets').update(patch).eq('id', id).eq('restaurant_id', restaurantId);
+  const { error } = await admin
+    .from('buffets')
+    .update(parsed.patch)
+    .eq('id', id)
+    .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
   const buffetsRes = await loadBuffetsSlice(admin, restaurantId);

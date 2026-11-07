@@ -1,17 +1,15 @@
 import { loadCalledTicketKeys } from '@/lib/individual-checkout-reads';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit, Order, OrderItem } from '@/types';
 import {
-  activeBuffetLineByBuffetId,
   aggregateBuffetHeadcountForOrders,
-  buffetSnapshotFromOrders,
   buildBuffetBaseLine,
-  diffBuffetSnapshots,
-  isBuffetSnapshotUnchanged,
-  normalizeBuffetGuestEntries,
-  snapshotFromBuffetEntries,
-  type BuffetGuestEntry,
+  currentTableBuffetLine,
+  effectiveTableBuffet,
+  isTableBuffetUnchanged,
+  normalizeBuffetGuestCounts,
   type ResolvedBuffetPriceRow,
+  type TableBuffetSelection,
 } from '@/lib/buffet-order';
 import {
   mergeBuffetPricesPreferLocked,
@@ -99,7 +97,8 @@ export type BuffetWaiterPipelineInput = {
   restaurantId: string;
   userId: string;
   tableId: string;
-  buffets: BuffetGuestEntry[];
+  /** The table's one buffet; 0 + 0 guests clears the buffet line. */
+  buffet: TableBuffetSelection;
   intent: BuffetWaiterOpenIntent;
 };
 
@@ -145,8 +144,8 @@ export async function runBuffetWaiterOpenPipeline(
   admin: SupabaseClient,
   input: BuffetWaiterPipelineInput,
 ): Promise<BuffetWaiterPipelineResult> {
-  const { restaurantId, userId, tableId, buffets, intent } = input;
-  const targetSnapshot = snapshotFromBuffetEntries(buffets);
+  const { restaurantId, userId, tableId, buffet: requested, intent } = input;
+  const target = effectiveTableBuffet(requested);
 
   const [{ table, sessionRow }, activeBuffets] = await Promise.all([
     loadTableAndSession(admin, restaurantId, tableId),
@@ -158,10 +157,8 @@ export async function runBuffetWaiterOpenPipeline(
   }
 
   const activeBuffetById = new Map(activeBuffets.map((b) => [b.id, b]));
-  for (const entry of buffets) {
-    if (!activeBuffetById.has(entry.buffetId)) {
-      return pipelineFailure(404, 'buffet_not_found', { code: 'buffet_not_found' });
-    }
+  if (!activeBuffetById.has(requested.buffetId)) {
+    return pipelineFailure(404, 'buffet_not_found', { code: 'buffet_not_found' });
   }
 
   const displayName = table.display_name;
@@ -223,9 +220,9 @@ export async function runBuffetWaiterOpenPipeline(
     adults: 0,
     children: 0,
   };
-  const nextAdultCount = buffets.reduce((n, b) => n + (b.adults || 0), 0);
-  const nextChildCount = buffets.reduce((n, b) => n + (b.children || 0), 0);
-  const unchanged = isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot);
+  const nextAdultCount = target?.adults ?? 0;
+  const nextChildCount = target?.children ?? 0;
+  const unchanged = isTableBuffetUnchanged(sessionOrders, target);
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
   if (!unchanged) {
@@ -244,7 +241,7 @@ export async function runBuffetWaiterOpenPipeline(
           collectedPayments,
           calledKeys,
         );
-        const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
+        const floorViolation = findBuffetHeadcountBelowPaidFloor(target, floors);
         if (floorViolation) {
           return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
             code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
@@ -260,62 +257,30 @@ export async function runBuffetWaiterOpenPipeline(
       }
     }
 
-    const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);
-    const lockedLineByBuffetId = activeBuffetLineByBuffetId(sessionOrders);
-    const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, targetSnapshot);
-
-    const lineResults = await Promise.all(
-      upsertBuffetIds.map(async (buffetId) => {
-        const counts = targetSnapshot[buffetId];
-        if (!counts) return { ok: true as const, line: null, buffetId, resolved: null };
-
-        const buffet = activeBuffetById.get(buffetId);
-        if (!buffet) {
-          return {
-            ok: false as const,
-            status: 404,
-            error: 'buffet_not_found',
-            code: 'buffet_not_found',
-          };
-        }
-
-        // Open-time unit prices on the active line win; only resolve when no lock yet.
-        const existingLine = lockedLineByBuffetId.get(buffetId);
-        const locked = existingLine ? resolvedBuffetPriceFromLockedLine(existingLine) : null;
-        const resolved = locked ?? (await resolveBuffetPricesServer(admin, restaurantId, buffetId));
-        if (!resolved) {
-          return { ok: false as const, status: 500, error: 'price_resolve_failed' };
-        }
-
-        const line = buildBuffetBaseLine({
-          buffet,
-          adultCount: counts.adults,
-          childCount: counts.children,
-          resolved,
-        });
-        if (!line) {
-          return {
-            ok: false as const,
-            status: 400,
-            error: 'no_price_rule',
-            code: 'no_price_rule',
-          };
-        }
-        return { ok: true as const, line, buffetId, resolved };
-      }),
-    );
-
-    const lines = [];
-    for (const result of lineResults) {
-      if (!result.ok) {
-        return pipelineFailure(result.status, result.error, {
-          code: 'code' in result ? result.code : undefined,
-        });
+    let line: OrderItem | null = null;
+    if (target) {
+      const buffet = activeBuffetById.get(target.buffetId)!;
+      // Open-time unit prices on the same package's active line win; only resolve when no lock yet.
+      const currentLine = currentTableBuffetLine(sessionOrders);
+      const locked =
+        currentLine?.buffet_id === target.buffetId
+          ? resolvedBuffetPriceFromLockedLine(currentLine)
+          : null;
+      const resolved =
+        locked ?? (await resolveBuffetPricesServer(admin, restaurantId, target.buffetId));
+      if (!resolved) {
+        return pipelineFailure(500, 'price_resolve_failed');
       }
-      if (result.line) {
-        lines.push(result.line);
-        resolvedByBuffetId[result.buffetId] = result.resolved;
+      line = buildBuffetBaseLine({
+        buffet,
+        adultCount: target.adults,
+        childCount: target.children,
+        resolved,
+      });
+      if (!line) {
+        return pipelineFailure(400, 'no_price_rule', { code: 'no_price_rule' });
       }
+      resolvedByBuffetId[target.buffetId] = resolved;
     }
 
     const applied = await applyBuffetOpenToSession(admin, {
@@ -323,8 +288,7 @@ export async function runBuffetWaiterOpenPipeline(
       sessionId,
       tableId,
       displayName,
-      lines,
-      voidBuffetIds,
+      line,
       sessionOrders,
     });
 
@@ -384,28 +348,18 @@ export async function runBuffetWaiterOpenPipeline(
   };
 }
 
+/** Body `buffet: { buffet_id, adult_count, child_count }` — one buffet per table. */
 export function parseBuffetWaiterRequestBody(
-  buffetsRaw: unknown,
-): { ok: true; buffets: BuffetGuestEntry[] } | { ok: false } {
-  if (!Array.isArray(buffetsRaw) || buffetsRaw.length === 0) {
+  buffetRaw: unknown,
+): { ok: true; buffet: TableBuffetSelection } | { ok: false } {
+  if (!buffetRaw || typeof buffetRaw !== 'object' || Array.isArray(buffetRaw)) {
     return { ok: false };
   }
-
-  const parsed: BuffetGuestEntry[] = [];
-  for (const row of buffetsRaw) {
-    if (!row || typeof row !== 'object') return { ok: false };
-    const buffetId = (row as { buffet_id?: unknown }).buffet_id;
-    if (typeof buffetId !== 'string' || !buffetId) return { ok: false };
-    parsed.push(
-      normalizeBuffetGuestEntries([
-        {
-          buffet_id: buffetId,
-          adult_count: Number((row as { adult_count?: unknown }).adult_count) || 0,
-          child_count: Number((row as { child_count?: unknown }).child_count) || 0,
-        },
-      ])[0],
-    );
-  }
-
-  return { ok: true, buffets: parsed };
+  const row = buffetRaw as { buffet_id?: unknown; adult_count?: unknown; child_count?: unknown };
+  if (typeof row.buffet_id !== 'string' || !row.buffet_id) return { ok: false };
+  const { adults, children } = normalizeBuffetGuestCounts(
+    Number(row.adult_count) || 0,
+    Number(row.child_count) || 0,
+  );
+  return { ok: true, buffet: { buffetId: row.buffet_id, adults, children } };
 }

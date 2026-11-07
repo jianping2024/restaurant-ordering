@@ -4,10 +4,8 @@ import type { OrderItem } from '@/types';
 import {
   aggregateBuffetHeadcountForOrders,
   buildBuffetBaseLine,
-  listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
 import {
-  applyBuffetOpenOptimisticToOrders,
   applyBuffetOpenToSession,
   applyBuffetOpenWritePlanToOrders,
   pickLatestTableOrder,
@@ -63,14 +61,12 @@ const TABLE_1 = 'a0000001-0000-4000-8000-000000000001';
 const TABLE_2 = 'a0000002-0000-4000-8000-000000000002';
 
 describe('planBuffetOpenWrites', () => {
-  it('upserts multiple packages on one carrier order', () => {
+  it('inserts one buffet line on an empty table', () => {
     const lineA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
-    const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
     const plan = planBuffetOpenWrites([], {
       tableId: TABLE_1,
       displayName: 'A1',
-      lines: [lineA, lineB],
-      voidBuffetIds: [],
+      line: lineA,
       restaurantId: 'r1',
       sessionId: 's1',
     });
@@ -78,10 +74,10 @@ describe('planBuffetOpenWrites', () => {
     assert.equal(plan.carrier.mode, 'insert');
     if (plan.carrier.mode !== 'insert') return;
     const active = plan.carrier.items.filter((item) => item.kind === 'buffet_base' && item.item_status !== 'voided');
-    assert.equal(active.length, 2);
+    assert.equal(active.length, 1);
   });
 
-  it('voids one package while keeping another', () => {
+  it('switching package voids every old line (legacy two-package table too)', () => {
     const prevA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
     const prevB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
     const carrier = orderRow('order-1', TABLE_1, [prevA, prevB], '2026-01-01T10:00:00.000Z', 'ts-v1');
@@ -89,8 +85,7 @@ describe('planBuffetOpenWrites', () => {
     const plan = planBuffetOpenWrites([carrier], {
       tableId: TABLE_1,
       displayName: 'A1',
-      lines: [nextA],
-      voidBuffetIds: [buffetB.id],
+      line: nextA,
       restaurantId: 'r1',
       sessionId: 's1',
     });
@@ -102,6 +97,20 @@ describe('planBuffetOpenWrites', () => {
     assert.equal(active[0].buffet_id, buffetA.id);
     assert.equal(active[0].adult_count, 3);
     assert.equal(plan.carrier.items.filter((item) => item.item_status === 'voided').length, 2);
+  });
+
+  it('null line clears the buffet (0 + 0 guests)', () => {
+    const prevA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
+    const carrier = orderRow('order-1', TABLE_1, [prevA], '2026-01-01T10:00:00.000Z', 'ts-v1');
+    const plan = planBuffetOpenWrites([carrier], {
+      tableId: TABLE_1,
+      displayName: 'A1',
+      line: null,
+      restaurantId: 'r1',
+      sessionId: 's1',
+    });
+    assert.equal(plan.carrier.mode, 'update');
+    assert.equal(plan.carrier.items.every((item) => item.item_status === 'voided'), true);
   });
 });
 
@@ -164,8 +173,7 @@ describe('applyBuffetOpenToSession', () => {
       sessionId: 's1',
       tableId,
       displayName: 'A1',
-      lines: [next],
-      voidBuffetIds: [],
+      line: next,
       sessionOrders: [carrier],
     });
 
@@ -178,32 +186,13 @@ describe('applyBuffetOpenToSession', () => {
   });
 });
 
-describe('applyBuffetOpenOptimisticToOrders', () => {
-  it('appends multiple packages on empty table for instant UI', () => {
-    const lineA = buffetLine(buffetA, 2, 1, '2026-01-01T11:00:00.000Z', 50);
-    const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T11:01:00.000Z', 20);
-    const next = applyBuffetOpenOptimisticToOrders([], {
-      tableId: TABLE_1,
-      displayName: 'A1',
-      lines: [lineA, lineB],
-      voidBuffetIds: [],
-      restaurantId: 'r1',
-      sessionId: 's-new',
-    });
-    assert.equal(next.length, 1);
-    assert.equal(listActiveBuffetLineSummaries(next).length, 2);
-    assert.deepEqual(aggregateBuffetHeadcountForOrders(next), { adults: 3, children: 1 });
-  });
-});
-
 describe('applyBuffetOpenWritePlanToOrders', () => {
   it('inserts carrier order when opening an idle table (开台)', () => {
     const line = buffetLine(buffetA, 2, 1, '2026-01-01T11:00:00.000Z', 50);
     const params = {
       tableId: TABLE_1,
       displayName: 'A1',
-      lines: [line],
-      voidBuffetIds: [] as string[],
+      line,
       restaurantId: 'r1',
       sessionId: 's-new',
     };

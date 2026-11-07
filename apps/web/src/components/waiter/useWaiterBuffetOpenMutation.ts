@@ -10,7 +10,7 @@ import {
   postWaiterBuffetOpenAndCommit,
 } from '@/lib/waiter-buffet-open-submit';
 import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
-import { buffetDraftClearsHeadcount, type BuffetGuestSnapshot } from '@/lib/buffet-order';
+import { buffetDraftClearsHeadcount, type TableBuffetSelection } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
@@ -32,8 +32,8 @@ type Params = {
   restaurantSlug: string;
   tableId: string;
   orders: Array<Pick<Order, 'items' | 'status'>>;
-  guestSnapshot: BuffetGuestSnapshot;
-  activeBuffetIds: string[];
+  /** The table's one buffet draft; null when no package is picked. */
+  draft: TableBuffetSelection | null;
   hasOpenSession: boolean;
   editorReady: boolean;
   /**
@@ -59,8 +59,7 @@ export function useWaiterBuffetOpenMutation({
   restaurantSlug,
   tableId,
   orders,
-  guestSnapshot,
-  activeBuffetIds,
+  draft,
   hasOpenSession,
   editorReady,
   autosave = false,
@@ -72,8 +71,7 @@ export function useWaiterBuffetOpenMutation({
   const [submitting, setSubmitting] = useState(false);
 
   const ordersRef = useRef(orders);
-  const guestSnapshotRef = useRef(guestSnapshot);
-  const activeBuffetIdsRef = useRef(activeBuffetIds);
+  const draftRef = useRef(draft);
   const hasOpenSessionRef = useRef(hasOpenSession);
   const editorReadyRef = useRef(editorReady);
   const autosaveRef = useRef(autosave);
@@ -84,8 +82,7 @@ export function useWaiterBuffetOpenMutation({
   const retriggerRef = useRef(false);
 
   ordersRef.current = orders;
-  guestSnapshotRef.current = guestSnapshot;
-  activeBuffetIdsRef.current = activeBuffetIds;
+  draftRef.current = draft;
   hasOpenSessionRef.current = hasOpenSession;
   editorReadyRef.current = editorReady;
   autosaveRef.current = autosave;
@@ -109,8 +106,7 @@ export function useWaiterBuffetOpenMutation({
           retriggerRef.current = false;
           const blockReason = buffetOpenSubmitBlockReason(
             ordersRef.current,
-            guestSnapshotRef.current,
-            activeBuffetIdsRef.current,
+            draftRef.current,
             editorReadyRef.current,
             hasOpenSessionRef.current,
           );
@@ -119,7 +115,8 @@ export function useWaiterBuffetOpenMutation({
             outcome = { kind: 'blocked' };
             break;
           }
-          if (blockReason === 'unchanged') {
+          const buffet = draftRef.current;
+          if (blockReason === 'unchanged' || !buffet) {
             outcome = { kind: 'blocked' };
             break;
           }
@@ -127,8 +124,7 @@ export function useWaiterBuffetOpenMutation({
           const result = await postWaiterBuffetOpenAndCommit({
             restaurantSlug,
             tableId,
-            guestSnapshot: guestSnapshotRef.current,
-            activeBuffetIds: activeBuffetIdsRef.current,
+            buffet,
             intent: buffetWaiterOpenIntentFromSession(hasOpenSessionRef.current),
           });
 
@@ -185,11 +181,7 @@ export function useWaiterBuffetOpenMutation({
       autosaveTimerRef.current = null;
       if (!autosaveRef.current) return;
       if (
-        buffetDraftClearsHeadcount(
-          ordersRef.current,
-          guestSnapshotRef.current,
-          activeBuffetIdsRef.current,
-        )
+        buffetDraftClearsHeadcount(ordersRef.current, draftRef.current)
       ) {
         onZeroHeadcountHeldRef.current?.();
         return;

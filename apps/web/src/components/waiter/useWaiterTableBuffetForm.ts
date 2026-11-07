@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-  buildIdleBuffetDraftSnapshot,
   buffetFormAlignKey,
   parseResolvedBuffetPriceRpcRow,
   type BuffetFormAlignState,
-  type BuffetGuestSnapshot,
   type ResolvedBuffetPriceRow,
+  type TableBuffetSelection,
 } from '@/lib/buffet-order';
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import type { Buffet } from '@/types';
@@ -28,27 +27,18 @@ type Params = {
   lifecycle?: BuffetFormLifecycle;
 };
 
-function mergeSnapshotWithActiveBuffets(
-  snapshot: BuffetGuestSnapshot,
-  activeBuffets: Buffet[],
-): BuffetGuestSnapshot {
-  const next: BuffetGuestSnapshot = {};
-  for (const buffet of activeBuffets) {
-    next[buffet.id] = snapshot[buffet.id] ?? { adults: 0, children: 0 };
-  }
-  return next;
-}
-
-/** Draft the form should show for an align state; null while table context is pending. */
+/**
+ * Draft the form should show for an align state; undefined while table context is pending.
+ * Idle / no-buffet session preselects the default package at 0 + 0.
+ */
 function draftFromAlignState(
   alignState: BuffetFormAlignState,
-  activeBuffets: Buffet[],
-): BuffetGuestSnapshot | null {
-  if (alignState.mode === 'pending') return null;
-  if (alignState.mode === 'occupied') {
-    return mergeSnapshotWithActiveBuffets(alignState.snapshot, activeBuffets);
-  }
-  return buildIdleBuffetDraftSnapshot(alignState.activeBuffetIds);
+): TableBuffetSelection | null | undefined {
+  if (alignState.mode === 'pending') return undefined;
+  if (alignState.mode === 'occupied') return alignState.selection;
+  return alignState.defaultBuffetId
+    ? { buffetId: alignState.defaultBuffetId, adults: 0, children: 0 }
+    : null;
 }
 
 function resolvedPricesForActiveBuffets(
@@ -62,7 +52,7 @@ function resolvedPricesForActiveBuffets(
   return next;
 }
 
-/** Multi-package buffet draft — aligns from alignState when table context is authoritative. */
+/** One-buffet table draft — aligns from alignState when table context is authoritative. */
 export function useWaiterTableBuffetForm({
   tableId,
   sessionId,
@@ -77,8 +67,8 @@ export function useWaiterTableBuffetForm({
   const isEphemeral = lifecycle === 'ephemeral';
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
 
-  const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>(() =>
-    isEphemeral ? buildIdleBuffetDraftSnapshot(activeBuffets.map((b) => b.id)) : {},
+  const [draft, setDraft] = useState<TableBuffetSelection | null>(
+    () => draftFromAlignState(alignState) ?? null,
   );
   const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
     Record<string, ResolvedBuffetPriceRow | null>
@@ -95,23 +85,20 @@ export function useWaiterTableBuffetForm({
     [alignState, sessionId, tableId],
   );
 
-  const alignedDraft = useMemo(
-    () => draftFromAlignState(alignState, activeBuffets),
-    [activeBuffets, alignState],
-  );
+  const alignedDraft = useMemo(() => draftFromAlignState(alignState), [alignState]);
   const alignedDraftRef = useRef(alignedDraft);
   alignedDraftRef.current = alignedDraft;
 
   useEffect(() => {
     if (lastAlignedKeyRef.current === alignKey) return;
     lastAlignedKeyRef.current = alignKey;
-    if (alignedDraft) setGuestSnapshot(alignedDraft);
+    if (alignedDraft !== undefined) setDraft(alignedDraft);
   }, [alignKey, alignedDraft]);
 
   /** Drop an unsaved edit and show the table's authoritative headcount again. */
   const resetDraftToAligned = useCallback(() => {
     const next = alignedDraftRef.current;
-    if (next) setGuestSnapshot(next);
+    if (next !== undefined) setDraft(next);
   }, []);
 
   const fetchBuffetPrices = useCallback(
@@ -232,22 +219,23 @@ export function useWaiterTableBuffetForm({
     };
   }, [activeBuffetIds, buffetPricesByBuffetId, fetchBuffetPrices, isDemo, isEphemeral]);
 
-  const setBuffetGuestCount = useCallback(
-    (buffetId: string, which: 'adults' | 'children', value: number) => {
-      const n = Math.max(0, Math.floor(value));
-      setGuestSnapshot((prev) => ({
-        ...prev,
-        [buffetId]: {
-          adults: which === 'adults' ? n : (prev[buffetId]?.adults ?? 0),
-          children: which === 'children' ? n : (prev[buffetId]?.children ?? 0),
-        },
-      }));
-    },
-    [],
-  );
+  /** Pick the table's one package; headcount carries over. */
+  const selectBuffet = useCallback((buffetId: string) => {
+    setDraft((prev) => ({
+      buffetId,
+      adults: prev?.adults ?? 0,
+      children: prev?.children ?? 0,
+    }));
+  }, []);
+
+  const setBuffetGuestCount = useCallback((which: 'adults' | 'children', value: number) => {
+    const n = Math.max(0, Math.floor(value));
+    setDraft((prev) => (prev ? { ...prev, [which]: n } : prev));
+  }, []);
 
   return {
-    guestSnapshot,
+    draft,
+    selectBuffet,
     setBuffetGuestCount,
     resetDraftToAligned,
     resolvedByBuffetId,

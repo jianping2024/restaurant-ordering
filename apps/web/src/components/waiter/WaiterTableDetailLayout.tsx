@@ -8,9 +8,9 @@ import {
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import {
   formatBuffetPriceTemplate,
-  type BuffetGuestSnapshot,
   type BuffetOpenPricePreview,
   type ResolvedBuffetPriceRow,
+  type TableBuffetSelection,
 } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
@@ -64,9 +64,10 @@ export function WaiterCheckoutPendingBanner({ message }: { message: string }) {
 
 type BuffetPanelProps = {
   lang: UILanguage;
-  activeBuffets: Buffet[];
-  guestSnapshot: BuffetGuestSnapshot;
-  onSetGuestCount: (buffetId: string, which: 'adults' | 'children', value: number) => void;
+  buffetOptions: Buffet[];
+  draft: TableBuffetSelection | null;
+  onSelectBuffet: (buffetId: string) => void;
+  onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
   /** Session-write mutex — freeze headcount while another write is in flight. */
@@ -146,8 +147,9 @@ export function BuffetPriceMeta({
 
 export function WaiterTableBuffetPanel({
   lang,
-  activeBuffets,
-  guestSnapshot,
+  buffetOptions,
+  draft,
+  onSelectBuffet,
   onSetGuestCount,
   resolvedByBuffetId,
   buffetPriceLoading,
@@ -162,7 +164,7 @@ export function WaiterTableBuffetPanel({
     || sessionBusy
     || (
       !headcountLocked
-      && !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading)
+      && !isBuffetPackagesEditorReady(draft, resolvedByBuffetId, buffetPriceLoading)
     );
 
   return (
@@ -170,8 +172,9 @@ export function WaiterTableBuffetPanel({
       <div className={waiterDetailLayout.cardBody}>
         <WaiterBuffetPackagesEditor
           lang={lang}
-          activeBuffets={activeBuffets}
-          guestSnapshot={guestSnapshot}
+          buffetOptions={buffetOptions}
+          draft={draft}
+          onSelectBuffet={onSelectBuffet}
           onSetGuestCount={onSetGuestCount}
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}

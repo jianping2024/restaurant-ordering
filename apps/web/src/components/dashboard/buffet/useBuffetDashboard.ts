@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import type { Buffet, BuffetTimeSlot } from '@/types';
+import type { BuffetUpdatePatch } from '@/lib/buffet-update-patch';
+import type { BuffetTimeSlot } from '@/types';
 import { dbTimeToHm, hmToDbTime } from '@/lib/buffet-pricing-admin';
 import {
   mergeBuffetDashboardPatch,
@@ -106,7 +107,7 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
   );
 
   const updateBuffet = useCallback(
-    async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>) => {
+    async (id: string, patch: BuffetUpdatePatch) => {
       const result = await updateBuffetClient(id, patch);
       if (result.ok) applyPatch(result.patch);
       return result;

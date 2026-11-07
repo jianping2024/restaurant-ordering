@@ -17,6 +17,8 @@ import type { BuffetServiceMode } from '@mesa/shared';
 import { normalizeBuffetServiceMode } from '@mesa/shared';
 import type { Order, OrderItem } from '@/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
+import { currentTableBuffet } from '@/lib/buffet-order';
+import { loadMenuItemBuffetPriceMap } from '@/lib/menu-item-buffet-prices';
 import {
   isTakeawayPackagingItem,
   isDineInMenuItem,
@@ -46,6 +48,8 @@ export type ResolveAppendCartSuccess = {
   ok: true;
   items: OrderItem[];
   batchId: string;
+  /** Table buffet the unit prices were computed for (null = none → original prices). */
+  pricedBuffetId: string | null;
 };
 
 export type ResolveAppendCartFailure = {
@@ -307,7 +311,8 @@ export async function resolveAppendCartItems(params: {
   /** When omitted, limits are not applied (classic behavior). */
   buffetServiceMode?: BuffetServiceMode | string | null;
   staffAssisted?: boolean;
-  sessionOrders?: Array<Pick<Order, 'items' | 'status'>>;
+  /** Session orders — fix the table's current buffet (dish prices) and sushi allowance. */
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
   /** Session stamp; default dine_in. */
   orderingChannel?: OrderingChannel | string | null;
 }): Promise<ResolveAppendCartResult> {
@@ -320,7 +325,16 @@ export async function resolveAppendCartItems(params: {
   const data = await loadMenuItemsByIds(params.admin, params.restaurantId, ids);
 
   const leafIds = data.map((row) => row.category_id);
-  const categories = await loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds);
+  const pricedBuffetId = currentTableBuffet(params.sessionOrders)?.buffetId ?? null;
+  const [categories, buffetPrices] = await Promise.all([
+    loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds),
+    pricedBuffetId && channel === 'dine_in'
+      ? loadMenuItemBuffetPriceMap(params.admin, params.restaurantId, {
+          buffetId: pricedBuffetId,
+          menuItemIds: ids,
+        })
+      : Promise.resolve({}),
+  ]);
   const byId = new Map<string, MenuItemRow>();
   for (const row of data) {
     byId.set(row.id, row);
@@ -329,7 +343,7 @@ export async function resolveAppendCartItems(params: {
   const batchId = params.batchId ?? generateAppendBatchId();
   const addedAt = params.addedAt ?? new Date().toISOString();
   const serviceMode = normalizeBuffetServiceMode(params.buffetServiceMode);
-  const sessionOrders = params.sessionOrders ?? [];
+  const sessionOrders = params.sessionOrders;
   const guestCount = sessionGuestCountForLimits(sessionOrders);
   const staffAssisted = params.staffAssisted === true;
   const items: OrderItem[] = [];
@@ -354,14 +368,17 @@ export async function resolveAppendCartItems(params: {
     }
 
     const unitPrice = coerceCartPrice(
-      menuItemUnitPriceForChannel(
-        {
+      menuItemUnitPriceForChannel({
+        item: {
+          id: menu.id,
           price: coerceCartPrice(menu.price),
           takeaway_role: menu.takeaway_role,
           takeaway_price: menu.takeaway_price,
         },
         channel,
-      ),
+        buffetId: pricedBuffetId,
+        buffetPrices,
+      }),
     );
     const limitFields = {
       per_person_qty_limit: menu.per_person_qty_limit,
@@ -415,5 +432,5 @@ export async function resolveAppendCartItems(params: {
     return { ok: false, error: 'menu_item_off_time_slot' };
   }
 
-  return { ok: true, items, batchId };
+  return { ok: true, items, batchId, pricedBuffetId };
 }

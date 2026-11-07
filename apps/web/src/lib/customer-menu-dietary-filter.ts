@@ -18,10 +18,10 @@ export const EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS: CustomerMenuDietaryFilter
  * vegetarianOnly → keep is_vegetarian; exclude codes → hide dishes whose allergen_codes intersect
  * (unmarked dishes stay visible).
  */
-export function filterMenuItemsByDietaryPrefs(
-  items: readonly MenuItem[],
+export function filterMenuItemsByDietaryPrefs<T extends MenuItem>(
+  items: readonly T[],
   prefs: CustomerMenuDietaryFilterPrefs,
-): MenuItem[] {
+): T[] {
   const exclude = prefs.excludeAllergenCodes;
   const needVeg = prefs.vegetarianOnly;
   if (!needVeg && exclude.length === 0) return [...items];

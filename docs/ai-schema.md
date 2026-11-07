@@ -39,6 +39,8 @@ menu_choice_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_
 menu_choice_options (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, group_id: uuid FK -> menu_choice_groups.id ON DELETE RESTRICT, name_en: text NOT NULL, name_pt: text NOT NULL, name_zh: text NOT NULL DEFAULT '', sort_order: integer, active: boolean, created_at: timestamptz; same-restaurant trigger)
 menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, description_zh: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, is_vegetarian: boolean NOT NULL DEFAULT false, sort_order: integer, created_at: timestamptz, image_url: text nullable, video_url: text nullable /* Pro dish motion video 960×720 mp4 ≤1MB, guest detail */, rail_video_url: text nullable /* 480×360 mp4, guest recommended rail */, video_effect: text nullable [push|steam|gloss|pan|bubbles|frost] /* the three set/cleared together; video requires image_url */, note_preset_group_ids: text[] /* restaurant menu_note_preset_groups.id */, allergen_codes: text[] NOT NULL DEFAULT '{}', flavor_codes: text[] NOT NULL DEFAULT '{}' /* display-only; gated by menu_flavor_hints_enabled */, choice_bindings: jsonb NOT NULL DEFAULT '[]' /* [{group_id, option_ids[]}]; guest single-select required per bound group */, topping_binding: jsonb nullable /* {category_id, item_ids[] (empty=all in category), required} | null */, category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_ids: uuid[] NOT NULL DEFAULT '{}' /* empty = inherit category print_station_id */, item_code: varchar, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable, takeaway_role: text NOT NULL DEFAULT none [none|sellable|takeaway_only|packaging], takeaway_price: numeric nullable /* required >0 when sellable|takeaway_only */, time_slot_id: uuid nullable /* (restaurant_id, time_slot_id) FK -> buffet_time_slots(restaurant_id, id) ON DELETE SET NULL (time_slot_id); null = all day */)
 
+menu_item_buffet_prices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id ON DELETE CASCADE, menu_item_id: uuid, buffet_id: uuid, price: numeric(10,2) NOT NULL CHECK (price >= 0), created_at: timestamptz, updated_at: timestamptz; UNIQUE(menu_item_id, buffet_id); (restaurant_id, menu_item_id) FK -> menu_items(restaurant_id, id) ON DELETE CASCADE; (restaurant_id, buffet_id) FK -> buffets(restaurant_id, id) ON DELETE CASCADE /* per-buffet dine-in dish price; dish form「Buffet 价格」; save = `replace_menu_item_buffet_prices` + bump `menu_catalog_version` */)
+
 menu_recommended_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, menu_item_id: uuid FK -> menu_items.id ON DELETE CASCADE, sort_order: integer, created_at: timestamptz; UNIQUE(restaurant_id, menu_item_id); UNIQUE(restaurant_id, sort_order); same-restaurant trigger)
 
 orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pending|cooking|done], items: jsonb /* OrderItem[]; kind menu (default) | buffet_base | takeaway (checkout open-price charge, id takeaway:<uuid>, unit price + qty≥1, non-kitchen) */, total_amount: numeric, created_at: timestamptz, updated_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
@@ -144,6 +146,9 @@ menu_items.print_station_ids -> print_stations.id (array; empty = inherit)
 menu_recommended_items.restaurant_id -> restaurants.id  
 menu_recommended_items.menu_item_id -> menu_items.id
 
+menu_item_buffet_prices.(restaurant_id, menu_item_id) -> menu_items.(restaurant_id, id) ON DELETE CASCADE  
+menu_item_buffet_prices.(restaurant_id, buffet_id) -> buffets.(restaurant_id, id) ON DELETE CASCADE
+
 dish_feedback.restaurant_id -> restaurants.id  
 dish_feedback.session_id -> table_sessions.id  
 dish_feedback.order_id -> orders.id  
@@ -202,6 +207,8 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `assert_restaurant_session_operator(restaurant_id, operator_user_id)` | authenticated, service_role | Transfer/merge operator gate: restaurant `owner_id` or active staff role in waiter\|frontdesk\|cashier\|owner\|custom |
 | `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |
 | `resolve_buffet_prices(restaurant_id, buffet_id, at?)` | (see grants in SQL) | Buffet price resolution |
+| `replace_menu_item_buffet_prices(restaurant_id, menu_item_id, prices jsonb)` | service_role | Atomic replace of one dish's `menu_item_buffet_prices` set (`[{buffet_id, price≥0}]`, no duplicates); dish form save |
+| `table_session_current_buffet_id(table_sessions)` | authenticated, service_role | Sole SQL「这桌当前套餐」: newest non-voided `buffet_base` line with `buffet_id` in the session's orders (NULL = none). Also a PostgREST computed column (`current_buffet_id:table_session_current_buffet_id`, guest gate session). TS twin `currentTableBuffetLine`; parity test `buffet-current-parity.test.ts` |
 | `get_active_restaurant_table(restaurant_id, table_id)` | — | Resolve non-deleted table row |
 | `auth_owned_restaurant_ids()` | — | SECURITY DEFINER helper for owner RLS |
 | `auth_staff_restaurant_ids()` | — | SECURITY DEFINER helper for staff RLS |
@@ -480,6 +487,12 @@ menu_items:
 - ALL: owner by restaurant ownership.
 - ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
 
+menu_item_buffet_prices:
+
+- SELECT: public read (`true`, same as `menu_items` — guest catalog).
+- ALL: authenticated owner by restaurant ownership.
+- ALL: authenticated staff with `staff_has_restaurant_permission(restaurant_id, ['dashboard.menu.view'])`.
+
 menu_recommended_items:
 
 - SELECT: public read (`true`).
@@ -565,6 +578,7 @@ table_sessions:
 - `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days?, default_receipt_station_id?, station_slip_show_category_group?, han_bitmap_font_px?, kitchen_ready_after_minutes? }` — writers merge owned slices onto the existing document (schedule/poll vs TTL+category vs receipt station vs kitchen ready-after). `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (功能管理). `kitchen_ready_after_minutes` integer **3–30** (default **10**) is edited only on 功能管理. `han_bitmap_font_px` is **legacy** (Agent ≥0.5.58 uses agent-local config, default 22); Mesa print settings no longer edit or enqueue it.
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Farvoo staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume). On-prem entitlement: `deployment_mode`, `license_valid_until`, `restaurant_installations`, lease fields; ops UI `/ops/licenses`; claim/check-in under `/api/platform/license/*` (install credential). Runtime gate remains `suspended_at` only (ADR-004).
 - Menu time slot: `menu_items.time_slot_id` (null = all day) shares `buffet_time_slots`; a table session orders in the slot nearest its `opened_at` (`lib/menu-time-slot`, same distance ladder as `resolve_buffet_prices`).
+- Dish unit price (sole TS `menuItemUnitPriceForChannel`): takeaway → takeaway price (> 0) else `menu_items.price`, never buffet config; dine-in → the table's current buffet (`table_session_current_buffet_id` / `currentTableBuffet`) row in `menu_item_buffet_prices` when set, else `menu_items.price`. Catalog, cart, append (`resolveAppendCartItems`) and sushi round lines (free = priced 0) all use it.
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices. Rule match: Lisbon date ≥ `valid_from` and (`valid_to` is null or date ≤ `valid_to`); null `valid_to` = long-term.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
 - Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.

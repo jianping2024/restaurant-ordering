@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { menuItemsServedInSession } from '@/lib/menu-time-slot-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { currentTableBuffet } from '@/lib/buffet-order';
+import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
+import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { sessionOrderedQtyForMenuItem } from '@/lib/sushi-buffet-limits';
 import { resolveRoundLineMealLimitApply } from '@/lib/table-order-round/round-meal-limit';
 import {
@@ -54,7 +57,10 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'invalid_qty' }, { status: 400 });
   }
 
-  const menu = await loadMenuItemForRoundLine(ctx.admin, ctx.restaurant.restaurantId, menuItemId);
+  const menu = await loadMenuItemForRoundLine(ctx.admin, ctx.restaurant.restaurantId, menuItemId, {
+    channel: normalizeOrderingChannel(ctx.writeContext.session.ordering_channel),
+    buffetId: currentTableBuffet(ctx.writeContext.sessionOrders)?.buffetId ?? null,
+  });
   if (!menu.ok) {
     return NextResponse.json(
       { error: menu.error === 'menu_item_not_found' ? 'invalid_menu_item' : menu.error },
@@ -64,7 +70,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (!menu.available) {
     return NextResponse.json({ error: 'menu_item_unavailable' }, { status: 400 });
   }
-  if (menu.price !== 0) {
+  if (!isSushiRoundFreeMenuPrice(menu.price)) {
     return NextResponse.json({ error: 'menu_item_not_free' }, { status: 400 });
   }
   const served = await menuItemsServedInSession({

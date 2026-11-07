@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  menuItemWithChannelDisplayPrice,
+  type MenuItemBuffetPriceMap,
+  type TablePriced,
+} from '@/lib/instore-takeaway';
 import { IndividualCheckoutNotice } from '@/components/menu/IndividualCheckoutNotice';
 import { useIndividualCheckoutHold } from '@/lib/use-individual-checkout-hold';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -145,7 +150,10 @@ import { CustomerTableSessionRealtimeLazy } from '@/components/menu/CustomerTabl
 type Props = {
   restaurant: MenuOrderingRestaurant;
   sushiRoundSettings: SushiRoundSettings;
+  /** Catalog rows (original prices); priced per table before any use. */
   menuItems: MenuItem[];
+  /** Catalog per-buffet dish prices (`menu_item_buffet_prices`). */
+  menuItemBuffetPrices: MenuItemBuffetPriceMap;
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
   /** Slot windows from the catalog (`menu_items.time_slot_id`). */
@@ -165,7 +173,8 @@ type Props = {
 export function SushiMenuPage({
   restaurant,
   sushiRoundSettings,
-  menuItems,
+  menuItems: catalogMenuItems,
+  menuItemBuffetPrices,
   menuCategories,
   recommendedItemIds = [],
   menuTimeSlots,
@@ -240,6 +249,22 @@ export function SushiMenuPage({
     resumeScope: orderedOpen ? 'full' : 'gate',
   });
   const menuTimeSlotId = useSessionMenuTimeSlotId(menuTimeSlots, activeSession?.opened_at);
+  const tableBuffetId = activeSession?.current_buffet_id ?? null;
+  /**
+   * Sole priced catalog for this table (sushi page is dine-in only — MenuPage routes takeaway
+   * to the classic controller). Free vs paid (`isSushiRoundFreeMenuPrice`) and limits read it.
+   */
+  const menuItems = useMemo(
+    () =>
+      catalogMenuItems.map((item) =>
+        menuItemWithChannelDisplayPrice(item, {
+          channel: 'dine_in',
+          buffetId: tableBuffetId,
+          buffetPrices: menuItemBuffetPrices,
+        }),
+      ),
+    [catalogMenuItems, menuItemBuffetPrices, tableBuffetId],
+  );
 
   const refreshOrderedFromRealtime = useCallback(() => {
     void refreshSessionContext('full');
@@ -416,7 +441,7 @@ export function SushiMenuPage({
     [menuItems],
   );
 
-  const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
+  const commitCartQty = useCallback((item: TablePriced<MenuItem>, nextQty: number) => {
     const prev = cartRef.current;
     const next = upsertCartItemQty(prev, item, nextQty);
     cartRef.current = next;
@@ -563,7 +588,7 @@ export function SushiMenuPage({
   }, [detailMenuItemId, filteredMenuItems]);
 
   const ensureDetailCartLine = useCallback(
-    (item: MenuItem) => {
+    (item: TablePriced<MenuItem>) => {
       if (
         dishNeedsOrderConfig({
           choiceBindings: item.choice_bindings,

@@ -27,7 +27,10 @@ export async function POST(req: Request) {
 
   const result = await createMenuItem(ctx.admin, ctx.restaurantId, parsed);
   if ('error' in result) return menuApiError(result);
-  return NextResponse.json({ item: result.item }, { status: 201 });
+  return NextResponse.json(
+    { item: result.item, buffet_prices: result.buffetPrices },
+    { status: 201 },
+  );
 }
 
 export async function PATCH(req: Request) {
@@ -73,7 +76,7 @@ export async function PATCH(req: Request) {
 
   const result = await updateMenuItem(ctx.admin, ctx.restaurantId, body.item_id, parsed);
   if ('error' in result) return menuApiError(result);
-  return NextResponse.json({ item: result.item });
+  return NextResponse.json({ item: result.item, buffet_prices: result.buffetPrices });
 }
 
 export async function DELETE(req: Request) {

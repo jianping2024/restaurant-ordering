@@ -190,6 +190,7 @@ export function WaiterStaffOrderingPanel({
         <MenuOrderingController
           restaurant={restaurant}
           menuItems={catalog.menuItems}
+          menuItemBuffetPrices={catalog.menuItemBuffetPrices}
           menuCategories={catalog.menuCategories}
           recommendedItemIds={catalog.recommendedItemIds}
           menuTimeSlots={catalog.menuTimeSlots}

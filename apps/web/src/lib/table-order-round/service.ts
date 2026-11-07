@@ -10,6 +10,12 @@ import {
 import { loadAppendWriteContext } from '@/lib/append-write-context';
 import { writeAppendBatch } from '@/lib/append-write-batch';
 import { coerceCartPrice } from '@/lib/cart-totals';
+import {
+  menuItemUnitPriceForChannel,
+  type MenuItemBuffetPriceMap,
+  type OrderingChannel,
+} from '@/lib/instore-takeaway';
+import { loadMenuItemBuffetPriceMap } from '@/lib/menu-item-buffet-prices';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
 import { resolveAppendCartItems } from '@/lib/resolve-append-cart-items';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
@@ -430,7 +436,7 @@ export async function upsertRoundLine(params: {
   note?: string | null;
   /** set = absolute qty (核单); add = accumulate onto matching note line (购物车下单). */
   qtyMode?: RoundLineQtyMode;
-  /** Caller must verify price === 0 from menu row. */
+  /** Caller must verify the table price is free (`loadMenuItemForRoundLine` + `isSushiRoundFreeMenuPrice`). */
   priceIsFree: boolean;
   settings: SushiRoundSettings;
   liveGuestCount: number;
@@ -925,10 +931,15 @@ export function assertSushiGuestFreeItemsRequireRound(params: {
   return { ok: true };
 }
 
+/**
+ * Round-line dish read with this table's unit price (sole `menuItemUnitPriceForChannel`):
+ * free vs paid for the round is decided on `price`, never on `menu_items.price`.
+ */
 export async function loadMenuItemForRoundLine(
   admin: SupabaseClient,
   restaurantId: string,
   menuItemId: string,
+  pricing: { channel: OrderingChannel; buffetId: string | null },
 ): Promise<
   | {
       ok: true;
@@ -942,12 +953,25 @@ export async function loadMenuItemForRoundLine(
 > {
   const { data, error } = await admin
     .from('menu_items')
-    .select('id, price, available, per_person_qty_limit, over_limit_unit_price, time_slot_id')
+    .select(
+      'id, price, available, per_person_qty_limit, over_limit_unit_price, time_slot_id, takeaway_role, takeaway_price',
+    )
     .eq('restaurant_id', restaurantId)
     .eq('id', menuItemId)
     .maybeSingle();
   if (error) return { ok: false, error: 'menu_items_query_failed' };
   if (!data) return { ok: false, error: 'menu_item_not_found' };
+  let buffetPrices: MenuItemBuffetPriceMap = {};
+  if (pricing.buffetId && pricing.channel === 'dine_in') {
+    try {
+      buffetPrices = await loadMenuItemBuffetPriceMap(admin, restaurantId, {
+        buffetId: pricing.buffetId,
+        menuItemIds: [menuItemId],
+      });
+    } catch {
+      return { ok: false, error: 'menu_items_query_failed' };
+    }
+  }
   const rawLimit = data.per_person_qty_limit;
   const perPersonQtyLimit =
     typeof rawLimit === 'number' && Number.isInteger(rawLimit) && rawLimit >= 1 ? rawLimit : null;
@@ -956,7 +980,19 @@ export async function loadMenuItemForRoundLine(
     typeof rawOver === 'number' && Number.isFinite(rawOver) && rawOver >= 0 ? rawOver : null;
   return {
     ok: true,
-    price: coerceCartPrice(data.price),
+    price: coerceCartPrice(
+      menuItemUnitPriceForChannel({
+        item: {
+          id: data.id as string,
+          price: coerceCartPrice(data.price),
+          takeaway_role: data.takeaway_role as string | null,
+          takeaway_price: data.takeaway_price as number | string | null,
+        },
+        channel: pricing.channel,
+        buffetId: pricing.buffetId,
+        buffetPrices,
+      }),
+    ),
     available: data.available === true,
     per_person_qty_limit: perPersonQtyLimit,
     over_limit_unit_price: overLimitUnitPrice,

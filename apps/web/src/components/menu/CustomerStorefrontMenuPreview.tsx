@@ -16,6 +16,7 @@ import {
 } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
 import { getDemoMenuCatalog } from '@/lib/demo-menu-catalog';
+import { menuItemWithChannelDisplayPrice } from '@/lib/instore-takeaway';
 import { DEMO_RESTAURANT } from '@/lib/demo-data';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import {
@@ -47,7 +48,14 @@ export function CustomerStorefrontMenuPreview({
   const view = useMemo(
     () =>
       resolveCustomerMenuCatalogView({
-        menuItems: catalog.menuItems,
+        // Demo storefront: dine-in, no table buffet → original prices.
+        menuItems: catalog.menuItems.map((item) =>
+          menuItemWithChannelDisplayPrice(item, {
+            channel: 'dine_in',
+            buffetId: null,
+            buffetPrices: catalog.menuItemBuffetPrices,
+          }),
+        ),
         menuCategories: catalog.menuCategories,
         recommendedItemIds: catalog.recommendedItemIds,
         menuTimeSlotId: null,

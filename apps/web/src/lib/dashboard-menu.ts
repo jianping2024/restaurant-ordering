@@ -13,6 +13,9 @@ import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { DISH_VIDEO_GATE_RESTAURANT_COLUMNS } from '@/lib/menu-dish-video';
 import { resolveDishVideoAccess } from '@/lib/menu-dish-video-access';
+import type { MenuItemBuffetPriceMap } from '@/lib/instore-takeaway';
+import { loadMenuItemBuffetPriceMap } from '@/lib/menu-item-buffet-prices';
+import type { Buffet } from '@/types';
 
 export type DashboardMenu =
   | {
@@ -27,6 +30,10 @@ export type DashboardMenu =
       choiceOptions: MenuChoiceOption[];
       /** Slot choices for the dish form (`menu_items.time_slot_id`). */
       menuTimeSlots: MenuTimeSlot[];
+      /** Dish form「Buffet 价格」rows (same map shape as the guest catalog). */
+      menuItemBuffetPrices: MenuItemBuffetPriceMap;
+      /** Buffets for the dish form picker (active ones are offered; disabled keep their rows). */
+      buffets: Array<Pick<Buffet, 'id' | 'name' | 'is_active'>>;
       canManagePrintStations: boolean;
       /** Pro `menu_dish_video` + `dashboard.menu.video.manage`: generate/change dish videos. */
       canManageDishVideo: boolean;
@@ -59,6 +66,8 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     choiceDictionary,
     { data: restaurantFlags },
     menuTimeSlots,
+    menuItemBuffetPrices,
+    { data: buffets, error: buffetsError },
   ] = await Promise.all([
     ctx.admin
       .from('menu_items')
@@ -91,6 +100,12 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
       .eq('id', ctx.restaurantId)
       .maybeSingle(),
     loadMenuTimeSlots(ctx.admin, ctx.restaurantId),
+    loadMenuItemBuffetPriceMap(ctx.admin, ctx.restaurantId),
+    ctx.admin
+      .from('buffets')
+      .select('id, name, is_active')
+      .eq('restaurant_id', ctx.restaurantId)
+      .order('name'),
   ]);
 
   if (itemsError) {
@@ -104,6 +119,9 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
   }
   if (recommendedError) {
     return { error: 'recommended_query_failed', status: 500 };
+  }
+  if (buffetsError) {
+    return { error: 'buffets_query_failed', status: 500 };
   }
   if ('error' in noteDictionary) {
     return { error: noteDictionary.error, status: noteDictionary.status };
@@ -130,6 +148,8 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     choiceGroups: choiceDictionary.groups,
     choiceOptions: choiceDictionary.options,
     menuTimeSlots,
+    menuItemBuffetPrices,
+    buffets: (buffets ?? []) as Array<Pick<Buffet, 'id' | 'name' | 'is_active'>>,
     canManagePrintStations,
     canManageDishVideo: dishVideo.canManage,
     dishVideoPro: dishVideo.pro,

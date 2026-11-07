@@ -19,6 +19,8 @@ import { listMenuChoiceDictionary } from '@/lib/menu-choice-options-server';
 import { normalizeToppingBinding } from '@/lib/menu-topping-binding';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
+import type { MenuItemBuffetPriceMap } from '@/lib/instore-takeaway';
+import { loadMenuItemBuffetPriceMap } from '@/lib/menu-item-buffet-prices';
 
 export function customerMenuCatalogTag(restaurantId: string): string {
   return `customer-menu-catalog:${restaurantId}`;
@@ -72,6 +74,8 @@ export type CustomerMenuCatalogRows = {
   choiceCatalog: MenuChoiceCatalog;
   /** Slot windows for `menu_items.time_slot_id` (guest filters per table session). */
   menuTimeSlots: MenuTimeSlot[];
+  /** Per-buffet dine-in dish prices; priced per table via `menuItemWithChannelDisplayPrice`. */
+  menuItemBuffetPrices: MenuItemBuffetPriceMap;
 };
 
 function normalizeCatalogMenuItems(rows: MenuItem[]): MenuItem[] {
@@ -102,6 +106,7 @@ async function loadCustomerMenuCatalogUncached(
     choiceDictionary,
     menuTimeSlots,
     { data: dishVideoGate },
+    menuItemBuffetPrices,
   ] = await Promise.all([
     admin
       .from('menu_items')
@@ -124,6 +129,7 @@ async function loadCustomerMenuCatalogUncached(
     listMenuChoiceDictionary(admin, restaurantId),
     loadMenuTimeSlots(admin, restaurantId),
     admin.from('restaurants').select(DISH_VIDEO_GATE_RESTAURANT_COLUMNS).eq('id', restaurantId).maybeSingle(),
+    loadMenuItemBuffetPriceMap(admin, restaurantId),
   ]);
 
   if ('error' in noteDictionary) {
@@ -146,6 +152,7 @@ async function loadCustomerMenuCatalogUncached(
       choiceDictionary.options,
     ),
     menuTimeSlots,
+    menuItemBuffetPrices,
     dishVideoGate: (dishVideoGate as DishVideoGateRestaurant | null) ?? null,
     catalogVersion,
   };

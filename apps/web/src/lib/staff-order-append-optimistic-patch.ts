@@ -40,7 +40,7 @@ function cartLinesToOrderItems(
       name_zh: line.name_zh ?? menu?.name_zh ?? undefined,
       qty: coerceCartQty(line.qty),
       note: line.note?.trim() || undefined,
-      price: coerceCartPrice(line.price ?? menu?.price),
+      price: coerceCartPrice(line.price),
       emoji: line.emoji || menu?.emoji || '🍽️',
       item_code: menu?.item_code?.trim() || null,
       item_status: 'pending',

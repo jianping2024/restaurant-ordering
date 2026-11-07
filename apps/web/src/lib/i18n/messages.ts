@@ -476,6 +476,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: '请选择 VAT 税率',
       vatRateShort: 'VAT {rate}%',
+      buffetPricesTitle: 'Buffet 价格',
+      buffetPricesHint:
+        '逐条添加：这桌当前套餐有配置就按配置价，没配置的套餐走原价；外卖不受影响。寿司模式下填 0 = 含在套餐内（按每人限量）。',
+      buffetPriceBuffetLabel: '套餐',
+      buffetPriceAdd: '添加 Buffet 价格',
+      buffetPriceRemove: '删除{name}价格',
+      buffetPriceInvalid: '价格须 ≥ 0',
+      buffetPriceInactiveSuffix: '（已停用）',
       sushiLimitHint:
         '寿司自助模式下生效：每人限量与超额单价须同时填写；留空表示该菜无限量。客人只能点到免费额度，员工代点可超额。',
       perPersonQtyLimit: '每人限量（份）',
@@ -2379,6 +2387,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: 'Please select a VAT rate',
       vatRateShort: 'VAT {rate}%',
+      buffetPricesTitle: 'Buffet prices',
+      buffetPricesHint:
+        'One row per buffet: a table on that buffet pays this price; other buffets pay the regular price. Take-away is not affected. In sushi mode, 0 = included in the buffet (per-person limit applies).',
+      buffetPriceBuffetLabel: 'Buffet',
+      buffetPriceAdd: 'Add buffet price',
+      buffetPriceRemove: 'Remove {name} price',
+      buffetPriceInvalid: 'Price must be ≥ 0',
+      buffetPriceInactiveSuffix: ' (disabled)',
       sushiLimitHint:
         'Applies in sushi buffet mode: per-person limit and overage price must both be set; leave empty for unlimited. Guests stop at the free allowance; staff can add more.',
       perPersonQtyLimit: 'Per-person limit',
@@ -3828,6 +3844,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: 'Selecione a taxa IVA',
       vatRateShort: 'IVA {rate}%',
+      buffetPricesTitle: 'Preços por buffet',
+      buffetPricesHint:
+        'Uma linha por buffet: a mesa com esse buffet paga este preço; os outros buffets pagam o preço normal. Take-away não é afetado. No modo sushi, 0 = incluído no buffet (aplica-se o limite por pessoa).',
+      buffetPriceBuffetLabel: 'Buffet',
+      buffetPriceAdd: 'Adicionar preço de buffet',
+      buffetPriceRemove: 'Remover preço de {name}',
+      buffetPriceInvalid: 'O preço deve ser ≥ 0',
+      buffetPriceInactiveSuffix: ' (desativado)',
       sushiLimitHint:
         'No modo sushi: limite por pessoa e preco extra juntos; vazio = ilimitado. Clientes param na franquia; staff pode ultrapassar.',
       perPersonQtyLimit: 'Limite por pessoa',

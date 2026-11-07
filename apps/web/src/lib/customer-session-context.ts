@@ -12,6 +12,7 @@ import {
 } from '@/lib/guest-ordering-notice';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
+import { currentTableBuffet } from '@/lib/buffet-order';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type {
   WaiterTableDetailData,
@@ -127,9 +128,9 @@ export function applyCustomerSessionScopeMerge(
   };
 }
 
-/** Columns needed for guest ordering gate + menu session identity. */
+/** Columns needed for guest ordering gate + menu session identity (+ current buffet for dish prices). */
 const CUSTOMER_SESSION_SELECT =
-  'id, restaurant_id, table_id, status, opened_at, ordering_channel';
+  'id, restaurant_id, table_id, status, opened_at, ordering_channel, current_buffet_id:table_session_current_buffet_id';
 
 /** Columns needed for menu footer / ordered drawer (billable lines + display). */
 const CUSTOMER_SESSION_ORDER_SELECT =
@@ -223,6 +224,7 @@ export function customerSessionContextFromWaiterDetail(
         status: sessionMeta.status,
         opened_at: sessionMeta.openedAt,
         ordering_channel: normalizeOrderingChannel(sessionMeta.orderingChannel),
+        current_buffet_id: currentTableBuffet(detail.orders)?.buffetId ?? null,
       }
     : null;
 

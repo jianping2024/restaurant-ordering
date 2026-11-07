@@ -2,7 +2,11 @@ import { coerceCartPrice } from '@/lib/cart-totals';
 import { mintBrowserUuid } from '@/lib/browser-uuid';
 import { cartConfigIdentityKey } from '@/lib/menu-dish-order-config';
 import type { MenuToppingPick } from '@/lib/menu-topping-binding';
+import type { TablePriced } from '@/lib/instore-takeaway';
 import type { CartItem, MenuItem } from '@/types';
+
+/** Cart lines price only from rows already priced for this table. */
+type PricedMenuItem = TablePriced<MenuItem>;
 
 export type CartLineConfig = {
   choicePicks?: Readonly<Record<string, string>>;
@@ -45,11 +49,11 @@ function emptyConfig(): CartLineConfig {
   };
 }
 
-/** Unit price = main + Σ(topping unit × topping qty). */
+/** Unit price = main + Σ(topping unit × topping qty); every row is table-priced. */
 export function cartLineUnitPrice(
-  item: MenuItem,
+  item: PricedMenuItem,
   toppingPicks: readonly { menuItemId: string; qty: number }[] | undefined,
-  allItems: readonly MenuItem[],
+  allItems: readonly PricedMenuItem[],
 ): number {
   let sum = coerceCartPrice(item.price);
   for (const t of toppingPicks ?? []) {
@@ -61,10 +65,10 @@ export function cartLineUnitPrice(
 }
 
 function buildCartLine(
-  item: MenuItem,
+  item: PricedMenuItem,
   qty: number,
   config: CartLineConfig,
-  allItems: readonly MenuItem[] = [],
+  allItems: readonly PricedMenuItem[] = [],
   lineId?: string,
 ): CartItem {
   const toppingPicks = (config.toppingPicks ?? [])
@@ -93,7 +97,7 @@ function buildCartLine(
  */
 export function upsertCartItemQty(
   prev: readonly CartItem[],
-  item: MenuItem,
+  item: PricedMenuItem,
   nextQty: number,
 ): CartItem[] {
   const emptyKey = cartLineIdentityKey({
@@ -115,10 +119,10 @@ export function upsertCartItemQty(
 /** Add/merge one configured (or plain) line by full identity; deltaQty usually +1. */
 export function upsertCartLineByConfig(
   prev: readonly CartItem[],
-  item: MenuItem,
+  item: PricedMenuItem,
   config: CartLineConfig,
   deltaQty: number,
-  allItems: readonly MenuItem[] = [],
+  allItems: readonly PricedMenuItem[] = [],
 ): CartItem[] {
   if (!Number.isFinite(deltaQty) || deltaQty === 0) return [...prev];
   const key = cartLineIdentityKey({

@@ -23,9 +23,27 @@ function mockAdminForAppend(
     { id: CAT_RE, parent_id: null, item_code: 'RE' },
   ],
   slotRows: Array<Record<string, unknown>> = [],
+  buffetPriceRows: Array<Record<string, unknown>> = [],
 ): SupabaseClient {
   return {
     from(table: string) {
+      if (table === 'menu_item_buffet_prices') {
+        const filters: Record<string, unknown> = {};
+        const chain = {
+          select: () => chain,
+          eq: (col: string, val: unknown) => {
+            filters[col] = val;
+            return chain;
+          },
+          in: async (_col: string, ids: string[]) => ({
+            data: buffetPriceRows.filter(
+              (row) => ids.includes(String(row.menu_item_id)) && row.buffet_id === filters.buffet_id,
+            ),
+            error: null,
+          }),
+        };
+        return chain;
+      }
       if (table === 'buffet_time_slots') {
         const chain = {
           select: () => chain,
@@ -204,6 +222,7 @@ describe('resolveAppendCartItems', () => {
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 2 }],
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
       batchId: 'batch-test',
       addedAt: '2026-05-29T12:00:00.000Z',
     });
@@ -217,12 +236,75 @@ describe('resolveAppendCartItems', () => {
     assert.deepEqual(r.items[0].category_code_path, ['RE']);
   });
 
+  it('prices by the table current buffet (config, else original); voided buffet line ignored', async () => {
+    const BUFFET_LUNCH = 'b0000001-0000-4000-8000-000000000001';
+    const BUFFET_OLD = 'b0000002-0000-4000-8000-000000000002';
+    const MENU_B = 'a0000002-0000-4000-8000-0000000000b2';
+    const menuRow = (id: string, price: string) => ({
+      id,
+      category_id: CAT_RE,
+      name_pt: id === MENU_A ? 'Peixe' : 'Sopa',
+      name_en: null,
+      name_zh: null,
+      price,
+      emoji: '🐟',
+      available: true,
+      item_code: id === MENU_A ? '001' : '002',
+    });
+    const buffetLine = (buffetId: string, item_status: 'done' | 'voided', added_at: string) => ({
+      id: `buffet:${buffetId}`,
+      kind: 'buffet_base' as const,
+      name: 'Buffet',
+      name_pt: 'Buffet',
+      qty: 1,
+      price: 20,
+      emoji: '🍽️',
+      item_status,
+      buffet_id: buffetId,
+      adult_count: 1,
+      child_count: 0,
+      added_at,
+    });
+    const r = await resolveAppendCartItems({
+      admin: mockAdminForAppend(
+        [menuRow(MENU_A, '12.5'), menuRow(MENU_B, '4')],
+        undefined,
+        [],
+        [
+          { menu_item_id: MENU_A, buffet_id: BUFFET_LUNCH, price: '0.00' },
+          { menu_item_id: MENU_B, buffet_id: BUFFET_OLD, price: '1.00' },
+        ],
+      ),
+      restaurantId: RESTAURANT_ID,
+      rawItems: [
+        { menu_item_id: MENU_A, qty: 1 },
+        { menu_item_id: MENU_B, qty: 1 },
+      ],
+      sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [
+        {
+          status: 'done',
+          items: [
+            buffetLine(BUFFET_OLD, 'voided', '2026-05-29T11:00:00.000Z'),
+            buffetLine(BUFFET_LUNCH, 'done', '2026-05-29T11:30:00.000Z'),
+          ],
+        },
+      ],
+    });
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.pricedBuffetId, BUFFET_LUNCH);
+    assert.equal(r.items.find((i) => i.id === MENU_A)?.price, 0);
+    assert.equal(r.items.find((i) => i.id === MENU_B)?.price, 4);
+  });
+
   it('returns menu_item_not_found when id missing from query', async () => {
     const r = await resolveAppendCartItems({
       admin: mockAdminForAppend([]),
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
     });
     assert.equal(r.ok, false);
     if (r.ok) return;
@@ -245,6 +327,7 @@ describe('resolveAppendCartItems', () => {
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
     });
     assert.equal(r.ok, false);
     if (r.ok) return;
@@ -261,6 +344,7 @@ describe('resolveAppendCartItems', () => {
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_A, qty: 1 }],
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
     });
     assert.equal(ok.ok, true);
 
@@ -272,6 +356,7 @@ describe('resolveAppendCartItems', () => {
         { menu_item_id: MENU_B, qty: 1 },
       ],
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
     });
     assert.equal(rejected.ok, false);
     if (rejected.ok) return;
@@ -283,6 +368,7 @@ describe('resolveAppendCartItems', () => {
       restaurantId: RESTAURANT_ID,
       rawItems: [{ menu_item_id: MENU_B, qty: 1 }],
       sessionOpenedAt: '2026-10-20T17:30:00.000Z',
+      sessionOrders: [],
     });
     assert.equal(early.ok, true);
   });
@@ -306,6 +392,7 @@ describe('resolveAppendCartItems', () => {
       restaurantId: RESTAURANT_ID,
       rawItems,
       sessionOpenedAt: OPENED_AT_LUNCH,
+      sessionOrders: [],
       batchId: 'batch-chunk',
       addedAt: '2026-10-02T12:00:00.000Z',
     });

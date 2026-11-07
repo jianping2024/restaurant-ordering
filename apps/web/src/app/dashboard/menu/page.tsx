@@ -42,6 +42,8 @@ export default async function MenuPage({ searchParams }: Props) {
         initialChoiceGroups={loaded.choiceGroups}
         initialChoiceOptions={loaded.choiceOptions}
         menuTimeSlots={loaded.menuTimeSlots}
+        initialMenuItemBuffetPrices={loaded.menuItemBuffetPrices}
+        buffets={loaded.buffets}
       />
     </Suspense>
   );

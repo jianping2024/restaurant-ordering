@@ -261,6 +261,10 @@ sole `isBillableSessionRowOnPaper` / `buildPaperBillableSessionItems` (`billable
 
 ## 顾客菜单 / 菜卡 / sushi round
 
+### 菜品按套餐取价
+
+sole unit price `menuItemUnitPriceForChannel({ item, channel, buffetId, buffetPrices })` (takeaway 不看套餐配置；堂食 = 当前套餐配置价 else 原价); table-priced rows sole `menuItemWithChannelDisplayPrice` → brand `TablePriced<MenuItem>` — `resolveCustomerMenuCatalogView` / cart (`cartLineUnitPrice`, `upsertCartItemQty`, `upsertCartLineByConfig`) only accept priced rows; pages price the catalog once (`MenuOrderingController` / `SushiMenuPage`); server `resolveAppendCartItems` + `loadMenuItemForRoundLine` price by `currentTableBuffet(sessionOrders)`; sushi free = `isSushiRoundFreeMenuPrice(priced price)`. Config table sole `menu_item_buffet_prices` (map `loadMenuItemBuffetPriceMap`, catalog `menuItemBuffetPrices`), dish form sole `MenuItemBuffetPricesField` → `replace_menu_item_buffet_prices`. Never read `menu_items.price` / `menu.price !== 0` to decide a unit price or free.
+
 ### Guest geo fence browser position
 
 sole `getBrowserPositionForGeoFence` (high accuracy then coarse) for settings anchor + `resolveCustomerGeoForOrder`; default `order_radius_meters` 500 — never a parallel guest-only coarse `PositionOptions` beside settings.

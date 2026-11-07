@@ -26,10 +26,11 @@ import {
   shouldRenderSushiRoundMenuPage,
 } from '@/lib/table-order-round/settings';
 import { GuestTableStandaloneTitle } from '@/components/pwa/GuestTableStandaloneTitle';
-import { resolveTableOrderingChannel } from '@/lib/instore-takeaway';
+import { resolveTableOrderingChannel, type MenuItemBuffetPriceMap } from '@/lib/instore-takeaway';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 
 const EMPTY_MENU_TIME_SLOTS: MenuTimeSlot[] = [];
+const EMPTY_MENU_ITEM_BUFFET_PRICES: MenuItemBuffetPriceMap = {};
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
@@ -119,6 +120,7 @@ export function MenuPage({
   const notePresetCatalog = catalog?.notePresetCatalog ?? { groups: [] };
   const choiceCatalog = catalog?.choiceCatalog ?? { groups: [] };
   const menuTimeSlots = catalog?.menuTimeSlots ?? EMPTY_MENU_TIME_SLOTS;
+  const menuItemBuffetPrices = catalog?.menuItemBuffetPrices ?? EMPTY_MENU_ITEM_BUFFET_PRICES;
   const guestListMotionEnabled = catalog?.guestListMotionEnabled === true;
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
@@ -158,6 +160,7 @@ export function MenuPage({
         restaurant={restaurantWithNotice}
         sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
         menuItems={menuItems}
+        menuItemBuffetPrices={menuItemBuffetPrices}
         menuCategories={menuCategories}
         recommendedItemIds={recommendedItemIds}
         menuTimeSlots={menuTimeSlots}
@@ -175,6 +178,7 @@ export function MenuPage({
       <MenuOrderingController
         restaurant={restaurantWithNotice}
         menuItems={menuItems}
+        menuItemBuffetPrices={menuItemBuffetPrices}
         menuCategories={menuCategories}
         recommendedItemIds={recommendedItemIds}
         menuTimeSlots={menuTimeSlots}

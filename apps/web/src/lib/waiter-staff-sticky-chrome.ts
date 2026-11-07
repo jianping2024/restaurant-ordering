@@ -103,10 +103,11 @@ export const checkoutSettlementBarStickyShellClass = [
 ].join(' ');
 
 /**
- * Sole sticky shell for dashboard primary action toolbars (e.g. menu 添加菜品 /
- * 添加分组) under the staff top bar. Opaque paper fill so list rows never show
- * through; never bare `top-0`. Call sites own outer spacing (`mb-*` / `space-y-*`).
- * Settings profile save lives at the form bottom (not this sticky shell).
+ * Sole sticky shell for dashboard primary action toolbars under the staff top
+ * bar (menu 添加菜品 / 备注分组、桌位配置筛选·保存·打印). Opaque paper fill so
+ * list rows never show through; never bare `top-0`. Call sites own outer
+ * spacing (`mb-*` / `space-y-*`). Settings profile save lives at the form
+ * bottom (not this sticky shell).
  */
 export const dashboardStickyToolbarShellClass = [
   'sticky',

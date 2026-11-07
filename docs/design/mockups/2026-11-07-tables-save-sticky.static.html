@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>桌位配置 · 保存栏不滚走 — 静态对比稿</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --on-gold: 255 250 240;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --danger: 180 60 50;
+      --staff-h: 3.5rem;
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.65rem;
+      margin: 0 0 6px;
+    }
+    .lede {
+      margin: 0 0 14px;
+      color: rgb(var(--ink-muted));
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 52rem;
+    }
+    .rules {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 20px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      font-size: 0.875rem;
+      line-height: 1.45;
+      max-width: 52rem;
+    }
+    .rules strong { color: rgb(var(--gold)); font-weight: 600; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] {
+      background: rgb(var(--ink));
+      color: #f7f3ea;
+      border-color: rgb(var(--ink));
+    }
+    .hint {
+      margin: 0 0 14px;
+      font-size: 0.875rem;
+      color: rgb(var(--ink-muted));
+      line-height: 1.5;
+      max-width: 48rem;
+    }
+    .hint em { font-style: normal; color: rgb(var(--gold)); font-weight: 600; }
+    .stage { display: none; }
+    .stage[data-active="true"] { display: block; }
+    .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgb(var(--ink-muted));
+      margin-bottom: 10px;
+    }
+    .badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      letter-spacing: 0;
+      text-transform: none;
+      vertical-align: middle;
+      border: 1px solid rgb(var(--border));
+      color: rgb(var(--ink-muted));
+    }
+    .badge.rec {
+      border-color: rgb(var(--gold) / 0.45);
+      color: rgb(var(--gold));
+      background: rgb(var(--gold) / 0.1);
+    }
+
+    /* Phone / desktop viewport that scrolls */
+    .device {
+      width: min(100%, 420px);
+      height: 640px;
+      border-radius: 18px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--bg));
+      box-shadow: 0 18px 48px rgb(31 62 82 / 0.14);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .device.wide {
+      width: min(100%, 920px);
+      height: 560px;
+    }
+    .staff-bar {
+      flex: 0 0 var(--staff-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      background: rgb(var(--card));
+      border-bottom: 1px solid rgb(var(--border));
+      font-size: 0.8rem;
+      z-index: 30;
+    }
+    .staff-bar .brand {
+      font-family: var(--serif);
+      font-weight: 600;
+      color: rgb(var(--ink));
+    }
+    .staff-bar .nav {
+      color: rgb(var(--ink-muted));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .staff-bar .nav b {
+      color: rgb(var(--gold));
+      font-weight: 600;
+    }
+    .scroll {
+      flex: 1;
+      overflow: auto;
+      overscroll-behavior: contain;
+      position: relative;
+    }
+    .content {
+      padding: 14px 14px 28px;
+    }
+    .title {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      color: rgb(var(--gold));
+      margin: 0 0 12px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 0 12px;
+      border-top: 1px solid rgb(var(--border) / 0.55);
+      margin-bottom: 10px;
+    }
+    .meta {
+      width: 100%;
+      font-size: 0.75rem;
+      color: rgb(var(--ink-muted));
+    }
+    .meta .dirty { color: rgb(var(--gold)); }
+    .field, .btn {
+      border: 1px solid rgb(var(--border));
+      border-radius: 8px;
+      background: rgb(var(--bg));
+      color: rgb(var(--text));
+      font-size: 0.8rem;
+      padding: 7px 10px;
+    }
+    .field { min-width: 7rem; flex: 1 1 7rem; }
+    .btn { cursor: default; white-space: nowrap; }
+    .btn.outline { background: transparent; }
+    .btn.gold {
+      background: rgb(var(--gold));
+      border-color: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      font-weight: 600;
+    }
+    .btn:disabled, .btn[aria-disabled="true"] {
+      opacity: 0.45;
+    }
+    .card {
+      border: 1px solid rgb(var(--border));
+      border-radius: 14px;
+      background: rgb(var(--card));
+      overflow: hidden;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 4.5rem 3.5rem 4rem;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-top: 1px solid rgb(var(--border) / 0.45);
+      font-size: 0.8rem;
+    }
+    .row.head {
+      border-top: 0;
+      font-size: 0.7rem;
+      color: rgb(var(--ink-muted));
+      background: rgb(var(--bg) / 0.55);
+    }
+    .row input {
+      width: 100%;
+      border: 1px solid rgb(var(--border));
+      border-radius: 6px;
+      background: rgb(var(--bg));
+      padding: 5px 7px;
+      font: inherit;
+      color: inherit;
+    }
+    .qr {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background:
+        linear-gradient(45deg, rgb(var(--ink) / 0.12) 25%, transparent 25%) 0 0 / 8px 8px,
+        linear-gradient(-45deg, rgb(var(--ink) / 0.12) 25%, transparent 25%) 0 0 / 8px 8px,
+        rgb(var(--bg));
+      border: 1px solid rgb(var(--border) / 0.6);
+    }
+    .scroll-cue {
+      margin: 8px 0 0;
+      font-size: 0.75rem;
+      color: rgb(var(--ink-muted));
+      text-align: center;
+    }
+    .btn.gold.save-mark {
+      box-shadow: 0 0 0 2px rgb(var(--gold) / 0.35);
+    }
+    .lost-banner {
+      display: none;
+      position: sticky;
+      top: 8px;
+      z-index: 25;
+      margin: 0 0 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgb(var(--danger) / 0.35);
+      background: rgb(255 245 243);
+      color: rgb(var(--danger));
+      font-size: 0.78rem;
+      line-height: 1.4;
+      text-align: center;
+    }
+    .lost-banner[data-show="true"] { display: block; }
+
+    /* Sticky shells matching product tokens (approx) */
+    .sticky-top-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -14px;
+      padding: 10px 14px;
+      background: rgb(var(--bg));
+      border-bottom: 1px solid rgb(var(--border) / 0.4);
+    }
+    .sticky-top-toolbar .toolbar {
+      border-top: 0;
+      margin-bottom: 0;
+      padding-top: 0;
+    }
+    .sticky-save-strip {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -14px 10px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      background: rgb(var(--bg));
+      border-bottom: 1px solid rgb(var(--border) / 0.4);
+    }
+    .sticky-save-strip .left {
+      font-size: 0.78rem;
+      color: rgb(var(--gold));
+    }
+    .sticky-bottom-save {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      margin: 12px -14px -28px;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      background: rgb(var(--bg) / 0.95);
+      border-top: 1px solid rgb(var(--border) / 0.55);
+      backdrop-filter: blur(6px);
+    }
+    .sticky-bottom-save .left {
+      font-size: 0.78rem;
+      color: rgb(var(--gold));
+    }
+    .grid2 {
+      display: grid;
+      gap: 22px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 980px) {
+      .grid2.side { grid-template-columns: 420px 1fr; align-items: start; }
+    }
+    .note {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: rgb(var(--ink-muted));
+      line-height: 1.45;
+      max-width: 36rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>桌位配置 · 保存栏不滚走</h1>
+    <p class="lede">
+      可滚动静态对比。请在右侧/下方视口内<strong>向下滚</strong>，看「保存桌位设置」是否仍留在视野里。
+      数据为示意，不接真实接口。
+    </p>
+    <div class="rules">
+      <div><strong>现状</strong>：保存在卡片顶工具行，随列表滚走。</div>
+      <div><strong>方案 A</strong>：整条工具栏顶 sticky（对齐菜单添加条）。</div>
+      <div><strong>方案 B（推荐）</strong>：有未保存时，底部 sticky 提交条。</div>
+      <div><strong>方案 C</strong>：顶下一道窄「未保存 + 保存」条；筛选仍在文档流。</div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="方案切换">
+      <button class="tab" role="tab" aria-selected="true" data-tab="now">现状</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="a">方案 A · 整条顶 sticky</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="b">方案 B · 底栏提交</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="c">方案 C · 窄顶提交条</button>
+    </div>
+
+    <!-- NOW -->
+    <section class="stage" data-stage="now" data-active="true">
+      <p class="hint">金色「保存桌位设置」在<strong>顶部工具行</strong>。向下滚列表后会离开视口——这是当前线上行为，不是丢了。滚回顶部，或切到方案 B 看钉住效果。</p>
+      <div class="grid2 side">
+        <div>
+          <div class="label">手机宽 · 请在框内滚动</div>
+          <div class="device" data-demo="now"></div>
+        </div>
+        <div>
+          <div class="label">桌面宽</div>
+          <div class="device wide" data-demo="now"></div>
+          <p class="note">工具行与表格同在文档流；无 sticky。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- A -->
+    <section class="stage" data-stage="a" data-active="false">
+      <p class="hint">复用 <em>dashboardStickyToolbarShellClass</em>：筛选/添加/保存/打印整条钉在顶栏下。</p>
+      <div class="grid2 side">
+        <div>
+          <div class="label">手机宽 <span class="badge">仓内复用</span></div>
+          <div class="device" data-demo="a"></div>
+        </div>
+        <div>
+          <div class="label">桌面宽</div>
+          <div class="device wide" data-demo="a"></div>
+          <p class="note">保存始终可见，但 sticky 条较高（尤其窄屏折行）。语义偏「工具常驻」，不是「提交脏改动」。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- B -->
+    <section class="stage" data-stage="b" data-active="false">
+      <p class="hint">有未保存时，<em>底部 sticky 提交条</em>（对齐 Modal footer / 常见 unsaved bar）。筛选工具仍在上方文档流。</p>
+      <div class="grid2 side">
+        <div>
+          <div class="label">手机宽 <span class="badge rec">推荐</span></div>
+          <div class="device" data-demo="b"></div>
+        </div>
+        <div>
+          <div class="label">桌面宽</div>
+          <div class="device wide" data-demo="b"></div>
+          <p class="note">滚到列表中下部时，拇指区仍能点保存。干净态可隐藏底栏（本演示固定显示 dirty）。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- C -->
+    <section class="stage" data-stage="c" data-active="false">
+      <p class="hint">仅钉一道窄条「有未保存的更改 + 保存」；搜索/添加/打印仍可滚走。</p>
+      <div class="grid2 side">
+        <div>
+          <div class="label">手机宽 <span class="badge">次选</span></div>
+          <div class="device" data-demo="c"></div>
+        </div>
+        <div>
+          <div class="label">桌面宽</div>
+          <div class="device wide" data-demo="c"></div>
+          <p class="note">占高最小；筛选滚走后需滚回顶部才能改筛选。</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <template id="rows-tpl">
+    <!-- filled by JS -->
+  </template>
+
+  <script>
+    const NAMES = [
+      '90','A-01','91','A-02','A-03','A-04','A-05','A-06','A-07','A-08',
+      'B-01','B-02','B-03','B-04','B-05','C-01','C-02','D-01','E-01','F-01','G-06'
+    ];
+
+    function rowsHtml() {
+      const head = `<div class="row head"><span>桌位</span><span>座位</span><span>分组</span><span>二维码</span></div>`;
+      const body = NAMES.map((n, i) => `
+        <div class="row">
+          <input value="${n}" aria-label="桌号 ${n}" />
+          <span>2–4</span>
+          <span>${i % 3 === 0 ? '大厅' : '—'}</span>
+          <span class="qr" aria-hidden="true"></span>
+        </div>
+      `).join('');
+      return head + body;
+    }
+
+    function toolbarHtml(opts = {}) {
+      const { saveDisabled = false, hideSave = false, markSave = false } = opts;
+      const saveClass = markSave ? 'btn gold save-mark' : 'btn gold';
+      return `
+        <div class="toolbar">
+          <div class="meta">共 ${NAMES.length} 桌 · <span class="dirty">有未保存的更改 (3)</span></div>
+          <input class="field" placeholder="搜索桌号" />
+          <select class="field" style="flex:0 1 6rem"><option>全部分组</option></select>
+          <button type="button" class="btn outline">批量管理</button>
+          <span style="flex:1 1 auto"></span>
+          <input class="field" style="flex:0 0 3.5rem;text-align:center" value="1" />
+          <button type="button" class="btn outline">添加桌位</button>
+          ${hideSave ? '' : `<button type="button" class="${saveClass}" data-save-btn ${saveDisabled ? 'aria-disabled="true"' : ''}>保存桌位设置</button>`}
+          <button type="button" class="btn outline">打印全部</button>
+        </div>
+      `;
+    }
+
+    function buildDemo(kind) {
+      const staff = `
+        <div class="staff-bar">
+          <span class="brand">FARVOO</span>
+          <span class="nav">Washoku … · <b>桌位配置</b></span>
+        </div>`;
+
+      let inner = '';
+      if (kind === 'now') {
+        inner = `
+          <div class="scroll">
+            <div class="content">
+              <h2 class="title">桌位点餐二维码</h2>
+              <div class="lost-banner" data-lost-banner>保存已滚出视口（现状）· ↑ 滚回顶部可见金色「保存桌位设置」</div>
+              <div class="card" style="padding:12px">
+                ${toolbarHtml({ markSave: true })}
+                <div>${rowsHtml()}</div>
+              </div>
+              <p class="scroll-cue">↑ 保存本来就在顶部工具行；滚下来看不见是正常的</p>
+            </div>
+          </div>`;
+      } else if (kind === 'a') {
+        inner = `
+          <div class="scroll">
+            <div class="content">
+              <h2 class="title">桌位点餐二维码</h2>
+              <div class="sticky-top-toolbar">${toolbarHtml({ markSave: true })}</div>
+              <div class="card"><div>${rowsHtml()}</div></div>
+              <p class="scroll-cue">↓ 整条工具栏（含保存）应一直钉在滚动区顶部</p>
+            </div>
+          </div>`;
+      } else if (kind === 'b') {
+        inner = `
+          <div class="scroll">
+            <div class="content">
+              <h2 class="title">桌位点餐二维码</h2>
+              ${toolbarHtml({ hideSave: true })}
+              <div class="card"><div>${rowsHtml()}</div></div>
+              <div class="sticky-bottom-save">
+                <span class="left">有未保存的更改 (3)</span>
+                <button type="button" class="btn gold save-mark" data-save-btn>保存桌位设置</button>
+              </div>
+            </div>
+          </div>`;
+      } else if (kind === 'c') {
+        inner = `
+          <div class="scroll">
+            <div class="content">
+              <h2 class="title">桌位点餐二维码</h2>
+              <div class="sticky-save-strip">
+                <span class="left">有未保存的更改 (3)</span>
+                <button type="button" class="btn gold save-mark" data-save-btn>保存桌位设置</button>
+              </div>
+              ${toolbarHtml({ hideSave: true })}
+              <div class="card"><div>${rowsHtml()}</div></div>
+              <p class="scroll-cue">↓ 仅窄提交条钉住；筛选会滚走</p>
+            </div>
+          </div>`;
+      }
+
+      return staff + inner;
+    }
+
+    document.querySelectorAll('[data-demo]').forEach((el) => {
+      el.innerHTML = buildDemo(el.getAttribute('data-demo'));
+      const kind = el.getAttribute('data-demo');
+      if (kind !== 'now') return;
+      const scroll = el.querySelector('.scroll');
+      const saveBtn = el.querySelector('[data-save-btn]');
+      const banner = el.querySelector('[data-lost-banner]');
+      if (!scroll || !saveBtn || !banner) return;
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          banner.setAttribute('data-show', String(!entry.isIntersecting));
+        },
+        { root: scroll, threshold: 0.15 },
+      );
+      io.observe(saveBtn);
+    });
+
+    const tabs = document.querySelectorAll('.tab');
+    const stages = document.querySelectorAll('.stage');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-tab');
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        stages.forEach((s) => s.setAttribute('data-active', String(s.getAttribute('data-stage') === id)));
+        // Reset demos in the newly shown stage to the top so save is findable.
+        document
+          .querySelectorAll(`.stage[data-stage="${id}"] .scroll`)
+          .forEach((sc) => { sc.scrollTop = 0; });
+      });
+    });
+  </script>
+</body>
+</html>

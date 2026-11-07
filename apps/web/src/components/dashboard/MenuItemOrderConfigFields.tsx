@@ -44,7 +44,7 @@ type Props = {
 };
 
 /**
- * Dish form: 口味只选分组 + 关联菜品（先选类别；子集只展示已选，添加从剩余挑）。
+ * Dish form: 口味只选分组 + 加料（先选类别；子集只展示已选，添加从剩余挑）。
  */
 export function MenuItemOrderConfigFields({
   lang,

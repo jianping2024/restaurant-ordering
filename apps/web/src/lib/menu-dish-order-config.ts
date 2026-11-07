@@ -50,9 +50,9 @@ export function configuredDishDraftWarn(params: {
     qty: p.qty,
   }));
   if (!toppingsSatisfied(params.toppingBinding, wireTops)) {
-    if (params.lang === 'zh') return '此菜关联菜品为必选：请至少选一种并设置数量。';
-    if (params.lang === 'pt') return 'Prato associado obrigatório: escolha pelo menos um.';
-    return 'Related dish required: pick at least one.';
+    if (params.lang === 'zh') return '此菜加料为必选：请至少选一种并设置数量。';
+    if (params.lang === 'pt') return 'Extra obrigatório: escolha pelo menos um.';
+    return 'Add-on required: pick at least one.';
   }
   return null;
 }

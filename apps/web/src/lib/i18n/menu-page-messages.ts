@@ -105,7 +105,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemDetailDone: string;
   /** Dish detail: choice groups section title. */
   itemDetailChoicesTitle: string;
-  /** Dish detail: related dishes (topping_binding) section title. */
+  /** Dish detail: add-ons (topping_binding) section title. */
   itemDetailRelatedDishesTitle: string;
   itemDetailRelatedDishesOptional: string;
   itemDetailRelatedDishesRequired: string;
@@ -207,7 +207,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: 'Adicionar ao carrinho',
     itemDetailDone: 'Concluído',
     itemDetailChoicesTitle: 'Escolhas',
-    itemDetailRelatedDishesTitle: 'Pratos associados',
+    itemDetailRelatedDishesTitle: 'Extras',
     itemDetailRelatedDishesOptional: 'Opcional',
     itemDetailRelatedDishesRequired: 'Obrigatório: escolha pelo menos um',
   },
@@ -308,7 +308,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: 'Add to cart',
     itemDetailDone: 'Done',
     itemDetailChoicesTitle: 'Choices',
-    itemDetailRelatedDishesTitle: 'Related dishes',
+    itemDetailRelatedDishesTitle: 'Add-ons',
     itemDetailRelatedDishesOptional: 'Optional',
     itemDetailRelatedDishesRequired: 'Required: pick at least one',
   },
@@ -409,7 +409,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: '加入购物车',
     itemDetailDone: '完成',
     itemDetailChoicesTitle: '口味',
-    itemDetailRelatedDishesTitle: '关联菜品',
+    itemDetailRelatedDishesTitle: '加料',
     itemDetailRelatedDishesOptional: '可选',
     itemDetailRelatedDishesRequired: '必选：至少选一种',
   },
@@ -517,7 +517,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: 'Añadir al carrito',
     itemDetailDone: 'Listo',
     itemDetailChoicesTitle: 'Opciones',
-    itemDetailRelatedDishesTitle: 'Platos asociados',
+    itemDetailRelatedDishesTitle: 'Extras',
     itemDetailRelatedDishesOptional: 'Opcional',
     itemDetailRelatedDishesRequired: 'Obligatorio: elija al menos uno',
   },
@@ -630,7 +630,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: 'Ajouter au panier',
     itemDetailDone: 'Terminé',
     itemDetailChoicesTitle: 'Choix',
-    itemDetailRelatedDishesTitle: 'Plats associés',
+    itemDetailRelatedDishesTitle: 'Extras',
     itemDetailRelatedDishesOptional: 'Facultatif',
     itemDetailRelatedDishesRequired: 'Obligatoire : choisissez au moins un',
   },
@@ -742,7 +742,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemDetailAddToCart: 'In den Warenkorb',
     itemDetailDone: 'Fertig',
     itemDetailChoicesTitle: 'Auswahl',
-    itemDetailRelatedDishesTitle: 'Zugehörige Gerichte',
+    itemDetailRelatedDishesTitle: 'Extras',
     itemDetailRelatedDishesOptional: 'Optional',
     itemDetailRelatedDishesRequired: 'Pflicht: mindestens eines wählen',
   },

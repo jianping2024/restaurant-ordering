@@ -90,8 +90,10 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { CustomerMenuDishSearch } from '@/components/menu/CustomerMenuDishSearch';
 import { CustomerMenuTableGuestsChrome } from '@/components/menu/CustomerMenuTableGuestsChrome';
 import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
+import { useGuestMenuDishLocate } from '@/lib/use-guest-menu-dish-locate';
 import {
   CustomerMenuStorefrontScroll,
   customerMenuCategoryScrollModeForStorefront,
@@ -374,6 +376,18 @@ export function MenuOrderingController({
   const subCategories = catalogView.subCategories;
   const currentSubpath = catalogView.currentSubpath;
   const currentItems = catalogView.currentItems;
+  const visibleItemIds = useMemo(
+    () => currentItems.map((item) => item.id),
+    [currentItems],
+  );
+  const navigateToDishCategory = useCallback((topCategoryId: string) => {
+    setActiveTopCategory(topCategoryId);
+    setActiveSubpath('');
+  }, []);
+  const { highlightMenuItemId, locateDish } = useGuestMenuDishLocate({
+    visibleItemIds,
+    onNavigateToCategory: navigateToDishCategory,
+  });
 
   const menuItemCodeById = useMemo(
     () => menuItemCodeLookupFromRows(menuItems),
@@ -1092,6 +1106,28 @@ export function MenuOrderingController({
         }
       />
 
+      {catalogReady ? (
+        <CustomerMenuDishSearch
+          lang={lang}
+          servedItems={catalogView.servedItems}
+          topCategoryIdByItemId={catalogView.topCategoryIdByItemId}
+          topCategories={catalogView.realTopCategories}
+          treatZeroAsFree={treatZeroAsFree}
+          copy={{
+            dishSearchPlaceholder: t.dishSearchPlaceholder,
+            dishSearchClear: t.dishSearchClear,
+            dishSearchAria: t.dishSearchAria,
+            dishSearchNoResults: t.dishSearchNoResults,
+            itemFree: t.itemFree,
+          }}
+          onLocate={(candidate) => {
+            setCartOpen(false);
+            setOrderedOpen(false);
+            locateDish(candidate);
+          }}
+        />
+      ) : null}
+
       {!isDemo ? (
         <CustomerMenuTableGuestsChrome guestCount={limitGuestCount} lang={lang} />
       ) : null}
@@ -1184,6 +1220,7 @@ export function MenuOrderingController({
                   treatZeroAsFree={treatZeroAsFree}
                   flavorHintsEnabled={flavorHintsEnabled}
                   listMotionEnabled={listMotionEnabled}
+                  locateHighlight={highlightMenuItemId === item.id}
                   onOpenDetail={() => {
                     setCartOpen(false);
                     setOrderedOpen(false);

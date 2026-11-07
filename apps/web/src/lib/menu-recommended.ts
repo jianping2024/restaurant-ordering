@@ -35,6 +35,11 @@ export type CustomerMenuCatalogView = {
   subCategories: MenuCategory[];
   currentSubpath: string;
   currentItems: MenuItem[];
+  /**
+   * Channel + time-slot filtered dishes (display prices). Guest dish search
+   * reads available rows that also appear in `topCategoryIdByItemId`.
+   */
+  servedItems: MenuItem[];
   /** Served dish id → nav top category id (rail cart-qty badge). */
   topCategoryIdByItemId: ReadonlyMap<string, string>;
 };
@@ -168,6 +173,7 @@ export function resolveCustomerMenuCatalogView(params: {
       currentTop: currentTopId,
       currentSubpath,
     }),
+    servedItems,
     topCategoryIdByItemId,
   };
 }

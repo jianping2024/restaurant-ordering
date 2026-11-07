@@ -343,6 +343,13 @@ body {
   backface-visibility: hidden;
 }
 
+/** Guest dish-search locate: brief gold ring (MenuItemCard locateHighlight). */
+.mesa-menu-item-card-locate-hit {
+  border-color: rgb(var(--color-brand-gold)) !important;
+  box-shadow: 0 0 0 3px rgb(var(--color-brand-gold) / 0.28);
+  background: color-mix(in srgb, rgb(var(--color-brand-card)) 88%, rgb(var(--color-brand-gold)));
+}
+
 /* Press: card sinks — not when the gold action / qty pill is the thing pressed. */
 .mesa-menu-item-card:active:not(:has(.mesa-menu-item-card-action:active)) {
   transform: translateY(1px) scale(0.99);

@@ -267,7 +267,7 @@ export type BuffetRuleInput = {
   time_slot_id: string;
   calendar_kind: BuffetCalendarKind;
   valid_from: string;
-  valid_to: string;
+  valid_to: string | null;
   adult_price: number;
   child_price: number;
   priority: number;
@@ -275,16 +275,25 @@ export type BuffetRuleInput = {
   note: string | null;
 };
 
+function parseOptionalValidTo(raw: unknown): string | null | MutationError {
+  if (raw == null || raw === '') return null;
+  if (typeof raw !== 'string') return { error: 'invalid_rule_body', status: 400 };
+  const trimmed = raw.trim().slice(0, 10);
+  return trimmed || null;
+}
+
 function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | MutationError {
   if (
     typeof raw.buffet_id !== 'string' ||
     typeof raw.time_slot_id !== 'string' ||
     typeof raw.calendar_kind !== 'string' ||
     typeof raw.valid_from !== 'string' ||
-    typeof raw.valid_to !== 'string'
+    !raw.valid_from.trim()
   ) {
     return { error: 'invalid_rule_body', status: 400 };
   }
+  const validTo = parseOptionalValidTo(raw.valid_to);
+  if (validTo && typeof validTo === 'object' && 'error' in validTo) return validTo;
   const adultPrice = typeof raw.adult_price === 'number' ? raw.adult_price : Number(raw.adult_price);
   const childPrice = typeof raw.child_price === 'number' ? raw.child_price : Number(raw.child_price);
   const priority = typeof raw.priority === 'number' ? raw.priority : Number(raw.priority ?? 0);
@@ -295,8 +304,8 @@ function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | Mutatio
     buffet_id: raw.buffet_id,
     time_slot_id: raw.time_slot_id,
     calendar_kind: raw.calendar_kind as BuffetCalendarKind,
-    valid_from: raw.valid_from,
-    valid_to: raw.valid_to,
+    valid_from: raw.valid_from.trim().slice(0, 10),
+    valid_to: validTo as string | null,
     adult_price: adultPrice,
     child_price: childPrice,
     priority,
@@ -305,23 +314,53 @@ function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | Mutatio
   };
 }
 
+async function loadRuleById(
+  admin: SupabaseClient,
+  restaurantId: string,
+  ruleId: string,
+): Promise<BuffetPriceRule | null | MutationError> {
+  const { data, error } = await admin
+    .from('buffet_price_rules')
+    .select(RULES_SELECT)
+    .eq('id', ruleId)
+    .eq('restaurant_id', restaurantId)
+    .maybeSingle();
+  if (error) return { error: 'rules_query_failed', message: error.message, status: 500 };
+  return (data as BuffetPriceRule | null) ?? null;
+}
+
+export type BuffetRuleMutationResult =
+  | {
+      patch: BuffetDashboardPatch;
+      ruleId: string;
+      before: BuffetPriceRule | null;
+      after: BuffetPriceRule | null;
+      op: 'create' | 'update' | 'delete' | 'toggle';
+    }
+  | MutationError;
+
 export async function createBuffetPriceRule(
   admin: SupabaseClient,
   restaurantId: string,
   raw: Record<string, unknown>,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetRuleMutationResult> {
   const parsed = parseRuleInput(raw);
   if ('error' in parsed) return parsed;
 
-  const { error } = await admin.from('buffet_price_rules').insert({
-    restaurant_id: restaurantId,
-    ...parsed,
-  });
+  const { data, error } = await admin
+    .from('buffet_price_rules')
+    .insert({
+      restaurant_id: restaurantId,
+      ...parsed,
+    })
+    .select(RULES_SELECT)
+    .single();
   if (error) return { error: 'insert_failed', message: error.message, status: 500 };
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return { patch: rulesRes };
+  const after = data as BuffetPriceRule;
+  return { patch: rulesRes, ruleId: after.id, before: null, after, op: 'create' };
 }
 
 export async function updateBuffetPriceRule(
@@ -329,31 +368,47 @@ export async function updateBuffetPriceRule(
   restaurantId: string,
   ruleId: string,
   raw: Record<string, unknown>,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetRuleMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
   const parsed = parseRuleInput(raw);
   if ('error' in parsed) return parsed;
 
-  const { error } = await admin
+  const before = await loadRuleById(admin, restaurantId, id);
+  if (before && 'error' in before) return before;
+  if (!before) return { error: 'rule_not_found', status: 404 };
+
+  const { data, error } = await admin
     .from('buffet_price_rules')
     .update(parsed)
     .eq('id', id)
-    .eq('restaurant_id', restaurantId);
+    .eq('restaurant_id', restaurantId)
+    .select(RULES_SELECT)
+    .single();
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return { patch: rulesRes };
+  return {
+    patch: rulesRes,
+    ruleId: id,
+    before,
+    after: data as BuffetPriceRule,
+    op: 'update',
+  };
 }
 
 export async function deleteBuffetPriceRule(
   admin: SupabaseClient,
   restaurantId: string,
   ruleId: string,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetRuleMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
+
+  const before = await loadRuleById(admin, restaurantId, id);
+  if (before && 'error' in before) return before;
+  if (!before) return { error: 'rule_not_found', status: 404 };
 
   const { error } = await admin
     .from('buffet_price_rules')
@@ -364,7 +419,7 @@ export async function deleteBuffetPriceRule(
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return { patch: rulesRes };
+  return { patch: rulesRes, ruleId: id, before, after: null, op: 'delete' };
 }
 
 export async function toggleBuffetPriceRuleActive(
@@ -372,31 +427,57 @@ export async function toggleBuffetPriceRuleActive(
   restaurantId: string,
   ruleId: string,
   isActive: boolean,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetRuleMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
 
-  const { error } = await admin
+  const before = await loadRuleById(admin, restaurantId, id);
+  if (before && 'error' in before) return before;
+  if (!before) return { error: 'rule_not_found', status: 404 };
+
+  const { data, error } = await admin
     .from('buffet_price_rules')
     .update({ is_active: isActive })
     .eq('id', id)
-    .eq('restaurant_id', restaurantId);
+    .eq('restaurant_id', restaurantId)
+    .select(RULES_SELECT)
+    .single();
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return { patch: rulesRes };
+  return {
+    patch: rulesRes,
+    ruleId: id,
+    before,
+    after: data as BuffetPriceRule,
+    op: 'toggle',
+  };
 }
+
+export type BuffetCalendarMutationResult =
+  | {
+      patch: BuffetDashboardPatch;
+      op: 'upsert' | 'delete';
+      rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>;
+      removedDate?: string;
+      removedKind?: 'holiday' | 'special' | null;
+    }
+  | MutationError;
 
 export async function upsertBuffetCalendarOverrides(
   admin: SupabaseClient,
   restaurantId: string,
   rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetCalendarMutationResult> {
+  const normalized = rows.map((r) => ({
+    on_date: r.on_date.slice(0, 10),
+    kind: r.kind,
+  }));
   const { error } = await admin.from('buffet_calendar_overrides').upsert(
-    rows.map((r) => ({
+    normalized.map((r) => ({
       restaurant_id: restaurantId,
-      on_date: r.on_date.slice(0, 10),
+      on_date: r.on_date,
       kind: r.kind,
     })),
   );
@@ -404,16 +485,23 @@ export async function upsertBuffetCalendarOverrides(
 
   const calendarRes = await loadCalendarSlice(admin, restaurantId);
   if ('error' in calendarRes) return calendarRes;
-  return { patch: calendarRes };
+  return { patch: calendarRes, op: 'upsert', rows: normalized };
 }
 
 export async function deleteBuffetCalendarOverride(
   admin: SupabaseClient,
   restaurantId: string,
   onDate: string,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetCalendarMutationResult> {
   const date = onDate.slice(0, 10);
   if (!date) return { error: 'invalid_date', status: 400 };
+
+  const { data: existing } = await admin
+    .from('buffet_calendar_overrides')
+    .select('on_date, kind')
+    .eq('restaurant_id', restaurantId)
+    .eq('on_date', date)
+    .maybeSingle();
 
   const { error } = await admin
     .from('buffet_calendar_overrides')
@@ -424,14 +512,32 @@ export async function deleteBuffetCalendarOverride(
 
   const calendarRes = await loadCalendarSlice(admin, restaurantId);
   if ('error' in calendarRes) return calendarRes;
-  return { patch: calendarRes };
+  return {
+    patch: calendarRes,
+    op: 'delete',
+    rows: [],
+    removedDate: date,
+    removedKind: (existing?.kind as 'holiday' | 'special' | undefined) ?? null,
+  };
 }
+
+export type BuffetFridayPolicyMutationResult =
+  | {
+      patch: BuffetDashboardPatch;
+      beforeFrom: string | null;
+      afterFrom: string | null;
+    }
+  | MutationError;
 
 export async function updateBuffetFridayPolicy(
   admin: SupabaseClient,
   restaurantId: string,
   buffetFridayWeekendFrom: string | null,
-): Promise<BuffetMutationResult> {
+): Promise<BuffetFridayPolicyMutationResult> {
+  const beforeRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);
+  if ('error' in beforeRes) return beforeRes;
+  const beforeFrom = beforeRes.buffet_friday_weekend_from;
+
   const { error } = await admin
     .from('restaurants')
     .update({ buffet_friday_weekend_from: buffetFridayWeekendFrom })
@@ -444,5 +550,7 @@ export async function updateBuffetFridayPolicy(
     patch: {
       buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
     },
+    beforeFrom,
+    afterFrom: restaurantRes.buffet_friday_weekend_from,
   };
 }

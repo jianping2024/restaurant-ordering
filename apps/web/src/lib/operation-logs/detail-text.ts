@@ -133,6 +133,86 @@ export function formatOperationLogDetail(lang: UILanguage, row: OperationLogRow)
       const summary = itemsSummary(after);
       return summary || '—';
     }
+    case AUDIT_EVENT.BUFFET_PRICE_RULE: {
+      const op = asString(after.op) || asString(before.op);
+      const kindKey = asString(after.calendarKind) || asString(before.calendarKind);
+      const kind =
+        kindKey === 'weekend'
+          ? t.buffetKindWeekend
+          : kindKey === 'holiday'
+            ? t.buffetKindHoliday
+            : kindKey === 'special'
+              ? t.buffetKindSpecial
+              : t.buffetKindWeekday;
+      const buffet = asString(after.buffetName) || asString(before.buffetName) || '—';
+      const slot = asString(after.slotName) || asString(before.slotName) || '—';
+      const from = asString(after.validFrom) || asString(before.validFrom) || '—';
+      const toRaw = after.validTo ?? before.validTo;
+      const to = typeof toRaw === 'string' && toRaw.trim() ? toRaw.trim().slice(0, 10) : '';
+      const period = to
+        ? t.detailBuffetRulePeriodRange.replace('{from}', from).replace('{to}', to)
+        : t.detailBuffetRulePeriodOpen.replace('{from}', from);
+      const snap = op === 'delete' ? before : after;
+      const adult = asNumber(snap.adultPrice);
+      const child = asNumber(snap.childPrice);
+      const adultStr = adult != null ? adult.toFixed(2) : '—';
+      const childStr = child != null ? child.toFixed(2) : '—';
+      if (op === 'create') {
+        return t.detailBuffetRuleCreate
+          .replace('{buffet}', buffet)
+          .replace('{slot}', slot)
+          .replace('{kind}', kind)
+          .replace('{adult}', adultStr)
+          .replace('{child}', childStr)
+          .replace('{period}', period);
+      }
+      if (op === 'delete') {
+        return t.detailBuffetRuleDelete
+          .replace('{buffet}', buffet)
+          .replace('{slot}', slot)
+          .replace('{kind}', kind)
+          .replace('{period}', period);
+      }
+      if (op === 'toggle') {
+        const on = after.isActive === true;
+        return (on ? t.detailBuffetRuleToggleOn : t.detailBuffetRuleToggleOff)
+          .replace('{buffet}', buffet)
+          .replace('{slot}', slot)
+          .replace('{kind}', kind);
+      }
+      return t.detailBuffetRuleUpdate
+        .replace('{buffet}', buffet)
+        .replace('{slot}', slot)
+        .replace('{kind}', kind)
+        .replace('{adult}', adultStr)
+        .replace('{child}', childStr)
+        .replace('{period}', period);
+    }
+    case AUDIT_EVENT.BUFFET_CALENDAR: {
+      const op = asString(after.op);
+      if (op === 'delete') {
+        return t.detailBuffetCalendarDelete.replace(
+          '{date}',
+          asString(after.removedDate) || asString(before.onDate) || '—',
+        );
+      }
+      const rows = Array.isArray(after.rows) ? after.rows : [];
+      if (rows.length === 1) {
+        const row = rows[0] as { on_date?: unknown; kind?: unknown };
+        const kindRaw = asString(row.kind);
+        const kindLabel =
+          kindRaw === 'special' ? t.buffetKindSpecial : t.buffetKindHoliday;
+        return t.detailBuffetCalendarUpsertOne
+          .replace('{kind}', kindLabel)
+          .replace('{date}', asString(row.on_date) || '—');
+      }
+      return t.detailBuffetCalendarUpsertMany.replace('{n}', String(rows.length));
+    }
+    case AUDIT_EVENT.BUFFET_FRIDAY_POLICY: {
+      const time = asString(after.fridayWeekendFrom);
+      if (!time) return t.detailBuffetFridayOff;
+      return t.detailBuffetFridayOn.replace('{time}', time.slice(0, 5));
+    }
     default:
       return '—';
   }

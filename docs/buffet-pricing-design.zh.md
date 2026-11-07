@@ -110,11 +110,14 @@
 | 自助餐 | 必选 |
 | 时段 | 必选 |
 | 日历类型 | 必选：平日 / 周末 / 节假日 / 特殊 |
-| 生效日期范围 | `valid_from` ~ `valid_to` |
+| 规则启用日 | `valid_from`（必填） |
+| 规则结束日 | `valid_to`（可空 = **长期有效**，不会因到期自动失效；限时活动才填） |
 | 成人价、儿童价 | 必填，单位与系统一致 |
 | 优先级 | 数字越大越优先；用于同日历维度下多条规则时 |
 | 备注 | 如「五一活动价」 |
 | 启用 | 开关 |
+
+**口径（唯一）：** 常驻价默认长期（结束日空）；新建不再默认「今天→一年后」。计价条件：里斯本当日 ≥ 启用日，且（无结束日 **或** 当日 ≤ 结束日）。节假日/活动日仍由日历标记决定「适用日子」，与结束日无关。
 
 **必做交互（降低配错率）**：
 
@@ -208,7 +211,7 @@
 
 - `id`, `buffet_id`, `time_slot_id`
 - `calendar_kind`：`weekday` | `weekend` | `holiday` | `special`
-- `valid_from`, `valid_to`
+- `valid_from`（必填）, `valid_to`（可空 = 长期）
 - `adult_price`, `child_price`
 - `priority`, `is_active`, `note`
 
@@ -232,7 +235,7 @@
 
 1. 取 `date = now::date`，查 `calendar_overrides` 得 `tag`；若无则根据星期得到 `weekday/weekend`。
 2. 根据 `now::time` 与 `weekdays` 命中 `time_slot`（跨日时段需单独处理）。
-3. 在 `buffet_price_rules` 中筛选：`buffet_id`、命中 `time_slot`、`calendar_kind` 匹配或兼容、`valid_from/valid_to` 包含今日、`is_active`。
+3. 在 `buffet_price_rules` 中筛选：`buffet_id`、命中 `time_slot`、`calendar_kind` 匹配、`is_active`、当日 ≥ `valid_from` 且（`valid_to` 为空或当日 ≤ `valid_to`）。
 4. 取 `priority` 最大一条；同优先级时定义二级排序（如 `valid_from` 新者优先）。
 
 ---

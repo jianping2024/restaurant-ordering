@@ -364,7 +364,8 @@ export interface BuffetPriceRule {
   time_slot_id: string;
   calendar_kind: BuffetCalendarKind;
   valid_from: string;
-  valid_to: string;
+  /** Null = long-term (no end date). */
+  valid_to: string | null;
   adult_price: number;
   child_price: number;
   priority: number;

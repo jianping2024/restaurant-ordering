@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { AUDIT_EVENT, scheduleRecordAudit } from '@/lib/audit';
+import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
+import type { BuffetPriceRule } from '@/types';
 import {
   dashboardApiError,
   loadWritableOwnerContext,
@@ -25,6 +29,42 @@ export const runtime = 'nodejs';
 
 function jsonData(data: unknown) {
   return NextResponse.json(data);
+}
+
+async function scheduleBuffetActorAudit(
+  restaurant: { id: string; name: string },
+  admin: SupabaseClient,
+  eventKey: typeof AUDIT_EVENT.BUFFET_PRICE_RULE | typeof AUDIT_EVENT.BUFFET_CALENDAR | typeof AUDIT_EVENT.BUFFET_FRIDAY_POLICY,
+  context: unknown,
+): Promise<void> {
+  const loaded = await loadOwnerDashboardAuditActor(restaurant);
+  if (!loaded) return;
+  scheduleRecordAudit(admin, eventKey, {
+    restaurantId: restaurant.id,
+    actor: loaded.actor,
+    context,
+  });
+}
+
+async function resolveRuleLabels(
+  admin: SupabaseClient,
+  restaurantId: string,
+  rule: BuffetPriceRule | null,
+): Promise<{ buffetName?: string; slotName?: string }> {
+  if (!rule) return {};
+  const [{ data: buffet }, { data: slot }] = await Promise.all([
+    admin.from('buffets').select('name').eq('id', rule.buffet_id).eq('restaurant_id', restaurantId).maybeSingle(),
+    admin
+      .from('buffet_time_slots')
+      .select('name')
+      .eq('id', rule.time_slot_id)
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle(),
+  ]);
+  return {
+    buffetName: typeof buffet?.name === 'string' ? buffet.name : undefined,
+    slotName: typeof slot?.name === 'string' ? slot.name : undefined,
+  };
 }
 
 export async function GET() {
@@ -75,6 +115,14 @@ export async function POST(req: Request) {
       body.rule as Record<string, unknown>,
     );
     if ('error' in result) return dashboardApiError(result);
+    const labels = await resolveRuleLabels(ctx.admin, ctx.restaurantId, result.after);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_PRICE_RULE, {
+      ruleId: result.ruleId,
+      op: result.op,
+      before: result.before,
+      after: result.after,
+      ...labels,
+    });
     return jsonData({ patch: result.patch });
   }
 
@@ -92,6 +140,11 @@ export async function POST(req: Request) {
     );
     const result = await upsertBuffetCalendarOverrides(ctx.admin, ctx.restaurantId, rows);
     if ('error' in result) return dashboardApiError(result);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_CALENDAR, {
+      restaurantId: ctx.restaurantId,
+      op: result.op,
+      rows: result.rows,
+    });
     return jsonData({ patch: result.patch });
   }
 
@@ -117,6 +170,11 @@ export async function PATCH(req: Request) {
     }
     const result = await updateBuffetFridayPolicy(ctx.admin, ctx.restaurantId, value);
     if ('error' in result) return dashboardApiError(result);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_FRIDAY_POLICY, {
+      restaurantId: ctx.restaurantId,
+      beforeFrom: result.beforeFrom,
+      afterFrom: result.afterFrom,
+    });
     return jsonData({ patch: result.patch });
   }
 
@@ -160,6 +218,14 @@ export async function PATCH(req: Request) {
       body.rule as Record<string, unknown>,
     );
     if ('error' in result) return dashboardApiError(result);
+    const labels = await resolveRuleLabels(ctx.admin, ctx.restaurantId, result.after);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_PRICE_RULE, {
+      ruleId: result.ruleId,
+      op: result.op,
+      before: result.before,
+      after: result.after,
+      ...labels,
+    });
     return jsonData({ patch: result.patch });
   }
 
@@ -174,6 +240,14 @@ export async function PATCH(req: Request) {
       body.is_active,
     );
     if ('error' in result) return dashboardApiError(result);
+    const labels = await resolveRuleLabels(ctx.admin, ctx.restaurantId, result.after);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_PRICE_RULE, {
+      ruleId: result.ruleId,
+      op: result.op,
+      before: result.before,
+      after: result.after,
+      ...labels,
+    });
     return jsonData({ patch: result.patch });
   }
 
@@ -200,11 +274,26 @@ export async function DELETE(req: Request) {
   if (body.resource === 'rule' && typeof body.id === 'string') {
     const result = await deleteBuffetPriceRule(ctx.admin, ctx.restaurantId, body.id);
     if ('error' in result) return dashboardApiError(result);
+    const labels = await resolveRuleLabels(ctx.admin, ctx.restaurantId, result.before);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_PRICE_RULE, {
+      ruleId: result.ruleId,
+      op: result.op,
+      before: result.before,
+      after: result.after,
+      ...labels,
+    });
     return jsonData({ patch: result.patch });
   }
   if (body.resource === 'calendar' && typeof body.on_date === 'string') {
     const result = await deleteBuffetCalendarOverride(ctx.admin, ctx.restaurantId, body.on_date);
     if ('error' in result) return dashboardApiError(result);
+    void scheduleBuffetActorAudit(ctx.restaurant, ctx.admin, AUDIT_EVENT.BUFFET_CALENDAR, {
+      restaurantId: ctx.restaurantId,
+      op: result.op,
+      rows: result.rows,
+      removedDate: result.removedDate,
+      removedKind: result.removedKind,
+    });
     return jsonData({ patch: result.patch });
   }
 

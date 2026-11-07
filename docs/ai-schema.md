@@ -21,7 +21,7 @@ order_append_idempotency (id: uuid PK, restaurant_id: uuid FK -> restaurants.id,
 
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
-buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffet_id: uuid FK -> buffets.id, time_slot_id: uuid FK -> buffet_time_slots.id, calendar_kind: text [weekday|weekend|holiday|special], valid_from: date, valid_to: date, adult_price: numeric, child_price: numeric, priority: integer, is_active: boolean, note: text nullable, created_at: timestamptz)
+buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffet_id: uuid FK -> buffets.id, time_slot_id: uuid FK -> buffet_time_slots.id, calendar_kind: text [weekday|weekend|holiday|special], valid_from: date, valid_to: date nullable [null = long-term / no end], adult_price: numeric, child_price: numeric, priority: integer, is_active: boolean, note: text nullable, created_at: timestamptz)
 
 buffet_time_slots (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, start_time: time, end_time: time, weekdays: integer[], sort_order: integer, created_at: timestamptz)
 
@@ -565,7 +565,7 @@ table_sessions:
 - `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days?, default_receipt_station_id?, station_slip_show_category_group?, han_bitmap_font_px?, kitchen_ready_after_minutes? }` — writers merge owned slices onto the existing document (schedule/poll vs TTL+category vs receipt station vs kitchen ready-after). `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (功能管理). `kitchen_ready_after_minutes` integer **3–30** (default **10**) is edited only on 功能管理. `han_bitmap_font_px` is **legacy** (Agent ≥0.5.58 uses agent-local config, default 22); Mesa print settings no longer edit or enqueue it.
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Farvoo staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume). On-prem entitlement: `deployment_mode`, `license_valid_until`, `restaurant_installations`, lease fields; ops UI `/ops/licenses`; claim/check-in under `/api/platform/license/*` (install credential). Runtime gate remains `suspended_at` only (ADR-004).
 - Menu time slot: `menu_items.time_slot_id` (null = all day) shares `buffet_time_slots`; a table session orders in the slot nearest its `opened_at` (`lib/menu-time-slot`, same distance ladder as `resolve_buffet_prices`).
-- Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.
+- Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices. Rule match: Lisbon date ≥ `valid_from` and (`valid_to` is null or date ≤ `valid_to`); null `valid_to` = long-term.
 - Soft deletion appears only on `restaurant_tables.deleted_at` in this schema extract.
 - Indexes and RLS summaries below match the squashed baseline; verify against the SQL file when in doubt.
 

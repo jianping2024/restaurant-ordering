@@ -81,17 +81,25 @@ export function TablesQrTable({
   onPageSizeChange,
 }: Props) {
   return (
-    <div className="mt-5 overflow-hidden rounded-xl border border-brand-border">
+    <div className="mb-6 overflow-hidden rounded-xl border border-brand-border bg-brand-card">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className="w-full min-w-[640px] table-fixed text-sm">
+          <colgroup>
+            {batchMode ? <col className="w-10" /> : null}
+            <col className="w-[7.5rem]" />
+            <col className="w-[7.25rem]" />
+            <col className="w-[6.5rem]" />
+            <col className="w-[3.25rem]" />
+            <col />
+          </colgroup>
           <thead>
-            <tr className="border-b border-brand-border bg-brand-bg/80 text-left text-[12px] text-brand-text-muted">
-              {batchMode ? <th className="w-10 px-3 py-2.5" /> : null}
-              <th className="px-3 py-2.5 font-medium">{t.colTable}</th>
-              <th className="px-3 py-2.5 font-medium">{t.colSeats}</th>
-              <th className="px-3 py-2.5 font-medium">{t.colGroup}</th>
-              <th className="px-3 py-2.5 font-medium w-24">{t.colQr}</th>
-              <th className="px-3 py-2.5 font-medium text-right">{t.colActions}</th>
+            <tr className="border-b border-brand-border bg-brand-bg/80 text-left text-[11px] text-brand-text-muted">
+              {batchMode ? <th className="px-2 py-1.5" /> : null}
+              <th className="px-2 py-1.5 font-medium">{t.colTable}</th>
+              <th className="px-2 py-1.5 font-medium">{t.colSeats}</th>
+              <th className="px-2 py-1.5 font-medium">{t.colGroup}</th>
+              <th className="px-2 py-1.5 font-medium">{t.colQr}</th>
+              <th className="px-2 py-1.5 font-medium text-right">{t.colActions}</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +107,7 @@ export function TablesQrTable({
               <tr>
                 <td
                   colSpan={batchMode ? 6 : 5}
-                  className="px-4 py-10 text-center text-brand-text-muted text-sm"
+                  className="px-3 py-8 text-center text-brand-text-muted text-sm"
                 >
                   {t.emptyFiltered}
                 </td>
@@ -115,7 +123,7 @@ export function TablesQrTable({
                     className="border-b border-brand-border/60 last:border-b-0 hover:bg-brand-bg/40"
                   >
                     {batchMode ? (
-                      <td className="px-3 py-3 align-middle">
+                      <td className="px-2 py-1.5 align-middle">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(table.id)}
@@ -126,7 +134,7 @@ export function TablesQrTable({
                         />
                       </td>
                     ) : null}
-                    <td className="px-3 py-3 align-middle">
+                    <td className="px-2 py-1.5 align-middle">
                       <input
                         type="text"
                         inputMode="text"
@@ -136,61 +144,63 @@ export function TablesQrTable({
                         onFocus={() => onLabelDraftFocus(table)}
                         onChange={(e) => onLabelDraftChange(table.id, e.target.value)}
                         onBlur={() => onLabelBlur(table)}
-                        className="w-full max-w-[7rem] rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-brand-gold font-heading text-base focus:outline-none focus:border-brand-gold/40"
+                        className="w-full max-w-[7rem] rounded-md bg-brand-bg border border-brand-border px-2 py-1 text-brand-gold font-heading text-sm focus:outline-none focus:border-brand-gold/40"
                         aria-label={`${t.tableNumberLabel} ${table.display_name}`}
                       />
                     </td>
-                    <td className="px-3 py-3 align-middle">
-                      <div className="flex items-center gap-1.5">
+                    <td className="px-2 py-1.5 align-middle">
+                      <div className="flex items-center gap-1">
                         <input
                           type="number"
                           min={1}
                           max={99}
                           value={table.seat_min}
                           onChange={(e) => onSeatChange(table.id, 'seat_min', e.target.value)}
-                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-base tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          className="w-11 rounded-md bg-brand-bg border border-brand-border px-1.5 py-1 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
                           aria-label={`${t.seatMin} ${table.display_name}`}
                         />
-                        <span className="text-brand-text-muted">–</span>
+                        <span className="text-brand-text-muted text-xs">–</span>
                         <input
                           type="number"
                           min={1}
                           max={99}
                           value={table.seat_max}
                           onChange={(e) => onSeatChange(table.id, 'seat_max', e.target.value)}
-                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-base tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          className="w-11 rounded-md bg-brand-bg border border-brand-border px-1.5 py-1 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
                           aria-label={`${t.seatMax} ${table.display_name}`}
                         />
                       </div>
                     </td>
-                    <td className="px-3 py-3 align-middle text-brand-text-muted">{groupName}</td>
-                    <td className="px-3 py-3 align-middle">
+                    <td className="px-2 py-1.5 align-middle text-brand-text-muted text-[13px] truncate">
+                      {groupName}
+                    </td>
+                    <td className="px-2 py-1.5 align-middle">
                       {qrSrc ? (
                         <button
                           type="button"
                           onClick={() => onPreview(table)}
-                          className="rounded-md border border-brand-border p-0.5 hover:border-brand-gold/50 transition-colors"
+                          className="rounded border border-brand-border p-0.5 hover:border-brand-gold/50 transition-colors"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={qrSrc} alt="" className="w-12 h-12 rounded" />
+                          <img src={qrSrc} alt="" className="w-9 h-9 rounded" />
                         </button>
                       ) : (
-                        <div className="w-12 h-12 rounded bg-brand-border animate-pulse" />
+                        <div className="w-9 h-9 rounded bg-brand-border animate-pulse" />
                       )}
                     </td>
-                    <td className="px-3 py-3 align-middle">
-                      <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                    <td className="px-2 py-1.5 align-middle">
+                      <div className="flex flex-wrap items-center justify-end gap-x-2.5 gap-y-0.5">
                         <button
                           type="button"
                           onClick={() => onPrintRow(table)}
                           disabled={!qrSrc}
-                          className="text-[13px] text-brand-gold hover:underline disabled:opacity-50"
+                          className="text-[12px] text-brand-gold hover:underline disabled:opacity-50"
                         >
                           {t.printOne}
                         </button>
                         <PreferBrowserHttpLink
                           href={buildTableMenuQrUrl(restaurantSlug, table.id, webOrigin)}
-                          className="text-[13px] text-brand-gold hover:underline"
+                          className="text-[12px] text-brand-gold hover:underline"
                         >
                           {t.openOrder}
                         </PreferBrowserHttpLink>
@@ -199,7 +209,7 @@ export function TablesQrTable({
                             type="button"
                             onClick={() => onDeleteRow(table)}
                             disabled={occupied}
-                            className="text-[13px] text-red-400/90 hover:underline disabled:opacity-40"
+                            className="text-[12px] text-red-400/90 hover:underline disabled:opacity-40"
                             title={occupied ? t.cannotRemoveWithSession : undefined}
                           >
                             {t.delete}

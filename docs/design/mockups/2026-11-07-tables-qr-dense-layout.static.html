@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>桌位二维码列表 · 密度优化 — 静态对比稿</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --on-gold: 255 250 240;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --danger: 180 60 50;
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.07), transparent 55%),
+        rgb(var(--bg));
+    }
+    .page { max-width: 1180px; margin: 0 auto; padding: 28px 20px 72px; }
+    h1 { font-family: var(--serif); font-size: 1.55rem; margin: 0 0 6px; font-weight: 600; }
+    .lede { margin: 0 0 14px; color: rgb(var(--ink-muted)); font-size: 0.95rem; line-height: 1.55; max-width: 46rem; }
+    .rules {
+      margin: 0 0 18px; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid rgb(var(--border)); background: rgb(var(--card));
+      font-size: 0.85rem; line-height: 1.45; max-width: 46rem;
+    }
+    .rules strong { color: rgb(var(--gold)); }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tab {
+      border: 1px solid rgb(var(--border)); background: rgb(var(--card));
+      border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; cursor: pointer;
+    }
+    .tab[aria-selected="true"] { background: rgb(var(--ink)); color: #f7f3ea; border-color: rgb(var(--ink)); }
+    .stage { display: none; }
+    .stage[data-active="true"] { display: block; }
+    .hint { margin: 0 0 12px; font-size: 0.85rem; color: rgb(var(--ink-muted)); }
+    .hint em { font-style: normal; color: rgb(var(--gold)); font-weight: 600; }
+    .frame {
+      border: 1px solid rgb(var(--border)); border-radius: 16px; overflow: hidden;
+      background: rgb(var(--bg)); box-shadow: 0 14px 40px rgb(31 62 82 / 0.1);
+    }
+    .staff {
+      height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+      background: rgb(var(--card)); border-bottom: 1px solid rgb(var(--border)); font-size: 0.78rem;
+    }
+    .staff b { font-family: var(--serif); color: rgb(var(--ink)); }
+    .body { padding: 12px 14px 18px; }
+    .seg { display: inline-flex; gap: 6px; margin-bottom: 10px; }
+    .seg span {
+      border: 1px solid rgb(var(--border)); border-radius: 999px; padding: 5px 12px; font-size: 0.78rem;
+      background: rgb(var(--card));
+    }
+    .seg span.on { background: rgb(var(--ink)); color: #f7f3ea; border-color: rgb(var(--ink)); }
+    .title { font-family: var(--serif); color: rgb(var(--gold)); font-size: 1.35rem; margin: 0 0 10px; }
+    .title.compact { font-size: 1.15rem; margin-bottom: 8px; }
+
+    /* —— 现状 —— */
+    .now-sticky {
+      border-bottom: 1px solid rgb(var(--border) / 0.4);
+      margin: 0 -14px 12px; padding: 10px 14px;
+      background: rgb(var(--bg));
+    }
+    .now-meta { font-size: 0.72rem; color: rgb(var(--ink-muted)); margin-bottom: 10px; }
+    .now-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .field, .btn {
+      border: 1px solid rgb(var(--border)); border-radius: 8px; font-size: 0.78rem;
+      padding: 7px 10px; background: rgb(var(--card)); color: rgb(var(--text));
+    }
+    .btn.gold { background: rgb(var(--gold)); border-color: rgb(var(--gold)); color: rgb(var(--on-gold)); font-weight: 600; }
+    .btn.outline { background: transparent; }
+    .now-card {
+      background: rgb(var(--card)); border: 1px solid rgb(var(--border));
+      border-radius: 16px; padding: 24px;
+    }
+    .now-inner {
+      margin-top: 20px; border: 1px solid rgb(var(--border)); border-radius: 12px; overflow: hidden;
+    }
+    table.now {
+      width: 100%; border-collapse: collapse; table-layout: auto; font-size: 0.82rem;
+    }
+    table.now th {
+      text-align: left; font-weight: 500; font-size: 0.72rem; color: rgb(var(--ink-muted));
+      padding: 10px 12px; border-bottom: 1px solid rgb(var(--border)); background: rgb(var(--bg) / 0.8);
+    }
+    table.now th.actions { text-align: right; }
+    table.now td {
+      padding: 12px; border-bottom: 1px solid rgb(var(--border) / 0.55); vertical-align: middle;
+    }
+    table.now td.actions { text-align: right; }
+    table.now .cell-in {
+      width: 7rem; max-width: 7rem; border: 1px solid rgb(var(--border)); border-radius: 8px;
+      padding: 6px 8px; background: rgb(var(--card)); color: rgb(var(--gold)); font-family: var(--serif);
+    }
+    table.now .seat {
+      width: 3.5rem; border: 1px solid rgb(var(--border)); border-radius: 8px;
+      padding: 6px 8px; background: rgb(var(--card));
+    }
+    .qr {
+      width: 48px; height: 48px; border-radius: 6px; border: 1px solid rgb(var(--border));
+      background:
+        linear-gradient(45deg, rgb(var(--ink) / 0.12) 25%, transparent 25%) 0 0 / 8px 8px,
+        linear-gradient(-45deg, rgb(var(--ink) / 0.12) 25%, transparent 25%) 0 0 / 8px 8px,
+        rgb(var(--bg));
+    }
+    .link { color: rgb(var(--gold)); font-size: 0.78rem; margin-left: 10px; text-decoration: none; }
+    .link.danger { color: rgb(var(--danger) / 0.9); }
+    .waste {
+      outline: 2px dashed rgb(var(--danger) / 0.45); outline-offset: -2px;
+      background: rgb(255 240 236 / 0.55);
+    }
+
+    /* —— 推荐密度 —— */
+    .rec-sticky {
+      border-bottom: 1px solid rgb(var(--border) / 0.4);
+      margin: 0 -14px 8px; padding: 8px 14px;
+      background: rgb(var(--bg));
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .rec-sticky .meta { font-size: 0.72rem; color: rgb(var(--ink-muted)); margin-right: 4px; }
+    .rec-surface {
+      border: 1px solid rgb(var(--border)); border-radius: 12px; overflow: hidden;
+      background: rgb(var(--card));
+    }
+    table.rec {
+      width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 0.8rem;
+    }
+    table.rec col.c-table { width: 7.5rem; }
+    table.rec col.c-seats { width: 7.25rem; }
+    table.rec col.c-group { width: 6.5rem; }
+    table.rec col.c-qr { width: 3.25rem; }
+    table.rec col.c-actions { width: auto; }
+    table.rec th {
+      text-align: left; font-weight: 500; font-size: 0.7rem; color: rgb(var(--ink-muted));
+      padding: 6px 8px; border-bottom: 1px solid rgb(var(--border)); background: rgb(var(--bg) / 0.65);
+    }
+    table.rec th.actions, table.rec td.actions { text-align: right; }
+    table.rec td {
+      padding: 6px 8px; border-bottom: 1px solid rgb(var(--border) / 0.45); vertical-align: middle;
+    }
+    table.rec .cell-in {
+      width: 100%; max-width: 7rem; border: 1px solid rgb(var(--border)); border-radius: 6px;
+      padding: 4px 7px; background: rgb(var(--bg)); color: rgb(var(--gold)); font-family: var(--serif); font-size: 0.9rem;
+    }
+    table.rec .seat {
+      width: 2.75rem; border: 1px solid rgb(var(--border)); border-radius: 6px;
+      padding: 4px 6px; background: rgb(var(--bg)); font-size: 0.8rem;
+    }
+    table.rec .qr {
+      width: 36px; height: 36px;
+    }
+    table.rec .link { margin-left: 8px; font-size: 0.75rem; }
+    .group { color: rgb(var(--ink-muted)); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .callout {
+      margin-top: 12px; font-size: 0.8rem; color: rgb(var(--ink-muted)); line-height: 1.45; max-width: 40rem;
+    }
+    .grid2 { display: grid; gap: 18px; }
+    @media (min-width: 980px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>桌位二维码列表 · 密度优化</h1>
+    <p class="lede">对照现状浪费点与推荐紧凑布局。推荐稿：单层表壳、列宽按内容、行高收紧、工具条一行排布。</p>
+    <div class="rules">
+      <div><strong>现状浪费</strong>：外层大卡片 p-6 + 表内再套边框 mt-5；列均分拉宽，输入只有 7rem；行 py-3 + 48px 二维码。</div>
+      <div><strong>推荐</strong>：去掉双层壳；table-layout:fixed 定列宽；行更矮；「共 N 桌」并进 sticky 工具同一行。</div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="side">左右对比</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="rec">仅推荐（大图）</button>
+    </div>
+
+    <section class="stage" data-stage="side" data-active="true">
+      <div class="grid2">
+        <div>
+          <p class="hint">现状 · 粉红虚线标出<strong>空耗</strong></p>
+          <div class="frame">
+            <div class="staff"><b>FARVOO</b> · 桌位配置</div>
+            <div class="body">
+              <div class="seg"><span class="on">桌位配置</span><span>分组管理</span></div>
+              <div class="now-sticky">
+                <div class="now-meta">共 22 张桌</div>
+                <div class="now-tools">
+                  <input class="field" placeholder="搜索桌号" style="width:9rem" />
+                  <select class="field"><option>全部分组</option></select>
+                  <button class="btn outline" type="button">批量管理</button>
+                  <span style="flex:1"></span>
+                  <input class="field" value="1" style="width:2.5rem;text-align:center" />
+                  <button class="btn outline" type="button">添加桌位</button>
+                  <button class="btn gold" type="button">保存桌位设置</button>
+                  <button class="btn outline" type="button">打印全部</button>
+                </div>
+              </div>
+              <div class="now-card">
+                <div class="now-inner">
+                  <table class="now">
+                    <thead>
+                      <tr>
+                        <th>桌位</th><th>座位</th><th>分组</th><th>二维码</th><th class="actions">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><input class="cell-in" value="90" /></td>
+                        <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+                        <td class="waste group">其他桌位</td>
+                        <td><div class="qr"></div></td>
+                        <td class="actions waste">
+                          <a class="link" href="#">打印</a>
+                          <a class="link" href="#">打开点餐页</a>
+                          <a class="link danger" href="#">删除</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><input class="cell-in" value="A-01" /></td>
+                        <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+                        <td class="waste group">其他桌位</td>
+                        <td><div class="qr"></div></td>
+                        <td class="actions waste">
+                          <a class="link" href="#">打印</a>
+                          <a class="link" href="#">打开点餐页</a>
+                          <a class="link danger" href="#">删除</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><input class="cell-in" value="91" /></td>
+                        <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+                        <td class="waste group">其他桌位</td>
+                        <td><div class="qr"></div></td>
+                        <td class="actions waste">
+                          <a class="link" href="#">打印</a>
+                          <a class="link" href="#">打开点餐页</a>
+                          <a class="link danger" href="#">删除</a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <p class="callout">分组列、操作列被表格均分拉得很宽；外层卡片 padding 再加一层内表边距。</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="hint">推荐 · <em>一屏多看几行</em></p>
+          <div class="frame" id="rec-mini"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage="rec" data-active="false">
+      <p class="hint">推荐终态大图 · sticky 工具一行 + 定宽表</p>
+      <div class="frame" id="rec-full" style="max-width:920px"></div>
+    </section>
+  </div>
+
+  <template id="rec-tpl">
+    <div class="staff"><b>FARVOO</b> · 桌位配置</div>
+    <div class="body">
+      <div class="seg"><span class="on">桌位配置</span><span>分组管理</span></div>
+      <div class="rec-sticky">
+        <span class="meta">共 22 张桌</span>
+        <input class="field" placeholder="搜索桌号" style="width:8rem;padding:5px 8px" />
+        <select class="field" style="padding:5px 8px"><option>全部分组</option></select>
+        <button class="btn outline" type="button" style="padding:5px 10px">批量管理</button>
+        <span style="flex:1 1 8px"></span>
+        <input class="field" value="1" style="width:2.25rem;text-align:center;padding:5px" />
+        <button class="btn outline" type="button" style="padding:5px 10px">添加桌位</button>
+        <button class="btn gold" type="button" style="padding:5px 10px">保存桌位设置</button>
+        <button class="btn outline" type="button" style="padding:5px 10px">打印全部</button>
+      </div>
+      <div class="rec-surface">
+        <table class="rec">
+          <colgroup>
+            <col class="c-table" /><col class="c-seats" /><col class="c-group" /><col class="c-qr" /><col class="c-actions" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>桌位</th><th>座位</th><th>分组</th><th>二维码</th><th class="actions">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input class="cell-in" value="90" /></td>
+              <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+              <td><div class="group">其他桌位</div></td>
+              <td><div class="qr"></div></td>
+              <td class="actions">
+                <a class="link" href="#">打印</a>
+                <a class="link" href="#">打开点餐页</a>
+                <a class="link danger" href="#">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input class="cell-in" value="A-01" /></td>
+              <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+              <td><div class="group">其他桌位</div></td>
+              <td><div class="qr"></div></td>
+              <td class="actions">
+                <a class="link" href="#">打印</a>
+                <a class="link" href="#">打开点餐页</a>
+                <a class="link danger" href="#">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input class="cell-in" value="91" /></td>
+              <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+              <td><div class="group">其他桌位</div></td>
+              <td><div class="qr"></div></td>
+              <td class="actions">
+                <a class="link" href="#">打印</a>
+                <a class="link" href="#">打开点餐页</a>
+                <a class="link danger" href="#">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input class="cell-in" value="A-02" /></td>
+              <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+              <td><div class="group">VIP1</div></td>
+              <td><div class="qr"></div></td>
+              <td class="actions">
+                <a class="link" href="#">打印</a>
+                <a class="link" href="#">打开点餐页</a>
+                <a class="link danger" href="#">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input class="cell-in" value="A-03" /></td>
+              <td><input class="seat" value="2" /> – <input class="seat" value="4" /></td>
+              <td><div class="group">VIP1</div></td>
+              <td><div class="qr"></div></td>
+              <td class="actions">
+                <a class="link" href="#">打印</a>
+                <a class="link" href="#">打开点餐页</a>
+                <a class="link danger" href="#">删除</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="callout">同一视口高度下多出约 2 行；操作贴右、前四列定宽，中间不再留大块空白。</p>
+    </div>
+  </template>
+
+  <script>
+    const tpl = document.getElementById('rec-tpl');
+    for (const id of ['rec-mini', 'rec-full']) {
+      const host = document.getElementById(id);
+      host.appendChild(tpl.content.cloneNode(true));
+    }
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-tab');
+        document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        document.querySelectorAll('.stage').forEach((s) => s.setAttribute('data-active', String(s.getAttribute('data-stage') === id)));
+      });
+    });
+  </script>
+</body>
+</html>

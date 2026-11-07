@@ -261,122 +261,118 @@ export function TablesTabPanel({
     onDeleteRequest(selectedRows);
   };
 
+  const batchBar = batch.batchMode ? (
+    <TablesQrBatchBar
+      batchMode={batch.batchMode}
+      selectedCount={batch.selectedCount}
+      pageFullySelected={pageFullySelected}
+      busy={batchBusy}
+      labels={{
+        selectedTablesSummary: t.selectedTablesSummary,
+        batchSelectHint: t.batchSelectHint,
+        selectAllPage: t.selectAllPage,
+        deselectAllPage: t.deselectAllPage,
+        cancelSelection: t.cancelSelection,
+        batchPrint: t.batchPrint,
+        batchDownload: t.batchDownload,
+        batchDelete: t.batchDelete,
+      }}
+      onToggleSelectPage={handleToggleSelectPage}
+      onClearSelection={batch.clearSelection}
+      onBatchPrint={() => void handleBatchPrint()}
+      onBatchDownload={() => void handleBatchDownload()}
+      onBatchDelete={handleBatchDelete}
+    />
+  ) : null;
+
   return (
     <>
-      <div className="bg-brand-card border border-brand-border rounded-2xl p-6 mb-6">
-        <TablesQrToolbar
-          totalCount={tables.length}
-          filteredCount={filteredTables.length}
-          dirty={dirty}
-          dirtyCount={dirtyCount}
-          saving={saving}
-          adding={adding}
-          addCount={addCount}
-          maxAddCount={maxAddCount}
-          batchMode={batch.batchMode}
-          search={search}
-          groupId={groupFilter}
-          groups={groups}
-          labels={{
-            tableQrTitle: t.tableQrTitle,
-            tableCountSummary: t.tableCountSummary,
-            unsavedChanges: t.unsavedChanges,
-            searchTable: t.searchTable,
-            clearSearch: t.clearSearch,
-            allGroups: t.allGroups,
-            ungrouped: tg.ungrouped,
-            batchManage: t.batchManage,
-            exitBatchManage: t.exitBatchManage,
-            addTableCountLabel: t.addTableCountLabel,
-            addTables: t.addTables,
-            saveTables: t.saveTables,
-            print: t.print,
-          }}
-          onSearchChange={setSearch}
-          onGroupChange={setGroupFilter}
-          onToggleBatchMode={batch.toggleBatchMode}
-          onAddCountChange={onAddCountChange}
-          onAddTables={() => onAddTables(Math.min(addCount, maxAddCount))}
-          onSaveTables={onSaveTables}
-          onPrintAll={handlePrintAll}
-        />
+      <TablesQrToolbar
+        totalCount={tables.length}
+        filteredCount={filteredTables.length}
+        dirty={dirty}
+        dirtyCount={dirtyCount}
+        saving={saving}
+        adding={adding}
+        addCount={addCount}
+        maxAddCount={maxAddCount}
+        batchMode={batch.batchMode}
+        search={search}
+        groupId={groupFilter}
+        groups={groups}
+        batchBar={batchBar}
+        labels={{
+          tableCountSummary: t.tableCountSummary,
+          unsavedChanges: t.unsavedChanges,
+          searchTable: t.searchTable,
+          clearSearch: t.clearSearch,
+          allGroups: t.allGroups,
+          ungrouped: tg.ungrouped,
+          batchManage: t.batchManage,
+          exitBatchManage: t.exitBatchManage,
+          addTableCountLabel: t.addTableCountLabel,
+          addTables: t.addTables,
+          saveTables: t.saveTables,
+          print: t.print,
+        }}
+        onSearchChange={setSearch}
+        onGroupChange={setGroupFilter}
+        onToggleBatchMode={batch.toggleBatchMode}
+        onAddCountChange={onAddCountChange}
+        onAddTables={() => onAddTables(Math.min(addCount, maxAddCount))}
+        onSaveTables={onSaveTables}
+        onPrintAll={handlePrintAll}
+      />
 
-        {batch.batchMode ? (
-          <div className="mt-4">
-            <TablesQrBatchBar
-              batchMode={batch.batchMode}
-              selectedCount={batch.selectedCount}
-              pageFullySelected={pageFullySelected}
-              busy={batchBusy}
-              labels={{
-                selectedTablesSummary: t.selectedTablesSummary,
-                batchSelectHint: t.batchSelectHint,
-                selectAllPage: t.selectAllPage,
-                deselectAllPage: t.deselectAllPage,
-                cancelSelection: t.cancelSelection,
-                batchPrint: t.batchPrint,
-                batchDownload: t.batchDownload,
-                batchDelete: t.batchDelete,
-              }}
-              onToggleSelectPage={handleToggleSelectPage}
-              onClearSelection={batch.clearSelection}
-              onBatchPrint={() => void handleBatchPrint()}
-              onBatchDownload={() => void handleBatchDownload()}
-              onBatchDelete={handleBatchDelete}
-            />
-          </div>
-        ) : null}
-
-        <TablesQrTable
-          restaurantSlug={restaurant.slug}
-          webOrigin={webOrigin}
-          pageRows={pagination.rows}
-          batchMode={batch.batchMode}
-          selectedIds={batch.selectedIds}
-          occupiedTableIds={occupiedTableIds}
-          groupNameByTableId={groupNameByTableId}
-          qrCodes={qrCodes}
-          tableLabelForInput={tableLabelForInput}
-          page={pagination.page}
-          totalPages={pagination.totalPages}
-          total={pagination.total}
-          pageSize={pageSize}
-          paginationLabels={{
-            pageInfo: t.pageInfo,
-            pageSizeLabel: t.pageSizeLabel,
-            pageFirst: t.pageFirst,
-            pagePrev: t.pagePrev,
-            pageNext: t.pageNext,
-            pageLast: t.pageLast,
-          }}
-          labels={{
-            colTable: t.colTable,
-            tableNumberLabel: t.tableNumberLabel,
-            colSeats: t.colSeats,
-            seatMin: t.seatMin,
-            seatMax: t.seatMax,
-            colGroup: t.colGroup,
-            colQr: t.colQr,
-            colActions: t.colActions,
-            printOne: t.printOne,
-            openOrder: t.openOrder,
-            delete: tPrint.delete,
-            ungrouped: tg.ungrouped,
-            emptyFiltered: t.emptyFiltered,
-            cannotRemoveWithSession: t.cannotRemoveWithSession,
-          }}
-          onToggleRow={batch.toggleRow}
-          onLabelDraftFocus={onLabelDraftFocus}
-          onLabelDraftChange={onLabelDraftChange}
-          onLabelBlur={onLabelBlur}
-          onSeatChange={onSeatChange}
-          onPreview={setPreviewTable}
-          onPrintRow={(table) => void printRows([table])}
-          onDeleteRow={(table) => onDeleteRequest([table])}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
-      </div>
+      <TablesQrTable
+        restaurantSlug={restaurant.slug}
+        webOrigin={webOrigin}
+        pageRows={pagination.rows}
+        batchMode={batch.batchMode}
+        selectedIds={batch.selectedIds}
+        occupiedTableIds={occupiedTableIds}
+        groupNameByTableId={groupNameByTableId}
+        qrCodes={qrCodes}
+        tableLabelForInput={tableLabelForInput}
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        total={pagination.total}
+        pageSize={pageSize}
+        paginationLabels={{
+          pageInfo: t.pageInfo,
+          pageSizeLabel: t.pageSizeLabel,
+          pageFirst: t.pageFirst,
+          pagePrev: t.pagePrev,
+          pageNext: t.pageNext,
+          pageLast: t.pageLast,
+        }}
+        labels={{
+          colTable: t.colTable,
+          tableNumberLabel: t.tableNumberLabel,
+          colSeats: t.colSeats,
+          seatMin: t.seatMin,
+          seatMax: t.seatMax,
+          colGroup: t.colGroup,
+          colQr: t.colQr,
+          colActions: t.colActions,
+          printOne: t.printOne,
+          openOrder: t.openOrder,
+          delete: tPrint.delete,
+          ungrouped: tg.ungrouped,
+          emptyFiltered: t.emptyFiltered,
+          cannotRemoveWithSession: t.cannotRemoveWithSession,
+        }}
+        onToggleRow={batch.toggleRow}
+        onLabelDraftFocus={onLabelDraftFocus}
+        onLabelDraftChange={onLabelDraftChange}
+        onLabelBlur={onLabelBlur}
+        onSeatChange={onSeatChange}
+        onPreview={setPreviewTable}
+        onPrintRow={(table) => void printRows([table])}
+        onDeleteRow={(table) => onDeleteRequest([table])}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
 
       <StaffLoginQrSection slug={restaurant.slug} webOrigin={webOrigin} />
 

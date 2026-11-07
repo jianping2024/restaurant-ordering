@@ -407,6 +407,9 @@ export function MenuOrderingController({
   const listMotionEnabled = guestListMotionEnabled;
   const limitGuestCount = sessionGuestCountForLimits(recentOrders);
   const staffAssistedOrdering = !!staffAssisted;
+  const staffMenuDishSearchEnabled =
+    staffAssistedOrdering &&
+    isRestaurantFeatureEnabled(restaurant.feature_flags, 'staff_menu_dish_search_enabled');
 
   /** Write cart qty after gates (list + drawer share this). */
   const commitCartQty = useCallback(
@@ -1106,7 +1109,7 @@ export function MenuOrderingController({
         }
       />
 
-      {catalogReady ? (
+      {catalogReady && staffMenuDishSearchEnabled ? (
         <CustomerMenuDishSearch
           lang={lang}
           servedItems={catalogView.servedItems}

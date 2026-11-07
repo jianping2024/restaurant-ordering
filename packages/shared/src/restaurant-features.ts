@@ -10,6 +10,7 @@ export type RestaurantFeatureKey =
   | 'menu_flavor_hints_enabled'
   | 'open_table_receipt_print'
   | 'quick_table_close'
+  | 'staff_menu_dish_search_enabled'
   | 'takeaway_ordering';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
@@ -38,6 +39,7 @@ export type RestaurantFeatureDefinition = {
     | 'menuFlavorHints'
     | 'openTableReceiptPrint'
     | 'quickTableClose'
+    | 'staffMenuDishSearch'
     | 'takeawayOrdering';
   descKey:
     | 'billReceiptPrintDesc'
@@ -48,6 +50,7 @@ export type RestaurantFeatureDefinition = {
     | 'menuFlavorHintsDesc'
     | 'openTableReceiptPrintDesc'
     | 'quickTableCloseDesc'
+    | 'staffMenuDishSearchDesc'
     | 'takeawayOrderingDesc';
   /** Pro commercial key: toggle locked unless restaurant has effective Pro + feature grant. */
   premiumKey?: PremiumKey;
@@ -137,6 +140,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'takeawayOrdering',
     descKey: 'takeawayOrderingDesc',
+  },
+  {
+    key: 'staff_menu_dish_search_enabled',
+    moduleId: 'ordering',
+    defaultEnabled: false,
+    labelKey: 'staffMenuDishSearch',
+    descKey: 'staffMenuDishSearchDesc',
   },
 ] as const;
 

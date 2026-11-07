@@ -56,6 +56,8 @@ interface Props {
    * (same asset + sole still/motion exclusivity as recommended rail).
    */
   listMotionEnabled?: boolean;
+  /** Brief gold ring after guest dish search locate. */
+  locateHighlight?: boolean;
   onOpenDetail: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
@@ -207,6 +209,7 @@ export function MenuItemCard({
   treatZeroAsFree = false,
   flavorHintsEnabled = false,
   listMotionEnabled = false,
+  locateHighlight = false,
   onOpenDetail,
   onIncrement,
   onDecrement,
@@ -247,11 +250,12 @@ export function MenuItemCard({
 
   return (
     <div
+      data-menu-item-id={item.id}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       className={`${MENU_ITEM_CARD_SHELL_CLASS} ${
         item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
-      }`}
+      }${locateHighlight ? ' mesa-menu-item-card-locate-hit' : ''}`}
     >
       <button
         type="button"

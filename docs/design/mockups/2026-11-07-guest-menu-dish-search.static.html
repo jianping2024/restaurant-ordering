@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>客人点餐 · 按编码/名称定位 — 静态设计稿</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --gold-light: 168 125 60;
+      --on-gold: 255 250 240;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --danger: 180 60 50;
+      --shadow: 0 12px 40px rgb(31 62 82 / 0.18);
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+      --rail: 4.75rem;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.65rem;
+      margin: 0 0 6px;
+    }
+    .lede {
+      margin: 0 0 16px;
+      color: rgb(var(--ink-muted));
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 48rem;
+    }
+    .rules {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 22px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      font-size: 0.875rem;
+      line-height: 1.45;
+      max-width: 48rem;
+    }
+    .rules strong { color: rgb(var(--gold)); font-weight: 600; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] {
+      background: rgb(var(--ink));
+      color: #f7f3ea;
+      border-color: rgb(var(--ink));
+    }
+    .stage {
+      display: none;
+      gap: 28px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .stage[data-active="true"] { display: flex; }
+    .frame-wrap { flex: 0 0 auto; }
+    .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgb(var(--ink-muted));
+      margin-bottom: 10px;
+    }
+    .phone {
+      width: 360px;
+      height: 740px;
+      border-radius: 28px;
+      border: 10px solid #1c2430;
+      background: rgb(var(--bg));
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .status {
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgb(var(--ink));
+      background: rgb(var(--card));
+    }
+    .hdr {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px 6px;
+      background: rgb(var(--card));
+      border-bottom: 1px solid rgb(var(--border) / 0.55);
+    }
+    .table-chip {
+      border: 1px solid rgb(var(--ink) / 0.45);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgb(var(--ink));
+    }
+    .chrome {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .chrome-pill {
+      width: 44px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--bg));
+      font-size: 11px;
+      display: grid;
+      place-items: center;
+      color: rgb(var(--ink));
+      font-weight: 600;
+    }
+    .search-bar {
+      flex-shrink: 0;
+      padding: 6px 12px 8px;
+      background: rgb(var(--card));
+      border-bottom: 1px solid rgb(var(--border) / 0.55);
+      position: relative;
+      z-index: 5;
+    }
+    .search-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 40px;
+      padding: 0 10px 0 12px;
+      border-radius: 12px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--bg));
+    }
+    .search-field[data-focus="true"] {
+      border-color: rgb(var(--gold) / 0.65);
+      box-shadow: 0 0 0 3px rgb(var(--gold) / 0.18);
+    }
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.55;
+    }
+    .search-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      color: rgb(var(--text));
+      font-family: inherit;
+    }
+    .search-field input::placeholder {
+      color: rgb(var(--ink-muted));
+    }
+    .clear-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 0;
+      background: rgb(var(--ink) / 0.12);
+      color: rgb(var(--ink));
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+    }
+    .clear-btn[data-show="true"] { display: grid; place-items: center; }
+    .suggest {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: calc(100% - 2px);
+      border-radius: 14px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      box-shadow: 0 10px 28px rgb(31 62 82 / 0.16);
+      overflow: hidden;
+      display: none;
+      max-height: 280px;
+    }
+    .suggest[data-open="true"] { display: block; }
+    .suggest-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      color: inherit;
+      border-bottom: 1px solid rgb(var(--border) / 0.45);
+    }
+    .suggest-row:last-child { border-bottom: 0; }
+    .suggest-row[data-active="true"],
+    .suggest-row:hover {
+      background: rgb(var(--gold) / 0.12);
+    }
+    .thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #efeae2;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .suggest-meta { min-width: 0; flex: 1; }
+    .suggest-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .suggest-title .code {
+      color: rgb(var(--gold));
+      font-variant-numeric: tabular-nums;
+      margin-right: 4px;
+    }
+    .suggest-sub {
+      font-size: 12px;
+      color: rgb(var(--ink-muted));
+      margin-top: 2px;
+    }
+    .suggest-empty {
+      padding: 16px 14px;
+      font-size: 13px;
+      color: rgb(var(--ink-muted));
+      text-align: center;
+    }
+    .body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+    .rail {
+      width: var(--rail);
+      flex-shrink: 0;
+      background: rgb(var(--card));
+      border-right: 1px solid rgb(var(--border) / 0.55);
+      padding: 10px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+    }
+    .rail-key {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.2;
+      background: #ebe6dc;
+      color: rgb(var(--ink));
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .rail-key[data-active="true"] {
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      box-shadow: 0 2px 0 rgb(var(--gold) / 0.55);
+    }
+    .catalog {
+      flex: 1;
+      min-width: 0;
+      overflow: auto;
+      padding: 10px 10px 88px;
+    }
+    .sub-chips {
+      display: flex;
+      gap: 6px;
+      overflow: auto;
+      padding-bottom: 8px;
+      position: sticky;
+      top: 0;
+      background: rgb(var(--bg));
+      z-index: 1;
+    }
+    .chip {
+      flex-shrink: 0;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: rgb(var(--ink));
+    }
+    .chip[data-active="true"] {
+      border-color: rgb(var(--gold));
+      background: rgb(var(--gold) / 0.12);
+      color: rgb(var(--gold));
+      font-weight: 600;
+    }
+    .card {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      margin-bottom: 8px;
+      transition: box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .card[data-hit="true"] {
+      border-color: rgb(var(--gold));
+      box-shadow: 0 0 0 3px rgb(var(--gold) / 0.28);
+      background: #fffaf2;
+      animation: pulse-hit 1.1s ease 1;
+    }
+    @keyframes pulse-hit {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.015); }
+      100% { transform: scale(1); }
+    }
+    .card-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: #efeae2;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+    .card-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .card-name {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-name .code {
+      color: rgb(var(--gold));
+      font-variant-numeric: tabular-nums;
+      margin-right: 4px;
+    }
+    .card-foot {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .price {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: rgb(var(--ink));
+      font-size: 14px;
+    }
+    .plus {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 0;
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+    }
+    .dock {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgb(var(--ink));
+      color: #f7f3ea;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+    }
+    .note {
+      flex: 1;
+      min-width: 260px;
+      max-width: 420px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .note h2 {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      margin: 0 0 8px;
+      font-weight: 600;
+    }
+    .note ol { margin: 0; padding-left: 1.15rem; }
+    .note li { margin: 0 0 6px; }
+    .note code {
+      font-size: 0.82em;
+      background: rgb(var(--bg));
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .kb {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 210px;
+      background: linear-gradient(#d8d4cc, #c9c4bb);
+      border-top: 1px solid #b7b1a6;
+      padding: 8px 6px 10px;
+      display: none;
+      z-index: 8;
+    }
+    .kb[data-open="true"] { display: block; }
+    .kb-row {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+    .kb-key {
+      height: 34px;
+      border-radius: 6px;
+      background: #f4f1ea;
+      border: 0;
+      box-shadow: 0 1px 0 #9e978b;
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+    }
+    .kb-space {
+      grid-column: span 4;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>客人点餐 · 按编码 / 名称直接定位</h1>
+    <p class="lede">
+      客人对照纸质菜单上的编号，或记得菜名时，在顶栏搜索框输入 → 选中结果 →
+      系统切到该菜所在分类并把列表滚到该菜卡（短暂高亮）。不改成「整页只剩搜索结果」的第二套菜单。
+    </p>
+    <div class="rules">
+      <div><strong>唯一能力：</strong>客人菜单菜品定位（输入 → 匹配 → 跳转），不另起筛选列表页。</div>
+      <div><strong>匹配字段：</strong>菜品编码 <code>item_code</code> + 当前界面语言下的菜名（与屏上 <code>formatMenuCatalogItemLabel</code> 一致）。</div>
+      <div><strong>放置：</strong>桌号顶栏下方全宽搜索条（sticky），不压左分类轨；推荐区与子分类 chip 仍按原顺序。</div>
+      <div><strong>键盘：</strong>字号 ≥16px；有内容可一键清空；无结果时提示「没有找到」。</div>
+      <div><strong>范围：</strong>仅当前客人可见目录（时段 / 堂食外卖通道过滤后的菜）；下架菜不进建议。</div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab" data-tab="idle" aria-selected="true">1 · 空闲</button>
+      <button type="button" class="tab" data-tab="typing" aria-selected="false">2 · 输入建议</button>
+      <button type="button" class="tab" data-tab="located" aria-selected="false">3 · 定位高亮</button>
+      <button type="button" class="tab" data-tab="empty" aria-selected="false">4 · 无结果</button>
+    </div>
+
+    <!-- Stage: idle -->
+    <div class="stage" data-stage="idle" data-active="true">
+      <div class="frame-wrap">
+        <div class="label">手机 · 空闲</div>
+        <div class="phone" data-phone="idle">
+          <div class="status"><span>9:41</span><span>●●●</span></div>
+          <div class="hdr">
+            <span class="table-chip">桌 12</span>
+            <div class="chrome">
+              <span class="chrome-pill">中</span>
+              <span class="chrome-pill">◐</span>
+            </div>
+          </div>
+          <div class="search-bar">
+            <div class="search-field">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" placeholder="搜编码或菜名" readonly value="" />
+            </div>
+          </div>
+          <div class="body">
+            <div class="rail">
+              <button type="button" class="rail-key" data-active="true">热菜</button>
+              <button type="button" class="rail-key">凉菜</button>
+              <button type="button" class="rail-key">饮品</button>
+            </div>
+            <div class="catalog">
+              <div class="sub-chips">
+                <span class="chip" data-active="true">全部</span>
+                <span class="chip">炒菜</span>
+                <span class="chip">汤</span>
+              </div>
+              <div class="card"><div class="card-thumb">🥘</div><div class="card-body"><div class="card-name"><span class="code">A01</span>葡式焗鸭饭</div><div class="card-foot"><span class="price">€12.50</span><button type="button" class="plus">+</button></div></div></div>
+              <div class="card"><div class="card-thumb">🐟</div><div class="card-body"><div class="card-name"><span class="code">A08</span>碎蛋鳕鱼</div><div class="card-foot"><span class="price">€14.90</span><button type="button" class="plus">+</button></div></div></div>
+              <div class="card"><div class="card-thumb">🥩</div><div class="card-body"><div class="card-name"><span class="code">A12</span>黑椒牛柳</div><div class="card-foot"><span class="price">€16.80</span><button type="button" class="plus">+</button></div></div></div>
+            </div>
+          </div>
+          <div class="dock"><span>已点 · 2</span><span>去下单</span></div>
+        </div>
+      </div>
+      <aside class="note">
+        <h2>状态 1 · 空闲</h2>
+        <ol>
+          <li>搜索条始终在顶栏下，不依赖先滚分类。</li>
+          <li>占位文案：搜编码或菜名（随界面语言三语）。</li>
+          <li>未输入时不展开建议层；分类轨与菜卡照旧。</li>
+        </ol>
+      </aside>
+    </div>
+
+    <!-- Stage: typing -->
+    <div class="stage" data-stage="typing" data-active="false">
+      <div class="frame-wrap">
+        <div class="label">手机 · 输入「A1」</div>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>●●●</span></div>
+          <div class="hdr">
+            <span class="table-chip">桌 12</span>
+            <div class="chrome"><span class="chrome-pill">中</span><span class="chrome-pill">◐</span></div>
+          </div>
+          <div class="search-bar">
+            <div class="search-field" data-focus="true">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" readonly value="A1" />
+              <button type="button" class="clear-btn" data-show="true" aria-label="清空">×</button>
+            </div>
+            <div class="suggest" data-open="true">
+              <button type="button" class="suggest-row" data-active="true">
+                <span class="thumb">🥘</span>
+                <span class="suggest-meta">
+                  <span class="suggest-title"><span class="code">A01</span>葡式焗鸭饭</span>
+                  <span class="suggest-sub">热菜 · €12.50</span>
+                </span>
+              </button>
+              <button type="button" class="suggest-row">
+                <span class="thumb">🥩</span>
+                <span class="suggest-meta">
+                  <span class="suggest-title"><span class="code">A12</span>黑椒牛柳</span>
+                  <span class="suggest-sub">热菜 · €16.80</span>
+                </span>
+              </button>
+              <button type="button" class="suggest-row">
+                <span class="thumb">🍵</span>
+                <span class="suggest-meta">
+                  <span class="suggest-title"><span class="code">A15</span>酸辣汤</span>
+                  <span class="suggest-sub">热菜 · €4.50</span>
+                </span>
+              </button>
+            </div>
+          </div>
+          <div class="body">
+            <div class="rail">
+              <button type="button" class="rail-key" data-active="true">热菜</button>
+              <button type="button" class="rail-key">凉菜</button>
+              <button type="button" class="rail-key">饮品</button>
+            </div>
+            <div class="catalog" style="filter: brightness(0.92);">
+              <div class="sub-chips"><span class="chip" data-active="true">全部</span></div>
+              <div class="card"><div class="card-thumb">🥘</div><div class="card-body"><div class="card-name"><span class="code">A01</span>葡式焗鸭饭</div><div class="card-foot"><span class="price">€12.50</span><button type="button" class="plus">+</button></div></div></div>
+            </div>
+          </div>
+          <div class="kb" data-open="true">
+            <div class="kb-row">
+              <button type="button" class="kb-key">Q</button><button type="button" class="kb-key">W</button><button type="button" class="kb-key">E</button><button type="button" class="kb-key">R</button><button type="button" class="kb-key">T</button><button type="button" class="kb-key">Y</button><button type="button" class="kb-key">U</button><button type="button" class="kb-key">I</button><button type="button" class="kb-key">O</button><button type="button" class="kb-key">P</button>
+            </div>
+            <div class="kb-row">
+              <button type="button" class="kb-key">A</button><button type="button" class="kb-key">S</button><button type="button" class="kb-key">D</button><button type="button" class="kb-key">F</button><button type="button" class="kb-key">G</button><button type="button" class="kb-key">H</button><button type="button" class="kb-key">J</button><button type="button" class="kb-key">K</button><button type="button" class="kb-key">L</button><button type="button" class="kb-key">⌫</button>
+            </div>
+            <div class="kb-row">
+              <button type="button" class="kb-key">123</button><button type="button" class="kb-key">Z</button><button type="button" class="kb-key">X</button><button type="button" class="kb-key kb-space">space</button><button type="button" class="kb-key">.</button><button type="button" class="kb-key">↵</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="note">
+        <h2>状态 2 · 输入建议</h2>
+        <ol>
+          <li>输入 ≥1 字符即出建议（编码前缀 / 菜名包含，不区分大小写）。</li>
+          <li>建议行：缩略图/emoji + <code>编码 菜名</code> + 所属顶分类与价。</li>
+          <li>点选一条 → 收起建议、收键盘 → 进入「定位高亮」。</li>
+          <li>编码精确命中优先排前；否则按目录 sort 顺序。</li>
+        </ol>
+      </aside>
+    </div>
+
+    <!-- Stage: located -->
+    <div class="stage" data-stage="located" data-active="false">
+      <div class="frame-wrap">
+        <div class="label">手机 · 已定位 A12</div>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>●●●</span></div>
+          <div class="hdr">
+            <span class="table-chip">桌 12</span>
+            <div class="chrome"><span class="chrome-pill">中</span><span class="chrome-pill">◐</span></div>
+          </div>
+          <div class="search-bar">
+            <div class="search-field">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" readonly value="" placeholder="搜编码或菜名" />
+            </div>
+          </div>
+          <div class="body">
+            <div class="rail">
+              <button type="button" class="rail-key" data-active="true">热菜</button>
+              <button type="button" class="rail-key">凉菜</button>
+              <button type="button" class="rail-key">饮品</button>
+            </div>
+            <div class="catalog">
+              <div class="sub-chips">
+                <span class="chip" data-active="true">全部</span>
+                <span class="chip">炒菜</span>
+              </div>
+              <div class="card"><div class="card-thumb">🥘</div><div class="card-body"><div class="card-name"><span class="code">A01</span>葡式焗鸭饭</div><div class="card-foot"><span class="price">€12.50</span><button type="button" class="plus">+</button></div></div></div>
+              <div class="card"><div class="card-thumb">🐟</div><div class="card-body"><div class="card-name"><span class="code">A08</span>碎蛋鳕鱼</div><div class="card-foot"><span class="price">€14.90</span><button type="button" class="plus">+</button></div></div></div>
+              <div class="card" data-hit="true"><div class="card-thumb">🥩</div><div class="card-body"><div class="card-name"><span class="code">A12</span>黑椒牛柳</div><div class="card-foot"><span class="price">€16.80</span><button type="button" class="plus">+</button></div></div></div>
+              <div class="card"><div class="card-thumb">🍵</div><div class="card-body"><div class="card-name"><span class="code">A15</span>酸辣汤</div><div class="card-foot"><span class="price">€4.50</span><button type="button" class="plus">+</button></div></div></div>
+            </div>
+          </div>
+          <div class="dock"><span>已点 · 2</span><span>去下单</span></div>
+        </div>
+      </div>
+      <aside class="note">
+        <h2>状态 3 · 定位高亮</h2>
+        <ol>
+          <li>切到该菜顶分类（必要时清子分类「全部」），列表 <code>scrollIntoView</code> 到目标菜卡。</li>
+          <li>菜卡金边 + 短暂高亮（约 1.2s），不自动打开详情。</li>
+          <li>搜索框清空，客人可继续逛或再搜；分类导航仍是主浏览方式。</li>
+          <li>classic 与 sushi 客人页同一套定位；店员代点嵌入页同样可用。</li>
+        </ol>
+      </aside>
+    </div>
+
+    <!-- Stage: empty -->
+    <div class="stage" data-stage="empty" data-active="false">
+      <div class="frame-wrap">
+        <div class="label">手机 · 无匹配</div>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>●●●</span></div>
+          <div class="hdr">
+            <span class="table-chip">桌 12</span>
+            <div class="chrome"><span class="chrome-pill">中</span><span class="chrome-pill">◐</span></div>
+          </div>
+          <div class="search-bar">
+            <div class="search-field" data-focus="true">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" readonly value="ZZ99" />
+              <button type="button" class="clear-btn" data-show="true" aria-label="清空">×</button>
+            </div>
+            <div class="suggest" data-open="true">
+              <div class="suggest-empty">没有找到相关菜品</div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="rail">
+              <button type="button" class="rail-key" data-active="true">热菜</button>
+              <button type="button" class="rail-key">凉菜</button>
+            </div>
+            <div class="catalog" style="filter: brightness(0.92);">
+              <div class="card"><div class="card-thumb">🥘</div><div class="card-body"><div class="card-name"><span class="code">A01</span>葡式焗鸭饭</div><div class="card-foot"><span class="price">€12.50</span><button type="button" class="plus">+</button></div></div></div>
+            </div>
+          </div>
+          <div class="kb" data-open="true">
+            <div class="kb-row">
+              <button type="button" class="kb-key">1</button><button type="button" class="kb-key">2</button><button type="button" class="kb-key">3</button><button type="button" class="kb-key">4</button><button type="button" class="kb-key">5</button><button type="button" class="kb-key">6</button><button type="button" class="kb-key">7</button><button type="button" class="kb-key">8</button><button type="button" class="kb-key">9</button><button type="button" class="kb-key">0</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="note">
+        <h2>状态 4 · 无结果</h2>
+        <ol>
+          <li>建议层只显示「没有找到相关菜品」，不改底下分类与列表。</li>
+          <li>清空或改输入后重新匹配；不跳转、不高亮。</li>
+        </ol>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const stages = document.querySelectorAll('.stage');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-tab');
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        stages.forEach((s) => {
+          s.dataset.active = String(s.getAttribute('data-stage') === id);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

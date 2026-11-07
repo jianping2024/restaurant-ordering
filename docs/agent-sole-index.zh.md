@@ -277,6 +277,10 @@ sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `-
 
 sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.
 
+### Guest menu dish search locate
+
+sole `CustomerMenuDishSearch` + `matchGuestMenuDishSearch` / `buildGuestMenuDishSearchCandidates` + `useGuestMenuDishLocate` (classic `MenuOrderingController` + sushi `SushiMenuPage`); `Input` clearable only — never a parallel SearchInput or dashboard `DASHBOARD_COMPACT_SEARCH_CLASS`; locate = switch top + sub「全部」+ `scrollIntoView` + brief `mesa-menu-item-card-locate-hit` — never a second filtered-catalog list replacing category browse.
+
 ### Guest menu catalog freshness
 
 sole durable signal `restaurants.menu_catalog_version` + client `ensureCustomerMenuCatalog` (knownVersion); SSR seeds version via `loadCustomerMenuCatalogForDisplay`; MenuPage always entry/attention reconcile (never disable the hook because SSR seed exists); live doorbell sole `menu_catalog_signals` via `CustomerMenuCatalogRealtime` (`restaurant_id` filter; upsert on invalidate — never CDC full `restaurants`, never poll, never `menu_items` CDC) → same ensure. Server cache key includes the version so a bump cannot serve a stale body.

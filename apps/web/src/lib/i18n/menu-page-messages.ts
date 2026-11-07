@@ -59,6 +59,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   staffOverageCancel: string;
   subcategoryAll: string;
   recommended: string;
+  /** Guest menu: search by item code or dish name (locate, not filter-replace). */
+  dishSearchPlaceholder: string;
+  dishSearchClear: string;
+  dishSearchAria: string;
+  dishSearchNoResults: string;
   catalogLoading: string;
   /** Cart drawer title. */
   cartTitle: string;
@@ -168,6 +173,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Tudo',
     recommended: 'Recomendados',
+    dishSearchPlaceholder: 'Codigo ou nome do prato',
+    dishSearchClear: 'Limpar pesquisa',
+    dishSearchAria: 'Pesquisar prato por codigo ou nome',
+    dishSearchNoResults: 'Nenhum prato encontrado',
     catalogLoading: 'A carregar menu…',
     cartTitle: 'Carrinho',
     cartTotalLabel: 'Total',
@@ -269,6 +278,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancel',
     subcategoryAll: 'All',
     recommended: 'Recommended',
+    dishSearchPlaceholder: 'Code or dish name',
+    dishSearchClear: 'Clear search',
+    dishSearchAria: 'Search dish by code or name',
+    dishSearchNoResults: 'No dishes found',
     catalogLoading: 'Loading menu…',
     cartTitle: 'Cart',
     cartTotalLabel: 'Total',
@@ -370,6 +383,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: '取消',
     subcategoryAll: '全部',
     recommended: '推荐',
+    dishSearchPlaceholder: '搜编码或菜名',
+    dishSearchClear: '清除搜索',
+    dishSearchAria: '按编码或菜名搜索菜品',
+    dishSearchNoResults: '没有找到相关菜品',
     catalogLoading: '正在加载菜单…',
     cartTitle: '购物车',
     cartTotalLabel: '合计',
@@ -478,6 +495,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Todo',
     recommended: 'Recomendados',
+    dishSearchPlaceholder: 'Código o nombre del plato',
+    dishSearchClear: 'Borrar búsqueda',
+    dishSearchAria: 'Buscar plato por código o nombre',
+    dishSearchNoResults: 'No se encontraron platos',
     catalogLoading: 'Cargando la carta…',
     cartTitle: 'Carrito',
     cartTotalLabel: 'Total',
@@ -591,6 +612,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Annuler',
     subcategoryAll: 'Tout',
     recommended: 'Recommandés',
+    dishSearchPlaceholder: 'Code ou nom du plat',
+    dishSearchClear: 'Effacer la recherche',
+    dishSearchAria: 'Rechercher un plat par code ou nom',
+    dishSearchNoResults: 'Aucun plat trouvé',
     catalogLoading: 'Chargement de la carte…',
     cartTitle: 'Panier',
     cartTotalLabel: 'Total',
@@ -703,6 +728,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Abbrechen',
     subcategoryAll: 'Alle',
     recommended: 'Empfohlen',
+    dishSearchPlaceholder: 'Code oder Gerichtsname',
+    dishSearchClear: 'Suche löschen',
+    dishSearchAria: 'Gericht nach Code oder Name suchen',
+    dishSearchNoResults: 'Keine Gerichte gefunden',
     catalogLoading: 'Karte wird geladen…',
     cartTitle: 'Warenkorb',
     cartTotalLabel: 'Summe',

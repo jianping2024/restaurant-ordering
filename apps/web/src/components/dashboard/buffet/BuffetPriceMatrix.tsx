@@ -132,7 +132,8 @@ export function BuffetPriceMatrix({
                           </span>
                         </div>
                         <span className="block text-[10px] text-brand-text-muted mt-1 tabular-nums">
-                          {rule.valid_from?.slice(0, 10)} → {rule.valid_to?.slice(0, 10)}
+                          {rule.valid_from?.slice(0, 10)} →{' '}
+                          {rule.valid_to?.slice(0, 10) || t.ruleValidLongTerm}
                         </span>
                       </button>
                     ) : (

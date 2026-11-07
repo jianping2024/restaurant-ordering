@@ -8,6 +8,11 @@ import { itemDeletedDefinition } from '@/lib/audit/builders/item-deleted';
 import { itemQtyDecrementedDefinition } from '@/lib/audit/builders/item-qty-decremented';
 import { itemVoidedDefinition } from '@/lib/audit/builders/item-voided';
 import {
+  buffetCalendarDefinition,
+  buffetFridayPolicyDefinition,
+  buffetPriceRuleDefinition,
+} from '@/lib/audit/builders/buffet-settings';
+import {
   checkoutRequestedDefinition,
   guestCountChangedDefinition,
   kitchenPrepDefinition,
@@ -47,6 +52,9 @@ const REGISTRY: Record<AuditEventKey, AuditEventDefinition<any>> = {
   [AUDIT_EVENT.KITCHEN_PREP]: kitchenPrepDefinition,
   [AUDIT_EVENT.KITCHEN_PREP_REPRINT]: kitchenPrepReprintDefinition,
   [AUDIT_EVENT.KITCHEN_SERVE]: kitchenServeDefinition,
+  [AUDIT_EVENT.BUFFET_PRICE_RULE]: buffetPriceRuleDefinition,
+  [AUDIT_EVENT.BUFFET_CALENDAR]: buffetCalendarDefinition,
+  [AUDIT_EVENT.BUFFET_FRIDAY_POLICY]: buffetFridayPolicyDefinition,
 };
 
 export function getAuditEventDefinition(key: AuditEventKey): AuditEventDefinition<unknown> | null {

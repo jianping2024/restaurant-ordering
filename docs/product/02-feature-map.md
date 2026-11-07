@@ -538,8 +538,8 @@
 
 ### 已有功能
 
-- 记录：开台、改人数、关台、强制关台、转台、并台、同行组、呼叫结账、确认收款、加菜、减菜、备餐、备餐补打、上桌
-- 写入：`scheduleRecordAudit` / `scheduleStaffRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）
+- 记录：开台、改人数、关台、强制关台、转台、并台、同行组、呼叫结账、确认收款、加菜、减菜、备餐、备餐补打、上桌；**自助餐配置**：价格规则新建/修改/删除/启停（`BUFFET_PRICE_RULE`）、日历标记增删（`BUFFET_CALENDAR`）、周五晚周末价策略（`BUFFET_FRIDAY_POLICY`）
+- 写入：`scheduleRecordAudit` / `scheduleStaffRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）；自助餐配置由 `/api/dashboard/buffet` 成功写入后调度
 - 查询：日期窗（默认近 7 天，可配置 7–90 天）+ `action_type` 筛选；侧栏「操作记录」；Cloud 与 on-prem 均可用
 - 保留：`restaurants.operation_log_retention_days`（默认 7）；`resolveOperationLogRetentionDays` 统一驱动查询窗、日期选择与夜间 purge；现有 Vercel cron `/api/cron/nightly-close-sessions` 在 auto-close 门控之前执行 purge
 
@@ -552,6 +552,7 @@
 - 楼面减菜记 `ITEM_QTY_DECREMENTED`（含减到 0），不进异常队列
 - 改人数：会话已开后的 buffet 保存记 `GUEST_COUNT_CHANGED`；冷开台只记 `SESSION_OPENED`
 - 同行组：仅员工显式 create/rename/dissolve/add/remove；系统空组解散不记
+- 自助餐：**页面上的**价格规则 / 日历 / 周五晚策略变更记日志；**数据库迁移**批量清空规则结束日不算店员操作，不写 `operation_logs`
 - 与异常操作页分离：异常页仍管折扣/退菜确认队列
 
 ### 相关代码位置
@@ -560,8 +561,8 @@
 |------|------|
 | 页面 | `apps/web/src/app/dashboard/operation-logs/page.tsx` |
 | UI | `apps/web/src/components/dashboard/OperationLogsManager.tsx` |
-| API | `apps/web/src/app/api/dashboard/operation-logs/route.ts` |
-| Lib | `apps/web/src/lib/operation-logs/*`（含 `retention-days.ts`）、`lib/audit/schedule-record-audit.ts`、`lib/audit/builders/staff-operations.ts` |
+| API | `apps/web/src/app/api/dashboard/operation-logs/route.ts`；自助餐写：`apps/web/src/app/api/dashboard/buffet/route.ts` |
+| Lib | `apps/web/src/lib/operation-logs/*`（含 `retention-days.ts`）、`lib/audit/schedule-record-audit.ts`、`lib/audit/builders/staff-operations.ts`、`lib/audit/builders/buffet-settings.ts` |
 
 ---
 

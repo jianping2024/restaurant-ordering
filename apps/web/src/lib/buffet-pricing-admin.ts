@@ -64,12 +64,21 @@ export function hmToDbTime(hm: string): string | null {
   return `${normalized}:00`;
 }
 
+/** Open end for range math when `valid_to` is null/empty (long-term rule). */
+export const BUFFET_RULE_OPEN_END = '9999-12-31';
+
+export function ruleValidToOrOpen(validTo: string | null | undefined): string {
+  const to = validTo?.slice(0, 10) ?? '';
+  return to || BUFFET_RULE_OPEN_END;
+}
+
 export function ruleCoversDate(rule: BuffetPriceRule, dateIso: string): boolean {
   if (!rule.is_active) return false;
   const d = dateIso.slice(0, 10);
   const from = rule.valid_from?.slice(0, 10) ?? '';
+  if (!from || d < from) return false;
   const to = rule.valid_to?.slice(0, 10) ?? '';
-  return d >= from && d <= to;
+  return !to || d <= to;
 }
 
 export function hasActiveRuleForDayKind(
@@ -123,10 +132,12 @@ export function findOverlappingRules(
     time_slot_id: string;
     calendar_kind: BuffetCalendarKind;
     valid_from: string;
-    valid_to: string;
+    valid_to: string | null;
     excludeId?: string;
   },
 ): BuffetPriceRule[] {
+  const draftFrom = draft.valid_from.slice(0, 10);
+  const draftTo = ruleValidToOrOpen(draft.valid_to);
   return rules.filter(
     (r) =>
       r.is_active &&
@@ -135,10 +146,10 @@ export function findOverlappingRules(
       r.time_slot_id === draft.time_slot_id &&
       r.calendar_kind === draft.calendar_kind &&
       rangesOverlap(
-        draft.valid_from.slice(0, 10),
-        draft.valid_to.slice(0, 10),
+        draftFrom,
+        draftTo,
         r.valid_from?.slice(0, 10) ?? '',
-        r.valid_to?.slice(0, 10) ?? '',
+        ruleValidToOrOpen(r.valid_to),
       ),
   );
 }
@@ -150,7 +161,7 @@ export function getRuleStatus(rule: BuffetPriceRule, todayIso: string): RuleStat
   const from = rule.valid_from?.slice(0, 10) ?? '';
   const to = rule.valid_to?.slice(0, 10) ?? '';
   if (!rule.is_active) return 'expired';
-  if (to < t) return 'expired';
+  if (to && to < t) return 'expired';
   if (from > t) return 'upcoming';
   return 'active';
 }
@@ -226,6 +237,7 @@ export type BuffetRuleDraft = {
   time_slot_id: string;
   calendar_kind: BuffetCalendarKind;
   valid_from: string;
+  /** Empty string = long-term (no end date). */
   valid_to: string;
   adult_price: number;
   child_price: number;
@@ -249,7 +261,7 @@ export function buildBuffetRuleDraft(
     time_slot_id: slots[0].id,
     calendar_kind: 'weekday',
     valid_from: `${y}-${m}-${d}`,
-    valid_to: `${y + 1}-${m}-${d}`,
+    valid_to: '',
     adult_price: 20,
     child_price: 10,
     priority: 0,
@@ -283,10 +295,10 @@ export function validateBuffetRuleDraft(
   rules: BuffetPriceRule[],
   options: { excludeId?: string; skipConflict?: boolean } = {},
 ): BuffetRuleDraftValidation {
-  if (!draft.valid_from || !draft.valid_to) {
+  if (!draft.valid_from) {
     return { ok: false, reason: 'date_required', overlaps: [] };
   }
-  if (draft.valid_to < draft.valid_from) {
+  if (draft.valid_to && draft.valid_to < draft.valid_from) {
     return { ok: false, reason: 'invalid_date_range', overlaps: [] };
   }
   const overlaps = findOverlappingRules(rules, {
@@ -294,7 +306,7 @@ export function validateBuffetRuleDraft(
     time_slot_id: draft.time_slot_id,
     calendar_kind: draft.calendar_kind,
     valid_from: draft.valid_from,
-    valid_to: draft.valid_to,
+    valid_to: draft.valid_to || null,
     excludeId: options.excludeId,
   });
   if (!options.skipConflict && overlaps.length > 0) {

@@ -22,6 +22,10 @@ export const AUDIT_EVENT = {
   KITCHEN_PREP: 'KITCHEN_PREP',
   KITCHEN_PREP_REPRINT: 'KITCHEN_PREP_REPRINT',
   KITCHEN_SERVE: 'KITCHEN_SERVE',
+  /** Dashboard buffet settings (price rules / calendar / Friday policy). */
+  BUFFET_PRICE_RULE: 'BUFFET_PRICE_RULE',
+  BUFFET_CALENDAR: 'BUFFET_CALENDAR',
+  BUFFET_FRIDAY_POLICY: 'BUFFET_FRIDAY_POLICY',
 } as const;
 
 /** Sole action_type set shown/filtered on 操作记录 (subset of AUDIT_EVENT). */
@@ -40,6 +44,9 @@ export const OPERATION_LOG_ACTION_TYPES = [
   AUDIT_EVENT.KITCHEN_PREP,
   AUDIT_EVENT.KITCHEN_PREP_REPRINT,
   AUDIT_EVENT.KITCHEN_SERVE,
+  AUDIT_EVENT.BUFFET_PRICE_RULE,
+  AUDIT_EVENT.BUFFET_CALENDAR,
+  AUDIT_EVENT.BUFFET_FRIDAY_POLICY,
 ] as const;
 
 export type OperationLogActionType = (typeof OPERATION_LOG_ACTION_TYPES)[number];
@@ -55,7 +62,10 @@ export type AuditEntityType =
   | 'order'
   | 'bill_split'
   | 'abnormal_operation'
-  | 'table_party';
+  | 'table_party'
+  | 'buffet_price_rule'
+  | 'buffet_calendar_override'
+  | 'restaurant';
 
 export type AuditActor =
   | { kind: 'owner'; userId: string; displayName: string }

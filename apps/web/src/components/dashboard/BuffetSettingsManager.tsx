@@ -249,7 +249,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
       time_slot_id: ruleDraft.time_slot_id,
       calendar_kind: ruleDraft.calendar_kind,
       valid_from: ruleDraft.valid_from,
-      valid_to: ruleDraft.valid_to,
+      valid_to: ruleDraft.valid_to.trim() || null,
       adult_price: ruleDraft.adult_price,
       child_price: ruleDraft.child_price,
       priority: ruleDraft.priority,
@@ -361,7 +361,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
         })
           .map((r) => {
             const slot = slots.find((s) => s.id === r.time_slot_id)?.name ?? '';
-            return `${dayKindLabel(r.calendar_kind)} ${r.valid_from?.slice(0, 10)}–${r.valid_to?.slice(0, 10)} (P${r.priority}${slot ? `, ${slot}` : ''})`;
+            const toLabel = r.valid_to?.slice(0, 10) || t.ruleValidLongTerm;
+            return `${dayKindLabel(r.calendar_kind)} ${r.valid_from?.slice(0, 10)}–${toLabel} (P${r.priority}${slot ? `, ${slot}` : ''})`;
           })
           .join('; ')
       : '';
@@ -713,7 +714,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                                 {dayKindLabel(rule.calendar_kind)}
                               </td>
                               <td className="px-3 py-3 text-brand-text-muted whitespace-nowrap tabular-nums border-b border-brand-border/40">
-                                {rule.valid_from?.slice(0, 10)} → {rule.valid_to?.slice(0, 10)}
+                                {rule.valid_from?.slice(0, 10)} →{' '}
+                                {rule.valid_to?.slice(0, 10) || t.ruleValidLongTerm}
                               </td>
                               <td className="px-3 py-3 text-brand-gold whitespace-nowrap tabular-nums border-b border-brand-border/40">
                                 €{Number(rule.adult_price).toFixed(2)} / €{Number(rule.child_price).toFixed(2)}
@@ -769,6 +771,16 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
             onClose={() => !ruleSaveSubmitting && closeRuleModal()}
             title={ruleModal?.mode === 'create' ? t.ruleModalAddTitle : t.ruleModalEditTitle}
             size="lg"
+            footer={
+              <ModalConfirmActions
+                cancelLabel={t.dialogCancel}
+                confirmLabel={pendingConflictSave ? t.ruleConflictSave : t.ruleSave}
+                onCancel={closeRuleModal}
+                onConfirm={() => void saveRuleModal()}
+                busy={ruleSaveSubmitting}
+                confirmVariant="gold"
+              />
+            }
           >
             {ruleDraft && (() => {
               const fieldLocks: RuleFieldLocks | undefined =
@@ -896,8 +908,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       placeholder={t.pickDate}
                     />
                   </label>
-                  <label className="text-brand-text-muted text-[12px]">
-                    {t.validTo}
+                  <div className="text-brand-text-muted text-[12px]">
+                    <span className="block">{t.validTo}</span>
                     <DatePicker
                       className="mt-0.5 w-full"
                       value={ruleDraft.valid_to}
@@ -906,9 +918,23 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                         setRuleDraft((d) => (d ? { ...d, valid_to: iso } : d));
                       }}
                       lang={lang}
-                      placeholder={t.pickDate}
+                      placeholder={t.ruleValidLongTerm}
                     />
-                  </label>
+                    {ruleDraft.valid_to ? (
+                      <button
+                        type="button"
+                        className="mt-1 text-[11px] underline underline-offset-2 hover:text-brand-text"
+                        onClick={() => {
+                          setPendingConflictSave(false);
+                          setRuleDraft((d) => (d ? { ...d, valid_to: '' } : d));
+                        }}
+                      >
+                        {t.ruleClearValidTo}
+                      </button>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-brand-text-muted/80">{t.ruleValidToOptional}</p>
+                    )}
+                  </div>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.adultPrice}
                     <DecimalInput
@@ -951,15 +977,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                     />
                   </label>
                 </div>
-                <ModalConfirmActions
-                  className="mt-6"
-                  cancelLabel={t.dialogCancel}
-                  confirmLabel={pendingConflictSave ? t.ruleConflictSave : t.ruleSave}
-                  onCancel={closeRuleModal}
-                  onConfirm={() => void saveRuleModal()}
-                  busy={ruleSaveSubmitting}
-                  divided
-                />
               </>
               );
             })()}

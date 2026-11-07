@@ -42,6 +42,11 @@ describe('customerMenuChromeLayout', () => {
     assert.doesNotMatch(customerMenuPeerFloatRailClass, /3\.75rem|6\.5rem|safe-area/);
   });
 
+  it('keeps mesa-menu-shell width container on the content host, not the page root that wraps the fixed dock', () => {
+    assert.match(customerMenuContentHostClass, /mesa-menu-shell/);
+    assert.doesNotMatch(customerMenuDualPaneRootClass, /mesa-menu-shell/);
+  });
+
   it('keeps sole left category rail width shared with peer-float dodge', () => {
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[var(--mesa-menu-category-rail-w,4.75rem)]');
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[var(--mesa-menu-category-rail-w,4.75rem)]');

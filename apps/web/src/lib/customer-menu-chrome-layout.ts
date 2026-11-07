@@ -16,8 +16,8 @@ export const customerMenuShellRootClass = `${CUSTOMER_MENU_SHELL_WIDTH_CLASS} mx
 /**
  * Sole left category rail width (guest + staff-assisted + sushi).
  * Peer-float dodge padding must use the same token — never a parallel rem.
- * Live width is CSS `--mesa-menu-category-rail-w` (76px → 112px when the dual-pane
- * root is ≥46rem, see globals.css); the root is the `mesa-menu-shell` container.
+ * Live width is CSS `--mesa-menu-category-rail-w` (76px → 112px when the
+ * content host / `mesa-menu-shell` is ≥46rem, see globals.css).
  */
 export const CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS = 'w-[var(--mesa-menu-category-rail-w,4.75rem)]';
 export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[var(--mesa-menu-category-rail-w,4.75rem)]';
@@ -26,9 +26,11 @@ export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[var(--mesa-menu-c
  * Sole guest/staff menu body root: flex column, no document scroll inside.
  * Guest page adds `h-dvh` + shell width; staff embedded adds `min-h-0 flex-1`.
  * Header / sushi bar / gate stay shrink-0 above; category nav fills the rest.
+ * No `mesa-menu-shell` / container-type here — that traps `position:fixed`
+ * bottom docks on iOS WebKit; width queries live on the content host only.
  */
 export const customerMenuDualPaneRootClass =
-  'mesa-menu-shell relative flex flex-col overflow-hidden bg-brand-bg';
+  'relative flex flex-col overflow-hidden bg-brand-bg';
 /**
  * Sole category nav shell (guest page + staff embedded): fills remaining height;
  * left rail and right catalog each scroll independently (overscroll contained).
@@ -104,11 +106,12 @@ export const CUSTOMER_MENU_SUBCATEGORY_STICKY_PAGE_SCROLL_CLASS =
 /**
  * Sole guest menu content region under non-scrolling top chrome
  * (identity header + guests strip / sushi sticky + optional gate banner).
- * The peer-float rail mounts inside and uses absolute top-0 of this host — never a
- * viewport rem stack that drifts when chrome grows.
+ * Also the sole `mesa-menu-shell` width container (rail 76→112) — never put
+ * that container on the page root that wraps the fixed bottom dock.
+ * Peer-float rail mounts inside at absolute top-0 — never a viewport rem stack.
  */
 export const customerMenuContentHostClass =
-  'relative flex min-h-0 flex-1 flex-col overflow-hidden';
+  'mesa-menu-shell relative flex min-h-0 flex-1 flex-col overflow-hidden';
 
 /**
  * Sole peer-float rail shell: absolute inset-x top-0 of the content host.

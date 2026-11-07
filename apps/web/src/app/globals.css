@@ -258,6 +258,11 @@ body {
   container-name: mesa-menu-catalog;
 }
 
+/*
+ * Sole guest menu width container (rail 76→112). Mounted only on the content
+ * host — never on the page root that wraps the fixed bottom dock (iOS WebKit
+ * traps position:fixed under container-type).
+ */
 .mesa-menu-shell {
   container-type: inline-size;
   container-name: mesa-menu-shell;

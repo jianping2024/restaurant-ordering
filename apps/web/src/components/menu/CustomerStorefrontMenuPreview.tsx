@@ -11,6 +11,7 @@ import { CustomerRecommendedRail } from '@/components/menu/CustomerRecommendedRa
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
+  customerMenuContentHostClass,
   customerMenuDualPaneRootClass,
   customerMenuShellRootClass,
 } from '@/lib/customer-menu-chrome-layout';
@@ -79,7 +80,9 @@ export function CustomerStorefrontMenuPreview({
         sticky
       />
 
-      {/* One scrollport: storefront + menu. Header stays outside → pinned. */}
+      {/* One scrollport: storefront + menu. Header stays outside → pinned.
+          Content host = sole mesa-menu-shell (rail width); never on the page root. */}
+      <div className={customerMenuContentHostClass}>
       <div
         data-mesa-storefront-menu-scroll
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain"
@@ -134,6 +137,7 @@ export function CustomerStorefrontMenuPreview({
             })}
           </div>
         </CustomerMenuCategoryNav>
+      </div>
       </div>
     </div>
   );

@@ -201,7 +201,7 @@ sole yield rule is the CSS `[data-guest-bill-page]:has(<text field>:focus) [data
 
 ### Guest bottom dock surface
 
-sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + `CUSTOMER_MENU_SHELL_WIDTH_CLASS`; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + same shell width; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content.
+sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + `CUSTOMER_MENU_SHELL_WIDTH_CLASS`; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + same shell width; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content; never nest the fixed dock under `mesa-menu-shell` / `container-type` (iOS WebKit traps `position:fixed` — width container stays on content host only).
 
 ### By-item fraction unit (one cut per dish)
 
@@ -347,7 +347,7 @@ sole `CUSTOMER_MENU_SHELL_WIDTH_CLASS` = `w-full max-w-[68rem]` (page root / men
 
 ### Guest menu edge floats (peer float)
 
-sole content host `customerMenuContentHostClass` (under header + guests/sushi sticky + gate); peer rail `customerMenuPeerFloatRailClass` `absolute inset-x-0 top-0` inside that host (left-inset `CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS`); never viewport-fixed rem tops (`3.75rem` / safe-area stacks) or a second host/rail.
+sole content host `customerMenuContentHostClass` = also sole `mesa-menu-shell` width container (rail 76→112; under header + guests/sushi sticky + gate); peer rail `customerMenuPeerFloatRailClass` `absolute inset-x-0 top-0` inside that host (left-inset `CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS`); never viewport-fixed rem tops (`3.75rem` / safe-area stacks) or a second host/rail; never put `mesa-menu-shell` on the dual-pane page root that wraps the fixed bottom dock.
 
 ### Guest restaurant notice
 

@@ -118,6 +118,7 @@ describe('normalizeRestaurantFeatureFlags', () => {
     assert.equal(flags.bill_sync_to_fiscal, false);
     assert.equal(flags.quick_table_close, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);
+    assert.equal(flags.staff_menu_dish_search_enabled, false);
     assert.equal('kitchen_board' in flags, false);
   });
 });
@@ -144,6 +145,10 @@ describe('print settings feature host split', () => {
     assert.deepEqual(pickRestaurantFeatureFlagsForModules(flags, ['kitchen', 'flavor']), {
       kitchen_serve_to_table: true,
       menu_flavor_hints_enabled: false,
+    });
+    assert.deepEqual(pickRestaurantFeatureFlagsForModules(flags, ['ordering']), {
+      takeaway_ordering: false,
+      staff_menu_dish_search_enabled: false,
     });
   });
 

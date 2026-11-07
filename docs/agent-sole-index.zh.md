@@ -277,9 +277,9 @@ sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `-
 
 sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.
 
-### Guest menu dish search locate
+### Staff menu dish search locate
 
-sole `CustomerMenuDishSearch` + `matchGuestMenuDishSearch` / `buildGuestMenuDishSearchCandidates` + `useGuestMenuDishLocate` (classic `MenuOrderingController` + sushi `SushiMenuPage`); `Input` clearable only — never a parallel SearchInput or dashboard `DASHBOARD_COMPACT_SEARCH_CLASS`; locate = switch top + sub「全部」+ `scrollIntoView` + brief `mesa-menu-item-card-locate-hit` — never a second filtered-catalog list replacing category browse.
+sole `CustomerMenuDishSearch` + `matchGuestMenuDishSearch` / `buildGuestMenuDishSearchCandidates` + `useGuestMenuDishLocate` on staff-assisted `MenuOrderingController` only when `staff_menu_dish_search_enabled` (ordering module, default off; FeatureFlagsManager); guest QR / sushi guest page never mounts it; `Input` clearable only — never a parallel SearchInput or dashboard `DASHBOARD_COMPACT_SEARCH_CLASS`; locate = switch top + sub「全部」+ `scrollIntoView` + brief `mesa-menu-item-card-locate-hit` — never a second filtered-catalog list replacing category browse.
 
 ### Guest menu catalog freshness
 

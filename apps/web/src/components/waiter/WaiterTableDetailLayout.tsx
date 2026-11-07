@@ -68,6 +68,8 @@ type BuffetPanelProps = {
   draft: TableBuffetSelection | null;
   onSelectBuffet: (buffetId: string) => void;
   onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
+  /** False while the open list is loading (no「没有可开的套餐」flash). */
+  openableLoaded: boolean;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
   /** Session-write mutex — freeze headcount while another write is in flight. */
@@ -151,6 +153,7 @@ export function WaiterTableBuffetPanel({
   draft,
   onSelectBuffet,
   onSetGuestCount,
+  openableLoaded,
   resolvedByBuffetId,
   buffetPriceLoading,
   sessionBusy = false,
@@ -176,6 +179,7 @@ export function WaiterTableBuffetPanel({
           draft={draft}
           onSelectBuffet={onSelectBuffet}
           onSetGuestCount={onSetGuestCount}
+          openableLoaded={openableLoaded}
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}
           layout="detail"

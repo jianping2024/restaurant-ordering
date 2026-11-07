@@ -25,7 +25,7 @@ buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffe
 
 buffet_time_slots (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, start_time: time, end_time: time, weekdays: integer[], sort_order: integer, created_at: timestamptz)
 
-buffets (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, is_active: boolean, description: text nullable, vat_rate: numeric NOT NULL DEFAULT 13 [定稿待加；百分数点，档位同 menu_items；人头费 IVA], created_at: timestamptz, updated_at: timestamptz)
+buffets (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, is_active: boolean, description: text nullable CHECK (char_length ≤ 40) /* 开台选套餐时给服务员看；顾客端/小票/发票不显示 */, vat_rate: numeric NOT NULL DEFAULT 13 [定稿待加；百分数点，档位同 menu_items；人头费 IVA], created_at: timestamptz, updated_at: timestamptz)
 
 dish_feedback (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, order_id: uuid FK -> orders.id, menu_item_id: uuid FK -> menu_items.id, vote: text [up|down], reasons: text[], comment: text nullable, created_at: timestamptz, updated_at: timestamptz)
 
@@ -206,7 +206,10 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `merge_table_sessions(restaurant_id, source_table_id, target_table_id, operator_user_id?)` | authenticated, service_role | Merge two table sessions; buffet lines merge per `buffet_id` (same package sums headcount, different packages stay separate); same operator gate as transfer. App enforces `tables.merge`. |
 | `assert_restaurant_session_operator(restaurant_id, operator_user_id)` | authenticated, service_role | Transfer/merge operator gate: restaurant `owner_id` or active staff role in waiter\|frontdesk\|cashier\|owner\|custom |
 | `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |
-| `resolve_buffet_prices(restaurant_id, buffet_id, at?)` | (see grants in SQL) | Buffet price resolution |
+| `resolve_buffet_prices(restaurant_id, buffet_id, at?)` | (see grants in SQL) | Buffet price resolution (nearest slot that has rules for this buffet); uses `buffet_calendar_kind` + `buffet_slot_distance_seconds` |
+| `buffet_slot_distance_seconds(start, end, at)` | — | Sole「时段离现在多远」(0 inside; cross-midnight slots; outside wrap = 1 day). TS twin `slotDistanceMinutes` in `lib/menu-time-slot` |
+| `buffet_calendar_kind(restaurant_id, at)` | — | Sole Lisbon calendar kind: holiday/special override → weekend (Sat/Sun or Friday ≥ `buffet_friday_weekend_from`) → weekday |
+| `buffet_openable_ids(restaurant_id, at?)` | authenticated, service_role | Sole「可开台」: active buffets with an active in-date rule in the store's current slot (nearest of all today's slots) for today's calendar kind. Gate for cold open + buffet switch (409 `buffet_not_available_now`); GET `…/staff/waiter/buffet` open list |
 | `replace_menu_item_buffet_prices(restaurant_id, menu_item_id, prices jsonb)` | service_role | Atomic replace of one dish's `menu_item_buffet_prices` set (`[{buffet_id, price≥0}]`, no duplicates); dish form save |
 | `table_session_current_buffet_id(table_sessions)` | authenticated, service_role | Sole SQL「这桌当前套餐」: newest non-voided `buffet_base` line with `buffet_id` in the session's orders (NULL = none). Also a PostgREST computed column (`current_buffet_id:table_session_current_buffet_id`, guest gate session). TS twin `currentTableBuffetLine`; parity test `buffet-current-parity.test.ts` |
 | `get_active_restaurant_table(restaurant_id, table_id)` | — | Resolve non-deleted table row |

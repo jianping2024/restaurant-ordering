@@ -7,6 +7,14 @@ export type BuffetUpdatePatch = Partial<Pick<Buffet, 'name' | 'is_active' | 'vat
 
 const BUFFET_PATCH_KEYS = new Set(['name', 'is_active', 'vat_rate', 'description']);
 
+/** 套餐描述上限（字符数 = `Array.from(s).length`，同 PG `char_length`）。 */
+export const BUFFET_DESCRIPTION_MAX_CHARS = 40;
+
+/** Sole description normalize: trim; empty → null. */
+export function normalizeBuffetDescription(raw: string): string | null {
+  return raw.trim() || null;
+}
+
 /**
  * Sole whitelist for `PATCH /api/dashboard/buffet` `{ resource: 'buffet', patch }`:
  * unknown keys or a wrong type reject the whole patch (400).
@@ -38,8 +46,11 @@ export function parseBuffetUpdatePatch(
       if (value !== null && typeof value !== 'string') {
         return { error: 'invalid_buffet_patch', status: 400 };
       }
-      const trimmed = typeof value === 'string' ? value.trim() : '';
-      patch.description = trimmed || null;
+      const description = typeof value === 'string' ? normalizeBuffetDescription(value) : null;
+      if (description && Array.from(description).length > BUFFET_DESCRIPTION_MAX_CHARS) {
+        return { error: 'description_too_long', status: 400 };
+      }
+      patch.description = description;
     }
   }
   return { ok: true, patch };

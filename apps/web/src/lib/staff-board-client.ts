@@ -111,6 +111,17 @@ type WaiterBuffetOpenResponse = {
   code?: string;
 };
 
+/** 开台列表: ids of buffets openable in the current slot (server is the authority). */
+export async function fetchWaiterOpenableBuffetIdsClient(slug: string): Promise<string[]> {
+  const res = await fetchWithDependencyTimeout(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`,
+    { credentials: 'include' },
+  );
+  const data = (await res.json().catch(() => ({}))) as { buffet_ids?: unknown };
+  if (!res.ok || !Array.isArray(data.buffet_ids)) throw new Error('buffet_openable_fetch_failed');
+  return data.buffet_ids.map((id) => String(id));
+}
+
 /** Open table (buffet); returns refreshed page model when successful. */
 export async function postWaiterBuffetOpenClient(
   slug: string,

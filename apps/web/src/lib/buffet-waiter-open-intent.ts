@@ -7,6 +7,9 @@ export type BuffetWaiterOpenIntent = 'open' | 'save';
 /** Stale idle open: table already has an active session — do not mutate headcount. */
 export const BUFFET_OPEN_ALREADY_OPEN = 'already_open';
 
+/** 409: the picked package has no active price rule in the store's current slot (`buffet_openable_ids`). */
+export const BUFFET_NOT_AVAILABLE_NOW = 'buffet_not_available_now' as const;
+
 export function parseBuffetWaiterOpenIntent(raw: unknown): BuffetWaiterOpenIntent | null {
   if (raw === 'open' || raw === 'save') return raw;
   return null;

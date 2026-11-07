@@ -416,6 +416,10 @@ idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sol
 
 sole shape `TableBuffetSelection` `{ buffetId, adults, children }`（0+0 = 无套餐）; body `POST …/staff/waiter/buffet` `buffet: {buffet_id, adult_count, child_count}` (never a `buffets[]` array); sole TS「当前套餐」`currentTableBuffetLine`/`currentTableBuffet` (newest active buffet_base line); sole editor `WaiterBuffetPackagesEditor` radio + one headcount (board sheet / detail / checkout adjust `packageLocked`); writer voids every active buffet line then appends one (`applyTableBuffetLineToOrderItems`) — never per-package snapshot / diff / sum helpers. Buffet PATCH fields sole whitelist `parseBuffetUpdatePatch` (name/is_active/vat_rate/description) — never `.update(body.patch)`.
 
+### 可开台套餐
+
+sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的时段 + 今天日历类型下有生效规则）; distance/calendar sole `buffet_slot_distance_seconds` / `buffet_calendar_kind`（`resolve_buffet_prices` 复用，不复制 CASE）; gate only cold open + 换套餐 in `runBuffetWaiterOpenPipeline`（409 `buffet_not_available_now`），调人数/并台/转台不拦; client list sole `useWaiterOpenableBuffetIds` + `pickableBuffetOptions`（当前套餐始终保留）; 缺价提示 sole `findMissingBuffetPriceCells` → `BuffetMissingPricesBanner`; 套餐描述 sole `BuffetDescriptionInput`（≤40 字按 `Array.from` 计）+ `parseBuffetUpdatePatch`, only shown in `WaiterBuffetPackagesEditor`.
+
 ### 楼面跨端
 
 一直亮着的桌面只靠 Realtime；手机回前台有 visibility 兜底。只修 published bridge 不够——`useRestaurantStaffEntryReconcile` 必须含 window focus catch-up（与 visibility 同一 resume 路径，勿在 Realtime transport 再挂一份 focus）。

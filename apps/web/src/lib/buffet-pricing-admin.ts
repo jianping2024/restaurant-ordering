@@ -314,3 +314,55 @@ export function validateBuffetRuleDraft(
   }
   return { ok: true };
 }
+
+/** One buffet × slot with the calendar kinds that have no rule effective on the given date. */
+export type BuffetMissingPriceCell = {
+  buffetId: string;
+  slotId: string;
+  kinds: BuffetCalendarKind[];
+};
+
+/** Calendar kinds a slot can actually be priced under (weekday set + Friday-weekend policy). */
+function calendarKindsForSlot(
+  slot: Pick<BuffetTimeSlot, 'weekdays'>,
+  fridayWeekendFrom: string | null | undefined,
+): BuffetCalendarKind[] {
+  const days = slot.weekdays ?? [];
+  const kinds: BuffetCalendarKind[] = [];
+  if (days.some((d) => d >= 1 && d <= 5)) kinds.push('weekday');
+  if (days.includes(0) || days.includes(6) || (Boolean(fridayWeekendFrom) && days.includes(5))) {
+    kinds.push('weekend');
+  }
+  if (days.length > 0) kinds.push('holiday', 'special');
+  return kinds;
+}
+
+/**
+ * Sole「缺价提示」: every active buffet × slot × calendar kind with no active rule covering
+ * `dateIso` (Lisbon today) — those times the buffet cannot be opened (`buffet_openable_ids`).
+ */
+export function findMissingBuffetPriceCells(params: {
+  buffets: Array<Pick<Buffet, 'id' | 'is_active'>>;
+  slots: Array<Pick<BuffetTimeSlot, 'id' | 'weekdays'>>;
+  rules: BuffetPriceRule[];
+  dateIso: string;
+  fridayWeekendFrom?: string | null;
+}): BuffetMissingPriceCell[] {
+  const cells: BuffetMissingPriceCell[] = [];
+  for (const buffet of params.buffets) {
+    if (!buffet.is_active) continue;
+    for (const slot of params.slots) {
+      const kinds = calendarKindsForSlot(slot, params.fridayWeekendFrom).filter(
+        (kind) =>
+          !hasActiveRuleForDayKind(params.rules, {
+            buffetId: buffet.id,
+            calendarKind: kind,
+            dateIso: params.dateIso,
+            timeSlotId: slot.id,
+          }),
+      );
+      if (kinds.length > 0) cells.push({ buffetId: buffet.id, slotId: slot.id, kinds });
+    }
+  }
+  return cells;
+}

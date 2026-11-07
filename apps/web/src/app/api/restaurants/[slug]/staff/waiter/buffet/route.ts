@@ -15,6 +15,7 @@ import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { scheduleOpenTableReceiptPrint } from '@/lib/open-table-receipt-enqueue';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { loadOpenableBuffetIds } from '@/lib/buffet-openable-server';
 
 export const runtime = 'nodejs';
 
@@ -48,6 +49,22 @@ function respondWaiterBuffetFailure(
     { error: fields.error, code: fields.code, message: fields.message },
     { status: fields.status },
   );
+}
+
+/** 开台列表: buffets the waiter may pick right now (`buffet_openable_ids`). */
+export async function GET(
+  req: Request,
+  { params }: { params: { slug: string } },
+) {
+  const ctx = await tableSessionOpenAuthFromRequest(req, params.slug);
+  if (!ctx) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  try {
+    const buffetIds = await loadOpenableBuffetIds(createAdminClient(), ctx.restaurant_id);
+    return NextResponse.json({ buffet_ids: buffetIds });
+  } catch (err) {
+    if (isDependencyFailure(err)) return dependencyUnavailableJsonResponse();
+    return NextResponse.json({ error: 'openable_lookup_failed' }, { status: 500 });
+  }
 }
 
 export async function POST(

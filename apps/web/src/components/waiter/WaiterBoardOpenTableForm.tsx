@@ -8,6 +8,10 @@ import {
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { useWaiterBuffetOpenMutation } from '@/components/waiter/useWaiterBuffetOpenMutation';
+import {
+  pickableBuffetOptions,
+  useWaiterOpenableBuffetIds,
+} from '@/components/waiter/useWaiterOpenableBuffetIds';
 import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -53,15 +57,24 @@ export function WaiterBoardOpenTableForm({
     () => model.buffets.filter((b) => b.is_active),
     [model.buffets],
   );
+  const { openableBuffetIds, refreshOpenableBuffetIds } = useWaiterOpenableBuffetIds(
+    restaurant.slug,
+    !headcountLocked,
+  );
+  const buffetOptions = useMemo(
+    () => pickableBuffetOptions(activeBuffets, openableBuffetIds, null),
+    [activeBuffets, openableBuffetIds],
+  );
+
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: true,
         hasOpenSession: false,
         orders: [],
-        defaultBuffetId: activeBuffets[0]?.id ?? null,
+        defaultBuffetId: buffetOptions[0]?.id ?? null,
       }),
-    [activeBuffets],
+    [buffetOptions],
   );
 
   const {
@@ -92,6 +105,7 @@ export function WaiterBoardOpenTableForm({
     draft,
     hasOpenSession: false,
     editorReady,
+    onStaleConflict: refreshOpenableBuffetIds,
   });
 
   const busy = headcountLocked ? takeawaySubmitting : submitting;
@@ -127,7 +141,8 @@ export function WaiterBoardOpenTableForm({
     <div className={openTableSheetLayout.stack}>
       <WaiterBuffetPackagesEditor
         lang={lang}
-        buffetOptions={activeBuffets}
+        buffetOptions={headcountLocked ? activeBuffets : buffetOptions}
+        openableLoaded={headcountLocked || openableBuffetIds != null}
         draft={draft}
         onSelectBuffet={selectBuffet}
         onSetGuestCount={setBuffetGuestCount}

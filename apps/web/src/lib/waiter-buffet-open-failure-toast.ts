@@ -1,6 +1,6 @@
 import { showToast } from '@/components/ui/Toast';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { BUFFET_OPEN_ALREADY_OPEN } from '@/lib/buffet-waiter-open-intent';
+import { BUFFET_NOT_AVAILABLE_NOW, BUFFET_OPEN_ALREADY_OPEN } from '@/lib/buffet-waiter-open-intent';
 import { BUFFET_HEADCOUNT_BELOW_PAID_FLOOR } from '@/lib/buffet-paid-headcount-floor';
 import {
   DEPENDENCY_UNAVAILABLE,
@@ -13,6 +13,7 @@ export type WaiterBuffetOpenFailureKind =
   | 'already_open'
   | 'session_billing'
   | 'paid_floor'
+  | 'not_available_now'
   | 'no_price'
   | 'dependency'
   | 'conflict'
@@ -27,6 +28,7 @@ export function classifyWaiterBuffetOpenFailure(result: {
   if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_PAID_FLOOR) {
     return 'paid_floor';
   }
+  if (result.status === 409 && result.code === BUFFET_NOT_AVAILABLE_NOW) return 'not_available_now';
   if (result.status === 400 && result.code === 'no_price_rule') return 'no_price';
   if (
     result.status === 503 ||
@@ -53,6 +55,9 @@ export function toastWaiterBuffetOpenFailure(
       return;
     case 'paid_floor':
       showToast(t.buffetHeadcountBelowPaidFloor, 'error');
+      return;
+    case 'not_available_now':
+      showToast(t.buffetNotAvailableNow, 'error');
       return;
     case 'no_price':
       showToast(t.buffetNoRule, 'error');

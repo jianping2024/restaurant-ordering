@@ -14,6 +14,22 @@ describe('parseBuffetUpdatePatch', () => {
     });
   });
 
+  it('description: ≤ 40 characters counted per code point (emoji = 1)', () => {
+    const forty = '鱼'.repeat(39) + '🍣';
+    assert.deepEqual(parseBuffetUpdatePatch({ description: ` ${forty} ` }), {
+      ok: true,
+      patch: { description: forty },
+    });
+    assert.deepEqual(parseBuffetUpdatePatch({ description: forty + 'x' }), {
+      error: 'description_too_long',
+      status: 400,
+    });
+    assert.deepEqual(parseBuffetUpdatePatch({ description: null }), {
+      ok: true,
+      patch: { description: null },
+    });
+  });
+
   it('rejects cross-tenant / unknown keys', () => {
     for (const raw of [
       { restaurant_id: 'other-restaurant' },

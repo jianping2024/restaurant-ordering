@@ -39,6 +39,8 @@ type Props = {
   hideEstimatedTotal?: boolean;
   /** Shown under the headcount when it is locked (takeaway). */
   lockedHint?: string | null;
+  /** False while the open list (`useWaiterOpenableBuffetIds`) is still loading. */
+  openableLoaded?: boolean;
 };
 
 function draftPricePreview(
@@ -95,6 +97,7 @@ export function WaiterBuffetPackagesEditor({
   packageLocked = false,
   hideEstimatedTotal = false,
   lockedHint = null,
+  openableLoaded = true,
 }: Props) {
   const t = WAITER_TEXT[lang];
   const adults = draft?.adults ?? 0;
@@ -108,6 +111,9 @@ export function WaiterBuffetPackagesEditor({
     <div className={layout === 'sheet' ? openTableSheetLayout.stack : 'space-y-4'}>
       <fieldset className="m-0 min-w-0 border-0 p-0 space-y-2" disabled={disabled || packageLocked}>
         <legend className={`${waiterFloorType.guestLabel} mb-2`}>{t.buffetPickPackage}</legend>
+        {openableLoaded && shownOptions.length === 0 ? (
+          <p className="text-[15px] font-medium mesa-text-warning">{t.buffetNoneOpenable}</p>
+        ) : null}
         {shownOptions.map((buffet) => {
           const checked = draft?.buffetId === buffet.id;
           return (
@@ -130,6 +136,11 @@ export function WaiterBuffetPackagesEditor({
                     0,
                   )}
                 />
+                {buffet.description ? (
+                  <span className="mt-0.5 block text-[13px] leading-snug text-brand-text-muted line-clamp-2">
+                    {buffet.description}
+                  </span>
+                ) : null}
               </span>
             </label>
           );
@@ -171,13 +182,16 @@ export function WaiterBuffetPackagesEditor({
   );
 }
 
-/** Submit-ready: prices settled and the picked package (when it has guests) has a price. */
+/**
+ * Submit-ready: a package is picked, prices settled, and the package (when it has guests)
+ * has a price.
+ */
 export function isBuffetPackagesEditorReady(
   draft: TableBuffetSelection | null,
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
   priceLoading: boolean,
 ): boolean {
-  if (priceLoading) return false;
+  if (priceLoading || !draft) return false;
   if (!effectiveTableBuffet(draft)) return true;
   return draftPricePreview(draft, resolvedByBuffetId).ok;
 }

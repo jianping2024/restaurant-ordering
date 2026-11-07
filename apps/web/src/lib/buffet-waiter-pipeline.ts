@@ -30,6 +30,7 @@ import {
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
+import { loadOpenableBuffetIds } from '@/lib/buffet-openable-server';
 import { openTableSessionIfAbsent } from '@/lib/table-session-open';
 import {
   buildActiveWaiterTablePageModel,
@@ -46,6 +47,7 @@ import {
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   BUFFET_NOT_ALLOWED_ON_TAKEAWAY_SESSION,
+  BUFFET_NOT_AVAILABLE_NOW,
   BUFFET_OPEN_ALREADY_OPEN,
   type BuffetWaiterOpenIntent,
 } from '@/lib/buffet-waiter-open-intent';
@@ -180,6 +182,19 @@ export async function runBuffetWaiterOpenPipeline(
     });
   }
 
+  // Choosing a package (cold open / switch) only when it is openable in the current slot.
+  const assertOpenable = async (): Promise<BuffetWaiterPipelineFailure | null> => {
+    if (!target) return null;
+    const openable = await loadOpenableBuffetIds(admin, restaurantId);
+    return openable.includes(target.buffetId)
+      ? null
+      : pipelineFailure(409, BUFFET_NOT_AVAILABLE_NOW, { code: BUFFET_NOT_AVAILABLE_NOW });
+  };
+  if (isColdOpen) {
+    const blocked = await assertOpenable();
+    if (blocked) return blocked;
+  }
+
   const checkout = isColdOpen
     ? { requested: false, at: null as string | null }
     : await fetchCheckoutRequestedForTable(admin, restaurantId, tableId);
@@ -257,11 +272,16 @@ export async function runBuffetWaiterOpenPipeline(
       }
     }
 
+    const currentLine = currentTableBuffetLine(sessionOrders);
+    if (!isColdOpen && target && currentLine?.buffet_id !== target.buffetId) {
+      const blocked = await assertOpenable();
+      if (blocked) return blocked;
+    }
+
     let line: OrderItem | null = null;
     if (target) {
       const buffet = activeBuffetById.get(target.buffetId)!;
       // Open-time unit prices on the same package's active line win; only resolve when no lock yet.
-      const currentLine = currentTableBuffetLine(sessionOrders);
       const locked =
         currentLine?.buffet_id === target.buffetId
           ? resolvedBuffetPriceFromLockedLine(currentLine)

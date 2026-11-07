@@ -4,7 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order, CartItem } from '@/types';
-import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import {
+  currentTableBuffet,
+  resolveBuffetFormAlignState,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
+import {
+  pickableBuffetOptions,
+  useWaiterOpenableBuffetIds,
+} from '@/components/waiter/useWaiterOpenableBuffetIds';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
@@ -299,22 +307,30 @@ function WaiterTableDetailInner({
   );
   const contextTableId = selectedTable?.id ?? tableId;
   const hasOpenSession = isTableSessionOpen(sessionMeta);
+  const { openableBuffetIds, refreshOpenableBuffetIds } = useWaiterOpenableBuffetIds(
+    restaurant.slug,
+    !isDemo,
+  );
+  const currentBuffetId = useMemo(() => currentTableBuffet(orders)?.buffetId ?? null, [orders]);
+  const buffetOptions = useMemo(
+    () =>
+      pickableBuffetOptions(
+        model?.buffets ?? [],
+        isDemo ? activeBuffets.map((b) => b.id) : openableBuffetIds,
+        currentBuffetId,
+      ),
+    [activeBuffets, currentBuffetId, isDemo, model?.buffets, openableBuffetIds],
+  );
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: isDemo || detailLoaded,
         hasOpenSession,
         orders,
-        defaultBuffetId: activeBuffets[0]?.id ?? null,
+        defaultBuffetId: buffetOptions[0]?.id ?? null,
       }),
-    [activeBuffets, detailLoaded, hasOpenSession, isDemo, orders],
+    [buffetOptions, detailLoaded, hasOpenSession, isDemo, orders],
   );
-  /** Pickable packages: active ones plus the table's current package even if since disabled. */
-  const buffetOptions = useMemo(() => {
-    const currentBuffetId =
-      buffetFormAlign.mode === 'occupied' ? buffetFormAlign.selection.buffetId : null;
-    return (model?.buffets ?? []).filter((b) => b.is_active || b.id === currentBuffetId);
-  }, [buffetFormAlign, model?.buffets]);
   const {
     draft: buffetDraft,
     selectBuffet,
@@ -975,6 +991,7 @@ function WaiterTableDetailInner({
     onSuccess: applyModel,
     onStaleConflict: () => {
       void refresh();
+      void refreshOpenableBuffetIds();
     },
   });
 
@@ -1179,6 +1196,7 @@ function WaiterTableDetailInner({
               <WaiterTableBuffetPanel
                 lang={lang}
                 buffetOptions={buffetOptions}
+                openableLoaded={isDemo || openableBuffetIds != null}
                 draft={buffetDraft}
                 onSelectBuffet={(buffetId) => {
                   whenDetailActionsArmed(() => {

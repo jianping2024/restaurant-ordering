@@ -12,6 +12,12 @@ import { Input } from '@/components/ui/Input';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import {
+  isValidBuffetPriceDraft,
+  MenuItemBuffetPricesField,
+  type MenuItemBuffetPriceDraftRow,
+} from '@/components/dashboard/MenuItemBuffetPricesField';
+import type { MenuItemBuffetPriceMap } from '@/lib/instore-takeaway';
+import {
   LIST_DEFAULT_PAGE_SIZE,
   paginateList,
   type ListPageSize,
@@ -23,7 +29,7 @@ import {
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { FORM_CONTROL_PLACEHOLDER_CLASS } from '@/lib/form-control-text';
 import { normalizeDecimalInput } from '@/lib/number-input';
-import type { MenuCategory, MenuItem, PrintStation } from '@/types';
+import type { Buffet, MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -162,6 +168,10 @@ interface MenuManagerProps {
   takeawayOrderingEnabled?: boolean;
   /** Slot choices for the dish form; empty → no time-slot field. */
   menuTimeSlots: MenuTimeSlot[];
+  /** Per-buffet dish prices (dish id → buffet id → price). */
+  initialMenuItemBuffetPrices: MenuItemBuffetPriceMap;
+  /** Buffets for the dish form「Buffet 价格」picker. */
+  buffets: Array<Pick<Buffet, 'id' | 'name' | 'is_active'>>;
 }
 
 type ItemForm = {
@@ -196,6 +206,8 @@ type ItemForm = {
   sales_takeaway: boolean;
   sales_packaging: boolean;
   takeaway_price: string;
+  /** 「Buffet 价格」rows; only saved when the dish sells dine-in. */
+  buffet_prices: MenuItemBuffetPriceDraftRow[];
 };
 
 const defaultItemForm: ItemForm = {
@@ -228,6 +240,7 @@ const defaultItemForm: ItemForm = {
   sales_takeaway: false,
   sales_packaging: false,
   takeaway_price: '',
+  buffet_prices: [],
 };
 
 type CategoryDraft = {
@@ -306,6 +319,8 @@ export function MenuManager({
   flavorHintsEnabled = false,
   takeawayOrderingEnabled = false,
   menuTimeSlots,
+  initialMenuItemBuffetPrices,
+  buffets,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
@@ -344,6 +359,9 @@ export function MenuManager({
   const [dishReorderBusy, setDishReorderBusy] = useState(false);
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
+  const [buffetPricesByItemId, setBuffetPricesByItemId] =
+    useState<MenuItemBuffetPriceMap>(initialMenuItemBuffetPrices);
+  const [buffetPriceErrorsShown, setBuffetPriceErrorsShown] = useState(false);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
   const [printStations, setPrintStations] = useState<PrintStation[]>(initialPrintStations);
   const [recommendedItemIds, setRecommendedItemIds] = useState<string[]>(initialRecommendedItemIds);
@@ -655,6 +673,7 @@ export function MenuManager({
         : (selectedSubId || selectedTopId || topCategories[0]?.id || '');
     setEditingItem(null);
     setItemForm({ ...defaultItemForm, category_id: defaultCategoryId });
+    setBuffetPriceErrorsShown(false);
     setItemError('');
     resetImageUi();
     setItemModalOpen(true);
@@ -700,7 +719,11 @@ export function MenuManager({
       })(),
       takeaway_price:
         item.takeaway_price != null ? String(item.takeaway_price) : '',
+      buffet_prices: Object.entries(buffetPricesByItemId[item.id] ?? {}).map(
+        ([buffetId, price]) => ({ buffet_id: buffetId, price: String(price) }),
+      ),
     });
+    setBuffetPriceErrorsShown(false);
     setItemError('');
     resetImageUi();
     setItemModalOpen(true);
@@ -817,6 +840,12 @@ export function MenuManager({
     ) {
       return setItemError(t.validTakeawayPrice);
     }
+    const sellsDineIn = salesRole === 'none' || salesRole === 'sellable';
+    const buffetPriceRows = sellsDineIn ? itemForm.buffet_prices : [];
+    if (buffetPriceRows.some((row) => !isValidBuffetPriceDraft(row.price))) {
+      setBuffetPriceErrorsShown(true);
+      return setItemError(t.buffetPriceInvalid);
+    }
 
     setItemSaving(true);
     setItemError('');
@@ -858,6 +887,10 @@ export function MenuManager({
               : (editingItem?.takeaway_price ?? itemForm.takeaway_price),
           )
         : null,
+      buffet_prices: buffetPriceRows.map((row) => ({
+        buffet_id: row.buffet_id,
+        price: Number(row.price),
+      })),
     };
 
     try {
@@ -870,6 +903,8 @@ export function MenuManager({
       }
 
       let row = saved.data.item;
+      const savedBuffetPrices = saved.data.buffet_prices;
+      setBuffetPricesByItemId((prev) => ({ ...prev, [row.id]: savedBuffetPrices }));
       const { file, stripImage, video, stripVideo } = photoDraft;
       if (file || stripImage || video || stripVideo) {
         const imageResult = await setMenuItemImageClient(row.id, { file, stripImage, video, stripVideo });
@@ -2176,6 +2211,24 @@ export function MenuManager({
                 <p className="text-[12px] text-brand-text-muted">{t.salesModePackagingHint}</p>
               ) : null}
             </div>
+          ) : null}
+
+          {buffets.length > 0 && !itemForm.sales_packaging && itemForm.sales_dine_in ? (
+            <MenuItemBuffetPricesField
+              buffets={buffets}
+              rows={itemForm.buffet_prices}
+              onChange={(rows) => setItemForm((f) => ({ ...f, buffet_prices: rows }))}
+              showErrors={buffetPriceErrorsShown}
+              labels={{
+                title: t.buffetPricesTitle,
+                hint: t.buffetPricesHint,
+                buffetLabel: t.buffetPriceBuffetLabel,
+                add: t.buffetPriceAdd,
+                remove: t.buffetPriceRemove,
+                invalid: t.buffetPriceInvalid,
+                inactiveSuffix: t.buffetPriceInactiveSuffix,
+              }}
+            />
           ) : null}
 
           <div className="rounded-xl border border-brand-border/80 bg-brand-bg/40 p-3 space-y-3">

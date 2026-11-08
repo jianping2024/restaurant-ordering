@@ -357,6 +357,8 @@ export async function remakeDishFromHistory(params: {
       openOrder,
     },
     newItems: [remakeItem],
+    // Kitchen remake is €0 and never buffet-priced.
+    pricedBuffetId: null,
   });
 
   if (!write.ok) {

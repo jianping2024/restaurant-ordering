@@ -44,7 +44,7 @@ import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/componen
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
-import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
+import type { TableBuffetSelection } from '@/lib/buffet-order';
 import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
 import { coerceCartPrice } from '@/lib/cart-totals';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -655,15 +655,14 @@ export function CheckoutRequestDetailHost({
   );
 
   const confirmHeadcountAdjust = useCallback(
-    async (snapshot: BuffetGuestSnapshot) => {
+    async (buffet: TableBuffetSelection) => {
       if (headcountAdjustBusy) return;
       setHeadcountAdjustBusy(true);
       try {
         const result = await postWaiterBuffetOpenAndCommit({
           restaurantSlug,
           tableId: request.table_id,
-          guestSnapshot: snapshot,
-          activeBuffetIds: activeBuffets.map((b) => b.id),
+          buffet,
           intent: buffetWaiterOpenIntentFromSession(true),
         });
         if (!result.ok) {
@@ -684,7 +683,6 @@ export function CheckoutRequestDetailHost({
       }
     },
     [
-      activeBuffets,
       headcountAdjustBusy,
       lang,
       refreshBillAfterOrdersChange,

@@ -511,6 +511,11 @@ export interface TableSession {
   opened_by_name?: string | null;
   /** Stamped at open: dine_in | takeaway (docs/instore-takeaway.zh.md). */
   ordering_channel?: 'dine_in' | 'takeaway';
+  /**
+   * Read-only: the table's current buffet (SQL `table_session_current_buffet_id`,
+   * TS twin `currentTableBuffet`). Prices dishes for this table; never the headcount.
+   */
+  current_buffet_id?: string | null;
 }
 
 // 购物车条目

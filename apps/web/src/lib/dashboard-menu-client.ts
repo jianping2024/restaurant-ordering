@@ -62,6 +62,7 @@ export type MenuItemErrorLabels = {
   errTimeSlotNotFound: string;
   errDishVideoForbidden?: string;
   errInvalidVideo?: string;
+  buffetPriceInvalid: string;
 };
 
 export function mapMenuCategoryApiError(
@@ -131,6 +132,9 @@ export function mapMenuItemApiError(
       return labels.errTimeSlotNotFound;
     case 'menu_item_in_use':
       return labels.errDeleteItemInUse;
+    case 'invalid_buffet_prices':
+    case 'buffet_prices_require_dine_in':
+      return labels.buffetPriceInvalid;
     case 'delete_failed':
       return labels.errDeleteFail;
     default:
@@ -191,6 +195,8 @@ export type MenuItemMutationInput = {
   time_slot_id: string | null;
   takeaway_role?: 'none' | 'sellable' | 'takeaway_only' | 'packaging';
   takeaway_price?: number | null;
+  /** Whole per-buffet price set for this dish (replaced on save). */
+  buffet_prices: import('@/lib/menu-item-buffet-prices').MenuItemBuffetPriceInput[];
 };
 
 export type PrintStationInput = {
@@ -240,7 +246,7 @@ export async function reorderMenuCategoriesClient(
 }
 
 export async function createMenuItemClient(input: MenuItemMutationInput) {
-  return request<{ item: MenuItem }>('/api/dashboard/menu/items', {
+  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>('/api/dashboard/menu/items', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -248,7 +254,7 @@ export async function createMenuItemClient(input: MenuItemMutationInput) {
 }
 
 export async function updateMenuItemClient(itemId: string, input: MenuItemMutationInput) {
-  return request<{ item: MenuItem }>('/api/dashboard/menu/items', {
+  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>('/api/dashboard/menu/items', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ item_id: itemId, ...input }),

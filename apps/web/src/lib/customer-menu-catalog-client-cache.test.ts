@@ -21,6 +21,7 @@ describe('parseCustomerMenuCatalogApiBody', () => {
       notePresetCatalog: { groups: [] },
       choiceCatalog: { groups: [] },
       menuTimeSlots: [],
+      menuItemBuffetPrices: { d1: { b1: 0 } },
       guestListMotionEnabled: true,
     });
     assert.equal(isCustomerMenuCatalogUnchanged(body), false);
@@ -32,6 +33,7 @@ describe('parseCustomerMenuCatalogApiBody', () => {
     assert.deepEqual(body.notePresetCatalog, { groups: [] });
     assert.deepEqual(body.choiceCatalog, { groups: [] });
     assert.deepEqual(body.menuTimeSlots, []);
+    assert.deepEqual(body.menuItemBuffetPrices, { d1: { b1: 0 } });
     assert.equal(body.guestListMotionEnabled, true);
   });
 

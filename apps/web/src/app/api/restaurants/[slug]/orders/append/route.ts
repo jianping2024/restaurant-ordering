@@ -222,6 +222,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     sessionId,
     context,
     newItems: resolved.items,
+    pricedBuffetId: resolved.pricedBuffetId,
   });
   if (!writeResult.ok) {
     await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });

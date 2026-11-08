@@ -1,6 +1,9 @@
 'use client';
 
+import { BuffetMissingPricesBanner } from '@/components/dashboard/buffet/BuffetMissingPricesBanner';
+import { BuffetDescriptionInput } from '@/components/dashboard/buffet/BuffetDescriptionInput';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { BuffetUpdatePatch } from '@/lib/buffet-update-patch';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -27,6 +30,7 @@ import {
   buildBuffetRuleDraft,
   buffetRuleToDraft,
   CALENDAR_KINDS,
+  findMissingBuffetPriceCells,
   findOverlappingRules,
   getRuleStatus,
   todayIsoLocal,
@@ -201,7 +205,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
 
   const updateBuffetField = async (
     id: string,
-    patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>,
+    patch: BuffetUpdatePatch,
   ) => {
     const result = await updateBuffet(id, patch);
     if (!result.ok) showToast(t.saveError, 'error');
@@ -412,6 +416,14 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     />
   );
 
+  const missingPriceCells = findMissingBuffetPriceCells({
+    buffets,
+    slots,
+    rules,
+    dateIso: today,
+    fridayWeekendFrom,
+  });
+
   const tabs = [
     { id: 'buffets' as const, label: t.tabBuffets },
     { id: 'slots' as const, label: t.tabSlots },
@@ -455,6 +467,21 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
         confirming={confirmSubmitting}
       />
 
+      <BuffetMissingPricesBanner
+        cells={missingPriceCells}
+        buffets={buffets}
+        slots={slots}
+        dayKindLabel={dayKindLabel}
+        title={t.missingPricesTitle}
+        actionLabel={t.missingPricesGoToGrid}
+        listSeparator={t.missingPricesKindSeparator}
+        onGoToPriceGrid={(buffetId) => {
+          setTab('rules');
+          setRulesView('matrix');
+          setMatrixBuffetId(buffetId);
+        }}
+      />
+
       {!embedded && (
         <div>
           <h1 className="font-heading text-2xl text-brand-gold">{t.title}</h1>
@@ -492,10 +519,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
               </div>
               <ul className="space-y-1.5">
                 {buffets.map((b) => (
-                  <li
-                    key={b.id}
-                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center border border-brand-border/60 rounded-lg px-3 py-2"
-                  >
+                  <li key={b.id} className="space-y-2 border border-brand-border/60 rounded-lg px-3 py-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center">
                     <input
                       key={`${b.id}-${b.name}`}
                       className={`w-full max-w-[16rem] ${buffetFieldClass}`}
@@ -537,6 +562,14 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                     >
                       {t.delete}
                     </button>
+                    </div>
+                    <BuffetDescriptionInput
+                      value={b.description}
+                      label={t.buffetDescriptionLabel}
+                      placeholder={t.buffetDescriptionPlaceholder}
+                      className={buffetFieldClass}
+                      onSave={(description) => void updateBuffetField(b.id, { description })}
+                    />
                   </li>
                 ))}
               </ul>

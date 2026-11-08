@@ -4,7 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order, CartItem } from '@/types';
-import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import {
+  currentTableBuffet,
+  resolveBuffetFormAlignState,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
+import {
+  pickableBuffetOptions,
+  useWaiterOpenableBuffetIds,
+} from '@/components/waiter/useWaiterOpenableBuffetIds';
+import { hasEnteredCheckout } from '@/lib/buffet-checkout-entry';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
@@ -298,21 +308,46 @@ function WaiterTableDetailInner({
     [model?.buffets],
   );
   const contextTableId = selectedTable?.id ?? tableId;
-  const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
   const hasOpenSession = isTableSessionOpen(sessionMeta);
+  const {
+    openableBuffetIds,
+    openablePricesByBuffetId,
+    checkoutEntry,
+    refreshOpenableBuffetIds,
+  } = useWaiterOpenableBuffetIds(restaurant.id, restaurant.slug, !isDemo, contextTableId);
+  /** 已进入结账：只能调人数，不能换套餐（server 409 `buffet_switch_locked` is the authority). */
+  const buffetSwitchLocked = checkoutEntry != null && hasEnteredCheckout(checkoutEntry);
+  const currentBuffetId = useMemo(() => currentTableBuffet(orders)?.buffetId ?? null, [orders]);
+  const buffetOptions = useMemo(
+    () =>
+      pickableBuffetOptions(
+        model?.buffets ?? [],
+        isDemo ? activeBuffets.map((b) => b.id) : openableBuffetIds,
+        currentBuffetId,
+      ),
+    [activeBuffets, currentBuffetId, isDemo, model?.buffets, openableBuffetIds],
+  );
+  /**
+   * Same openable snapshot as the open sheet; locked open-time unit prices win for
+   * the table's current package (headcount adjust / out-of-slot keep).
+   */
+  const buffetPricesForForm = useMemo(() => {
+    if (isDemo) return model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES;
+    return mergeBuffetPricesPreferLocked(openablePricesByBuffetId, orders);
+  }, [isDemo, model?.buffetPricesByBuffetId, openablePricesByBuffetId, orders]);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: isDemo || detailLoaded,
         hasOpenSession,
         orders,
-        activeBuffetIds,
-        defaultBuffetId: activeBuffets[0]?.id ?? null,
+        defaultBuffetId: buffetOptions[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets, detailLoaded, hasOpenSession, isDemo, orders],
+    [buffetOptions, detailLoaded, hasOpenSession, isDemo, orders],
   );
   const {
-    guestSnapshot,
+    draft: buffetDraft,
+    selectBuffet,
     setBuffetGuestCount,
     resetDraftToAligned,
     resolvedByBuffetId,
@@ -321,14 +356,11 @@ function WaiterTableDetailInner({
     tableId: contextTableId,
     sessionId: sessionMeta?.sessionId ?? null,
     alignState: buffetFormAlign,
-    restaurantId: restaurant.id,
-    activeBuffets,
-    buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES,
-    isDemo,
-    supabase,
+    activeBuffets: buffetOptions,
+    buffetPricesByBuffetId: buffetPricesForForm,
   });
   const buffetEditorReady = isBuffetPackagesEditorReady(
-    guestSnapshot,
+    buffetDraft,
     resolvedByBuffetId,
     buffetPriceLoading,
   );
@@ -746,6 +778,8 @@ function WaiterTableDetailInner({
           const apiErr = err as Error & { code?: string };
           if (apiErr.code === 'session_billing') {
             notifyCheckoutLocked();
+          } else if (apiErr.code === 'buffet_mismatch') {
+            showToast(t.mergeBuffetMismatch, 'error');
           } else {
             showToast(t.actionFailed, 'error');
           }
@@ -958,8 +992,7 @@ function WaiterTableDetailInner({
     restaurantSlug: restaurant.slug,
     tableId,
     orders,
-    guestSnapshot,
-    activeBuffetIds,
+    draft: buffetDraft,
     hasOpenSession,
     editorReady: buffetEditorReady,
     autosave:
@@ -971,6 +1004,7 @@ function WaiterTableDetailInner({
     onSuccess: applyModel,
     onStaleConflict: () => {
       void refresh();
+      void refreshOpenableBuffetIds();
     },
   });
 
@@ -1174,12 +1208,21 @@ function WaiterTableDetailInner({
             {detailActions.showBuffetPanel ? (
               <WaiterTableBuffetPanel
                 lang={lang}
-                activeBuffets={activeBuffets}
-                guestSnapshot={guestSnapshot}
-                onSetGuestCount={(buffetId, which, value) => {
+                buffetOptions={buffetOptions}
+                openableLoaded={isDemo || openableBuffetIds != null}
+                packageLockedHint={buffetSwitchLocked ? t.buffetSwitchLocked : null}
+                draft={buffetDraft}
+                onSelectBuffet={(buffetId) => {
                   whenDetailActionsArmed(() => {
                     if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
-                    setBuffetGuestCount(buffetId, which, value);
+                    selectBuffet(buffetId);
+                    scheduleBuffetAutosave();
+                  });
+                }}
+                onSetGuestCount={(which, value) => {
+                  whenDetailActionsArmed(() => {
+                    if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
+                    setBuffetGuestCount(which, value);
                     scheduleBuffetAutosave();
                   });
                 }}

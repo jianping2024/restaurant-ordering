@@ -101,11 +101,11 @@ describe('findBuffetHeadcountBelowPaidFloor', () => {
   it('allows equal or higher headcount', () => {
     const floors = new Map([[BUFFET_A, { adults: 2, children: 1 }]]);
     assert.equal(
-      findBuffetHeadcountBelowPaidFloor({ [BUFFET_A]: { adults: 2, children: 1 } }, floors),
+      findBuffetHeadcountBelowPaidFloor({ buffetId: BUFFET_A, adults: 2, children: 1 }, floors),
       null,
     );
     assert.equal(
-      findBuffetHeadcountBelowPaidFloor({ [BUFFET_A]: { adults: 3, children: 1 } }, floors),
+      findBuffetHeadcountBelowPaidFloor({ buffetId: BUFFET_A, adults: 3, children: 1 }, floors),
       null,
     );
   });
@@ -113,24 +113,30 @@ describe('findBuffetHeadcountBelowPaidFloor', () => {
   it('rejects lowering adults or children below floor', () => {
     const floors = new Map([[BUFFET_A, { adults: 2, children: 1 }]]);
     const adultViolation = findBuffetHeadcountBelowPaidFloor(
-      { [BUFFET_A]: { adults: 1, children: 1 } },
+      { buffetId: BUFFET_A, adults: 1, children: 1 },
       floors,
     );
     assert.ok(adultViolation);
     assert.equal(adultViolation.minAdults, 2);
 
     const childViolation = findBuffetHeadcountBelowPaidFloor(
-      { [BUFFET_A]: { adults: 2, children: 0 } },
+      { buffetId: BUFFET_A, adults: 2, children: 0 },
       floors,
     );
     assert.ok(childViolation);
     assert.equal(childViolation.minChildren, 1);
   });
 
-  it('treats omitted package as zero (void blocked when floor exists)', () => {
+  it('treats a cleared or other package as zero (void / switch blocked when floor exists)', () => {
     const floors = new Map([[BUFFET_A, { adults: 1, children: 0 }]]);
-    const violation = findBuffetHeadcountBelowPaidFloor({}, floors);
+    const violation = findBuffetHeadcountBelowPaidFloor(null, floors);
     assert.ok(violation);
     assert.equal(violation.proposedAdults, 0);
+    const switched = findBuffetHeadcountBelowPaidFloor(
+      { buffetId: 'buffet-b', adults: 4, children: 0 },
+      floors,
+    );
+    assert.ok(switched);
+    assert.equal(switched.buffetId, BUFFET_A);
   });
 });

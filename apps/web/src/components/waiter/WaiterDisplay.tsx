@@ -10,6 +10,7 @@ import { WaiterBoardPartyLaneMenu } from '@/components/waiter/WaiterBoardPartyLa
 import { WaiterBoardPartySections, type WaiterBoardPartySectionHandle } from '@/components/waiter/WaiterBoardPartySections';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
+import { useWaiterOpenableBuffetIds } from '@/components/waiter/useWaiterOpenableBuffetIds';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -313,6 +314,18 @@ function WaiterBoardInner({
     tableId: string;
     displayName: string;
   } | null>(null);
+
+  /** Prefetch「当前可开套餐」so the open sheet often paints complete on first frame. */
+  const {
+    openableBuffetIds: boardOpenableBuffetIds,
+    openablePricesByBuffetId: boardOpenablePricesByBuffetId,
+    refreshOpenableBuffetIds: refreshBoardOpenableBuffetIds,
+  } = useWaiterOpenableBuffetIds(
+    restaurant.id,
+    restaurant.slug,
+    !isDemo && supportsBuffetOpenTable,
+    null,
+  );
 
   /** Open-table sheet left the board surface — drop ephemeral find-table query (pref save effect syncs). */
   const handleOpenTableSuccess = useCallback(
@@ -903,6 +916,9 @@ function WaiterBoardInner({
         isTakeawayTable={
           openTableTarget != null && takeawayTableIds.has(openTableTarget.tableId)
         }
+        boardOpenableBuffetIds={boardOpenableBuffetIds}
+        boardOpenablePricesByBuffetId={boardOpenablePricesByBuffetId}
+        refreshBoardOpenableBuffetIds={refreshBoardOpenableBuffetIds}
       />
     </div>
   );

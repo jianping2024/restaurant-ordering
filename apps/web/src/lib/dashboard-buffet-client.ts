@@ -1,4 +1,5 @@
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
+import type { BuffetUpdatePatch } from '@/lib/buffet-update-patch';
 import type { BuffetTimeSlot } from '@/types';
 
 type ApiError = { error: string; message?: string };
@@ -66,7 +67,7 @@ export async function upsertBuffetCalendarClient(
 
 export async function updateBuffetClient(
   id: string,
-  patch: Partial<Pick<import('@/types').Buffet, 'name' | 'is_active' | 'vat_rate'>>,
+  patch: BuffetUpdatePatch,
 ) {
   return requestPatch('/api/dashboard/buffet', {
     method: 'PATCH',

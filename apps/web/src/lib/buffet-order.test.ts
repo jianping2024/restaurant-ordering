@@ -2,31 +2,26 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Order } from '@/types';
 import {
+  applyTableBuffetLineToOrderItems,
   buildBuffetBaseLine,
   buffetDraftClearsHeadcount,
   buffetFormAlignKey,
-  buffetSnapshotFromOrders,
-  buffetSnapshotKey,
-  buffetSnapshotsEqual,
-  buildIdleBuffetDraftSnapshot,
   computeBuffetSubtotal,
-  deriveBuffetFormSnapshot,
-  diffBuffetSnapshots,
+  currentTableBuffet,
+  currentTableBuffetLine,
+  effectiveTableBuffet,
   formatBuffetGuestCountsOptional,
   formatBuffetHeadcountLabel,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
   buffetHeadcountTokenParts,
   buffetHeadcountTokens,
-  isBuffetSnapshotUnchanged,
+  isTableBuffetUnchanged,
   listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
   resolveBuffetOpenPricePreview,
-  snapshotFromBuffetEntries,
-  upsertBuffetLineOntoOrderItems,
   aggregateBuffetHeadcountForOrders,
   totalGuestsFromCounts,
-  totalGuestsInBuffetSnapshot,
 } from '@/lib/buffet-order';
 import {
   mergeBuffetPricesPreferLocked,
@@ -76,81 +71,49 @@ function orderWithItems(items: ReturnType<typeof buildBuffetBaseLine>[]): Order 
   };
 }
 
-describe('buffet snapshot', () => {
+describe('current table buffet', () => {
   it('sums adults+children via one totalGuests helper', () => {
     assert.equal(totalGuestsFromCounts({ adults: 2, children: 1 }), 3);
     assert.equal(totalGuestsFromCounts(null), 0);
-    assert.equal(
-      totalGuestsInBuffetSnapshot({
-        a: { adults: 2, children: 0 },
-        b: { adults: 1, children: 1 },
-      }),
-      4,
-    );
   });
-  it('reads multiple active packages from orders', () => {
+
+  it('reads the newest active buffet line as the current package', () => {
     const orders = [orderWithItems([
       buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z'),
       buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z'),
     ])];
-
-    assert.deepEqual(buffetSnapshotFromOrders(orders), {
-      [buffetA.id]: { adults: 2, children: 1 },
-      [buffetB.id]: { adults: 1, children: 0 },
-    });
+    assert.deepEqual(currentTableBuffet(orders), { buffetId: buffetB.id, adults: 1, children: 0 });
+    // Readers of what is on paper still see every active line (legacy multi-package bills).
     assert.deepEqual(aggregateBuffetHeadcountForOrders(orders), { adults: 3, children: 1 });
     assert.equal(listActiveBuffetLineSummaries(orders).length, 2);
   });
 
-  it('detects unchanged and changed snapshots', () => {
-    const orders = [orderWithItems([buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z')])];
-    const same = snapshotFromBuffetEntries([
-      { buffetId: buffetA.id, adults: 2, children: 1 },
-    ]);
-    const changed = snapshotFromBuffetEntries([
-      { buffetId: buffetA.id, adults: 3, children: 1 },
-      { buffetId: buffetB.id, adults: 1, children: 0 },
-    ]);
-
-    assert.equal(isBuffetSnapshotUnchanged(orders, same), true);
-    assert.equal(isBuffetSnapshotUnchanged(orders, changed), false);
+  it('ignores voided lines; no active line → null', () => {
+    const voided = { ...buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z'), item_status: 'voided' as const };
+    assert.equal(currentTableBuffet([orderWithItems([voided])]), null);
+    assert.equal(currentTableBuffetLine([]), null);
   });
 
-  it('diffs upsert and void package ids', () => {
-    const current = {
-      [buffetA.id]: { adults: 2, children: 1 },
-      [buffetB.id]: { adults: 1, children: 0 },
-    };
-    const target = {
-      [buffetA.id]: { adults: 3, children: 0 },
-    };
-    assert.deepEqual(diffBuffetSnapshots(current, target), {
-      voidBuffetIds: [buffetB.id],
-      upsertBuffetIds: [buffetA.id],
-    });
+  it('treats 0 + 0 as no buffet when comparing', () => {
+    const orders = [orderWithItems([buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z')])];
+    assert.equal(isTableBuffetUnchanged(orders, { buffetId: buffetA.id, adults: 2, children: 1 }), true);
+    assert.equal(isTableBuffetUnchanged(orders, { buffetId: buffetB.id, adults: 2, children: 1 }), false);
+    assert.equal(isTableBuffetUnchanged([], { buffetId: buffetA.id, adults: 0, children: 0 }), true);
+    assert.equal(effectiveTableBuffet({ buffetId: buffetA.id, adults: 0, children: 0 }), null);
   });
 });
 
-describe('deriveBuffetFormSnapshot / align', () => {
-  it('returns idle draft with all packages at zero', () => {
+describe('resolveBuffetFormAlignState', () => {
+  it('returns idle with the default package', () => {
     assert.deepEqual(
       resolveBuffetFormAlignState({
         detailLoaded: true,
         hasOpenSession: false,
         orders: [],
-        activeBuffetIds: [buffetA.id, buffetB.id],
         defaultBuffetId: buffetA.id,
       }),
-      {
-        mode: 'idle',
-        defaultBuffetId: buffetA.id,
-        activeBuffetIds: [buffetA.id, buffetB.id],
-      },
+      { mode: 'idle', defaultBuffetId: buffetA.id },
     );
-    assert.deepEqual(buildIdleBuffetDraftSnapshot([buffetA.id, buffetB.id]), {
-      [buffetA.id]: { adults: 0, children: 0 },
-      [buffetB.id]: { adults: 0, children: 0 },
-    });
   });
 
   it('returns session_open when session exists without buffet lines', () => {
@@ -159,34 +122,22 @@ describe('deriveBuffetFormSnapshot / align', () => {
         detailLoaded: true,
         hasOpenSession: true,
         orders: [],
-        activeBuffetIds: [buffetA.id],
         defaultBuffetId: buffetA.id,
       }),
-      {
-        mode: 'session_open',
-        activeBuffetIds: [buffetA.id],
-      },
+      { mode: 'session_open', defaultBuffetId: buffetA.id },
     );
   });
 
-  it('returns occupied snapshot from orders', () => {
+  it('returns occupied selection from orders', () => {
     const orders = [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])];
-    assert.deepEqual(deriveBuffetFormSnapshot(orders), {
-      [buffetA.id]: { adults: 2, children: 0 },
-    });
     assert.deepEqual(
       resolveBuffetFormAlignState({
         detailLoaded: true,
         hasOpenSession: false,
         orders,
-        activeBuffetIds: [buffetA.id, buffetB.id],
-        defaultBuffetId: buffetA.id,
+        defaultBuffetId: buffetB.id,
       }),
-      {
-        mode: 'occupied',
-        snapshot: { [buffetA.id]: { adults: 2, children: 0 } },
-        activeBuffetIds: [buffetA.id, buffetB.id],
-      },
+      { mode: 'occupied', selection: { buffetId: buffetA.id, adults: 2, children: 0 } },
     );
   });
 
@@ -195,24 +146,26 @@ describe('deriveBuffetFormSnapshot / align', () => {
       detailLoaded: true,
       hasOpenSession: false,
       orders: [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])],
-      activeBuffetIds: [buffetA.id],
       defaultBuffetId: buffetA.id,
     });
-    assert.equal(buffetSnapshotKey({ [buffetA.id]: { adults: 2, children: 0 } }), 'buffet-a:2:0');
-    assert.ok(buffetFormAlignKey('t1', 's1', occupied).includes('occupied'));
-    const occupiedNoPackages = resolveBuffetFormAlignState({
+    assert.equal(buffetFormAlignKey('t1', 's1', occupied), 't1:s1:occupied:buffet-a:2:0');
+    const idleNoPackages = resolveBuffetFormAlignState({
       detailLoaded: true,
       hasOpenSession: true,
-      orders: [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])],
-      activeBuffetIds: [],
+      orders: [],
       defaultBuffetId: null,
     });
-    // Packages arriving later must realign the draft (else it stays {} → submits 0).
+    const idleWithPackage = resolveBuffetFormAlignState({
+      detailLoaded: true,
+      hasOpenSession: true,
+      orders: [],
+      defaultBuffetId: buffetA.id,
+    });
+    // Packages arriving later must realign the draft (else no package stays picked).
     assert.notEqual(
-      buffetFormAlignKey('t1', 's1', occupiedNoPackages),
-      buffetFormAlignKey('t1', 's1', occupied),
+      buffetFormAlignKey('t1', 's1', idleNoPackages),
+      buffetFormAlignKey('t1', 's1', idleWithPackage),
     );
-    assert.equal(buffetSnapshotsEqual({ a: { adults: 1, children: 0 } }, { a: { adults: 1, children: 0 } }), true);
   });
 });
 
@@ -221,38 +174,43 @@ describe('buffetDraftClearsHeadcount', () => {
 
   it('flags an all-zero draft on a table with guests', () => {
     assert.equal(
-      buffetDraftClearsHeadcount(orders, { [buffetA.id]: { adults: 0, children: 0 } }, [buffetA.id]),
+      buffetDraftClearsHeadcount(orders, { buffetId: buffetA.id, adults: 0, children: 0 }),
       true,
     );
-    // Missing package entry submits as 0 too.
-    assert.equal(buffetDraftClearsHeadcount(orders, {}, [buffetA.id]), true);
+    assert.equal(buffetDraftClearsHeadcount(orders, null), true);
   });
 
   it('allows non-zero drafts and tables without guests', () => {
     assert.equal(
-      buffetDraftClearsHeadcount(orders, { [buffetA.id]: { adults: 1, children: 0 } }, [buffetA.id]),
+      buffetDraftClearsHeadcount(orders, { buffetId: buffetA.id, adults: 1, children: 0 }),
       false,
     );
     assert.equal(
-      buffetDraftClearsHeadcount([], { [buffetA.id]: { adults: 0, children: 0 } }, [buffetA.id]),
+      buffetDraftClearsHeadcount([], { buffetId: buffetA.id, adults: 0, children: 0 }),
       false,
     );
   });
 });
 
-describe('upsertBuffetLineOntoOrderItems', () => {
-  it('keeps other packages when upserting one package', () => {
+describe('applyTableBuffetLineToOrderItems', () => {
+  it('voids every active package and appends the one new line', () => {
     const lineA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
     const lineB = buffetLine(buffetB, 1, 0, '2026-01-01T10:01:00.000Z');
     const nextB = buffetLine(buffetB, 2, 1, '2026-01-01T11:00:00.000Z');
-    const merged = upsertBuffetLineOntoOrderItems([lineA, lineB], nextB);
+    const merged = applyTableBuffetLineToOrderItems([lineA, lineB], nextB);
 
     const active = merged.filter((item) => item.kind === 'buffet_base' && item.item_status !== 'voided');
-    assert.equal(active.length, 2);
-    assert.equal(active.find((item) => item.buffet_id === buffetA.id)?.adult_count, 2);
-    assert.equal(active.find((item) => item.buffet_id === buffetB.id)?.adult_count, 2);
-    assert.equal(active.find((item) => item.buffet_id === buffetB.id)?.child_count, 1);
-    assert.equal(merged.filter((item) => item.item_status === 'voided').length, 1);
+    assert.equal(active.length, 1);
+    assert.equal(active[0].buffet_id, buffetB.id);
+    assert.equal(active[0].child_count, 1);
+    assert.equal(merged.filter((item) => item.item_status === 'voided').length, 2);
+  });
+
+  it('clears the buffet when the line is null', () => {
+    const lineA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
+    const merged = applyTableBuffetLineToOrderItems([lineA], null);
+    assert.equal(merged.length, 1);
+    assert.equal(merged[0].item_status, 'voided');
   });
 });
 

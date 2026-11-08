@@ -15,6 +15,11 @@ import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { scheduleOpenTableReceiptPrint } from '@/lib/open-table-receipt-enqueue';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import {
+  loadWaiterOpenableFreshness,
+  loadWaiterOpenableSnapshot,
+} from '@/lib/buffet-openable-server';
+import { loadCheckoutEntrySignals } from '@/lib/buffet-checkout-entry-server';
 
 export const runtime = 'nodejs';
 
@@ -24,10 +29,10 @@ type WaiterBuffetFailureLog = {
   user_id?: string;
   table_id?: string;
   intent?: string;
-  buffet_count?: number;
+  buffet_id?: string;
   parse_table_id?: boolean;
   parse_intent?: boolean;
-  parse_buffets?: boolean;
+  parse_buffet?: boolean;
   status: number;
   error: string;
   code?: string;
@@ -48,6 +53,73 @@ function respondWaiterBuffetFailure(
     { error: fields.error, code: fields.code, message: fields.message },
     { status: fields.status },
   );
+}
+
+/**
+ * 开台列表 ensure: buffets openable now + buffet_config_version + current slot.
+ * `knownVersion` + `knownSlotKey` → `{ unchanged: true }` when both match (same pattern as
+ * customer menu-catalog). With `table_id`, always includes checkout-entry signals.
+ */
+export async function GET(
+  req: Request,
+  { params }: { params: { slug: string } },
+) {
+  const ctx = await tableSessionOpenAuthFromRequest(req, params.slug);
+  if (!ctx) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const url = new URL(req.url);
+  const tableIdRaw = url.searchParams.get('table_id');
+  const tableId = tableIdRaw ? parseTableIdParam(tableIdRaw) : null;
+  if (tableIdRaw && !tableId) return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+  const knownVersionRaw = url.searchParams.get('knownVersion');
+  const knownVersion =
+    knownVersionRaw != null && knownVersionRaw !== '' ? Number(knownVersionRaw) : null;
+  const knownSlotKey = url.searchParams.get('knownSlotKey');
+  try {
+    const admin = createAdminClient();
+    const [freshness, session] = await Promise.all([
+      loadWaiterOpenableFreshness(admin, ctx.restaurant_id),
+      tableId
+        ? admin
+            .from('table_sessions')
+            .select('id')
+            .eq('restaurant_id', ctx.restaurant_id)
+            .eq('table_id', tableId)
+            .in('status', ['open', 'billing'])
+            .order('opened_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const sessionId = (session.data as { id?: string } | null)?.id ?? null;
+    const checkoutEntry = sessionId
+      ? await loadCheckoutEntrySignals(admin, ctx.restaurant_id, sessionId)
+      : null;
+    const knownMatches =
+      knownVersion != null
+      && Number.isFinite(knownVersion)
+      && knownSlotKey != null
+      && knownSlotKey === freshness.slotKey
+      && knownVersion === freshness.version;
+    if (knownMatches) {
+      return NextResponse.json({
+        unchanged: true,
+        version: freshness.version,
+        slot_key: freshness.slotKey,
+        checkout_entry: checkoutEntry,
+      });
+    }
+    const snapshot = await loadWaiterOpenableSnapshot(admin, ctx.restaurant_id);
+    return NextResponse.json({
+      version: snapshot.version,
+      slot_key: snapshot.slotKey,
+      buffet_ids: snapshot.openableBuffetIds,
+      prices: snapshot.pricesByBuffetId,
+      checkout_entry: checkoutEntry,
+    });
+  } catch (err) {
+    if (isDependencyFailure(err)) return dependencyUnavailableJsonResponse();
+    return NextResponse.json({ error: 'openable_lookup_failed' }, { status: 500 });
+  }
 }
 
 export async function POST(
@@ -75,7 +147,7 @@ export async function POST(
 
     let body: {
       table_id?: unknown;
-      buffets?: unknown;
+      buffet?: unknown;
       intent?: unknown;
     };
     try {
@@ -91,20 +163,19 @@ export async function POST(
     }
 
     const tableId = parseTableIdParam(body.table_id);
-    const parsedBuffets = parseBuffetWaiterRequestBody(body.buffets);
+    const parsedBuffet = parseBuffetWaiterRequestBody(body.buffet);
     const intent = parseBuffetWaiterOpenIntent(body.intent);
 
-    if (!tableId || !parsedBuffets.ok || !intent) {
+    if (!tableId || !parsedBuffet.ok || !intent) {
       return respondWaiterBuffetFailure({
         slug,
         restaurant_id: ctx.restaurant_id,
         user_id: ctx.user_id,
         table_id: tableId ?? undefined,
         intent: typeof body.intent === 'string' ? body.intent : undefined,
-        buffet_count: Array.isArray(body.buffets) ? body.buffets.length : undefined,
         parse_table_id: Boolean(tableId),
         parse_intent: Boolean(intent),
-        parse_buffets: parsedBuffets.ok,
+        parse_buffet: parsedBuffet.ok,
         status: 400,
         error: 'invalid_body',
       });
@@ -120,7 +191,7 @@ export async function POST(
         user_id: ctx.user_id,
         table_id: tableId,
         intent,
-        buffet_count: parsedBuffets.buffets.length,
+        buffet_id: parsedBuffet.buffet.buffetId,
         status: 503,
         error: 'server_misconfigured',
       });
@@ -130,7 +201,7 @@ export async function POST(
       restaurantId: ctx.restaurant_id,
       userId: ctx.user_id,
       tableId,
-      buffets: parsedBuffets.buffets,
+      buffet: parsedBuffet.buffet,
       intent,
     });
 
@@ -143,7 +214,7 @@ export async function POST(
             user_id: ctx.user_id,
             table_id: tableId,
             intent,
-            buffet_count: parsedBuffets.buffets.length,
+            buffet_id: parsedBuffet.buffet.buffetId,
             status: 503,
             error: DEPENDENCY_UNAVAILABLE,
             code: result.code,
@@ -158,7 +229,7 @@ export async function POST(
         user_id: ctx.user_id,
         table_id: tableId,
         intent,
-        buffet_count: parsedBuffets.buffets.length,
+        buffet_id: parsedBuffet.buffet.buffetId,
         status: result.status,
         error: result.error,
         code: result.code,

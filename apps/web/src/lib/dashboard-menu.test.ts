@@ -35,6 +35,7 @@ const itemLabels = {
   saveFail: 'save fail',
   errDeleteItemInUse: 'item in use',
   errDeleteFail: 'delete fail',
+  buffetPriceInvalid: 'buffet price invalid',
 };
 
 describe('parseCategoryBody', () => {
@@ -119,6 +120,7 @@ describe('parseMenuItemBody', () => {
       available: true,
       is_vegetarian: true,
       description_zh: '新鲜鳕鱼',
+      buffet_prices: [{ buffet_id: 'b0000001-0000-4000-8000-000000000001', price: 0 }],
     });
     assert.ok(!('error' in parsed));
     if ('error' in parsed) return;
@@ -129,6 +131,9 @@ describe('parseMenuItemBody', () => {
     assert.deepEqual(parsed.flavor_codes, ['spice_mild', 'aroma_garlic']);
     assert.equal(parsed.is_vegetarian, true);
     assert.equal(parsed.description_zh, '新鲜鳕鱼');
+    assert.deepEqual(parsed.buffet_prices, [
+      { buffet_id: 'b0000001-0000-4000-8000-000000000001', price: 0 },
+    ]);
     assert.equal(parsed.per_person_qty_limit, null);
     assert.equal(parsed.over_limit_unit_price, null);
   });
@@ -147,11 +152,33 @@ describe('parseMenuItemBody', () => {
       available: true,
       per_person_qty_limit: 2,
       over_limit_unit_price: 3.5,
+      buffet_prices: [],
     });
     assert.ok(!('error' in parsed));
     if ('error' in parsed) return;
     assert.equal(parsed.per_person_qty_limit, 2);
     assert.equal(parsed.over_limit_unit_price, 3.5);
+  });
+
+  it('requires buffet_prices and rejects negative buffet price', () => {
+    const base = {
+      name_pt: 'Nigiri',
+      category_id: 'cat-1',
+      item_code: 'S01',
+      price: 2,
+      vat_rate: '6',
+      emoji: '🍣',
+      note_preset_group_ids: [],
+      allergen_codes: [],
+      flavor_codes: [],
+    };
+    const missing = parseMenuItemBody(base);
+    assert.equal('error' in missing && missing.error, 'invalid_buffet_prices');
+    const negative = parseMenuItemBody({
+      ...base,
+      buffet_prices: [{ buffet_id: 'b0000001-0000-4000-8000-000000000001', price: -1 }],
+    });
+    assert.equal('error' in negative && negative.error, 'invalid_buffet_prices');
   });
 
   it('rejects limit without overage price', () => {

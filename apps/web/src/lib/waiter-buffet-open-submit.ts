@@ -1,8 +1,4 @@
-import {
-  buffetEntriesFromSnapshot,
-  isBuffetSubmitSnapshotUnchanged,
-  type BuffetGuestSnapshot,
-} from '@/lib/buffet-order';
+import { isTableBuffetUnchanged, type TableBuffetSelection } from '@/lib/buffet-order';
 import {
   BUFFET_OPEN_ALREADY_OPEN,
   buffetWaiterOpenIntentFromSession,
@@ -28,12 +24,11 @@ export type { BuffetWaiterOpenIntent };
 /** Client-side guards before POST …/staff/waiter/buffet. */
 export function buffetOpenSubmitBlockReason(
   orders: Array<Pick<Order, 'items' | 'status'>>,
-  guestSnapshot: BuffetGuestSnapshot,
-  activeBuffetIds: string[],
+  draft: TableBuffetSelection | null,
   editorReady: boolean,
   hasOpenSession: boolean,
 ): BuffetOpenSubmitBlockReason | null {
-  if (isBuffetSubmitSnapshotUnchanged(orders, guestSnapshot, activeBuffetIds)) {
+  if (isTableBuffetUnchanged(orders, draft)) {
     if (!hasOpenSession) return null;
     return 'unchanged';
   }
@@ -49,21 +44,18 @@ export type WaiterBuffetOpenPostResult =
 export async function postWaiterBuffetOpenAndCommit(input: {
   restaurantSlug: string;
   tableId: string;
-  guestSnapshot: BuffetGuestSnapshot;
-  activeBuffetIds: string[];
+  buffet: TableBuffetSelection;
   intent: BuffetWaiterOpenIntent;
 }): Promise<WaiterBuffetOpenPostResult> {
   try {
     const nextModel = await postWaiterBuffetOpenClient(input.restaurantSlug, {
       table_id: input.tableId,
       intent: input.intent,
-      buffets: buffetEntriesFromSnapshot(input.guestSnapshot, input.activeBuffetIds).map(
-        (entry) => ({
-          buffet_id: entry.buffetId,
-          adult_count: entry.adults,
-          child_count: entry.children,
-        }),
-      ),
+      buffet: {
+        buffet_id: input.buffet.buffetId,
+        adult_count: input.buffet.adults,
+        child_count: input.buffet.children,
+      },
     });
     commitAuthoritativeWaiterTablePageModel(nextModel);
     return { ok: true, model: nextModel };

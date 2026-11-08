@@ -29,6 +29,7 @@ export type AppendOrderFailureCode =
   | 'limited_item_requires_headcount'
   | 'menu_item_off_time_slot'
   | 'sushi_round_required'
+  | 'buffet_changed'
   | 'submit_failed';
 
 export type MenuOrderSubmitSuccess = {
@@ -169,6 +170,8 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'invalid_client_request_id';
     case 'sushi_round_required':
       return 'sushi_round_required';
+    case 'buffet_changed':
+      return 'buffet_changed';
     default:
       return 'submit_failed';
   }

@@ -9,6 +9,14 @@ import {
   visibleRecommendedMenuItems,
 } from './menu-recommended.ts';
 import { filterRecommendedPickerItems } from './menu-admin.ts';
+import { menuItemWithChannelDisplayPrice } from '@/lib/instore-takeaway';
+
+/** Views take table-priced rows (sole `menuItemWithChannelDisplayPrice`); no buffet here. */
+function priced(rows: MenuItem[], channel: 'dine_in' | 'takeaway' = 'dine_in') {
+  return rows.map((row) =>
+    menuItemWithChannelDisplayPrice(row, { channel, buffetId: null, buffetPrices: {} }),
+  );
+}
 
 const cat = (row: Partial<MenuCategory> & Pick<MenuCategory, 'id'>): MenuCategory => ({
   restaurant_id: 'r1',
@@ -59,7 +67,7 @@ describe('resolveCustomerMenuCatalogView', () => {
   it('defaults to first real category when nothing is recommended', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks, fish],
-      menuItems: [bacalhau, frango, vinho],
+      menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
       activeTopId: '',
@@ -73,7 +81,7 @@ describe('resolveCustomerMenuCatalogView', () => {
   it('defaults to first real category even when curated dishes are available', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks],
-      menuItems: [frango, vinho, soldOut],
+      menuItems: priced([frango, vinho, soldOut]),
       recommendedItemIds: ['i-sold', 'i-vinho'],
       menuTimeSlotId: null,
       activeTopId: 'Pratos',
@@ -88,7 +96,7 @@ describe('resolveCustomerMenuCatalogView', () => {
   it('ignores a stale recommended sentinel as the active top', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains],
-      menuItems: [soldOut, frango],
+      menuItems: priced([soldOut, frango]),
       recommendedItemIds: ['i-sold'],
       menuTimeSlotId: null,
       activeTopId: 'recommended',
@@ -101,7 +109,7 @@ describe('resolveCustomerMenuCatalogView', () => {
   it('keeps subcategory filtering on a real top category', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains, fish, drinks],
-      menuItems: [bacalhau, frango, vinho],
+      menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: ['i-vinho'],
       menuTimeSlotId: null,
       activeTopId: 'c-mains',
@@ -119,7 +127,7 @@ describe('resolveCustomerMenuCatalogView', () => {
     const empty = cat({ id: 'c-empty', name_pt: 'Vazio', sort_order: 4 });
     const args = {
       menuCategories: [mains, fish, drinks, dinnerOnly, empty],
-      menuItems: [lunchSet, frango, vinho, dinnerDish],
+      menuItems: priced([lunchSet, frango, vinho, dinnerDish]),
       recommendedItemIds: ['i-dinner', 'i-lunch', 'i-vinho'],
       activeTopId: 'c-mains',
       activeSubpath: '',
@@ -185,7 +193,7 @@ describe('resolveCustomerMenuCatalogView', () => {
 
     const takeaway = resolveCustomerMenuCatalogView({
       menuCategories: cats,
-      menuItems: items,
+      menuItems: priced(items, 'takeaway'),
       recommendedItemIds: ['i-sell', 'i-dine', 'i-tw-only'],
       menuTimeSlotId: null,
       activeTopId: 'c-dine-only',
@@ -202,7 +210,7 @@ describe('resolveCustomerMenuCatalogView', () => {
 
     const dineIn = resolveCustomerMenuCatalogView({
       menuCategories: cats,
-      menuItems: items,
+      menuItems: priced(items, 'dine_in'),
       recommendedItemIds: ['i-tw-only'],
       menuTimeSlotId: null,
       activeTopId: '',
@@ -221,7 +229,7 @@ describe('customerMenuNavTopCategories', () => {
   it('lists only real top categories even when recommended dishes exist', () => {
     const withRec = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks],
-      menuItems: [vinho],
+      menuItems: priced([vinho]),
       recommendedItemIds: ['i-vinho'],
       menuTimeSlotId: null,
       activeTopId: '',
@@ -235,7 +243,7 @@ describe('customerMenuNavTopCategories', () => {
 
     const without = resolveCustomerMenuCatalogView({
       menuCategories: [mains],
-      menuItems: [frango],
+      menuItems: priced([frango]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
       activeTopId: '',
@@ -250,7 +258,7 @@ describe('customerMenuNavTopCategories', () => {
   it('sums cart qty per top category including sub-category dishes', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks, fish],
-      menuItems: [bacalhau, frango, vinho],
+      menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
       activeTopId: '',

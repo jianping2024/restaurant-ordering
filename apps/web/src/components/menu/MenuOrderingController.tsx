@@ -32,6 +32,8 @@ import {
   menuItemVisibleForOrderingChannel,
   menuItemWithChannelDisplayPrice,
   resolveTableOrderingChannel,
+  type MenuItemBuffetPriceMap,
+  type TablePriced,
 } from '@/lib/instore-takeaway';
 import {
   customerMenuNavTopCategories,
@@ -52,6 +54,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
 import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
 import {
+  repriceCartLines,
   setCartLineQtyByLineId,
   updateCartLineNoteByLineId,
   updateCartLineNotePresetsByLineId,
@@ -173,7 +176,10 @@ export type StaffSubmitMode = 'navigate' | 'overlay';
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
+  /** Catalog rows (original prices); priced per table before any use. */
   menuItems: MenuItem[];
+  /** Catalog per-buffet dish prices (`menu_item_buffet_prices`). */
+  menuItemBuffetPrices: MenuItemBuffetPriceMap;
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
   /** Slot windows from the catalog (`menu_items.time_slot_id`). */
@@ -202,7 +208,8 @@ interface Props {
 
 export function MenuOrderingController({
   restaurant,
-  menuItems,
+  menuItems: catalogMenuItems,
+  menuItemBuffetPrices,
   menuCategories,
   recommendedItemIds = [],
   menuTimeSlots,
@@ -350,6 +357,23 @@ export function MenuOrderingController({
       activeSession?.ordering_channel,
     ],
   );
+  const tableBuffetId = activeSession?.current_buffet_id ?? null;
+  /** Sole priced catalog for this table — every list / cart / detail / limit read uses it. */
+  const menuItems = useMemo(
+    () =>
+      catalogMenuItems.map((item) =>
+        menuItemWithChannelDisplayPrice(item, {
+          channel: orderingChannel,
+          buffetId: tableBuffetId,
+          buffetPrices: menuItemBuffetPrices,
+        }),
+      ),
+    [catalogMenuItems, menuItemBuffetPrices, orderingChannel, tableBuffetId],
+  );
+  // Buffet switched / menu edited: cart lines follow the table's current prices.
+  useEffect(() => {
+    setCartTracked((prev) => repriceCartLines(prev, menuItems));
+  }, [menuItems, setCartTracked]);
 
   const catalogView = useMemo(
     () =>
@@ -413,7 +437,7 @@ export function MenuOrderingController({
 
   /** Write cart qty after gates (list + drawer share this). */
   const commitCartQty = useCallback(
-    (item: MenuItem, nextQty: number) => {
+    (item: TablePriced<MenuItem>, nextQty: number) => {
       const prev = cartRef.current;
       const next = upsertCartItemQty(prev, item, nextQty);
       cartRef.current = next;
@@ -430,9 +454,8 @@ export function MenuOrderingController({
   const requestCartQtyChange = useCallback(
     async (menuItemId: string, rawNextQty: number) => {
       if (!catalogReady) return;
-      const raw = menuItems.find((m) => m.id === menuItemId);
-      if (!raw || !menuItemVisibleForOrderingChannel(raw, orderingChannel)) return;
-      const item = menuItemWithChannelDisplayPrice(raw, orderingChannel);
+      const item = menuItems.find((m) => m.id === menuItemId);
+      if (!item || !menuItemVisibleForOrderingChannel(item, orderingChannel)) return;
 
       const gate = await ensureGuestCanPlaceOrder();
       if (!gate.canPlace) {
@@ -525,9 +548,9 @@ export function MenuOrderingController({
   const treatZeroAsFree = buffetServiceMode === 'sushi';
   const detailItem = useMemo(() => {
     if (!detailMenuItemId) return null;
-    const raw = menuItems.find((m) => m.id === detailMenuItemId);
-    if (!raw || !menuItemVisibleForOrderingChannel(raw, orderingChannel)) return null;
-    return menuItemWithChannelDisplayPrice(raw, orderingChannel);
+    const item = menuItems.find((m) => m.id === detailMenuItemId);
+    if (!item || !menuItemVisibleForOrderingChannel(item, orderingChannel)) return null;
+    return item;
   }, [detailMenuItemId, menuItems, orderingChannel]);
   const detailNeedsConfig = detailItem
     ? dishNeedsOrderConfig({
@@ -789,6 +812,12 @@ export function MenuOrderingController({
           showToast(t.individualCalledHint, 'info');
           return;
         }
+        if (failure.code === 'buffet_changed') {
+          // Table switched buffet meanwhile: re-read session → catalog + cart reprice.
+          await refreshSessionContext('gate');
+          showToast(t.buffetChangedRetry, 'info');
+          return;
+        }
         if (appendFailureNeedsSessionRefresh(failure.code)) {
           await refreshSessionContext('gate');
           showToast(t.billDisabledHint, 'info');
@@ -1014,10 +1043,10 @@ export function MenuOrderingController({
     const dialog = staffOverageDialog;
     if (!dialog) return;
     if (dialog.kind === 'first_cross') {
-      const raw = menuItems.find((m) => m.id === dialog.menuItemId);
+      const item = menuItems.find((m) => m.id === dialog.menuItemId);
       setStaffOverageDialog(null);
-      if (raw && menuItemVisibleForOrderingChannel(raw, orderingChannel)) {
-        commitCartQty(menuItemWithChannelDisplayPrice(raw, orderingChannel), dialog.nextQty);
+      if (item && menuItemVisibleForOrderingChannel(item, orderingChannel)) {
+        commitCartQty(item, dialog.nextQty);
       }
       return;
     }

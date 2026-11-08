@@ -50,6 +50,10 @@ import {
   isDishVideoEffect,
 } from '@/lib/menu-dish-video';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
+import {
+  parseMenuItemBuffetPricesBody,
+  type MenuItemBuffetPriceInput,
+} from '@/lib/menu-item-buffet-prices';
 
 const ALLOWED_IMAGE_MIME = new Set([
   'image/jpeg',
@@ -500,6 +504,8 @@ type MenuItemInput = {
   time_slot_id: string | null;
   takeaway_role: 'none' | 'sellable' | 'takeaway_only' | 'packaging';
   takeaway_price: number | null;
+  /** Per-buffet dine-in prices; replaces the dish's whole set on save. */
+  buffet_prices: MenuItemBuffetPriceInput[];
 };
 
 function validateMenuItemInput(
@@ -522,6 +528,13 @@ function validateMenuItemInput(
       input.takeaway_price <= 0)
   ) {
     return { error: 'invalid_takeaway_price', status: 400 };
+  }
+  if (
+    input.buffet_prices.length > 0 &&
+    input.takeaway_role !== 'none' &&
+    input.takeaway_role !== 'sellable'
+  ) {
+    return { error: 'buffet_prices_require_dine_in', status: 400 };
   }
   if (!isAllowedMenuVatRate(input.vat_rate)) {
     return { error: 'invalid_vat_rate', status: 400 };
@@ -664,11 +677,33 @@ async function assertMenuItemPrintStationIds(
   return null;
 }
 
+/** Sole write of one dish's buffet price set (atomic replace RPC). Returns buffet id → price. */
+async function replaceMenuItemBuffetPrices(
+  admin: SupabaseClient,
+  restaurantId: string,
+  menuItemId: string,
+  prices: MenuItemBuffetPriceInput[],
+): Promise<{ prices: Record<string, number> } | MenuMutationError> {
+  const { error } = await admin.rpc('replace_menu_item_buffet_prices', {
+    p_restaurant_id: restaurantId,
+    p_menu_item_id: menuItemId,
+    p_prices: prices,
+  });
+  if (error) {
+    // 23503: buffet not in this restaurant (composite FK).
+    if (error.code === '23503' || /invalid_buffet_prices|duplicate_buffet_price/.test(error.message)) {
+      return { error: 'invalid_buffet_prices', status: 400 };
+    }
+    return { error: 'buffet_prices_save_failed', message: error.message, status: 500 };
+  }
+  return { prices: Object.fromEntries(prices.map((row) => [row.buffet_id, row.price])) };
+}
+
 export async function createMenuItem(
   admin: SupabaseClient,
   restaurantId: string,
   input: MenuItemInput,
-): Promise<{ item: MenuItem } | MenuMutationError> {
+): Promise<{ item: MenuItem; buffetPrices: Record<string, number> } | MenuMutationError> {
   const noteValidated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
   if ('error' in noteValidated) return noteValidated;
   const validated = await withValidatedDishOrderConfig(admin, restaurantId, noteValidated);
@@ -703,8 +738,15 @@ export async function createMenuItem(
 
   if (error) return menuItemWriteError(error, 'insert_failed');
 
+  const buffetPrices = await replaceMenuItemBuffetPrices(
+    admin,
+    restaurantId,
+    (data as MenuItem).id,
+    validated.buffet_prices,
+  );
   await invalidateCustomerMenuCatalog(restaurantId);
-  return { item: data as MenuItem };
+  if ('error' in buffetPrices) return buffetPrices;
+  return { item: data as MenuItem, buffetPrices: buffetPrices.prices };
 }
 
 export async function reorderMenuItems(
@@ -784,7 +826,7 @@ export async function updateMenuItem(
   restaurantId: string,
   itemId: string,
   input: MenuItemInput,
-): Promise<{ item: MenuItem } | MenuMutationError> {
+): Promise<{ item: MenuItem; buffetPrices: Record<string, number> } | MenuMutationError> {
   const id = parseTableIdParam(itemId);
   if (!id) {
     return { error: 'invalid_item_id', status: 400 };
@@ -839,8 +881,15 @@ export async function updateMenuItem(
 
   if (error) return menuItemWriteError(error, 'update_failed');
 
+  const buffetPrices = await replaceMenuItemBuffetPrices(
+    admin,
+    restaurantId,
+    id,
+    validated.buffet_prices,
+  );
   await invalidateCustomerMenuCatalog(restaurantId);
-  return { item: data as MenuItem };
+  if ('error' in buffetPrices) return buffetPrices;
+  return { item: data as MenuItem, buffetPrices: buffetPrices.prices };
 }
 
 export async function deleteMenuItem(
@@ -1340,6 +1389,11 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     return { error: limits.error, status: 400 };
   }
 
+  const buffetPrices = parseMenuItemBuffetPricesBody(raw.buffet_prices);
+  if (!buffetPrices) {
+    return { error: 'invalid_buffet_prices', status: 400 };
+  }
+
   return {
     name_pt: raw.name_pt,
     name_en: typeof raw.name_en === 'string' ? raw.name_en : null,
@@ -1386,6 +1440,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
           : Number(raw.takeaway_price);
       return Number.isFinite(n) ? n : null;
     })(),
+    buffet_prices: buffetPrices,
   };
 }
 

@@ -261,6 +261,10 @@ sole `isBillableSessionRowOnPaper` / `buildPaperBillableSessionItems` (`billable
 
 ## 顾客菜单 / 菜卡 / sushi round
 
+### 菜品按套餐取价
+
+sole unit price `menuItemUnitPriceForChannel({ item, channel, buffetId, buffetPrices })` (takeaway 不看套餐配置；堂食 = 当前套餐配置价 else 原价); table-priced rows sole `menuItemWithChannelDisplayPrice` → brand `TablePriced<MenuItem>` — `resolveCustomerMenuCatalogView` / cart (`cartLineUnitPrice`, `upsertCartItemQty`, `upsertCartLineByConfig`) only accept priced rows; pages price the catalog once (`MenuOrderingController` / `SushiMenuPage`); server `resolveAppendCartItems` + `loadMenuItemForRoundLine` price by `currentTableBuffet(sessionOrders)`; sushi free = `isSushiRoundFreeMenuPrice(priced price)`. Config table sole `menu_item_buffet_prices` (map `loadMenuItemBuffetPriceMap`, catalog `menuItemBuffetPrices`), dish form sole `MenuItemBuffetPricesField` → `replace_menu_item_buffet_prices`. Never read `menu_items.price` / `menu.price !== 0` to decide a unit price or free.
+
 ### Guest geo fence browser position
 
 sole `getBrowserPositionForGeoFence` (high accuracy then coarse) for settings anchor + `resolveCustomerGeoForOrder`; default `order_radius_meters` 500 — never a parallel guest-only coarse `PositionOptions` beside settings.
@@ -411,6 +415,18 @@ sole `table_sessions.opened_by_name` stamped at open via `resolveOpenedByNameFor
 ### 开台确认
 
 idle confirm is one `POST …/buffet` with `intent=open`; occupied headcount sole autosave via `useWaiterBuffetOpenMutation` debounce `intent=save`, armed only by `scheduleAutosave` from a −/+ tap (never an effect on draft/orders/refs — load/refresh/Realtime realign once posted a lagging 0); total→0 on an occupied table is held behind the「人数改为 0？」confirm (`buffetDraftClearsHeadcount`), cancel = `resetDraftToAligned` (no「保存人数」button / no parallel `applyBuffetToTable`); stale guard is server `409 already_open` only — never a confirm-time GET table precheck. Floor buffet adult/child sole UI `BuffetGuestCounter` −/n/+ only (no typed qty / no `onQtyChange` on that counter). Open-time unit prices sole on `buffet_base.adult_unit_price`/`child_unit_price` via `resolvedBuffetPriceFromLockedLine` / `mergeBuffetPricesPreferLocked` (checkout adjust + headcount upsert reuse lock; never re-slot a package that already locked — RPC only when no lock yet).
+
+### 一桌一套餐
+
+sole shape `TableBuffetSelection` `{ buffetId, adults, children }`（0+0 = 无套餐）; body `POST …/staff/waiter/buffet` `buffet: {buffet_id, adult_count, child_count}` (never a `buffets[]` array); sole TS「当前套餐」`currentTableBuffetLine`/`currentTableBuffet` (newest active buffet_base line); sole editor `WaiterBuffetPackagesEditor` radio + one headcount (board sheet / detail / checkout adjust `packageLocked`); writer voids every active buffet line then appends one (`applyTableBuffetLineToOrderItems`) — never per-package snapshot / diff / sum helpers. Buffet PATCH fields sole whitelist `parseBuffetUpdatePatch` (name/is_active/vat_rate/description) — never `.update(body.patch)`.
+
+### 可开台套餐
+
+sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的时段 + 今天日历类型下有生效规则）; distance/calendar sole `buffet_slot_distance_seconds` / `buffet_calendar_kind`（`resolve_buffet_prices` 复用，不复制 CASE）; current-slot id sole `buffet_current_slot_id`; freshness sole `restaurants.buffet_config_version` + bump `invalidateBuffetConfig` / `afterBuffetConfigWrite`; gate only cold open + 换套餐 in `runBuffetWaiterOpenPipeline`（409 `buffet_not_available_now`），调人数/并台/转台不拦; client list sole `useWaiterOpenableBuffetIds` → `ensureWaiterOpenable`（knownVersion+knownSlotKey；paint cache first；单价跟同一份缓存，版本和时段没变不再 `resolve_buffet_prices`；完整名单已不含没价的套餐）+ `pickableBuffetOptions`（当前套餐始终保留）; 开台抽屉与桌台详情选项单价同一份 openable 缓存（详情对当前套餐再 `mergeBuffetPricesPreferLocked`；`useWaiterTableBuffetForm` 不再逐套餐 RPC/分钟轮询）; 选中边 sole `buffetPackageOptionClass` 固定 `border-2` 只变色; 外卖开台不走这份名单; 缺价提示 sole `findMissingBuffetPriceCells` → `BuffetMissingPricesBanner`; 套餐描述 sole `BuffetDescriptionInput`（≤40 字按 `Array.from` 计）+ `parseBuffetUpdatePatch`, only shown in `WaiterBuffetPackagesEditor`.
+
+### 换套餐重算 + 并发核对
+
+sole「是否进入结账」`hasEnteredCheckout` (signals sole `loadCheckoutEntrySignals`; floor UI gets them from GET `…/staff/waiter/buffet?table_id=`); 套餐变了（X→Y / X→无 / 无→X）sole write `switchTableBuffet` → RPC `switch_table_buffet` (reprice via `planBuffetSwitchLinePrices` → `resolveMenuLinePriceFields`, the append pricing path); line predicate sole `isBuffetPricedDishLine` ≡ SQL `order_item_is_buffet_priced`; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
 
 ### 楼面跨端
 

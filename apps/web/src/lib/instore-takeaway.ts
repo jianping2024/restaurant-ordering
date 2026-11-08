@@ -126,27 +126,60 @@ export function menuItemVisibleForOrderingChannel(
   return isDineInMenuItem(item);
 }
 
-/** Unit price for append / display on that channel. */
+/** Dish id → buffet id → configured dine-in unit price (`menu_item_buffet_prices`). */
+export type MenuItemBuffetPriceMap = Readonly<Record<string, Readonly<Record<string, number>>>>;
+
+/** Everything the unit price depends on besides the dish row; new conditions add a field here. */
+export type MenuItemPricingContext = {
+  channel: OrderingChannel;
+  /** The table's current buffet (`currentTableBuffet` / `table_session_current_buffet_id`); null = none. */
+  buffetId: string | null;
+  buffetPrices: MenuItemBuffetPriceMap;
+};
+
+export type MenuItemPricedFields = MenuItemTakeawayFields & { id: string };
+
+/**
+ * Sole unit price for one dish on a table (catalog display, cart, append writes, sushi
+ * free/paid split, buffet-switch repricing):
+ * - takeaway: takeaway price when the dish sells takeaway with a price > 0, else original;
+ *   buffet config is never read;
+ * - dine-in: the current buffet's configured price for this dish when set, else original.
+ */
 export function menuItemUnitPriceForChannel(
-  item: MenuItemTakeawayFields,
-  channel: OrderingChannel,
+  params: MenuItemPricingContext & { item: MenuItemPricedFields },
 ): number {
-  if (channel === 'takeaway' && isTakeawayMenuItem(item)) {
-    const p = Number(item.takeaway_price);
-    if (Number.isFinite(p) && p > 0) return p;
+  const { item, channel, buffetId, buffetPrices } = params;
+  if (channel === 'takeaway') {
+    if (isTakeawayMenuItem(item)) {
+      const p = Number(item.takeaway_price);
+      if (Number.isFinite(p) && p > 0) return p;
+    }
+    return Number(item.price) || 0;
+  }
+  if (buffetId) {
+    const configured = buffetPrices[item.id]?.[buffetId];
+    if (typeof configured === 'number' && Number.isFinite(configured) && configured >= 0) {
+      return configured;
+    }
   }
   return Number(item.price) || 0;
 }
 
-/** Sole catalog/cart display row: same unit price as append for that channel. */
-export function menuItemWithChannelDisplayPrice<T extends MenuItemTakeawayFields>(
+declare const tablePricedBrand: unique symbol;
+
+/** A dish row whose `price` already is this table's unit price (via {@link menuItemWithChannelDisplayPrice}). */
+export type TablePriced<T> = T & { readonly [tablePricedBrand]: true };
+
+/** Sole catalog/cart display row: same unit price as append for that table. */
+export function menuItemWithChannelDisplayPrice<T extends MenuItemPricedFields>(
   item: T,
-  channel: OrderingChannel,
-): T {
+  pricing: MenuItemPricingContext,
+): TablePriced<T> {
   return {
     ...item,
-    price: menuItemUnitPriceForChannel(item, channel),
-  };
+    price: menuItemUnitPriceForChannel({ ...pricing, item }),
+  } as TablePriced<T>;
 }
 
 export function filterMenuItemsForOrderingChannel<T extends MenuItemTakeawayFields>(

@@ -2,6 +2,7 @@ import type { MenuCategory, MenuItem } from '@/types';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import type { MenuChoiceCatalog } from '@/lib/menu-choice-options';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
+import type { MenuItemBuffetPriceMap } from '@/lib/instore-takeaway';
 
 export type CustomerMenuCatalog = {
   menuItems: MenuItem[];
@@ -14,6 +15,8 @@ export type CustomerMenuCatalog = {
   choiceCatalog: MenuChoiceCatalog;
   /** Slot windows for `menu_items.time_slot_id`. */
   menuTimeSlots: MenuTimeSlot[];
+  /** Per-buffet dine-in dish prices (`menu_item_buffet_prices`). */
+  menuItemBuffetPrices: MenuItemBuffetPriceMap;
   /** Sole guest list-card motion gate (from resolveDishVideoAccess.guestListVisible). */
   guestListMotionEnabled: boolean;
 };
@@ -31,8 +34,8 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-/** v8: catalog carries `choiceCatalog` (口味分组 dictionary). */
-const CACHE_SCHEMA_VERSION = 8;
+/** v9: catalog carries `menuItemBuffetPrices` (per-buffet dish prices). */
+const CACHE_SCHEMA_VERSION = 9;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -48,6 +51,18 @@ const inFlightByRestaurantId = new Map<string, Promise<CustomerMenuCatalog>>();
 
 function storageKey(restaurantId: string): string {
   return `${STORAGE_KEY_PREFIX}:v${CACHE_SCHEMA_VERSION}:${restaurantId}`;
+}
+
+function isMenuItemBuffetPriceMap(value: unknown): value is MenuItemBuffetPriceMap {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  return Object.values(value as Record<string, unknown>).every(
+    (byBuffet) =>
+      !!byBuffet &&
+      typeof byBuffet === 'object' &&
+      Object.values(byBuffet as Record<string, unknown>).every(
+        (price) => typeof price === 'number' && Number.isFinite(price),
+      ),
+  );
 }
 
 function isMenuNotePresetCatalog(value: unknown): value is MenuNotePresetCatalog {
@@ -98,6 +113,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (!isMenuNotePresetCatalog(parsed.catalog.notePresetCatalog)) return null;
     if (!isMenuChoiceCatalog(parsed.catalog.choiceCatalog)) return null;
     if (!Array.isArray(parsed.catalog.menuTimeSlots)) return null;
+    if (!isMenuItemBuffetPriceMap(parsed.catalog.menuItemBuffetPrices)) return null;
     if (typeof parsed.catalog.guestListMotionEnabled !== 'boolean') return null;
     return parsed;
   } catch {
@@ -203,7 +219,8 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     !Array.isArray(row.recommendedItemIds) ||
     !isMenuNotePresetCatalog(row.notePresetCatalog) ||
     !isMenuChoiceCatalog(row.choiceCatalog) ||
-    !Array.isArray(row.menuTimeSlots)
+    !Array.isArray(row.menuTimeSlots) ||
+    !isMenuItemBuffetPriceMap(row.menuItemBuffetPrices)
   ) {
     throw new Error('menu_catalog_invalid_body');
   }
@@ -218,6 +235,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     notePresetCatalog: row.notePresetCatalog,
     choiceCatalog: row.choiceCatalog,
     menuTimeSlots: row.menuTimeSlots as MenuTimeSlot[],
+    menuItemBuffetPrices: row.menuItemBuffetPrices,
     guestListMotionEnabled: row.guestListMotionEnabled === true,
   };
 }
@@ -280,6 +298,7 @@ export function ensureCustomerMenuCatalog(params: {
         notePresetCatalog: body.notePresetCatalog,
         choiceCatalog: body.choiceCatalog,
         menuTimeSlots: body.menuTimeSlots,
+        menuItemBuffetPrices: body.menuItemBuffetPrices,
         guestListMotionEnabled: body.guestListMotionEnabled,
       });
     })

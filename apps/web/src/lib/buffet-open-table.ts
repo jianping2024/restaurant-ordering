@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, OrderItem } from '@/types';
-import { applyBuffetLinesToOrderItems, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
+import { applyTableBuffetLineToOrderItems, voidActiveBuffetBaseLines } from '@/lib/buffet-order';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { deriveOrderStatusFromItems, normalizeOrderItemStatus } from '@/lib/order-status';
@@ -24,9 +24,6 @@ export type ApplyBuffetOpenSuccess = {
 export type ApplyBuffetOpenResult =
   | ApplyBuffetOpenSuccess
   | { ok: false; code: 'conflict' | 'void_failed' | 'update_failed' | 'insert_failed'; message?: string };
-
-/** Placeholder session id for optimistic open-table UI before the server responds. */
-export const OPTIMISTIC_OPEN_SESSION_ID = '__optimistic_open__';
 
 type VoidBuffetWrite = {
   orderId: string;
@@ -64,8 +61,8 @@ export type BuffetOpenParams = {
   displayName: string;
   restaurantId: string;
   sessionId: string;
-  lines: OrderItem[];
-  voidBuffetIds: string[];
+  /** The table's one buffet line after this write; null clears the buffet (0 + 0 guests). */
+  line: OrderItem | null;
 };
 
 /** Latest order row for a table within the session (carrier for new buffet line). */
@@ -118,12 +115,12 @@ function activeLineTotal(items: OrderItem[], orderStatus: Order['status']): numb
   return sumLineTotals(active);
 }
 
-/** Pure write plan shared by server persist and optimistic client UI. */
+/** Pure write plan shared by server persist and response assembly. */
 export function planBuffetOpenWrites(
   sessionOrders: BuffetSessionOrder[],
   params: BuffetOpenParams,
 ): BuffetOpenWritePlan {
-  const { tableId, displayName, lines, voidBuffetIds, restaurantId, sessionId } = params;
+  const { tableId, displayName, line, restaurantId, sessionId } = params;
   const carrier = pickLatestTableOrder(sessionOrders, tableId);
   const voidOtherOrders: VoidBuffetWrite[] = [];
 
@@ -143,7 +140,7 @@ export function planBuffetOpenWrites(
 
   if (carrier) {
     const priorItems = carrier.items || [];
-    const mergedItems = applyBuffetLinesToOrderItems(priorItems, lines, voidBuffetIds);
+    const mergedItems = applyTableBuffetLineToOrderItems(priorItems, line);
     return {
       voidOtherOrders,
       carrier: {
@@ -159,7 +156,7 @@ export function planBuffetOpenWrites(
     };
   }
 
-  const mergedItems = applyBuffetLinesToOrderItems([], lines, voidBuffetIds);
+  const mergedItems = applyTableBuffetLineToOrderItems([], line);
   return {
     voidOtherOrders,
     carrier: {
@@ -182,10 +179,9 @@ function patchOrderRow(order: Order, patch: Partial<Order>): Order {
 type ApplyWritePlanOptions = {
   now?: string;
   insertedOrderId?: string;
-  optimisticTableId?: string;
 };
 
-/** Apply a buffet write plan in memory — shared by optimistic UI and buffet API response assembly. */
+/** Apply a buffet write plan in memory — buffet API response assembly. */
 export function applyBuffetOpenWritePlanToOrders(
   orders: Order[],
   plan: BuffetOpenWritePlan,
@@ -219,11 +215,7 @@ export function applyBuffetOpenWritePlanToOrders(
   }
 
   const insert = plan.carrier;
-  const orderId =
-    options.insertedOrderId
-    ?? (options.optimisticTableId
-      ? `optimistic-order-${options.optimisticTableId}`
-      : `optimistic-order-${insert.table_id}`);
+  const orderId = options.insertedOrderId ?? `optimistic-order-${insert.table_id}`;
   const insertedOrder: Order = {
     id: orderId,
     restaurant_id: insert.restaurant_id,
@@ -239,18 +231,9 @@ export function applyBuffetOpenWritePlanToOrders(
   return [insertedOrder, ...next];
 }
 
-/** In-memory buffet open for instant waiter UI; reconciled when the API returns. */
-export function applyBuffetOpenOptimisticToOrders(
-  orders: Order[],
-  params: BuffetOpenParams,
-): Order[] {
-  const plan = planBuffetOpenWrites(mapToBuffetSessionOrders(orders), params);
-  return applyBuffetOpenWritePlanToOrders(orders, plan, { optimisticTableId: params.tableId });
-}
-
 /**
- * Apply buffet snapshot for a table: void removed packages on carrier, upsert changed lines.
- * Buffet lines on non-carrier session orders are fully voided (existing session hygiene).
+ * Apply the table's one buffet line: void every active buffet line in the session,
+ * then append the new line on the carrier order (none when the buffet is cleared).
  */
 export async function applyBuffetOpenToSession(
   admin: SupabaseClient,

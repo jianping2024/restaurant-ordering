@@ -17,12 +17,15 @@ import type { BuffetServiceMode } from '@mesa/shared';
 import { normalizeBuffetServiceMode } from '@mesa/shared';
 import type { Order, OrderItem } from '@/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
+import { currentTableBuffet } from '@/lib/buffet-order';
+import { loadMenuItemBuffetPriceMap } from '@/lib/menu-item-buffet-prices';
 import {
   isTakeawayPackagingItem,
   isDineInMenuItem,
   isTakeawayMenuItem,
   menuItemUnitPriceForChannel,
   normalizeOrderingChannel,
+  type MenuItemBuffetPriceMap,
   type OrderingChannel,
 } from '@/lib/instore-takeaway';
 import {
@@ -46,6 +49,8 @@ export type ResolveAppendCartSuccess = {
   ok: true;
   items: OrderItem[];
   batchId: string;
+  /** Table buffet the unit prices were computed for (null = none → original prices). */
+  pricedBuffetId: string | null;
 };
 
 export type ResolveAppendCartFailure = {
@@ -55,7 +60,7 @@ export type ResolveAppendCartFailure = {
 
 export type ResolveAppendCartResult = ResolveAppendCartSuccess | ResolveAppendCartFailure;
 
-type MenuItemRow = {
+export type MenuItemRow = {
   id: string;
   category_id: string | null;
   name_pt: string;
@@ -142,7 +147,7 @@ function chunkIds(ids: string[], size: number): string[][] {
   return chunks;
 }
 
-async function loadMenuItemsByIds(
+export async function loadMenuItemsByIds(
   admin: SupabaseClient,
   restaurantId: string,
   ids: string[],
@@ -292,6 +297,58 @@ function menuRowToOrderItem(
   };
 }
 
+/** Sole dish-line price fields on a table: unit price + sushi free-allowance snapshot. */
+export type MenuLinePriceFields = {
+  unitPrice: number;
+  /** Fields the sushi limit check reads (price = this table's unit price). */
+  limitFields: { per_person_qty_limit: number | null; over_limit_unit_price: number | null; price: number };
+  /** Frozen on the order line in sushi mode when the dish is free-limited at this price. */
+  limitRule: { per_person_qty_limit: number; over_limit_unit_price: number } | null;
+};
+
+/**
+ * Sole price-field builder for a dish line (append writes + buffet-switch repricing):
+ * `menuItemUnitPriceForChannel` for the table's buffet, then the sushi allowance rule.
+ */
+export function resolveMenuLinePriceFields(params: {
+  menu: Pick<
+    MenuItemRow,
+    'id' | 'price' | 'takeaway_role' | 'takeaway_price' | 'per_person_qty_limit' | 'over_limit_unit_price'
+  >;
+  channel: OrderingChannel;
+  buffetId: string | null;
+  buffetPrices: MenuItemBuffetPriceMap;
+  serviceMode: BuffetServiceMode;
+}): MenuLinePriceFields {
+  const { menu } = params;
+  const unitPrice = coerceCartPrice(
+    menuItemUnitPriceForChannel({
+      item: {
+        id: menu.id,
+        price: coerceCartPrice(menu.price),
+        takeaway_role: menu.takeaway_role,
+        takeaway_price: menu.takeaway_price,
+      },
+      channel: params.channel,
+      buffetId: params.buffetId,
+      buffetPrices: params.buffetPrices,
+    }),
+  );
+  const limitFields = {
+    per_person_qty_limit: menu.per_person_qty_limit,
+    over_limit_unit_price:
+      menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
+    price: unitPrice,
+  };
+  const limitRule = isLimitedSushiMenuItem(params.serviceMode, limitFields)
+    ? {
+        per_person_qty_limit: limitFields.per_person_qty_limit as number,
+        over_limit_unit_price: limitFields.over_limit_unit_price as number,
+      }
+    : null;
+  return { unitPrice, limitFields, limitRule };
+}
+
 /**
  * Resolve trusted append cart lines to {@link OrderItem} rows using menu DB prices.
  * In sushi mode, applies per-person free allowance and staff overage pricing.
@@ -307,7 +364,8 @@ export async function resolveAppendCartItems(params: {
   /** When omitted, limits are not applied (classic behavior). */
   buffetServiceMode?: BuffetServiceMode | string | null;
   staffAssisted?: boolean;
-  sessionOrders?: Array<Pick<Order, 'items' | 'status'>>;
+  /** Session orders — fix the table's current buffet (dish prices) and sushi allowance. */
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
   /** Session stamp; default dine_in. */
   orderingChannel?: OrderingChannel | string | null;
 }): Promise<ResolveAppendCartResult> {
@@ -320,7 +378,16 @@ export async function resolveAppendCartItems(params: {
   const data = await loadMenuItemsByIds(params.admin, params.restaurantId, ids);
 
   const leafIds = data.map((row) => row.category_id);
-  const categories = await loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds);
+  const pricedBuffetId = currentTableBuffet(params.sessionOrders)?.buffetId ?? null;
+  const [categories, buffetPrices] = await Promise.all([
+    loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds),
+    pricedBuffetId && channel === 'dine_in'
+      ? loadMenuItemBuffetPriceMap(params.admin, params.restaurantId, {
+          buffetId: pricedBuffetId,
+          menuItemIds: ids,
+        })
+      : Promise.resolve({}),
+  ]);
   const byId = new Map<string, MenuItemRow>();
   for (const row of data) {
     byId.set(row.id, row);
@@ -329,7 +396,7 @@ export async function resolveAppendCartItems(params: {
   const batchId = params.batchId ?? generateAppendBatchId();
   const addedAt = params.addedAt ?? new Date().toISOString();
   const serviceMode = normalizeBuffetServiceMode(params.buffetServiceMode);
-  const sessionOrders = params.sessionOrders ?? [];
+  const sessionOrders = params.sessionOrders;
   const guestCount = sessionGuestCountForLimits(sessionOrders);
   const staffAssisted = params.staffAssisted === true;
   const items: OrderItem[] = [];
@@ -353,22 +420,13 @@ export async function resolveAppendCartItems(params: {
       return { ok: false, error: 'menu_item_not_dine_in' };
     }
 
-    const unitPrice = coerceCartPrice(
-      menuItemUnitPriceForChannel(
-        {
-          price: coerceCartPrice(menu.price),
-          takeaway_role: menu.takeaway_role,
-          takeaway_price: menu.takeaway_price,
-        },
-        channel,
-      ),
-    );
-    const limitFields = {
-      per_person_qty_limit: menu.per_person_qty_limit,
-      over_limit_unit_price:
-        menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
-      price: unitPrice,
-    };
+    const { unitPrice, limitFields, limitRule } = resolveMenuLinePriceFields({
+      menu,
+      channel,
+      buffetId: pricedBuffetId,
+      buffetPrices,
+      serviceMode,
+    });
     const alreadyInBatch = batchQtyByItem.get(line.menuItemId) ?? 0;
     const checked = checkSushiLimitForCartLine({
       serviceMode,
@@ -382,13 +440,6 @@ export async function resolveAppendCartItems(params: {
     if (!checked.ok) {
       return { ok: false, error: checked.error };
     }
-
-    const limitRule = isLimitedSushiMenuItem(serviceMode, limitFields)
-      ? {
-          per_person_qty_limit: limitFields.per_person_qty_limit as number,
-          over_limit_unit_price: limitFields.over_limit_unit_price as number,
-        }
-      : null;
 
     items.push(
       menuRowToOrderItem(
@@ -415,5 +466,5 @@ export async function resolveAppendCartItems(params: {
     return { ok: false, error: 'menu_item_off_time_slot' };
   }
 
-  return { ok: true, items, batchId };
+  return { ok: true, items, batchId, pricedBuffetId };
 }

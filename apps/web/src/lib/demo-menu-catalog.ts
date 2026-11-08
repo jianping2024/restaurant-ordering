@@ -62,6 +62,7 @@ export function getDemoMenuCatalog(): CustomerMenuCatalog {
     },
     choiceCatalog: { groups: [] },
     menuTimeSlots: [],
+    menuItemBuffetPrices: {},
     guestListMotionEnabled: false,
   };
 }

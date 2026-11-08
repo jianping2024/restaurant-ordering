@@ -2,12 +2,21 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
 import type { MutationError } from '@/lib/dashboard-api-shared';
+import { invalidateBuffetConfig } from '@/lib/buffet-config-version';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
-import {
-  DEFAULT_BUFFET_VAT_RATE,
-  isAllowedMenuVatRate,
-} from '@/lib/menu-vat-rate';
+import { DEFAULT_BUFFET_VAT_RATE } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseBuffetUpdatePatch } from '@/lib/buffet-update-patch';
+
+/** Bump staff buffet_config_version after a successful buffet-settings write. */
+async function afterBuffetConfigWrite<T extends object>(
+  restaurantId: string,
+  result: T | MutationError,
+): Promise<T | MutationError> {
+  if (result && typeof result === 'object' && 'error' in result) return result;
+  await invalidateBuffetConfig(restaurantId);
+  return result;
+}
 
 export type BuffetDashboardData = {
   buffets: Buffet[];
@@ -152,7 +161,7 @@ export async function createBuffet(
 
   const buffetsRes = await loadBuffetsSlice(admin, restaurantId);
   if ('error' in buffetsRes) return buffetsRes;
-  return { patch: buffetsRes };
+  return afterBuffetConfigWrite(restaurantId, { patch: buffetsRes });
 }
 
 export async function deleteBuffet(
@@ -166,31 +175,37 @@ export async function deleteBuffet(
   const { error } = await admin.from('buffets').delete().eq('id', id).eq('restaurant_id', restaurantId);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
 
-  return mergeSlices([
-    await loadBuffetsSlice(admin, restaurantId),
-    await loadRulesSlice(admin, restaurantId),
-  ]);
+  return afterBuffetConfigWrite(
+    restaurantId,
+    await mergeSlices([
+      await loadBuffetsSlice(admin, restaurantId),
+      await loadRulesSlice(admin, restaurantId),
+    ]),
+  );
 }
 
 export async function updateBuffet(
   admin: SupabaseClient,
   restaurantId: string,
   buffetId: string,
-  patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>,
+  rawPatch: unknown,
 ): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(buffetId);
   if (!id) return { error: 'invalid_buffet_id', status: 400 };
 
-  if (patch.vat_rate !== undefined && !isAllowedMenuVatRate(patch.vat_rate)) {
-    return { error: 'invalid_vat_rate', status: 400 };
-  }
+  const parsed = parseBuffetUpdatePatch(rawPatch);
+  if (!('ok' in parsed)) return parsed;
 
-  const { error } = await admin.from('buffets').update(patch).eq('id', id).eq('restaurant_id', restaurantId);
+  const { error } = await admin
+    .from('buffets')
+    .update(parsed.patch)
+    .eq('id', id)
+    .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
   const buffetsRes = await loadBuffetsSlice(admin, restaurantId);
   if ('error' in buffetsRes) return buffetsRes;
-  return { patch: buffetsRes };
+  return afterBuffetConfigWrite(restaurantId, { patch: buffetsRes });
 }
 
 export async function createBuffetTimeSlot(
@@ -214,7 +229,7 @@ export async function createBuffetTimeSlot(
 
   const slotsRes = await loadSlotsSlice(admin, restaurantId);
   if ('error' in slotsRes) return slotsRes;
-  return { patch: slotsRes };
+  return afterBuffetConfigWrite(restaurantId, { patch: slotsRes });
 }
 
 export async function deleteBuffetTimeSlot(
@@ -234,10 +249,13 @@ export async function deleteBuffetTimeSlot(
   // FK sets those dishes' time_slot_id to null (all day) — guest catalog must reload.
   await invalidateCustomerMenuCatalog(restaurantId);
 
-  return mergeSlices([
-    await loadSlotsSlice(admin, restaurantId),
-    await loadRulesSlice(admin, restaurantId),
-  ]);
+  return afterBuffetConfigWrite(
+    restaurantId,
+    await mergeSlices([
+      await loadSlotsSlice(admin, restaurantId),
+      await loadRulesSlice(admin, restaurantId),
+    ]),
+  );
 }
 
 export async function updateBuffetTimeSlot(
@@ -259,7 +277,7 @@ export async function updateBuffetTimeSlot(
 
   const slotsRes = await loadSlotsSlice(admin, restaurantId);
   if ('error' in slotsRes) return slotsRes;
-  return { patch: slotsRes };
+  return afterBuffetConfigWrite(restaurantId, { patch: slotsRes });
 }
 
 export type BuffetRuleInput = {
@@ -360,7 +378,13 @@ export async function createBuffetPriceRule(
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
   const after = data as BuffetPriceRule;
-  return { patch: rulesRes, ruleId: after.id, before: null, after, op: 'create' };
+  return afterBuffetConfigWrite(restaurantId, {
+    patch: rulesRes,
+    ruleId: after.id,
+    before: null,
+    after,
+    op: 'create' as const,
+  });
 }
 
 export async function updateBuffetPriceRule(
@@ -389,13 +413,13 @@ export async function updateBuffetPriceRule(
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return {
+  return afterBuffetConfigWrite(restaurantId, {
     patch: rulesRes,
     ruleId: id,
     before,
     after: data as BuffetPriceRule,
-    op: 'update',
-  };
+    op: 'update' as const,
+  });
 }
 
 export async function deleteBuffetPriceRule(
@@ -419,7 +443,13 @@ export async function deleteBuffetPriceRule(
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return { patch: rulesRes, ruleId: id, before, after: null, op: 'delete' };
+  return afterBuffetConfigWrite(restaurantId, {
+    patch: rulesRes,
+    ruleId: id,
+    before,
+    after: null,
+    op: 'delete' as const,
+  });
 }
 
 export async function toggleBuffetPriceRuleActive(
@@ -446,13 +476,13 @@ export async function toggleBuffetPriceRuleActive(
 
   const rulesRes = await loadRulesSlice(admin, restaurantId);
   if ('error' in rulesRes) return rulesRes;
-  return {
+  return afterBuffetConfigWrite(restaurantId, {
     patch: rulesRes,
     ruleId: id,
     before,
     after: data as BuffetPriceRule,
-    op: 'toggle',
-  };
+    op: 'toggle' as const,
+  });
 }
 
 export type BuffetCalendarMutationResult =
@@ -485,7 +515,11 @@ export async function upsertBuffetCalendarOverrides(
 
   const calendarRes = await loadCalendarSlice(admin, restaurantId);
   if ('error' in calendarRes) return calendarRes;
-  return { patch: calendarRes, op: 'upsert', rows: normalized };
+  return afterBuffetConfigWrite(restaurantId, {
+    patch: calendarRes,
+    op: 'upsert' as const,
+    rows: normalized,
+  });
 }
 
 export async function deleteBuffetCalendarOverride(
@@ -512,13 +546,13 @@ export async function deleteBuffetCalendarOverride(
 
   const calendarRes = await loadCalendarSlice(admin, restaurantId);
   if ('error' in calendarRes) return calendarRes;
-  return {
+  return afterBuffetConfigWrite(restaurantId, {
     patch: calendarRes,
-    op: 'delete',
+    op: 'delete' as const,
     rows: [],
     removedDate: date,
     removedKind: (existing?.kind as 'holiday' | 'special' | undefined) ?? null,
-  };
+  });
 }
 
 export type BuffetFridayPolicyMutationResult =
@@ -546,11 +580,11 @@ export async function updateBuffetFridayPolicy(
 
   const restaurantRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);
   if ('error' in restaurantRes) return restaurantRes;
-  return {
+  return afterBuffetConfigWrite(restaurantId, {
     patch: {
       buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
     },
     beforeFrom,
     afterFrom: restaurantRes.buffet_friday_weekend_from,
-  };
+  });
 }

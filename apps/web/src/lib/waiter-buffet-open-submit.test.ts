@@ -25,35 +25,35 @@ const buffetOrder = {
 describe('buffetOpenSubmitBlockReason', () => {
   it('allows zero-guest first open when no session exists yet', () => {
     assert.equal(
-      buffetOpenSubmitBlockReason([], { b1: { adults: 0, children: 0 } }, ['b1'], true, false),
+      buffetOpenSubmitBlockReason([], { buffetId: 'b1', adults: 0, children: 0 }, true, false),
       null,
     );
   });
 
-  it('blocks unchanged snapshot when session already open', () => {
+  it('blocks unchanged buffet when session already open', () => {
     assert.equal(
-      buffetOpenSubmitBlockReason([buffetOrder], { b1: { adults: 2, children: 0 } }, ['b1'], true, true),
+      buffetOpenSubmitBlockReason([buffetOrder], { buffetId: 'b1', adults: 2, children: 0 }, true, true),
       'unchanged',
     );
   });
 
-  it('allows changed snapshot when editor is ready', () => {
+  it('allows changed buffet when editor is ready', () => {
     assert.equal(
-      buffetOpenSubmitBlockReason([], { b1: { adults: 2, children: 0 } }, ['b1'], true, false),
+      buffetOpenSubmitBlockReason([], { buffetId: 'b1', adults: 2, children: 0 }, true, false),
       null,
     );
   });
 
   it('blocks when editor is not ready', () => {
     assert.equal(
-      buffetOpenSubmitBlockReason([], { b1: { adults: 2, children: 0 } }, ['b1'], false, false),
+      buffetOpenSubmitBlockReason([], { buffetId: 'b1', adults: 2, children: 0 }, false, false),
       'editor_not_ready',
     );
   });
 
   it('blocks repeat zero-guest submit after session-only open', () => {
     assert.equal(
-      buffetOpenSubmitBlockReason([], { b1: { adults: 0, children: 0 } }, ['b1'], true, true),
+      buffetOpenSubmitBlockReason([], { buffetId: 'b1', adults: 0, children: 0 }, true, true),
       'unchanged',
     );
   });

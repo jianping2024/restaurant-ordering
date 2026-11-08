@@ -79,6 +79,10 @@ export async function POST(
         });
 
   if (error) {
+    // One table, one buffet: merge refuses two different packages (incl. one side without).
+    if (action === 'merge' && /buffet_mismatch|multiple buffet types/.test(error.message)) {
+      return NextResponse.json({ error: 'buffet_mismatch' }, { status: 409 });
+    }
     return NextResponse.json(
       { error: 'rpc_failed', message: error.message },
       { status: 400 },

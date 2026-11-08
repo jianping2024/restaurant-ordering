@@ -115,7 +115,7 @@ export function WaiterBuffetPackagesEditor({
   const counterLayout = layout === 'sheet' ? 'sheet' : 'detail';
 
   // Only two surfaces while picking a package: loading, or the full editor.
-  // Never paint「选择套餐」+ empty options + headcount before openable ids arrive.
+  // Never paint the package list + headcount before openable ids arrive.
   if (!openableLoaded && !packageLocked) {
     return (
       <p
@@ -126,6 +126,13 @@ export function WaiterBuffetPackagesEditor({
       </p>
     );
   }
+
+  // Open sheet: visible「选择套餐」. Detail: same fieldset name, screen-reader only
+  // (page already has 桌台详情 · 桌号; package cards carry the names).
+  const packageLegendClass =
+    layout === 'sheet'
+      ? `${waiterFloorType.guestLabel} mb-2`
+      : 'sr-only';
 
   return (
     <div className={layout === 'sheet' ? openTableSheetLayout.stack : 'space-y-4'}>
@@ -138,7 +145,7 @@ export function WaiterBuffetPackagesEditor({
         </p>
       ) : null}
       <fieldset className="m-0 min-w-0 border-0 p-0 space-y-2" disabled={disabled || packageLocked}>
-        <legend className={`${waiterFloorType.guestLabel} mb-2`}>{t.buffetPickPackage}</legend>
+        <legend className={packageLegendClass}>{t.buffetPickPackage}</legend>
         {!packageLocked && shownOptions.length === 0 ? (
           <p className="text-[15px] font-medium mesa-text-warning">{t.buffetNoneOpenable}</p>
         ) : null}

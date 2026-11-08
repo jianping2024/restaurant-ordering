@@ -4,17 +4,17 @@ import type { BillSplit, Order, OrderItem } from '@/types';
 import {
   aggregateBuffetHeadcountForOrders,
   buildBuffetBaseLine,
+  buffetGuestCountViolation,
+  buffetGuestRuleFor,
   currentTableBuffetLine,
+  formatBuffetGuestCountViolationMessage,
   effectiveTableBuffet,
   isTableBuffetUnchanged,
   normalizeBuffetGuestCounts,
   type ResolvedBuffetPriceRow,
   type TableBuffetSelection,
 } from '@/lib/buffet-order';
-import {
-  mergeBuffetPricesPreferLocked,
-  resolvedBuffetPriceFromLockedLine,
-} from '@/lib/buffet-locked-prices';
+import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
 import {
   applyBuffetOpenToSession,
   applyBuffetOpenWritePlanToOrders,
@@ -191,9 +191,39 @@ export async function runBuffetWaiterOpenPipeline(
       ? null
       : pipelineFailure(409, BUFFET_NOT_AVAILABLE_NOW, { code: BUFFET_NOT_AVAILABLE_NOW });
   };
+  /** Headcount vs buffet minimum + rule side toggles → 409 with a stable code. */
+  const guestCountFailure = (
+    resolved: ResolvedBuffetPriceRow,
+  ): BuffetWaiterPipelineFailure | null => {
+    if (!target) return null;
+    const violation = buffetGuestCountViolation({
+      ...buffetGuestRuleFor(activeBuffetById.get(target.buffetId), resolved),
+      adults: target.adults,
+      children: target.children,
+    });
+    return violation
+      ? pipelineFailure(409, violation.code, {
+          code: violation.code,
+          message: formatBuffetGuestCountViolationMessage(violation),
+        })
+      : null;
+  };
+
+  // Cold open: openable + price + headcount rule all pass before a session exists
+  // (a rejected open never leaves an empty session behind).
+  let coldOpenResolved: ResolvedBuffetPriceRow | null = null;
   if (isColdOpen) {
     const blocked = await assertOpenable();
     if (blocked) return blocked;
+    if (target) {
+      coldOpenResolved = await resolveBuffetPricesServer(admin, restaurantId, target.buffetId);
+      if (!coldOpenResolved) return pipelineFailure(500, 'price_resolve_failed');
+      if (coldOpenResolved.adult_price == null || coldOpenResolved.child_price == null) {
+        return pipelineFailure(400, 'no_price_rule', { code: 'no_price_rule' });
+      }
+      const ruleBlocked = guestCountFailure(coldOpenResolved);
+      if (ruleBlocked) return ruleBlocked;
+    }
   }
 
   const checkout = isColdOpen
@@ -284,15 +314,25 @@ export async function runBuffetWaiterOpenPipeline(
     let line: OrderItem | null = null;
     if (target) {
       const buffet = activeBuffetById.get(target.buffetId)!;
-      // Open-time unit prices on the same package's active line win; only resolve when no lock yet.
-      const locked =
-        currentLine?.buffet_id === target.buffetId
-          ? resolvedBuffetPriceFromLockedLine(currentLine)
-          : null;
-      const resolved =
-        locked ?? (await resolveBuffetPricesServer(admin, restaurantId, target.buffetId));
+      // Occupied: open-time locked unit prices win, toggles from the current rule (sole merge).
+      const resolved = isColdOpen
+        ? coldOpenResolved
+        : mergeBuffetPricesPreferLocked(
+            {
+              [target.buffetId]: await resolveBuffetPricesServer(
+                admin,
+                restaurantId,
+                target.buffetId,
+              ),
+            },
+            orders,
+          )[target.buffetId] ?? null;
       if (!resolved) {
         return pipelineFailure(500, 'price_resolve_failed');
+      }
+      if (!isColdOpen) {
+        const ruleBlocked = guestCountFailure(resolved);
+        if (ruleBlocked) return ruleBlocked;
       }
       line = buildBuffetBaseLine({
         buffet,

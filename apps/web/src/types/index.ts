@@ -340,6 +340,8 @@ export interface Buffet {
   description: string | null;
   /** IVA percent points for headcount lines (0/6/13/23); default 13. */
   vat_rate: number;
+  /** Minimum adults + children to open / keep this buffet (0 = none, max 99). */
+  min_guest_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -368,6 +370,10 @@ export interface BuffetPriceRule {
   valid_to: string | null;
   adult_price: number;
   child_price: number;
+  /** Rule sells adult seats (off → adults must be 0; price kept, never shown). */
+  adult_enabled: boolean;
+  /** Rule sells child seats (off → children must be 0; price kept, never shown). */
+  child_enabled: boolean;
   priority: number;
   is_active: boolean;
   note: string | null;

@@ -51,4 +51,15 @@ describe('parseBuffetUpdatePatch', () => {
     assert.deepEqual(parseBuffetUpdatePatch(null), { error: 'invalid_buffet_patch', status: 400 });
     assert.deepEqual(parseBuffetUpdatePatch([]), { error: 'invalid_buffet_patch', status: 400 });
   });
+
+  it('min_guest_count: integer 0–99 only', () => {
+    assert.deepEqual(parseBuffetUpdatePatch({ min_guest_count: 0 }), { ok: true, patch: { min_guest_count: 0 } });
+    assert.deepEqual(parseBuffetUpdatePatch({ min_guest_count: 99 }), { ok: true, patch: { min_guest_count: 99 } });
+    for (const bad of [-1, 100, 2.5, '2', null]) {
+      assert.deepEqual(parseBuffetUpdatePatch({ min_guest_count: bad }), {
+        error: 'invalid_min_guest_count',
+        status: 400,
+      });
+    }
+  });
 });

@@ -198,6 +198,7 @@ export const DEMO_OPEN_TABLE_DEFAULTS = {
       is_active: true,
       description: null,
       vat_rate: 13,
+      min_guest_count: 0,
       created_at: '2026-01-01T00:00:00.000Z',
       updated_at: '2026-01-01T00:00:00.000Z',
     },
@@ -208,6 +209,8 @@ export const DEMO_OPEN_TABLE_DEFAULTS = {
       child_price: 10,
       rule_id: 'demo-rule-1',
       time_slot_id: 'demo-slot-1',
+      adult_enabled: true,
+      child_enabled: true,
     },
   },
 };

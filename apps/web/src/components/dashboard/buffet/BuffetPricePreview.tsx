@@ -6,6 +6,11 @@ import type { Buffet, BuffetTimeSlot } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 import type { getMessages } from '@/lib/i18n/messages';
 import {
+  parseResolvedBuffetPriceRpcRow,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
+import {
+  formatBuffetRulePrices,
   getDayKindForDateTime,
   lisbonWallTimeToUtcIso,
   nowTimeHmLocal,
@@ -17,13 +22,6 @@ import { DatePicker } from '@mesa/ui';
 import { Button } from '@/components/ui/Button';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
-
-type Resolved = {
-  adult_price: number | null;
-  child_price: number | null;
-  rule_id: string | null;
-  time_slot_id: string | null;
-};
 
 export type BuffetPricePreviewHandle = {
   scrollIntoView: () => void;
@@ -78,7 +76,7 @@ export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(fu
   const [date, setDate] = useState(todayIsoLocal);
   const [time, setTime] = useState(nowTimeHmLocal);
   const [loading, setLoading] = useState(false);
-  const [resolved, setResolved] = useState<Resolved | null>(null);
+  const [resolved, setResolved] = useState<ResolvedBuffetPriceRow | null>(null);
   const [ran, setRan] = useState(false);
 
   useEffect(() => {
@@ -101,13 +99,7 @@ export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(fu
           setResolved(null);
           return;
         }
-        const row = Array.isArray(data) ? data[0] : data;
-        setResolved({
-          adult_price: row?.adult_price != null ? Number(row.adult_price) : null,
-          child_price: row?.child_price != null ? Number(row.child_price) : null,
-          rule_id: row?.rule_id ?? null,
-          time_slot_id: row?.time_slot_id ?? null,
-        });
+        setResolved(parseResolvedBuffetPriceRpcRow(data));
       } finally {
         setLoading(false);
       }
@@ -185,7 +177,10 @@ export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(fu
               <p className="text-brand-text font-medium">
                 {t.previewPrices}:{' '}
                 <span className="text-brand-gold">
-                  €{resolved.adult_price.toFixed(2)} / €{resolved.child_price.toFixed(2)}
+                  {formatBuffetRulePrices(resolved, {
+                    adultOnly: t.rulePriceAdultOnly,
+                    childOnly: t.rulePriceChildOnly,
+                  })}
                 </span>
               </p>
               {slotName && (

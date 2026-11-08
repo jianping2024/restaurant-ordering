@@ -7,9 +7,14 @@ import {
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { Modal } from '@/components/ui/Modal';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
+import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { toastBuffetGuestCountViolation } from '@/lib/waiter-buffet-open-failure-toast';
 import {
+  buffetGuestCountViolation,
+  buffetGuestRuleForDraft,
   currentTableBuffet,
   effectiveTableBuffet,
+  selectTableBuffetDraft,
   totalGuestsFromCounts,
   type ResolvedBuffetPriceRow,
   type TableBuffetSelection,
@@ -86,11 +91,9 @@ export function CheckoutHeadcountAdjustModal({
           draft={draft}
           onSelectBuffet={(buffetId) => {
             if (packageLocked) return;
-            setDraft((prev) => ({
-              buffetId,
-              adults: prev?.adults ?? 0,
-              children: prev?.children ?? 0,
-            }));
+            setDraft((prev) =>
+              selectTableBuffetDraft(prev, buffetId, buffetPricesByBuffetId[buffetId]),
+            );
           }}
           onSetGuestCount={(which, value) => {
             setDraft((prev) => (prev ? { ...prev, [which]: Math.max(0, value) } : prev));
@@ -119,6 +122,22 @@ export function CheckoutHeadcountAdjustModal({
           }}
           onConfirm={() => {
             if (busy || !effectiveDraft || !hasGuests) return;
+            const guestRule = buffetGuestRuleForDraft(
+              effectiveDraft,
+              activeBuffets,
+              buffetPricesByBuffetId,
+            );
+            const violation = guestRule
+              ? buffetGuestCountViolation({
+                  ...guestRule,
+                  adults: effectiveDraft.adults,
+                  children: effectiveDraft.children,
+                })
+              : null;
+            if (violation) {
+              toastBuffetGuestCountViolation(WAITER_TEXT[lang], violation);
+              return;
+            }
             void onConfirm(effectiveDraft);
           }}
           busy={busy}

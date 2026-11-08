@@ -109,6 +109,8 @@ type WaiterBuffetOpenResponse = {
   detail?: WaiterTablePageModel['detail'];
   error?: string;
   code?: string;
+  /** Machine detail for stable codes (e.g. headcount rule `min=2 total=1`). */
+  message?: string;
 };
 
 /** Open table (buffet); returns refreshed page model when successful. */
@@ -138,9 +140,11 @@ export async function postWaiterBuffetOpenClient(
     const err = new Error(data.error || 'buffet_open_failed') as Error & {
       status?: number;
       code?: string;
+      detail?: string;
     };
     err.status = res.status;
     err.code = data.code ?? data.error;
+    err.detail = data.message;
     throw err;
   }
   if (data.model) return normalizeWaiterTablePageModel(data.model);

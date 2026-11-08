@@ -139,12 +139,23 @@ export function BuffetPriceMeta({
     return <p className={waiterFloorType.priceLineLoading}>{t.buffetPriceLoading}</p>;
   }
   if (buffetPriceDisplay.ok) {
+    const values = {
+      adultPrice: buffetPriceDisplay.adultPrice,
+      childPrice: buffetPriceDisplay.childPrice,
+    };
+    // Disabled side (rule toggle off) is never shown.
     return (
       <p className={waiterFloorType.priceLine}>
-        {formatBuffetPriceTemplate(t.buffetPriceRatesLine, {
-          adultPrice: buffetPriceDisplay.adultPrice,
-          childPrice: buffetPriceDisplay.childPrice,
-        })}
+        {[
+          buffetPriceDisplay.adultEnabled
+            ? formatBuffetPriceTemplate(t.buffetPriceAdultRate, values)
+            : null,
+          buffetPriceDisplay.childEnabled
+            ? formatBuffetPriceTemplate(t.buffetPriceChildRate, values)
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
       </p>
     );
   }

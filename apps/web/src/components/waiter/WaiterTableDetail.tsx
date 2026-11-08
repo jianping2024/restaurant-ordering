@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order, CartItem } from '@/types';
 import {
+  buffetGuestRuleForDraft,
   currentTableBuffet,
   resolveBuffetFormAlignState,
   type ResolvedBuffetPriceRow,
@@ -994,6 +995,8 @@ function WaiterTableDetailInner({
     draft: buffetDraft,
     hasOpenSession,
     editorReady: buffetEditorReady,
+    guestRule: buffetGuestRuleForDraft(buffetDraft, buffetOptions, resolvedByBuffetId),
+    onGuestCountRejected: resetDraftToAligned,
     autosave:
       detailActions.showBuffetPanel
       && hasOpenSession

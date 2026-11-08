@@ -29,11 +29,11 @@ export type BuffetDashboardData = {
 export type BuffetMutationResult = { patch: BuffetDashboardPatch } | MutationError;
 
 const BUFFETS_SELECT =
-  'id, restaurant_id, name, is_active, description, vat_rate, created_at, updated_at';
+  'id, restaurant_id, name, is_active, description, vat_rate, min_guest_count, created_at, updated_at';
 const SLOTS_SELECT =
   'id, restaurant_id, name, start_time, end_time, weekdays, sort_order, created_at';
 const RULES_SELECT =
-  'id, restaurant_id, buffet_id, time_slot_id, calendar_kind, valid_from, valid_to, adult_price, child_price, priority, is_active, note, created_at';
+  'id, restaurant_id, buffet_id, time_slot_id, calendar_kind, valid_from, valid_to, adult_price, child_price, adult_enabled, child_enabled, priority, is_active, note, created_at';
 
 async function loadBuffetsSlice(
   admin: SupabaseClient,
@@ -288,6 +288,8 @@ export type BuffetRuleInput = {
   valid_to: string | null;
   adult_price: number;
   child_price: number;
+  adult_enabled: boolean;
+  child_enabled: boolean;
   priority: number;
   is_active: boolean;
   note: string | null;
@@ -318,6 +320,16 @@ function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | Mutatio
   if (!Number.isFinite(adultPrice) || !Number.isFinite(childPrice) || !Number.isFinite(priority)) {
     return { error: 'invalid_rule_body', status: 400 };
   }
+  // Toggles default on; a present value must be boolean. At least one side (DB CHECK too).
+  if (
+    (raw.adult_enabled !== undefined && typeof raw.adult_enabled !== 'boolean') ||
+    (raw.child_enabled !== undefined && typeof raw.child_enabled !== 'boolean')
+  ) {
+    return { error: 'invalid_rule_body', status: 400 };
+  }
+  const adultEnabled = raw.adult_enabled !== false;
+  const childEnabled = raw.child_enabled !== false;
+  if (!adultEnabled && !childEnabled) return { error: 'rule_side_required', status: 400 };
   return {
     buffet_id: raw.buffet_id,
     time_slot_id: raw.time_slot_id,
@@ -326,6 +338,8 @@ function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | Mutatio
     valid_to: validTo as string | null,
     adult_price: adultPrice,
     child_price: childPrice,
+    adult_enabled: adultEnabled,
+    child_enabled: childEnabled,
     priority,
     is_active: raw.is_active !== false,
     note: typeof raw.note === 'string' ? raw.note.trim() || null : null,

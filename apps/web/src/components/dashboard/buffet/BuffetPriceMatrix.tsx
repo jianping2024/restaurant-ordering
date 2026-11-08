@@ -2,7 +2,12 @@
 
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import type { getMessages } from '@/lib/i18n/messages';
-import { CALENDAR_KINDS, ruleCoversDate, todayIsoLocal } from '@/lib/buffet-pricing-admin';
+import {
+  CALENDAR_KINDS,
+  formatBuffetRulePrices,
+  ruleCoversDate,
+  todayIsoLocal,
+} from '@/lib/buffet-pricing-admin';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
 
@@ -122,15 +127,12 @@ export function BuffetPriceMatrix({
                         }
                         className="text-left w-full rounded-lg border border-brand-border/50 bg-brand-bg/30 px-3 py-2.5 hover:border-brand-gold/50 hover:bg-brand-gold/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40"
                       >
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-brand-gold font-semibold tabular-nums">
-                            €{Number(rule.adult_price).toFixed(2)}
-                          </span>
-                          <span className="text-brand-text-muted text-[11px]">/</span>
-                          <span className="text-brand-text font-medium tabular-nums">
-                            €{Number(rule.child_price).toFixed(2)}
-                          </span>
-                        </div>
+                        <span className="block text-brand-gold font-semibold tabular-nums">
+                          {formatBuffetRulePrices(rule, {
+                            adultOnly: t.rulePriceAdultOnly,
+                            childOnly: t.rulePriceChildOnly,
+                          })}
+                        </span>
                         <span className="block text-[10px] text-brand-text-muted mt-1 tabular-nums">
                           {rule.valid_from?.slice(0, 10)} →{' '}
                           {rule.valid_to?.slice(0, 10) || t.ruleValidLongTerm}

@@ -5,6 +5,7 @@ import {
   buildBuffetRuleDraft,
   findMissingBuffetPriceCells,
   buffetRuleToDraft,
+  formatBuffetRulePrices,
   getRuleStatus,
   ruleCoversDate,
   validateBuffetRuleDraft,
@@ -16,6 +17,8 @@ const buffet = {
   name: 'Lunch',
   is_active: true,
   description: null,
+  vat_rate: 13,
+  min_guest_count: 0,
   created_at: '',
   updated_at: '',
 };
@@ -41,6 +44,8 @@ const rule = (overrides: Partial<BuffetPriceRule> = {}): BuffetPriceRule => ({
   valid_to: '2026-12-31',
   adult_price: 20,
   child_price: 10,
+  adult_enabled: true,
+  child_enabled: true,
   priority: 0,
   is_active: true,
   note: null,
@@ -88,6 +93,17 @@ describe('validateBuffetRuleDraft', () => {
     const result = validateBuffetRuleDraft(draft, [rule({ valid_to: null })]);
     assert.equal(result.ok, false);
     if (!result.ok) assert.equal(result.reason, 'conflict');
+  });
+
+  it('rule toggles default on and need at least one side', () => {
+    const draft = buildBuffetRuleDraft([buffet], [slot])!;
+    assert.equal(draft.adult_enabled, true);
+    assert.equal(draft.child_enabled, true);
+    const none = validateBuffetRuleDraft({ ...draft, adult_enabled: false, child_enabled: false }, []);
+    assert.equal(none.ok, false);
+    if (!none.ok) assert.equal(none.reason, 'side_required');
+    assert.equal(validateBuffetRuleDraft({ ...draft, child_enabled: false }, []).ok, true);
+    assert.equal(buffetRuleToDraft(rule({ child_enabled: false })).child_enabled, false);
   });
 
   it('allows save when skipConflict is set', () => {
@@ -184,5 +200,14 @@ describe('findMissingBuffetPriceCells', () => {
       }),
       [{ buffetId: 'b1', slotId: 'lunch', kinds: ['weekday'] }],
     );
+  });
+});
+
+describe('formatBuffetRulePrices', () => {
+  const labels = { adultOnly: '成人 {price}', childOnly: '儿童 {price}' };
+  it('shows both sides when both on, only the enabled side otherwise', () => {
+    assert.equal(formatBuffetRulePrices(rule(), labels), '€20.00 / €10.00');
+    assert.equal(formatBuffetRulePrices(rule({ child_enabled: false }), labels), '成人 €20.00');
+    assert.equal(formatBuffetRulePrices(rule({ adult_enabled: false }), labels), '儿童 €10.00');
   });
 });

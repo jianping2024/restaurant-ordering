@@ -277,7 +277,15 @@ export function formatBuffetPriceTemplate(template: string, values: Record<strin
 }
 
 export type BuffetOpenPricePreview =
-  | { ok: true; adultPrice: number; childPrice: number; subtotal: number }
+  | {
+      ok: true;
+      adultPrice: number;
+      childPrice: number;
+      /** Matched rule sells this side (off → never shown). */
+      adultEnabled: boolean;
+      childEnabled: boolean;
+      subtotal: number;
+    }
   | { ok: false };
 
 function parseBuffetUnitPrices(
@@ -312,6 +320,8 @@ export function resolveBuffetOpenPricePreview(
     ok: true,
     adultPrice: prices.adultPrice,
     childPrice: prices.childPrice,
+    adultEnabled: resolved.adult_enabled !== false,
+    childEnabled: resolved.child_enabled !== false,
     subtotal: computeBuffetSubtotal(adultCount, childCount, prices.adultPrice, prices.childPrice),
   };
 }
@@ -333,6 +343,9 @@ export interface ResolvedBuffetPriceRow {
   child_price: number | null;
   rule_id: string | null;
   time_slot_id: string | null;
+  /** From the matched price rule; missing (no rule / old payload) → true. */
+  adult_enabled: boolean;
+  child_enabled: boolean;
 }
 
 export function parseResolvedBuffetPriceRpcRow(priceRows: unknown): ResolvedBuffetPriceRow {
@@ -342,13 +355,107 @@ export function parseResolvedBuffetPriceRpcRow(priceRows: unknown): ResolvedBuff
     child_price?: unknown;
     rule_id?: string | null;
     time_slot_id?: string | null;
+    adult_enabled?: unknown;
+    child_enabled?: unknown;
   } | null;
   return {
     adult_price: row?.adult_price != null ? Number(row.adult_price) : null,
     child_price: row?.child_price != null ? Number(row.child_price) : null,
     rule_id: row?.rule_id ?? null,
     time_slot_id: row?.time_slot_id ?? null,
+    adult_enabled: row?.adult_enabled !== false,
+    child_enabled: row?.child_enabled !== false,
   };
+}
+
+export const BUFFET_MIN_GUEST_COUNT = 'buffet_min_guest_count';
+export const BUFFET_SIDE_DISABLED = 'buffet_side_disabled';
+
+/** Per-table headcount rule: buffet minimum + the matched price rule's side toggles. */
+export type BuffetGuestRule = {
+  minGuestCount: number;
+  adultEnabled: boolean;
+  childEnabled: boolean;
+};
+
+export type BuffetGuestCountViolation =
+  | { code: typeof BUFFET_SIDE_DISABLED; side: 'adults' | 'children' }
+  | { code: typeof BUFFET_MIN_GUEST_COUNT; min: number; total: number };
+
+/** Rule for one buffet: `min_guest_count` (missing → 0) + resolved toggles (missing → on). */
+export function buffetGuestRuleFor(
+  buffet: Pick<Buffet, 'min_guest_count'> | null | undefined,
+  resolved: Pick<ResolvedBuffetPriceRow, 'adult_enabled' | 'child_enabled'> | null | undefined,
+): BuffetGuestRule {
+  const min = Number(buffet?.min_guest_count);
+  return {
+    minGuestCount: Number.isFinite(min) && min > 0 ? Math.floor(min) : 0,
+    adultEnabled: resolved?.adult_enabled !== false,
+    childEnabled: resolved?.child_enabled !== false,
+  };
+}
+
+/** Sole package pick: headcount carries over; a side the package's rule disables → 0. */
+export function selectTableBuffetDraft(
+  prev: TableBuffetSelection | null,
+  buffetId: string,
+  resolved: Pick<ResolvedBuffetPriceRow, 'adult_enabled' | 'child_enabled'> | null | undefined,
+): TableBuffetSelection {
+  return {
+    buffetId,
+    adults: resolved?.adult_enabled === false ? 0 : (prev?.adults ?? 0),
+    children: resolved?.child_enabled === false ? 0 : (prev?.children ?? 0),
+  };
+}
+
+/** Rule for the draft's buffet among `buffets` + `resolvedByBuffetId`; null without a draft. */
+export function buffetGuestRuleForDraft(
+  draft: TableBuffetSelection | null,
+  buffets: Array<Pick<Buffet, 'id' | 'min_guest_count'>>,
+  resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
+): BuffetGuestRule | null {
+  if (!draft) return null;
+  return buffetGuestRuleFor(
+    buffets.find((b) => b.id === draft.buffetId),
+    resolvedByBuffetId[draft.buffetId],
+  );
+}
+
+/**
+ * Sole headcount-vs-rule check (server pipeline + open sheet / detail / checkout adjust).
+ * Disabled side first (must be 0), then adults + children ≥ minimum.
+ */
+export function buffetGuestCountViolation(
+  input: BuffetGuestRule & { adults: number; children: number },
+): BuffetGuestCountViolation | null {
+  const { adults, children } = normalizeBuffetGuestCounts(input.adults, input.children);
+  if (!input.adultEnabled && adults > 0) return { code: BUFFET_SIDE_DISABLED, side: 'adults' };
+  if (!input.childEnabled && children > 0) return { code: BUFFET_SIDE_DISABLED, side: 'children' };
+  const total = adults + children;
+  if (total < input.minGuestCount) {
+    return { code: BUFFET_MIN_GUEST_COUNT, min: input.minGuestCount, total };
+  }
+  return null;
+}
+
+/** Server 409 `message` for a violation — parsed back by {@link parseBuffetGuestCountViolation}. */
+export function formatBuffetGuestCountViolationMessage(v: BuffetGuestCountViolation): string {
+  return v.code === BUFFET_SIDE_DISABLED ? `side=${v.side}` : `min=${v.min} total=${v.total}`;
+}
+
+/** Client: 409 code + message → violation (null when the code is not a headcount-rule code). */
+export function parseBuffetGuestCountViolation(
+  code: string | undefined,
+  message: string | undefined,
+): BuffetGuestCountViolation | null {
+  if (code === BUFFET_SIDE_DISABLED) {
+    return { code, side: /side=children/.test(message ?? '') ? 'children' : 'adults' };
+  }
+  if (code === BUFFET_MIN_GUEST_COUNT) {
+    const m = /min=(\d+) total=(\d+)/.exec(message ?? '');
+    return { code, min: m ? Number(m[1]) : 0, total: m ? Number(m[2]) : 0 };
+  }
+  return null;
 }
 
 export function buildBuffetBaseLine(params: {

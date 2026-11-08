@@ -9,8 +9,17 @@ import {
   buffetWaiterOpenIntentFromSession,
   postWaiterBuffetOpenAndCommit,
 } from '@/lib/waiter-buffet-open-submit';
-import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
-import { buffetDraftClearsHeadcount, type TableBuffetSelection } from '@/lib/buffet-order';
+import {
+  toastBuffetGuestCountViolation,
+  toastWaiterBuffetOpenFailure,
+} from '@/lib/waiter-buffet-open-failure-toast';
+import {
+  buffetDraftClearsHeadcount,
+  buffetGuestCountViolation,
+  parseBuffetGuestCountViolation,
+  type BuffetGuestRule,
+  type TableBuffetSelection,
+} from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
@@ -36,6 +45,10 @@ type Params = {
   draft: TableBuffetSelection | null;
   hasOpenSession: boolean;
   editorReady: boolean;
+  /** Draft package's minimum + rule side toggles (`buffetGuestRuleForDraft`). */
+  guestRule: BuffetGuestRule | null;
+  /** Local or server headcount-rule rejection (after its toast) — e.g. drop the edit. */
+  onGuestCountRejected?: () => void;
   /**
    * Occupied table: `scheduleAutosave` (called only from a −/+ tap) persists after debounce.
    * Cold open / board sheet: false — only explicit submit.
@@ -62,6 +75,8 @@ export function useWaiterBuffetOpenMutation({
   draft,
   hasOpenSession,
   editorReady,
+  guestRule,
+  onGuestCountRejected,
   autosave = false,
   onZeroHeadcountHeld,
   onSuccess,
@@ -74,6 +89,8 @@ export function useWaiterBuffetOpenMutation({
   const draftRef = useRef(draft);
   const hasOpenSessionRef = useRef(hasOpenSession);
   const editorReadyRef = useRef(editorReady);
+  const guestRuleRef = useRef(guestRule);
+  const onGuestCountRejectedRef = useRef(onGuestCountRejected);
   const autosaveRef = useRef(autosave);
   const onZeroHeadcountHeldRef = useRef(onZeroHeadcountHeld);
   const onSuccessRef = useRef(onSuccess);
@@ -85,6 +102,8 @@ export function useWaiterBuffetOpenMutation({
   draftRef.current = draft;
   hasOpenSessionRef.current = hasOpenSession;
   editorReadyRef.current = editorReady;
+  guestRuleRef.current = guestRule;
+  onGuestCountRejectedRef.current = onGuestCountRejected;
   autosaveRef.current = autosave;
   onZeroHeadcountHeldRef.current = onZeroHeadcountHeld;
   onSuccessRef.current = onSuccess;
@@ -109,14 +128,21 @@ export function useWaiterBuffetOpenMutation({
             draftRef.current,
             editorReadyRef.current,
             hasOpenSessionRef.current,
+            guestRuleRef.current,
           );
-          if (blockReason === 'editor_not_ready') {
+          if (blockReason?.code === 'editor_not_ready') {
             if (feedback === 'explicit') showToast(t.buffetNoRule, 'error');
             outcome = { kind: 'blocked' };
             break;
           }
+          if (blockReason && blockReason.code !== 'unchanged') {
+            toastBuffetGuestCountViolation(t, blockReason);
+            onGuestCountRejectedRef.current?.();
+            outcome = { kind: 'blocked' };
+            break;
+          }
           const buffet = draftRef.current;
-          if (blockReason === 'unchanged' || !buffet) {
+          if (blockReason?.code === 'unchanged' || !buffet) {
             outcome = { kind: 'blocked' };
             break;
           }
@@ -130,6 +156,9 @@ export function useWaiterBuffetOpenMutation({
 
           if (!result.ok) {
             toastWaiterBuffetOpenFailure(t, result);
+            if (parseBuffetGuestCountViolation(result.code, result.message)) {
+              onGuestCountRejectedRef.current?.();
+            }
             if (result.code === BUFFET_OPEN_ALREADY_OPEN) {
               await onStaleConflictRef.current?.();
               outcome = { kind: 'already_open' };
@@ -180,6 +209,21 @@ export function useWaiterBuffetOpenMutation({
     autosaveTimerRef.current = window.setTimeout(() => {
       autosaveTimerRef.current = null;
       if (!autosaveRef.current) return;
+      // Headcount rule first: with a minimum > 0 the「人数改为 0？」hold never shows.
+      const draftNow = draftRef.current;
+      const violation =
+        draftNow && guestRuleRef.current
+          ? buffetGuestCountViolation({
+              ...guestRuleRef.current,
+              adults: draftNow.adults,
+              children: draftNow.children,
+            })
+          : null;
+      if (violation) {
+        toastBuffetGuestCountViolation(t, violation);
+        onGuestCountRejectedRef.current?.();
+        return;
+      }
       if (
         buffetDraftClearsHeadcount(ordersRef.current, draftRef.current)
       ) {
@@ -188,7 +232,7 @@ export function useWaiterBuffetOpenMutation({
       }
       void persist('silent');
     }, BUFFET_GUEST_AUTOSAVE_DEBOUNCE_MS);
-  }, [cancelAutosave, persist]);
+  }, [cancelAutosave, persist, t]);
 
   // A pending tap belongs to this table only; drop it on table switch / unmount / autosave off.
   useEffect(() => cancelAutosave, [cancelAutosave, tableId]);

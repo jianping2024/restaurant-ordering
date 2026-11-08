@@ -7,6 +7,7 @@ import {
 } from '@/components/waiter/WaiterTableDetailLayout';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
+  buffetGuestRuleForDraft,
   effectiveTableBuffet,
   formatBuffetPriceTemplate,
   resolveBuffetOpenPricePreview,
@@ -113,6 +114,11 @@ export function WaiterBuffetPackagesEditor({
     ? buffetOptions.filter((buffet) => buffet.id === draft?.buffetId)
     : buffetOptions;
   const counterLayout = layout === 'sheet' ? 'sheet' : 'detail';
+  // Picked package's rule: hide a disabled side; show the buffet minimum when > 0.
+  const guestRule = buffetGuestRuleForDraft(draft, buffetOptions, resolvedByBuffetId);
+  const showAdults = guestRule?.adultEnabled !== false;
+  const showChildren = guestRule?.childEnabled !== false;
+  const minGuestCount = guestRule?.minGuestCount ?? 0;
 
   // Only two surfaces while picking a package: loading, or the full editor.
   // Never paint the package list + headcount before openable ids arrive.
@@ -184,23 +190,33 @@ export function WaiterBuffetPackagesEditor({
       </fieldset>
 
       <div className={openTableSheetLayout.guestBlock}>
-        <BuffetGuestCounter
-          layout={counterLayout}
-          label={t.buffetAdults}
-          qty={adults}
-          disabled={disabled || !draft}
-          onDecrement={() => onSetGuestCount('adults', adults - 1)}
-          onIncrement={() => onSetGuestCount('adults', adults + 1)}
-        />
-        <BuffetGuestCounter
-          layout={counterLayout}
-          label={t.buffetChildren}
-          qty={children}
-          disabled={disabled || !draft}
-          onDecrement={() => onSetGuestCount('children', children - 1)}
-          onIncrement={() => onSetGuestCount('children', children + 1)}
-        />
+        {showAdults ? (
+          <BuffetGuestCounter
+            layout={counterLayout}
+            label={t.buffetAdults}
+            qty={adults}
+            disabled={disabled || !draft}
+            onDecrement={() => onSetGuestCount('adults', adults - 1)}
+            onIncrement={() => onSetGuestCount('adults', adults + 1)}
+          />
+        ) : null}
+        {showChildren ? (
+          <BuffetGuestCounter
+            layout={counterLayout}
+            label={t.buffetChildren}
+            qty={children}
+            disabled={disabled || !draft}
+            onDecrement={() => onSetGuestCount('children', children - 1)}
+            onIncrement={() => onSetGuestCount('children', children + 1)}
+          />
+        ) : null}
       </div>
+
+      {minGuestCount > 0 ? (
+        <p className="text-sm text-brand-text-muted">
+          {t.buffetMinGuestHint.replace('{min}', String(minGuestCount))}
+        </p>
+      ) : null}
 
       {lockedHint ? (
         <p className="text-sm text-brand-text-muted text-center py-1">{lockedHint}</p>

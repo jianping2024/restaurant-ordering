@@ -1,4 +1,10 @@
-import { isTableBuffetUnchanged, type TableBuffetSelection } from '@/lib/buffet-order';
+import {
+  buffetGuestCountViolation,
+  isTableBuffetUnchanged,
+  type BuffetGuestCountViolation,
+  type BuffetGuestRule,
+  type TableBuffetSelection,
+} from '@/lib/buffet-order';
 import {
   BUFFET_OPEN_ALREADY_OPEN,
   buffetWaiterOpenIntentFromSession,
@@ -13,7 +19,10 @@ import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-muta
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
 
-export type BuffetOpenSubmitBlockReason = 'unchanged' | 'editor_not_ready';
+export type BuffetOpenSubmitBlockReason =
+  | { code: 'unchanged' }
+  | { code: 'editor_not_ready' }
+  | BuffetGuestCountViolation;
 
 export {
   BUFFET_OPEN_ALREADY_OPEN,
@@ -21,24 +30,29 @@ export {
 };
 export type { BuffetWaiterOpenIntent };
 
-/** Client-side guards before POST …/staff/waiter/buffet. */
+/**
+ * Client-side guards before POST …/staff/waiter/buffet: unchanged / editor not ready,
+ * then the sole headcount rule (`buffetGuestCountViolation`, same as the server pipeline).
+ */
 export function buffetOpenSubmitBlockReason(
   orders: Array<Pick<Order, 'items' | 'status'>>,
   draft: TableBuffetSelection | null,
   editorReady: boolean,
   hasOpenSession: boolean,
+  guestRule: BuffetGuestRule | null,
 ): BuffetOpenSubmitBlockReason | null {
   if (isTableBuffetUnchanged(orders, draft)) {
-    if (!hasOpenSession) return null;
-    return 'unchanged';
+    if (hasOpenSession) return { code: 'unchanged' };
+  } else if (!editorReady) {
+    return { code: 'editor_not_ready' };
   }
-  if (!editorReady) return 'editor_not_ready';
-  return null;
+  if (!draft || !guestRule) return null;
+  return buffetGuestCountViolation({ ...guestRule, adults: draft.adults, children: draft.children });
 }
 
 export type WaiterBuffetOpenPostResult =
   | { ok: true; model: WaiterTablePageModel }
-  | { ok: false; status?: number; code?: string };
+  | { ok: false; status?: number; code?: string; message?: string };
 
 /** Persist buffet open / guest-count save; commits authoritative page model on success. */
 export async function postWaiterBuffetOpenAndCommit(input: {
@@ -60,7 +74,7 @@ export async function postWaiterBuffetOpenAndCommit(input: {
     commitAuthoritativeWaiterTablePageModel(nextModel);
     return { ok: true, model: nextModel };
   } catch (err) {
-    const apiErr = err as Error & { status?: number; code?: string };
+    const apiErr = err as Error & { status?: number; code?: string; detail?: string };
     if (isDependencyFailure(err) || apiErr.code === DEPENDENCY_UNAVAILABLE) {
       return { ok: false, status: 503, code: DEPENDENCY_UNAVAILABLE };
     }
@@ -68,6 +82,7 @@ export async function postWaiterBuffetOpenAndCommit(input: {
       ok: false,
       status: apiErr.status,
       code: apiErr.code ?? apiErr.message,
+      message: apiErr.detail,
     };
   }
 }

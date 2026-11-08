@@ -4,6 +4,11 @@ import { BUFFET_NOT_AVAILABLE_NOW, BUFFET_OPEN_ALREADY_OPEN } from '@/lib/buffet
 import { BUFFET_SWITCH_LOCKED } from '@/lib/buffet-checkout-entry';
 import { BUFFET_HEADCOUNT_BELOW_PAID_FLOOR } from '@/lib/buffet-paid-headcount-floor';
 import {
+  BUFFET_SIDE_DISABLED,
+  parseBuffetGuestCountViolation,
+  type BuffetGuestCountViolation,
+} from '@/lib/buffet-order';
+import {
   DEPENDENCY_UNAVAILABLE,
   isDependencyUnavailableCode,
 } from '@/lib/dependency-unavailable';
@@ -14,6 +19,7 @@ export type WaiterBuffetOpenFailureKind =
   | 'already_open'
   | 'session_billing'
   | 'paid_floor'
+  | 'guest_rule'
   | 'not_available_now'
   | 'switch_locked'
   | 'no_price'
@@ -30,6 +36,9 @@ export function classifyWaiterBuffetOpenFailure(result: {
   if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_PAID_FLOOR) {
     return 'paid_floor';
   }
+  if (result.status === 409 && parseBuffetGuestCountViolation(result.code, undefined)) {
+    return 'guest_rule';
+  }
   if (result.status === 409 && result.code === BUFFET_NOT_AVAILABLE_NOW) return 'not_available_now';
   if (result.status === 409 && result.code === BUFFET_SWITCH_LOCKED) return 'switch_locked';
   if (result.status === 400 && result.code === 'no_price_rule') return 'no_price';
@@ -44,12 +53,34 @@ export function classifyWaiterBuffetOpenFailure(result: {
   return 'generic';
 }
 
+/** Sole copy for a headcount-rule violation (local precheck and server 409 alike). */
+export function toastBuffetGuestCountViolation(
+  t: WaiterCopy,
+  violation: BuffetGuestCountViolation,
+): void {
+  showToast(
+    violation.code === BUFFET_SIDE_DISABLED
+      ? violation.side === 'children'
+        ? t.buffetSideDisabledChildren
+        : t.buffetSideDisabledAdults
+      : t.buffetMinGuestCountViolation
+          .replace('{min}', String(violation.min))
+          .replace('{total}', String(violation.total)),
+    'error',
+  );
+}
+
 /** Single failure toast path for open-table / save-headcount POST failures. */
 export function toastWaiterBuffetOpenFailure(
   t: WaiterCopy,
-  result: { status?: number; code?: string },
+  result: { status?: number; code?: string; message?: string },
 ): void {
   switch (classifyWaiterBuffetOpenFailure(result)) {
+    case 'guest_rule': {
+      const violation = parseBuffetGuestCountViolation(result.code, result.message);
+      if (violation) toastBuffetGuestCountViolation(t, violation);
+      return;
+    }
     case 'already_open':
       showToast(t.refreshHint, 'info');
       return;

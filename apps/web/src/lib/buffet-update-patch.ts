@@ -3,9 +3,14 @@ import { isAllowedMenuVatRate } from '@/lib/menu-vat-rate';
 import type { Buffet } from '@/types';
 
 /** Fields a dashboard PATCH may change on one buffet — never restaurant_id / id / timestamps. */
-export type BuffetUpdatePatch = Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate' | 'description'>>;
+export type BuffetUpdatePatch = Partial<
+  Pick<Buffet, 'name' | 'is_active' | 'vat_rate' | 'description' | 'min_guest_count'>
+>;
 
-const BUFFET_PATCH_KEYS = new Set(['name', 'is_active', 'vat_rate', 'description']);
+const BUFFET_PATCH_KEYS = new Set(['name', 'is_active', 'vat_rate', 'description', 'min_guest_count']);
+
+/** 套餐最少人数上限（含），同 DB CHECK `buffets_min_guest_count_range`。 */
+export const BUFFET_MIN_GUEST_COUNT_MAX = 99;
 
 /** 套餐描述上限（字符数 = `Array.from(s).length`，同 PG `char_length`）。 */
 export const BUFFET_DESCRIPTION_MAX_CHARS = 40;
@@ -42,6 +47,16 @@ export function parseBuffetUpdatePatch(
         return { error: 'invalid_vat_rate', status: 400 };
       }
       patch.vat_rate = value;
+    } else if (key === 'min_guest_count') {
+      if (
+        typeof value !== 'number' ||
+        !Number.isInteger(value) ||
+        value < 0 ||
+        value > BUFFET_MIN_GUEST_COUNT_MAX
+      ) {
+        return { error: 'invalid_min_guest_count', status: 400 };
+      }
+      patch.min_guest_count = value;
     } else {
       if (value !== null && typeof value !== 'string') {
         return { error: 'invalid_buffet_patch', status: 400 };

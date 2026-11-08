@@ -241,6 +241,9 @@ export type BuffetRuleDraft = {
   valid_to: string;
   adult_price: number;
   child_price: number;
+  /** Off → price input disabled but kept; at least one side on (UI + DB CHECK). */
+  adult_enabled: boolean;
+  child_enabled: boolean;
   priority: number;
   is_active: boolean;
   note: string;
@@ -264,6 +267,8 @@ export function buildBuffetRuleDraft(
     valid_to: '',
     adult_price: 20,
     child_price: 10,
+    adult_enabled: true,
+    child_enabled: true,
     priority: 0,
     is_active: true,
     note: '',
@@ -280,6 +285,8 @@ export function buffetRuleToDraft(rule: BuffetPriceRule): BuffetRuleDraft {
     valid_to: rule.valid_to?.slice(0, 10) ?? '',
     adult_price: Number(rule.adult_price),
     child_price: Number(rule.child_price),
+    adult_enabled: rule.adult_enabled !== false,
+    child_enabled: rule.child_enabled !== false,
     priority: rule.priority,
     is_active: rule.is_active,
     note: rule.note ?? '',
@@ -288,13 +295,20 @@ export function buffetRuleToDraft(rule: BuffetPriceRule): BuffetRuleDraft {
 
 export type BuffetRuleDraftValidation =
   | { ok: true }
-  | { ok: false; reason: 'date_required' | 'invalid_date_range' | 'conflict'; overlaps: BuffetPriceRule[] };
+  | {
+      ok: false;
+      reason: 'side_required' | 'date_required' | 'invalid_date_range' | 'conflict';
+      overlaps: BuffetPriceRule[];
+    };
 
 export function validateBuffetRuleDraft(
   draft: BuffetRuleDraft,
   rules: BuffetPriceRule[],
   options: { excludeId?: string; skipConflict?: boolean } = {},
 ): BuffetRuleDraftValidation {
+  if (!draft.adult_enabled && !draft.child_enabled) {
+    return { ok: false, reason: 'side_required', overlaps: [] };
+  }
   if (!draft.valid_from) {
     return { ok: false, reason: 'date_required', overlaps: [] };
   }
@@ -313,6 +327,28 @@ export function validateBuffetRuleDraft(
     return { ok: false, reason: 'conflict', overlaps };
   }
   return { ok: true };
+}
+
+/**
+ * Sole dashboard rule price label (list / matrix / preview): both sides on → `€a / €c`;
+ * one side off → only the enabled side, labelled (`成人 €a`). Disabled side is never shown.
+ */
+export function formatBuffetRulePrices(
+  rule: {
+    adult_price: number | null;
+    child_price: number | null;
+    adult_enabled?: boolean;
+    child_enabled?: boolean;
+  },
+  labels: { adultOnly: string; childOnly: string },
+): string {
+  const adult = `€${Number(rule.adult_price).toFixed(2)}`;
+  const child = `€${Number(rule.child_price).toFixed(2)}`;
+  const adultOn = rule.adult_enabled !== false;
+  const childOn = rule.child_enabled !== false;
+  if (adultOn && childOn) return `${adult} / ${child}`;
+  if (adultOn) return labels.adultOnly.replace('{price}', adult);
+  return labels.childOnly.replace('{price}', child);
 }
 
 /** One buffet × slot with the calendar kinds that have no rule effective on the given date. */

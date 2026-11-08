@@ -22,6 +22,12 @@ import {
   resolveBuffetOpenPricePreview,
   aggregateBuffetHeadcountForOrders,
   totalGuestsFromCounts,
+  BUFFET_MIN_GUEST_COUNT,
+  BUFFET_SIDE_DISABLED,
+  buffetGuestCountViolation,
+  buffetGuestRuleFor,
+  formatBuffetGuestCountViolationMessage,
+  parseBuffetGuestCountViolation,
 } from '@/lib/buffet-order';
 import {
   mergeBuffetPricesPreferLocked,
@@ -37,6 +43,8 @@ const resolved = {
   child_price: 10,
   rule_id: 'rule-1',
   time_slot_id: 'slot-1',
+  adult_enabled: true,
+  child_enabled: true,
 };
 
 function buffetLine(
@@ -286,8 +294,16 @@ describe('computeBuffetSubtotal / resolveBuffetOpenPricePreview', () => {
       ok: true,
       adultPrice: 20,
       childPrice: 10,
+      adultEnabled: true,
+      childEnabled: true,
       subtotal: 90,
     });
+  });
+
+  it('carries rule side toggles into the preview', () => {
+    const preview = resolveBuffetOpenPricePreview({ ...resolved, child_enabled: false }, 2, 0);
+    assert.equal(preview.ok && preview.childEnabled, false);
+    assert.equal(preview.ok && preview.adultEnabled, true);
   });
 });
 
@@ -299,6 +315,8 @@ describe('resolvedBuffetPriceFromLockedLine / mergeBuffetPricesPreferLocked', ()
       child_price: 10,
       rule_id: 'rule-1',
       time_slot_id: null,
+      adult_enabled: true,
+      child_enabled: true,
     });
   });
 
@@ -310,14 +328,21 @@ describe('resolvedBuffetPriceFromLockedLine / mergeBuffetPricesPreferLocked', ()
         child_price: 88,
         rule_id: 'live-rule',
         time_slot_id: 'live-slot',
+        adult_enabled: true,
+        child_enabled: false,
       },
     };
+    // Locked unit prices win; toggles come from the live (current) rule.
     assert.deepEqual(mergeBuffetPricesPreferLocked(live, orders)[buffetA.id], {
       adult_price: 20,
       child_price: 10,
       rule_id: 'rule-1',
       time_slot_id: null,
+      adult_enabled: true,
+      child_enabled: false,
     });
+    // No live row (out of slot) → both sides on.
+    assert.equal(mergeBuffetPricesPreferLocked({}, orders)[buffetA.id]?.child_enabled, true);
     assert.deepEqual(resolvedBuffetPricesFromOrders(orders)[buffetA.id]?.adult_price, 20);
   });
 
@@ -327,5 +352,58 @@ describe('resolvedBuffetPriceFromLockedLine / mergeBuffetPricesPreferLocked', ()
       price_rule_id: line.price_rule_id,
     };
     assert.equal(resolvedBuffetPriceFromLockedLine(rest), null);
+  });
+});
+
+describe('buffetGuestCountViolation', () => {
+  const on = { minGuestCount: 0, adultEnabled: true, childEnabled: true };
+  const cases: Array<{
+    name: string;
+    rule: { minGuestCount: number; adultEnabled: boolean; childEnabled: boolean };
+    adults: number;
+    children: number;
+    want: ReturnType<typeof buffetGuestCountViolation>;
+  }> = [
+    { name: 'no minimum, 0 guests', rule: on, adults: 0, children: 0, want: null },
+    { name: 'min 2, 1 adult', rule: { ...on, minGuestCount: 2 }, adults: 1, children: 0,
+      want: { code: BUFFET_MIN_GUEST_COUNT, min: 2, total: 1 } },
+    { name: 'min 2, 1 adult + 1 child', rule: { ...on, minGuestCount: 2 }, adults: 1, children: 1, want: null },
+    { name: 'min 2, 0 guests', rule: { ...on, minGuestCount: 2 }, adults: 0, children: 0,
+      want: { code: BUFFET_MIN_GUEST_COUNT, min: 2, total: 0 } },
+    { name: 'child off, child > 0', rule: { ...on, childEnabled: false }, adults: 2, children: 1,
+      want: { code: BUFFET_SIDE_DISABLED, side: 'children' } },
+    { name: 'adult off, adult > 0', rule: { ...on, adultEnabled: false }, adults: 1, children: 2,
+      want: { code: BUFFET_SIDE_DISABLED, side: 'adults' } },
+    { name: 'side checked before minimum', rule: { minGuestCount: 5, adultEnabled: true, childEnabled: false },
+      adults: 1, children: 1, want: { code: BUFFET_SIDE_DISABLED, side: 'children' } },
+    { name: 'child off, adults meet minimum', rule: { minGuestCount: 2, adultEnabled: true, childEnabled: false },
+      adults: 2, children: 0, want: null },
+  ];
+  for (const c of cases) {
+    it(c.name, () => {
+      assert.deepEqual(
+        buffetGuestCountViolation({ ...c.rule, adults: c.adults, children: c.children }),
+        c.want,
+      );
+    });
+  }
+
+  it('round-trips through the server message', () => {
+    for (const c of cases) {
+      if (!c.want) continue;
+      assert.deepEqual(
+        parseBuffetGuestCountViolation(c.want.code, formatBuffetGuestCountViolationMessage(c.want)),
+        c.want,
+      );
+    }
+    assert.equal(parseBuffetGuestCountViolation('conflict', 'x'), null);
+  });
+
+  it('buffetGuestRuleFor defaults: min 0, both sides on', () => {
+    assert.deepEqual(buffetGuestRuleFor(null, null), on);
+    assert.deepEqual(
+      buffetGuestRuleFor({ min_guest_count: 3 }, { adult_enabled: false, child_enabled: true }),
+      { minGuestCount: 3, adultEnabled: false, childEnabled: true },
+    );
   });
 });

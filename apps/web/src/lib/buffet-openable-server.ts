@@ -82,6 +82,8 @@ export async function loadWaiterOpenableSnapshot(
       child_price: Number(row.child_price),
       rule_id: row.rule_id,
       time_slot_id: row.time_slot_id,
+      adult_enabled: row.adult_enabled,
+      child_enabled: row.child_enabled,
     };
   }
   return { openableBuffetIds: pricedIds, pricesByBuffetId, ...freshness };

@@ -3,7 +3,7 @@
 import { BuffetMissingPricesBanner } from '@/components/dashboard/buffet/BuffetMissingPricesBanner';
 import { BuffetDescriptionInput } from '@/components/dashboard/buffet/BuffetDescriptionInput';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { BuffetUpdatePatch } from '@/lib/buffet-update-patch';
+import { BUFFET_MIN_GUEST_COUNT_MAX, type BuffetUpdatePatch } from '@/lib/buffet-update-patch';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -32,6 +32,7 @@ import {
   CALENDAR_KINDS,
   findMissingBuffetPriceCells,
   findOverlappingRules,
+  formatBuffetRulePrices,
   getRuleStatus,
   todayIsoLocal,
   validateBuffetRuleDraft,
@@ -73,6 +74,7 @@ type RuleModalState =
 export function BuffetSettingsManager({ restaurantId, embedded, initialData }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
+  const rulePriceLabels = { adultOnly: t.rulePriceAdultOnly, childOnly: t.rulePriceChildOnly };
   const menuT = getMessages(lang).menuManager;
   const weekdayShort = t.weekdayShort;
   const today = todayIsoLocal();
@@ -256,6 +258,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
       valid_to: ruleDraft.valid_to.trim() || null,
       adult_price: ruleDraft.adult_price,
       child_price: ruleDraft.child_price,
+      adult_enabled: ruleDraft.adult_enabled,
+      child_enabled: ruleDraft.child_enabled,
       priority: ruleDraft.priority,
       is_active: ruleDraft.is_active,
       note: ruleDraft.note.trim() || null,
@@ -275,6 +279,10 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
       skipConflict: pendingConflictSave,
     });
     if (!validation.ok) {
+      if (validation.reason === 'side_required') {
+        showToast(t.ruleSideRequired, 'error');
+        return;
+      }
       if (validation.reason === 'date_required') {
         showToast(t.ruleDateRequired, 'error');
         return;
@@ -511,16 +519,17 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
             <p className="text-brand-text-muted text-sm py-2">{t.addBuffet}</p>
           ) : (
             <>
-              <div className="hidden sm:grid grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-x-3 px-3 text-[11px] font-medium text-brand-text-muted">
+              <div className="hidden sm:grid grid-cols-[minmax(0,16rem)_6.5rem_5.5rem_5rem_4.5rem] gap-x-3 px-3 text-[11px] font-medium text-brand-text-muted">
                 <span>{t.name}</span>
                 <span>{menuT.vatRate}</span>
+                <span title={t.minGuestCountHint}>{t.minGuestCount}</span>
                 <span>{t.active}</span>
                 <span className="sr-only">{t.delete}</span>
               </div>
               <ul className="space-y-1.5">
                 {buffets.map((b) => (
                   <li key={b.id} className="space-y-2 border border-brand-border/60 rounded-lg px-3 py-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_6.5rem_5.5rem_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center">
                     <input
                       key={`${b.id}-${b.name}`}
                       className={`w-full max-w-[16rem] ${buffetFieldClass}`}
@@ -551,6 +560,22 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                         </option>
                       ))}
                     </select>
+                    <label className="flex items-center gap-2 text-[13px] text-brand-text-muted">
+                      <span className="sm:sr-only shrink-0">{t.minGuestCount}</span>
+                      <IntegerInput
+                        className={`w-20 sm:w-full ${buffetFieldClass}`}
+                        value={b.min_guest_count ?? 0}
+                        min={0}
+                        max={BUFFET_MIN_GUEST_COUNT_MAX}
+                        title={t.minGuestCountHint}
+                        aria-label={t.minGuestCount}
+                        onChange={(n) => {
+                          if (n !== (b.min_guest_count ?? 0)) {
+                            void updateBuffetField(b.id, { min_guest_count: n });
+                          }
+                        }}
+                      />
+                    </label>
                     <label className="flex items-center gap-1.5 text-[13px] text-brand-text-muted sm:justify-center">
                       <input type="checkbox" checked={b.is_active} onChange={() => void toggleBuffetActive(b)} />
                       {t.active}
@@ -751,7 +776,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                                 {rule.valid_to?.slice(0, 10) || t.ruleValidLongTerm}
                               </td>
                               <td className="px-3 py-3 text-brand-gold whitespace-nowrap tabular-nums border-b border-brand-border/40">
-                                €{Number(rule.adult_price).toFixed(2)} / €{Number(rule.child_price).toFixed(2)}
+                                {formatBuffetRulePrices(rule, rulePriceLabels)}
                               </td>
                               <td className="px-3 py-3 text-brand-text-muted border-b border-brand-border/40">
                                 {rule.priority}
@@ -968,22 +993,37 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       <p className="mt-1 text-[11px] text-brand-text-muted/80">{t.ruleValidToOptional}</p>
                     )}
                   </div>
-                  <label className="text-brand-text-muted text-[12px]">
-                    {t.adultPrice}
-                    <DecimalInput
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.adult_price}
-                      onChange={(adult_price) => setRuleDraft((d) => (d ? { ...d, adult_price } : d))}
-                    />
-                  </label>
-                  <label className="text-brand-text-muted text-[12px]">
-                    {t.childPrice}
-                    <DecimalInput
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
-                      value={ruleDraft.child_price}
-                      onChange={(child_price) => setRuleDraft((d) => (d ? { ...d, child_price } : d))}
-                    />
-                  </label>
+                  {(
+                    [
+                      ['adult_enabled', 'adult_price', t.ruleAdultEnabled, t.adultPrice],
+                      ['child_enabled', 'child_price', t.ruleChildEnabled, t.childPrice],
+                    ] as const
+                  ).map(([enabledKey, priceKey, enabledLabel, priceLabel]) => (
+                    <div key={priceKey} className="text-brand-text-muted text-[12px]">
+                      <label className="flex items-center gap-1.5 text-brand-text">
+                        <input
+                          type="checkbox"
+                          checked={ruleDraft[enabledKey]}
+                          onChange={(e) =>
+                            setRuleDraft((d) => (d ? { ...d, [enabledKey]: e.target.checked } : d))
+                          }
+                        />
+                        {enabledLabel}
+                      </label>
+                      <label className="mt-1 block">
+                        {priceLabel}
+                        <DecimalInput
+                          className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text disabled:opacity-50"
+                          value={ruleDraft[priceKey]}
+                          disabled={!ruleDraft[enabledKey]}
+                          onChange={(price) => setRuleDraft((d) => (d ? { ...d, [priceKey]: price } : d))}
+                        />
+                      </label>
+                    </div>
+                  ))}
+                  {!ruleDraft.adult_enabled && !ruleDraft.child_enabled ? (
+                    <p className="sm:col-span-2 text-[12px] mesa-text-danger">{t.ruleSideRequired}</p>
+                  ) : null}
                   <div>
                     <label className="text-brand-text-muted text-[12px] block">
                       {t.priority}

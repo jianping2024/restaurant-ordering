@@ -24,8 +24,8 @@ export type WaiterOpenableEnsureResult = {
   unchanged: boolean;
 };
 
-/** Bumped when the cached snapshot gained prices. Old id-only entries are ignored. */
-const CACHE_SCHEMA_VERSION = 2;
+/** Bumped when the cached snapshot shape changes (2: prices, 3: adult/child toggles). */
+const CACHE_SCHEMA_VERSION = 3;
 const STORAGE_KEY_PREFIX = 'mesa:waiter-buffet-openable';
 
 const memoryByRestaurantId = new Map<string, WaiterOpenableCacheEntry>();
@@ -145,6 +145,8 @@ function parseCachedPrices(raw: unknown): Record<string, ResolvedBuffetPriceRow>
       child_price: child,
       rule_id: typeof row.rule_id === 'string' ? row.rule_id : null,
       time_slot_id: typeof row.time_slot_id === 'string' ? row.time_slot_id : null,
+      adult_enabled: row.adult_enabled !== false,
+      child_enabled: row.child_enabled !== false,
     };
   }
   return prices;

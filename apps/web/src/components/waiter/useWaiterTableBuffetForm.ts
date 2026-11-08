@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   buffetFormAlignKey,
+  selectTableBuffetDraft,
   type BuffetFormAlignState,
   type ResolvedBuffetPriceRow,
   type TableBuffetSelection,
@@ -97,13 +98,12 @@ export function useWaiterTableBuffetForm({
     );
   }, [activeBuffetIds, buffetPricesByBuffetId]);
 
-  /** Pick the table's one package; headcount carries over. */
+  const resolvedRef = useRef(resolvedByBuffetId);
+  resolvedRef.current = resolvedByBuffetId;
+
+  /** Pick the table's one package; headcount carries over (a side its rule disables → 0). */
   const selectBuffet = useCallback((buffetId: string) => {
-    setDraft((prev) => ({
-      buffetId,
-      adults: prev?.adults ?? 0,
-      children: prev?.children ?? 0,
-    }));
+    setDraft((prev) => selectTableBuffetDraft(prev, buffetId, resolvedRef.current[buffetId]));
   }, []);
 
   const setBuffetGuestCount = useCallback((which: 'adults' | 'children', value: number) => {

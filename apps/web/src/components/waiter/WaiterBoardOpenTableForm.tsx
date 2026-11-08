@@ -12,7 +12,11 @@ import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
 } from '@/components/waiter/useWaiterOpenableBuffetIds';
-import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import {
+  buffetGuestRuleForDraft,
+  resolveBuffetFormAlignState,
+  type ResolvedBuffetPriceRow,
+} from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { WaiterTableIcon } from '@/components/waiter/waiter-table-detail-icons';
@@ -122,6 +126,7 @@ export function WaiterBoardOpenTableForm({
     draft,
     hasOpenSession: false,
     editorReady,
+    guestRule: buffetGuestRuleForDraft(draft, buffetOptions, resolvedByBuffetId),
     onStaleConflict: refreshOpenableBuffetIds,
   });
 

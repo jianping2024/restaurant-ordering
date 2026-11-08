@@ -27,6 +27,9 @@ export function resolvedBuffetPriceFromLockedLine(
     child_price: child,
     rule_id: line.price_rule_id ?? null,
     time_slot_id: null,
+    // Toggles live only on the price rule — merge takes them from the live row.
+    adult_enabled: true,
+    child_enabled: true,
   };
 }
 
@@ -43,15 +46,22 @@ export function resolvedBuffetPricesFromOrders(
 }
 
 /**
- * Display/write price map: locked open-time unit prices win over live RPC rows
- * for the same buffet_id (never re-slot a package that already locked at open).
+ * Sole display/write price map: locked open-time unit prices win over live RPC rows
+ * for the same buffet_id (never re-slot a package that already locked at open);
+ * adult/child toggles always come from the live row (missing live row → both on).
  */
 export function mergeBuffetPricesPreferLocked(
   liveByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
   orders: Array<Pick<Order, 'items' | 'status'>>,
 ): Record<string, ResolvedBuffetPriceRow | null> {
-  return {
-    ...liveByBuffetId,
-    ...resolvedBuffetPricesFromOrders(orders),
-  };
+  const out: Record<string, ResolvedBuffetPriceRow | null> = { ...liveByBuffetId };
+  for (const [buffetId, locked] of Object.entries(resolvedBuffetPricesFromOrders(orders))) {
+    const live = liveByBuffetId[buffetId];
+    out[buffetId] = {
+      ...locked,
+      adult_enabled: live?.adult_enabled !== false,
+      child_enabled: live?.child_enabled !== false,
+    };
+  }
+  return out;
 }

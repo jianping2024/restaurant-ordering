@@ -70,7 +70,9 @@ type BuffetPanelProps = {
   onSetGuestCount: (which: 'adults' | 'children', value: number) => void;
   /** False while the open list is loading (no「没有可开的套餐」flash). */
   openableLoaded: boolean;
-  /** Set after checkout entry: package choice locked (headcount still editable) + this notice. */
+  /** Occupied table with a confirmed package: choice locked (headcount still editable). */
+  packageLocked?: boolean;
+  /** Optional notice above the locked package. */
   packageLockedHint?: string | null;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
@@ -156,6 +158,7 @@ export function WaiterTableBuffetPanel({
   onSelectBuffet,
   onSetGuestCount,
   openableLoaded,
+  packageLocked = false,
   packageLockedHint = null,
   resolvedByBuffetId,
   buffetPriceLoading,
@@ -183,7 +186,7 @@ export function WaiterTableBuffetPanel({
           onSelectBuffet={onSelectBuffet}
           onSetGuestCount={onSetGuestCount}
           openableLoaded={openableLoaded}
-          packageLocked={packageLockedHint != null}
+          packageLocked={packageLocked}
           packageLockedHint={packageLockedHint}
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}

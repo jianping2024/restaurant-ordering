@@ -1,6 +1,5 @@
 import { loadCalledTicketKeys } from '@/lib/individual-checkout-reads';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { normalizeBuffetServiceMode, type BuffetServiceMode } from '@mesa/shared';
 import type { BillSplit, Order, OrderItem } from '@/types';
 import {
   aggregateBuffetHeadcountForOrders,
@@ -32,9 +31,7 @@ import {
 } from '@/lib/checkout-session-payments';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import { loadOpenableBuffetIds } from '@/lib/buffet-openable-server';
-import { BUFFET_SWITCH_LOCKED, hasEnteredCheckout } from '@/lib/buffet-checkout-entry';
-import { loadCheckoutEntrySignals } from '@/lib/buffet-checkout-entry-server';
-import { switchTableBuffet } from '@/lib/buffet-switch-reprice';
+import { BUFFET_SWITCH_LOCKED } from '@/lib/buffet-checkout-entry';
 import { openTableSessionIfAbsent } from '@/lib/table-session-open';
 import {
   buildActiveWaiterTablePageModel,
@@ -99,23 +96,11 @@ async function loadSessionSplitContinuation(
   };
 }
 
-async function loadRestaurantBuffetServiceMode(
-  admin: SupabaseClient,
-  restaurantId: string,
-): Promise<BuffetServiceMode> {
-  const { data } = await admin
-    .from('restaurants')
-    .select('buffet_service_mode')
-    .eq('id', restaurantId)
-    .maybeSingle();
-  return normalizeBuffetServiceMode(data?.buffet_service_mode);
-}
-
 export type BuffetWaiterPipelineInput = {
   restaurantId: string;
   userId: string;
   tableId: string;
-  /** The table's one buffet; 0 + 0 guests clears the buffet line. */
+  /** The table's one buffet; 0 + 0 guests keep the package and a zero-charge line. */
   buffet: TableBuffetSelection;
   intent: BuffetWaiterOpenIntent;
 };
@@ -290,20 +275,10 @@ export async function runBuffetWaiterOpenPipeline(
 
     const currentLine = currentTableBuffetLine(sessionOrders);
     const currentBuffetId = currentLine?.buffet_id ?? null;
-    // 套餐变了（X→Y、X→无、无→X）: locked after checkout entry; a new package must be openable.
+    // Occupied: package is fixed after open — any buffet id change is rejected.
     const buffetChanges = !isColdOpen && currentBuffetId !== (target?.buffetId ?? null);
     if (buffetChanges) {
-      try {
-        const signals = await loadCheckoutEntrySignals(admin, restaurantId, sessionId);
-        if (hasEnteredCheckout(signals)) {
-          return pipelineFailure(409, BUFFET_SWITCH_LOCKED, { code: BUFFET_SWITCH_LOCKED });
-        }
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'checkout_entry_lookup_failed';
-        return pipelineFailure(500, 'checkout_entry_lookup_failed', { message });
-      }
-      const blocked = await assertOpenable();
-      if (blocked) return blocked;
+      return pipelineFailure(409, BUFFET_SWITCH_LOCKED, { code: BUFFET_SWITCH_LOCKED });
     }
 
     let line: OrderItem | null = null;
@@ -331,49 +306,25 @@ export async function runBuffetWaiterOpenPipeline(
       resolvedByBuffetId[target.buffetId] = resolved;
     }
 
-    if (buffetChanges) {
-      // Dish lines follow the new package: re-price + swap headcount line in one locked RPC.
-      const serviceMode = await loadRestaurantBuffetServiceMode(admin, restaurantId);
-      const switched = await switchTableBuffet(admin, {
-        restaurantId,
-        sessionId,
-        tableId,
-        displayName,
-        fromBuffetId: currentBuffetId,
-        toBuffetId: target?.buffetId ?? null,
-        buffetLine: line,
-        serviceMode,
-        channel: 'dine_in',
-        loadOrders: () => loadTableOrdersForSession(admin, restaurantId, sessionId),
-      });
-      if (!switched.ok) {
-        return pipelineFailure(switched.status, switched.code, {
-          code: switched.code,
-          message: switched.message,
-        });
-      }
-      orders = await loadTableOrdersForSession(admin, restaurantId, sessionId);
-    } else {
-      const applied = await applyBuffetOpenToSession(admin, {
-        restaurantId,
-        sessionId,
-        tableId,
-        displayName,
-        line,
-        sessionOrders,
-      });
+    const applied = await applyBuffetOpenToSession(admin, {
+      restaurantId,
+      sessionId,
+      tableId,
+      displayName,
+      line,
+      sessionOrders,
+    });
 
-      if (!applied.ok) {
-        if (applied.code === 'conflict') {
-          return pipelineFailure(409, 'conflict', { code: 'conflict' });
-        }
-        return pipelineFailure(500, applied.code, { code: applied.code, message: applied.message });
+    if (!applied.ok) {
+      if (applied.code === 'conflict') {
+        return pipelineFailure(409, 'conflict', { code: 'conflict' });
       }
-
-      orders = applyBuffetOpenWritePlanToOrders(orders, applied.plan, {
-        insertedOrderId: applied.insertedOrderId,
-      });
+      return pipelineFailure(500, applied.code, { code: applied.code, message: applied.message });
     }
+
+    orders = applyBuffetOpenWritePlanToOrders(orders, applied.plan, {
+      insertedOrderId: applied.insertedOrderId,
+    });
   }
 
   // Live fill gaps; locked open-time unit prices win (incl. checkout-pending adjust).

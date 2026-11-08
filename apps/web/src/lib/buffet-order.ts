@@ -6,7 +6,7 @@ export type BuffetGuestCounts = { adults: number; children: number };
 
 /**
  * The table's one buffet package + headcount (one table, one buffet).
- * 0 adults + 0 children = no buffet on the table (clears the buffet_base line).
+ * Headcount may be 0 + 0; that does not clear the package — only the guest charge.
  */
 export type TableBuffetSelection = {
   buffetId: string;
@@ -186,15 +186,14 @@ export function normalizeBuffetGuestCounts(
 }
 
 /**
- * Selection the table ends up with: null when no package or 0 + 0 guests
- * (server voids the buffet line).
+ * Normalize guest counts on a selection. null stays null.
+ * 0 + 0 keeps `buffetId` — package is fixed; headcount alone may be zero.
  */
 export function effectiveTableBuffet(
   selection: TableBuffetSelection | null,
 ): TableBuffetSelection | null {
   if (!selection) return null;
   const { adults, children } = normalizeBuffetGuestCounts(selection.adults, selection.children);
-  if (adults <= 0 && children <= 0) return null;
   return { buffetId: selection.buffetId, adults, children };
 }
 
@@ -224,7 +223,10 @@ export function buffetDraftClearsHeadcount(
   orders: Array<Pick<Order, 'items' | 'status'>>,
   draft: TableBuffetSelection | null,
 ): boolean {
-  return effectiveTableBuffet(draft) == null && currentTableBuffet(orders) != null;
+  const current = currentTableBuffet(orders);
+  if (!current || totalGuestsFromCounts(current) <= 0) return false;
+  const next = effectiveTableBuffet(draft);
+  return !next || totalGuestsFromCounts(next) <= 0;
 }
 
 /** Void every active buffet line, then append the table's one new line (if any). */

@@ -94,12 +94,26 @@ describe('current table buffet', () => {
     assert.equal(currentTableBuffetLine([]), null);
   });
 
-  it('treats 0 + 0 as no buffet when comparing', () => {
+  it('keeps package id at 0 + 0 when comparing', () => {
     const orders = [orderWithItems([buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z')])];
     assert.equal(isTableBuffetUnchanged(orders, { buffetId: buffetA.id, adults: 2, children: 1 }), true);
     assert.equal(isTableBuffetUnchanged(orders, { buffetId: buffetB.id, adults: 2, children: 1 }), false);
-    assert.equal(isTableBuffetUnchanged([], { buffetId: buffetA.id, adults: 0, children: 0 }), true);
-    assert.equal(effectiveTableBuffet({ buffetId: buffetA.id, adults: 0, children: 0 }), null);
+    assert.equal(isTableBuffetUnchanged([], { buffetId: buffetA.id, adults: 0, children: 0 }), false);
+    assert.deepEqual(effectiveTableBuffet({ buffetId: buffetA.id, adults: 0, children: 0 }), {
+      buffetId: buffetA.id,
+      adults: 0,
+      children: 0,
+    });
+    const zeroOrders = [orderWithItems([buffetLine(buffetA, 0, 0, '2026-01-01T10:00:00.000Z')])];
+    assert.deepEqual(currentTableBuffet(zeroOrders), {
+      buffetId: buffetA.id,
+      adults: 0,
+      children: 0,
+    });
+    assert.equal(
+      isTableBuffetUnchanged(zeroOrders, { buffetId: buffetA.id, adults: 0, children: 0 }),
+      true,
+    );
   });
 });
 

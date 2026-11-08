@@ -2,39 +2,72 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { CheckoutEntrySignals } from '@/lib/buffet-checkout-entry';
-import { fetchWaiterBuffetChoicesClient } from '@/lib/staff-board-client';
+import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import {
+  ensureWaiterOpenable,
+  peekWaiterOpenableCache,
+  type WaiterOpenableCacheEntry,
+} from '@/lib/waiter-buffet-openable-client-cache';
 import type { Buffet } from '@/types';
 
+const EMPTY_PRICES: Record<string, ResolvedBuffetPriceRow> = {};
+
+function snapshotFromCache(restaurantId: string): WaiterOpenableCacheEntry | null {
+  return restaurantId ? peekWaiterOpenableCache(restaurantId) : null;
+}
+
 /**
- * Sole client read of「当前可开的套餐」+ the table's checkout-entry signals
- * (GET …/staff/waiter/buffet): one fetch per mount / table, `refresh` after a 409.
- * null while loading / on failure; `checkoutEntry` null when the table has no session.
+ * Sole client read of「当前可开的套餐」+ optional table checkout-entry signals.
+ * Paints from local cache immediately when warm; reconciles via version + current slot
+ * (`ensureWaiterOpenable` → GET …/staff/waiter/buffet knownVersion/knownSlotKey).
+ * `refresh` after a 409.
  */
 export function useWaiterOpenableBuffetIds(
+  restaurantId: string,
   restaurantSlug: string,
   enabled: boolean,
   tableId: string | null = null,
 ) {
-  const [openableBuffetIds, setOpenableBuffetIds] = useState<string[] | null>(null);
+  const [cached, setCached] = useState<WaiterOpenableCacheEntry | null>(() =>
+    snapshotFromCache(restaurantId),
+  );
   const [checkoutEntry, setCheckoutEntry] = useState<CheckoutEntrySignals | null>(null);
 
   const refresh = useCallback(async () => {
+    if (!restaurantId || !restaurantSlug) return;
     try {
-      const choices = await fetchWaiterBuffetChoicesClient(restaurantSlug, tableId);
-      setOpenableBuffetIds(choices.openableBuffetIds);
-      setCheckoutEntry(choices.checkoutEntry);
+      const result = await ensureWaiterOpenable({
+        restaurantId,
+        slug: restaurantSlug,
+        tableId,
+      });
+      setCached({
+        version: result.version,
+        slotKey: result.slotKey,
+        openableBuffetIds: result.openableBuffetIds,
+        pricesByBuffetId: result.pricesByBuffetId,
+      });
+      setCheckoutEntry(result.checkoutEntry);
     } catch {
-      setOpenableBuffetIds(null);
+      // Keep last good cache for paint; only clear when we had nothing.
+      if (!peekWaiterOpenableCache(restaurantId)) {
+        setCached(null);
+      }
       setCheckoutEntry(null);
     }
-  }, [restaurantSlug, tableId]);
+  }, [restaurantId, restaurantSlug, tableId]);
 
   useEffect(() => {
     if (!enabled) return;
     void refresh();
   }, [enabled, refresh]);
 
-  return { openableBuffetIds, checkoutEntry, refreshOpenableBuffetIds: refresh };
+  return {
+    openableBuffetIds: cached ? cached.openableBuffetIds : null,
+    openablePricesByBuffetId: cached?.pricesByBuffetId ?? EMPTY_PRICES,
+    checkoutEntry,
+    refreshOpenableBuffetIds: refresh,
+  };
 }
 
 /**

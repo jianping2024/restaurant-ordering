@@ -15,7 +15,10 @@ import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { scheduleOpenTableReceiptPrint } from '@/lib/open-table-receipt-enqueue';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { loadOpenableBuffetIds } from '@/lib/buffet-openable-server';
+import {
+  loadWaiterOpenableFreshness,
+  loadWaiterOpenableSnapshot,
+} from '@/lib/buffet-openable-server';
 import { loadCheckoutEntrySignals } from '@/lib/buffet-checkout-entry-server';
 
 export const runtime = 'nodejs';
@@ -53,8 +56,9 @@ function respondWaiterBuffetFailure(
 }
 
 /**
- * 开台列表: buffets the waiter may pick right now (`buffet_openable_ids`); with `table_id`,
- * also that table's checkout-entry signals (换套餐锁定, `hasEnteredCheckout`).
+ * 开台列表 ensure: buffets openable now + buffet_config_version + current slot.
+ * `knownVersion` + `knownSlotKey` → `{ unchanged: true }` when both match (same pattern as
+ * customer menu-catalog). With `table_id`, always includes checkout-entry signals.
  */
 export async function GET(
   req: Request,
@@ -62,13 +66,18 @@ export async function GET(
 ) {
   const ctx = await tableSessionOpenAuthFromRequest(req, params.slug);
   if (!ctx) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const tableIdRaw = new URL(req.url).searchParams.get('table_id');
+  const url = new URL(req.url);
+  const tableIdRaw = url.searchParams.get('table_id');
   const tableId = tableIdRaw ? parseTableIdParam(tableIdRaw) : null;
   if (tableIdRaw && !tableId) return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+  const knownVersionRaw = url.searchParams.get('knownVersion');
+  const knownVersion =
+    knownVersionRaw != null && knownVersionRaw !== '' ? Number(knownVersionRaw) : null;
+  const knownSlotKey = url.searchParams.get('knownSlotKey');
   try {
     const admin = createAdminClient();
-    const [buffetIds, session] = await Promise.all([
-      loadOpenableBuffetIds(admin, ctx.restaurant_id),
+    const [freshness, session] = await Promise.all([
+      loadWaiterOpenableFreshness(admin, ctx.restaurant_id),
       tableId
         ? admin
             .from('table_sessions')
@@ -85,7 +94,28 @@ export async function GET(
     const checkoutEntry = sessionId
       ? await loadCheckoutEntrySignals(admin, ctx.restaurant_id, sessionId)
       : null;
-    return NextResponse.json({ buffet_ids: buffetIds, checkout_entry: checkoutEntry });
+    const knownMatches =
+      knownVersion != null
+      && Number.isFinite(knownVersion)
+      && knownSlotKey != null
+      && knownSlotKey === freshness.slotKey
+      && knownVersion === freshness.version;
+    if (knownMatches) {
+      return NextResponse.json({
+        unchanged: true,
+        version: freshness.version,
+        slot_key: freshness.slotKey,
+        checkout_entry: checkoutEntry,
+      });
+    }
+    const snapshot = await loadWaiterOpenableSnapshot(admin, ctx.restaurant_id);
+    return NextResponse.json({
+      version: snapshot.version,
+      slot_key: snapshot.slotKey,
+      buffet_ids: snapshot.openableBuffetIds,
+      prices: snapshot.pricesByBuffetId,
+      checkout_entry: checkoutEntry,
+    });
   } catch (err) {
     if (isDependencyFailure(err)) return dependencyUnavailableJsonResponse();
     return NextResponse.json({ error: 'openable_lookup_failed' }, { status: 500 });

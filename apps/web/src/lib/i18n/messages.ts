@@ -1018,6 +1018,9 @@ export const MESSAGES = {
       kitchenServeToTableDesc: '开启后，楼面可在已出餐菜品上点击「上桌」，将状态写为已上桌。',
       takeawayOrdering: '店内外卖',
       takeawayOrderingDesc: '开启后可设外卖组、可外卖菜品和外卖耗材。',
+      staffMenuDishSearch: '员工点餐菜品搜索',
+      staffMenuDishSearchDesc:
+        '开启后，员工代点/继续点餐菜单显示按编码或菜名定位的搜索框。客人扫码点餐不显示。默认关闭。',
       takeawayCloseConfirmTitle: '关闭店内外卖？',
       takeawayCloseConfirmBody: '外卖组的桌台将变回堂食桌。',
       takeawayCloseConfirmCancel: '取消',
@@ -2734,6 +2737,9 @@ export const MESSAGES = {
       kitchenServeToTableDesc: 'When enabled, floor staff can mark ready dishes as served to the table.',
       takeawayOrdering: 'In-store takeaway',
       takeawayOrderingDesc: 'When enabled, you can mark a takeaway table group, takeaway dishes, and packaging supplies.',
+      staffMenuDishSearch: 'Staff menu dish search',
+      staffMenuDishSearchDesc:
+        'When enabled, staff-assisted continue-order shows a search box to locate dishes by code or name. Guest QR menus never show it. Default off.',
       takeawayCloseConfirmTitle: 'Turn off in-store takeaway?',
       takeawayCloseConfirmBody: 'Tables in the takeaway group will open as dine-in again.',
       takeawayCloseConfirmCancel: 'Cancel',
@@ -4197,6 +4203,9 @@ export const MESSAGES = {
       takeawayOrdering: 'Takeaway na loja',
       takeawayOrderingDesc:
         'Ativo: pode marcar um grupo takeaway, pratos takeaway e consumiveis de embalagem.',
+      staffMenuDishSearch: 'Pesquisa de pratos (staff)',
+      staffMenuDishSearchDesc:
+        'Quando ativo, o menu de continuar pedido do staff mostra pesquisa por codigo ou nome. O menu do cliente (QR) nunca mostra. Desligado por defeito.',
       takeawayCloseConfirmTitle: 'Desligar takeaway na loja?',
       takeawayCloseConfirmBody: 'As mesas do grupo takeaway voltam a abrir como sala.',
       takeawayCloseConfirmCancel: 'Cancelar',

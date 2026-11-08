@@ -418,7 +418,7 @@ sole shape `TableBuffetSelection` `{ buffetId, adults, children }`（0+0 = 无�
 
 ### 可开台套餐
 
-sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的时段 + 今天日历类型下有生效规则）; distance/calendar sole `buffet_slot_distance_seconds` / `buffet_calendar_kind`（`resolve_buffet_prices` 复用，不复制 CASE）; gate only cold open + 换套餐 in `runBuffetWaiterOpenPipeline`（409 `buffet_not_available_now`），调人数/并台/转台不拦; client list sole `useWaiterOpenableBuffetIds` + `pickableBuffetOptions`（当前套餐始终保留）; 缺价提示 sole `findMissingBuffetPriceCells` → `BuffetMissingPricesBanner`; 套餐描述 sole `BuffetDescriptionInput`（≤40 字按 `Array.from` 计）+ `parseBuffetUpdatePatch`, only shown in `WaiterBuffetPackagesEditor`.
+sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的时段 + 今天日历类型下有生效规则）; distance/calendar sole `buffet_slot_distance_seconds` / `buffet_calendar_kind`（`resolve_buffet_prices` 复用，不复制 CASE）; current-slot id sole `buffet_current_slot_id`; freshness sole `restaurants.buffet_config_version` + bump `invalidateBuffetConfig` / `afterBuffetConfigWrite`; gate only cold open + 换套餐 in `runBuffetWaiterOpenPipeline`（409 `buffet_not_available_now`），调人数/并台/转台不拦; client list sole `useWaiterOpenableBuffetIds` → `ensureWaiterOpenable`（knownVersion+knownSlotKey；paint cache first；单价跟同一份缓存，版本和时段没变不再 `resolve_buffet_prices`；完整名单已不含没价的套餐）+ `pickableBuffetOptions`（当前套餐始终保留）; 开台抽屉与桌台详情选项单价同一份 openable 缓存（详情对当前套餐再 `mergeBuffetPricesPreferLocked`；`useWaiterTableBuffetForm` 不再逐套餐 RPC/分钟轮询）; 选中边 sole `buffetPackageOptionClass` 固定 `border-2` 只变色; 外卖开台不走这份名单; 缺价提示 sole `findMissingBuffetPriceCells` → `BuffetMissingPricesBanner`; 套餐描述 sole `BuffetDescriptionInput`（≤40 字按 `Array.from` 计）+ `parseBuffetUpdatePatch`, only shown in `WaiterBuffetPackagesEditor`.
 
 ### 换套餐重算 + 并发核对
 

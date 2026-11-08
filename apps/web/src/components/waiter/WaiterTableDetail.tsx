@@ -9,6 +9,7 @@ import {
   resolveBuffetFormAlignState,
   type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
+import { mergeBuffetPricesPreferLocked } from '@/lib/buffet-locked-prices';
 import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
@@ -308,8 +309,12 @@ function WaiterTableDetailInner({
   );
   const contextTableId = selectedTable?.id ?? tableId;
   const hasOpenSession = isTableSessionOpen(sessionMeta);
-  const { openableBuffetIds, checkoutEntry, refreshOpenableBuffetIds } =
-    useWaiterOpenableBuffetIds(restaurant.slug, !isDemo, contextTableId);
+  const {
+    openableBuffetIds,
+    openablePricesByBuffetId,
+    checkoutEntry,
+    refreshOpenableBuffetIds,
+  } = useWaiterOpenableBuffetIds(restaurant.id, restaurant.slug, !isDemo, contextTableId);
   /** 已进入结账：只能调人数，不能换套餐（server 409 `buffet_switch_locked` is the authority). */
   const buffetSwitchLocked = checkoutEntry != null && hasEnteredCheckout(checkoutEntry);
   const currentBuffetId = useMemo(() => currentTableBuffet(orders)?.buffetId ?? null, [orders]);
@@ -322,6 +327,14 @@ function WaiterTableDetailInner({
       ),
     [activeBuffets, currentBuffetId, isDemo, model?.buffets, openableBuffetIds],
   );
+  /**
+   * Same openable snapshot as the open sheet; locked open-time unit prices win for
+   * the table's current package (headcount adjust / out-of-slot keep).
+   */
+  const buffetPricesForForm = useMemo(() => {
+    if (isDemo) return model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES;
+    return mergeBuffetPricesPreferLocked(openablePricesByBuffetId, orders);
+  }, [isDemo, model?.buffetPricesByBuffetId, openablePricesByBuffetId, orders]);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
@@ -343,11 +356,8 @@ function WaiterTableDetailInner({
     tableId: contextTableId,
     sessionId: sessionMeta?.sessionId ?? null,
     alignState: buffetFormAlign,
-    restaurantId: restaurant.id,
     activeBuffets: buffetOptions,
-    buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES,
-    isDemo,
-    supabase,
+    buffetPricesByBuffetId: buffetPricesForForm,
   });
   const buffetEditorReady = isBuffetPackagesEditorReady(
     buffetDraft,

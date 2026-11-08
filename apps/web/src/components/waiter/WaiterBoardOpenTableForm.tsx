@@ -12,10 +12,9 @@ import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
 } from '@/components/waiter/useWaiterOpenableBuffetIds';
-import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
+import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
-import { createClient } from '@/lib/supabase/client';
 import { WaiterTableIcon } from '@/components/waiter/waiter-table-detail-icons';
 import {
   buttonIcon,
@@ -32,10 +31,14 @@ type Props = {
   onClose: () => void;
   onOpenTableSuccess: (model: WaiterTablePageModel) => void;
   onStaleBoard: () => void;
-  /** Takeaway desk: steppers disabled; confirm calls open-takeaway. */
-  headcountLocked?: boolean;
-  takeawaySubmitting?: boolean;
-  onTakeawayOpen?: () => Promise<void>;
+  /**
+   * Board-prefetched「当前可开套餐」. When passed, this form does not start its own fetch
+   * (board already owns `useWaiterOpenableBuffetIds`).
+   */
+  boardOpenableBuffetIds?: string[] | null;
+  /** Prices from the same openable snapshot as `boardOpenableBuffetIds`. */
+  boardOpenablePricesByBuffetId?: Record<string, ResolvedBuffetPriceRow>;
+  refreshBoardOpenableBuffetIds?: () => Promise<void>;
 };
 
 export function WaiterBoardOpenTableForm({
@@ -46,21 +49,30 @@ export function WaiterBoardOpenTableForm({
   onClose,
   onOpenTableSuccess,
   onStaleBoard,
-  headcountLocked = false,
-  takeawaySubmitting = false,
-  onTakeawayOpen,
+  boardOpenableBuffetIds,
+  boardOpenablePricesByBuffetId,
+  refreshBoardOpenableBuffetIds,
 }: Props) {
   const t = WAITER_TEXT[lang];
-  const supabase = useMemo(() => createClient(), []);
 
   const activeBuffets = useMemo(
     () => model.buffets.filter((b) => b.is_active),
     [model.buffets],
   );
-  const { openableBuffetIds, refreshOpenableBuffetIds } = useWaiterOpenableBuffetIds(
+  const useBoardOpenable = boardOpenableBuffetIds !== undefined;
+  const localOpenable = useWaiterOpenableBuffetIds(
+    restaurant.id,
     restaurant.slug,
-    !headcountLocked,
+    !useBoardOpenable,
   );
+  const openableBuffetIds = useBoardOpenable
+    ? boardOpenableBuffetIds
+    : localOpenable.openableBuffetIds;
+  const openablePricesByBuffetId = useBoardOpenable
+    ? (boardOpenablePricesByBuffetId ?? {})
+    : localOpenable.openablePricesByBuffetId;
+  const refreshOpenableBuffetIds =
+    refreshBoardOpenableBuffetIds ?? localOpenable.refreshOpenableBuffetIds;
   const buffetOptions = useMemo(
     () => pickableBuffetOptions(activeBuffets, openableBuffetIds, null),
     [activeBuffets, openableBuffetIds],
@@ -87,15 +99,20 @@ export function WaiterBoardOpenTableForm({
     tableId,
     sessionId: null,
     alignState: buffetFormAlign,
-    restaurantId: restaurant.id,
-    activeBuffets,
-    buffetPricesByBuffetId: model.buffetPricesByBuffetId,
-    isDemo: false,
-    supabase,
-    lifecycle: 'ephemeral',
+    activeBuffets: buffetOptions,
+    buffetPricesByBuffetId: openablePricesByBuffetId,
   });
 
   const editorReady = isBuffetPackagesEditorReady(draft, resolvedByBuffetId, priceLoading);
+
+  /**
+   * One paint gate: openable list + prices + default draft are all settled.
+   * Until then the editor shows only the loading line (no price text flicker).
+   */
+  const sheetContentReady =
+    openableBuffetIds != null
+    && !priceLoading
+    && (buffetOptions.length === 0 || draft != null);
 
   const { submitting, submit } = useWaiterBuffetOpenMutation({
     lang,
@@ -108,16 +125,7 @@ export function WaiterBoardOpenTableForm({
     onStaleConflict: refreshOpenableBuffetIds,
   });
 
-  const busy = headcountLocked ? takeawaySubmitting : submitting;
-  const saveDisabled = headcountLocked
-    ? takeawaySubmitting
-    : submitting || !editorReady;
-
   const handleSubmit = useCallback(async () => {
-    if (headcountLocked) {
-      await onTakeawayOpen?.();
-      return;
-    }
     const result = await submit();
     if (result.kind === 'success') {
       onOpenTableSuccess(result.model);
@@ -128,37 +136,27 @@ export function WaiterBoardOpenTableForm({
       onStaleBoard();
       onClose();
     }
-  }, [
-    headcountLocked,
-    onClose,
-    onOpenTableSuccess,
-    onStaleBoard,
-    onTakeawayOpen,
-    submit,
-  ]);
+  }, [onClose, onOpenTableSuccess, onStaleBoard, submit]);
 
   return (
     <div className={openTableSheetLayout.stack}>
       <WaiterBuffetPackagesEditor
         lang={lang}
-        buffetOptions={headcountLocked ? activeBuffets : buffetOptions}
-        openableLoaded={headcountLocked || openableBuffetIds != null}
+        buffetOptions={buffetOptions}
+        openableLoaded={sheetContentReady}
         draft={draft}
         onSelectBuffet={selectBuffet}
         onSetGuestCount={setBuffetGuestCount}
         resolvedByBuffetId={resolvedByBuffetId}
         priceLoading={priceLoading}
         layout="sheet"
-        disabled={headcountLocked}
-        hideEstimatedTotal={headcountLocked}
-        lockedHint={headcountLocked ? t.takeawayHeadcountLockedHint : null}
       />
 
       <div className={openTableSheetLayout.actionRow}>
         <WaiterTableSecondaryButton
           type="button"
           onClick={onClose}
-          disabled={busy}
+          disabled={submitting}
           className={openTableSheetLayout.actionButton}
         >
           {t.closeTableCancel}
@@ -166,12 +164,12 @@ export function WaiterBoardOpenTableForm({
         <WaiterTablePrimaryButton
           type="button"
           onClick={() => void handleSubmit()}
-          disabled={saveDisabled}
-          loading={busy}
+          disabled={submitting || !editorReady}
+          loading={submitting}
           className={openTableSheetLayout.actionButton}
           icon={<WaiterTableIcon className={buttonIcon.sm} />}
         >
-          {headcountLocked ? t.takeawayOpenConfirm : t.buffetConfirm}
+          {t.buffetConfirm}
         </WaiterTablePrimaryButton>
       </div>
     </div>

@@ -127,9 +127,10 @@ export const openTableSheetLayout = {
 
 /** One radio card in the single-select buffet package list (checked = gold border). */
 export function buffetPackageOptionClass(checked: boolean): string {
+  // Always `border-2` so select/unselect only changes color — never 1px↔2px layout shift.
   return [
-    'flex min-h-[60px] cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 bg-brand-bg/40',
-    checked ? 'border-2 border-brand-gold' : 'border border-brand-border/70',
+    'flex min-h-[60px] cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2.5 bg-brand-bg/40',
+    checked ? 'border-brand-gold' : 'border-brand-border/70',
   ].join(' ');
 }
 

@@ -1,30 +1,24 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   buffetFormAlignKey,
-  parseResolvedBuffetPriceRpcRow,
   type BuffetFormAlignState,
   type ResolvedBuffetPriceRow,
   type TableBuffetSelection,
 } from '@/lib/buffet-order';
-import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import type { Buffet } from '@/types';
-
-export type BuffetFormLifecycle = 'ephemeral' | 'persistent';
 
 type Params = {
   tableId: string;
   sessionId: string | null;
   alignState: BuffetFormAlignState;
-  restaurantId: string;
   activeBuffets: Buffet[];
+  /**
+   * Authoritative unit prices for the packages on screen (openable snapshot + locked
+   * fill for the table's current package). Not resolved per package in this hook.
+   */
   buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
-  isDemo: boolean;
-  supabase: SupabaseClient;
-  /** Ephemeral: board open-table sheet. Persistent: occupied table detail. */
-  lifecycle?: BuffetFormLifecycle;
 };
 
 /**
@@ -52,19 +46,18 @@ function resolvedPricesForActiveBuffets(
   return next;
 }
 
-/** One-buffet table draft — aligns from alignState when table context is authoritative. */
+/**
+ * One-buffet table draft — aligns from alignState when table context is authoritative.
+ * Option unit prices come from the caller (openable snapshot); this hook does not
+ * call `resolve_buffet_prices` or poll.
+ */
 export function useWaiterTableBuffetForm({
   tableId,
   sessionId,
   alignState,
-  restaurantId,
   activeBuffets,
   buffetPricesByBuffetId,
-  isDemo,
-  supabase,
-  lifecycle = 'persistent',
 }: Params) {
-  const isEphemeral = lifecycle === 'ephemeral';
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
 
   const [draft, setDraft] = useState<TableBuffetSelection | null>(
@@ -73,11 +66,8 @@ export function useWaiterTableBuffetForm({
   const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
     Record<string, ResolvedBuffetPriceRow | null>
   >(() =>
-    isEphemeral
-      ? resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffets.map((b) => b.id))
-      : {},
+    resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffets.map((b) => b.id)),
   );
-  const [priceLoading, setPriceLoading] = useState(false);
   const lastAlignedKeyRef = useRef<string | null>(null);
 
   const alignKey = useMemo(
@@ -101,123 +91,11 @@ export function useWaiterTableBuffetForm({
     if (next !== undefined) setDraft(next);
   }, []);
 
-  const fetchBuffetPrices = useCallback(
-    async (silent: boolean) => {
-      if (isDemo || activeBuffetIds.length === 0) return;
-
-      if (!silent) setPriceLoading(true);
-
-      const nextResolved: Record<string, ResolvedBuffetPriceRow | null> = {
-        ...buffetPricesByBuffetId,
-      };
-
-      await Promise.all(
-        activeBuffetIds.map(async (buffetId) => {
-          if (buffetPricesByBuffetId[buffetId]) {
-            nextResolved[buffetId] = buffetPricesByBuffetId[buffetId];
-            return;
-          }
-
-          const { data: priceRows, error } = await supabase.rpc('resolve_buffet_prices', {
-            p_restaurant_id: restaurantId,
-            p_buffet_id: buffetId,
-            p_at: new Date().toISOString(),
-          });
-          if (error) {
-            nextResolved[buffetId] = null;
-            return;
-          }
-          nextResolved[buffetId] = parseResolvedBuffetPriceRpcRow(priceRows);
-        }),
-      );
-
-      if (!silent) setPriceLoading(false);
-      setResolvedByBuffetId(resolvedPricesForActiveBuffets(nextResolved, activeBuffetIds));
-    },
-    [activeBuffetIds, buffetPricesByBuffetId, isDemo, restaurantId, supabase],
-  );
-
-  useBuffetPricesRealtimeRefresh(
-    supabase,
-    restaurantId,
-    !isDemo && !isEphemeral && activeBuffetIds.length > 0,
-    () => {
-      void fetchBuffetPrices(true);
-    },
-  );
-
   useEffect(() => {
-    if (isDemo || activeBuffetIds.length === 0) {
-      if (!isEphemeral) {
-        setResolvedByBuffetId({});
-      }
-      setPriceLoading(false);
-      return;
-    }
-
-    if (isEphemeral) {
-      const seeded = resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffetIds);
-      const missingIds = activeBuffetIds.filter((id) => !seeded[id]);
-      if (missingIds.length === 0) {
-        setResolvedByBuffetId(seeded);
-        setPriceLoading(false);
-        return;
-      }
-
-      let cancelled = false;
-      void (async () => {
-        await fetchBuffetPrices(false);
-        if (!cancelled) setPriceLoading(false);
-      })();
-
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    let cancelled = false;
-    let minuteTimer: number | null = null;
-
-    const clearMinute = () => {
-      if (minuteTimer != null) {
-        window.clearTimeout(minuteTimer);
-        minuteTimer = null;
-      }
-    };
-
-    const scheduleMinute = () => {
-      clearMinute();
-      if (cancelled || document.visibilityState !== 'visible') return;
-      const jitterMs = 20;
-      const ms = Math.max(jitterMs, 60_000 - (Date.now() % 60_000) + jitterMs);
-      minuteTimer = window.setTimeout(async () => {
-        minuteTimer = null;
-        if (cancelled || document.visibilityState !== 'visible') return;
-        await fetchBuffetPrices(true);
-        scheduleMinute();
-      }, ms);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        void fetchBuffetPrices(true);
-        scheduleMinute();
-      } else {
-        clearMinute();
-      }
-    };
-
-    void fetchBuffetPrices(Object.keys(buffetPricesByBuffetId).length > 0);
-
-    document.addEventListener('visibilitychange', onVisibility);
-    if (document.visibilityState === 'visible') scheduleMinute();
-
-    return () => {
-      cancelled = true;
-      clearMinute();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [activeBuffetIds, buffetPricesByBuffetId, fetchBuffetPrices, isDemo, isEphemeral]);
+    setResolvedByBuffetId(
+      resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffetIds),
+    );
+  }, [activeBuffetIds, buffetPricesByBuffetId]);
 
   /** Pick the table's one package; headcount carries over. */
   const selectBuffet = useCallback((buffetId: string) => {
@@ -239,6 +117,7 @@ export function useWaiterTableBuffetForm({
     setBuffetGuestCount,
     resetDraftToAligned,
     resolvedByBuffetId,
-    priceLoading,
+    /** Snapshot prices — never a loading flicker for openable-backed surfaces. */
+    priceLoading: false,
   };
 }

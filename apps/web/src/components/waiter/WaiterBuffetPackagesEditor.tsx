@@ -41,7 +41,11 @@ type Props = {
   hideEstimatedTotal?: boolean;
   /** Shown under the headcount when it is locked (takeaway). */
   lockedHint?: string | null;
-  /** False while the open list (`useWaiterOpenableBuffetIds`) is still loading. */
+  /**
+   * False until the open sheet may paint its final content (openable list + prices +
+   * default draft). When false and the package is not locked, only a loading line —
+   * never an empty package list, partial prices, or headcount.
+   */
   openableLoaded?: boolean;
 };
 
@@ -110,6 +114,19 @@ export function WaiterBuffetPackagesEditor({
     : buffetOptions;
   const counterLayout = layout === 'sheet' ? 'sheet' : 'detail';
 
+  // Only two surfaces while picking a package: loading, or the full editor.
+  // Never paint「选择套餐」+ empty options + headcount before openable ids arrive.
+  if (!openableLoaded && !packageLocked) {
+    return (
+      <p
+        className="text-sm text-brand-text-muted py-4 text-center"
+        aria-busy="true"
+      >
+        {t.buffetOpenableLoading}
+      </p>
+    );
+  }
+
   return (
     <div className={layout === 'sheet' ? openTableSheetLayout.stack : 'space-y-4'}>
       {packageLockedHint ? (
@@ -122,11 +139,16 @@ export function WaiterBuffetPackagesEditor({
       ) : null}
       <fieldset className="m-0 min-w-0 border-0 p-0 space-y-2" disabled={disabled || packageLocked}>
         <legend className={`${waiterFloorType.guestLabel} mb-2`}>{t.buffetPickPackage}</legend>
-        {openableLoaded && !packageLocked && shownOptions.length === 0 ? (
+        {!packageLocked && shownOptions.length === 0 ? (
           <p className="text-[15px] font-medium mesa-text-warning">{t.buffetNoneOpenable}</p>
         ) : null}
         {shownOptions.map((buffet) => {
           const checked = draft?.buffetId === buffet.id;
+          const pricePreview = resolveBuffetOpenPricePreview(
+            resolvedByBuffetId[buffet.id] ?? null,
+            1,
+            0,
+          );
           return (
             <label key={buffet.id} className={buffetPackageOptionClass(checked)}>
               <input
@@ -141,11 +163,7 @@ export function WaiterBuffetPackagesEditor({
                 <BuffetPriceMeta
                   t={t}
                   buffetPriceLoading={priceLoading}
-                  buffetPriceDisplay={resolveBuffetOpenPricePreview(
-                    resolvedByBuffetId[buffet.id] ?? null,
-                    1,
-                    0,
-                  )}
+                  buffetPriceDisplay={pricePreview}
                 />
                 {buffet.description ? (
                   <span className="mt-0.5 block text-[13px] leading-snug text-brand-text-muted line-clamp-2">

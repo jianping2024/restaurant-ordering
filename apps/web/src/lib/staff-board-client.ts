@@ -9,7 +9,6 @@ import {
   type WaiterBoardLivePatch,
 } from '@/lib/waiter-board-live';
 import { fetchWithDependencyTimeout } from '@/lib/dependency-unavailable';
-import type { CheckoutEntrySignals } from '@/lib/buffet-checkout-entry';
 import type { Order } from '@/types';
 import type { KitchenBoardMenuCatalogById } from '@/lib/kitchen-board-menu-catalog';
 
@@ -111,31 +110,6 @@ type WaiterBuffetOpenResponse = {
   error?: string;
   code?: string;
 };
-
-/**
- * 开台列表: ids of buffets openable in the current slot (server is the authority); with a
- * table, also its checkout-entry signals (null when the table has no open session).
- */
-export async function fetchWaiterBuffetChoicesClient(
-  slug: string,
-  tableId: string | null,
-): Promise<{ openableBuffetIds: string[]; checkoutEntry: CheckoutEntrySignals | null }> {
-  const url = new URL(
-    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`,
-    window.location.origin,
-  );
-  if (tableId) url.searchParams.set('table_id', tableId);
-  const res = await fetchWithDependencyTimeout(url.toString(), { credentials: 'include' });
-  const data = (await res.json().catch(() => ({}))) as {
-    buffet_ids?: unknown;
-    checkout_entry?: CheckoutEntrySignals | null;
-  };
-  if (!res.ok || !Array.isArray(data.buffet_ids)) throw new Error('buffet_openable_fetch_failed');
-  return {
-    openableBuffetIds: data.buffet_ids.map((id) => String(id)),
-    checkoutEntry: data.checkout_entry ?? null,
-  };
-}
 
 /** Open table (buffet); returns refreshed page model when successful. */
 export async function postWaiterBuffetOpenClient(

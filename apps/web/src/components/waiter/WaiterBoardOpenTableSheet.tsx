@@ -11,6 +11,7 @@ import {
 } from '@/lib/waiter-board-open-table';
 import type { UILanguage } from '@/lib/i18n';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   openTableSheetLayout,
@@ -33,10 +34,14 @@ type Props = {
   openTableDefaults: WaiterBoardOpenTableDefaults | null;
   lang: UILanguage;
   /**
-   * Takeaway desk: same open sheet chrome; headcount steppers locked;
-   * confirm calls open-takeaway (no buffet write).
+   * Takeaway desk: confirm only. No buffet list and no per-package price lookup.
+   * Confirm calls open-takeaway (no buffet write).
    */
   isTakeawayTable?: boolean;
+  /** Prefetched on the board; forwarded into the open form so the sheet does not cold-fetch. */
+  boardOpenableBuffetIds?: string[] | null;
+  boardOpenablePricesByBuffetId?: Record<string, ResolvedBuffetPriceRow>;
+  refreshBoardOpenableBuffetIds?: () => Promise<void>;
 };
 
 export function WaiterBoardOpenTableSheet({
@@ -51,6 +56,9 @@ export function WaiterBoardOpenTableSheet({
   openTableDefaults,
   lang,
   isTakeawayTable = false,
+  boardOpenableBuffetIds,
+  boardOpenablePricesByBuffetId,
+  refreshBoardOpenableBuffetIds,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
@@ -114,9 +122,7 @@ export function WaiterBoardOpenTableSheet({
   );
 
   const sheetBody = (() => {
-    if (isTakeawayTable && !sheetModel) {
-      return takeawaySimpleOpen;
-    }
+    if (isTakeawayTable) return takeawaySimpleOpen;
 
     if (missingSeed || !sheetModel) {
       return (
@@ -130,7 +136,6 @@ export function WaiterBoardOpenTableSheet({
     }
 
     if (activeBuffetsFromModel(sheetModel).length === 0) {
-      if (isTakeawayTable) return takeawaySimpleOpen;
       return (
         <div className={openTableSheetLayout.stack}>
           <p className="text-sm text-brand-text-muted py-4 text-center">{t.buffetNoRule}</p>
@@ -146,12 +151,12 @@ export function WaiterBoardOpenTableSheet({
         restaurant={restaurant}
         tableId={tableId}
         lang={lang}
-        headcountLocked={isTakeawayTable}
-        takeawaySubmitting={takeawaySubmitting}
-        onTakeawayOpen={openTakeaway}
         onClose={onClose}
         onOpenTableSuccess={onOpenTableSuccess}
         onStaleBoard={onStaleBoard}
+        boardOpenableBuffetIds={boardOpenableBuffetIds}
+        boardOpenablePricesByBuffetId={boardOpenablePricesByBuffetId}
+        refreshBoardOpenableBuffetIds={refreshBoardOpenableBuffetIds}
       />
     );
   })();

@@ -65,7 +65,7 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
  * Table detail client state — single WaiterTablePageModel source.
  *
  * Freshness layers:
- * 1. Boot seed — published mutation cache, board boot (idle full / occupied chrome stub), optional SSR/demo
+ * 1. Boot seed — published mutation cache, board boot (idle full / occupied package seed), optional SSR/demo
  * 2. Entry reconcile — Staff API on mount / tableId change (skipped only for authoritative idle boot)
  * 3. menu_submit return — Staff API reconcile, then strip query
  * 4. Realtime while mounted — debounced refresh for this tableId

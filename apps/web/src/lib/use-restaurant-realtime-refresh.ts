@@ -39,7 +39,7 @@ const REALTIME_SUBSCRIBE_STATUS = {
  *    No interval API polling.
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
  * 8. Detail → list re-shown — same as (4): live when floor ready, else full (no second path)
- * 9. Table detail — board boot paints idle full model or occupied chrome stub
+ * 9. Table detail — board boot paints idle full model or occupied package seed
  *    (`buildWaiterTableDetailBootFromBoard`); only authoritative idle skips mount
  *    reconcile (`isAuthoritativeIdleWaiterTableBoot`). Occupancy refresh uses
  *    `scope=live` when board defaults exist and re-attaches that single price source

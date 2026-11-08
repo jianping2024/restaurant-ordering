@@ -29,6 +29,7 @@ function summary(overrides: Partial<WaiterBoardTableSummary> = {}): WaiterBoardT
     tableId: 't1',
     displayName: '002',
     buffetHeadcount: null,
+    currentBuffetId: null,
     sessionTotal: 0,
     orderedDishQty: 0,
     hasBuffet: false,

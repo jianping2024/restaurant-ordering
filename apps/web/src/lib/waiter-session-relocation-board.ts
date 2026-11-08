@@ -24,6 +24,7 @@ function buildIdleBoardSummary(table: RestaurantTableRow): WaiterBoardTableSumma
     seatMin: table.seat_min ?? DEFAULT_TABLE_SEAT_MIN,
     seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
     buffetHeadcount: null,
+    currentBuffetId: null,
     sessionTotal: 0,
     orderedDishQty: 0,
     hasBuffet: false,

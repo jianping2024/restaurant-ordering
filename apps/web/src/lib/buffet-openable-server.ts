@@ -30,7 +30,29 @@ export type WaiterOpenableSnapshot = WaiterOpenableFreshness & {
   openableBuffetIds: string[];
   /** Same ids as `openableBuffetIds`. One snapshot with the list — not a second lookup. */
   pricesByBuffetId: Record<string, ResolvedBuffetPriceRow>;
+  /**
+   * `buffets.min_guest_count` for every active buffet (incl. a table's current package
+   * that is no longer openable). Sole floor source of the minimum — same version as prices.
+   */
+  minGuestCountByBuffetId: Record<string, number>;
 };
+
+async function loadActiveBuffetMinGuestCounts(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<Record<string, number>> {
+  const { data, error } = await admin
+    .from('buffets')
+    .select('id, min_guest_count')
+    .eq('restaurant_id', restaurantId)
+    .eq('is_active', true);
+  if (error) throw new Error(error.message || 'buffet_min_guest_count_failed');
+  const out: Record<string, number> = {};
+  for (const row of (data ?? []) as Array<{ id: string; min_guest_count: number | null }>) {
+    out[String(row.id)] = Number(row.min_guest_count) || 0;
+  }
+  return out;
+}
 
 function priceRowIsUsable(
   row: ResolvedBuffetPriceRow | null,
@@ -62,9 +84,10 @@ export async function loadWaiterOpenableSnapshot(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<WaiterOpenableSnapshot> {
-  const [openableBuffetIds, freshness] = await Promise.all([
+  const [openableBuffetIds, freshness, minGuestCountByBuffetId] = await Promise.all([
     loadOpenableBuffetIds(admin, restaurantId),
     loadWaiterOpenableFreshness(admin, restaurantId),
+    loadActiveBuffetMinGuestCounts(admin, restaurantId),
   ]);
   const resolved = await Promise.all(
     openableBuffetIds.map(async (buffetId) => ({
@@ -86,5 +109,5 @@ export async function loadWaiterOpenableSnapshot(
       child_enabled: row.child_enabled,
     };
   }
-  return { openableBuffetIds: pricedIds, pricesByBuffetId, ...freshness };
+  return { openableBuffetIds: pricedIds, pricesByBuffetId, minGuestCountByBuffetId, ...freshness };
 }

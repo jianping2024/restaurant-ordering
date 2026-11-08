@@ -11,6 +11,10 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 import { showToast } from '@/components/ui/Toast';
+import {
+  useWaiterOpenableBuffetIds,
+  withOpenableMinGuestCount,
+} from '@/components/waiter/useWaiterOpenableBuffetIds';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
   checkoutPersonKey,
@@ -427,6 +431,15 @@ export function CheckoutRequestDetailHost({
     [tableBuffetModel],
   );
   const restaurantHasActiveBuffets = activeBuffets.length > 0;
+  const { openableMinGuestCountByBuffetId } = useWaiterOpenableBuffetIds(
+    restaurantId,
+    restaurantSlug,
+    true,
+  );
+  const headcountAdjustBuffets = useMemo(
+    () => withOpenableMinGuestCount(activeBuffets, openableMinGuestCountByBuffetId),
+    [activeBuffets, openableMinGuestCountByBuffetId],
+  );
   const guestCountConfirmed = isBillGuestCountConfirmed(sessionOrders);
   /** Prefer board sessionMeta (same load as buffet list); fall back to orders-path stamp. */
   const orderingChannelForPrompt = useMemo(() => {
@@ -1067,7 +1080,7 @@ export function CheckoutRequestDetailHost({
       <CheckoutHeadcountAdjustModal
         open={headcountAdjustOpen}
         lang={lang}
-        activeBuffets={activeBuffets}
+        activeBuffets={headcountAdjustBuffets}
         buffetPricesByBuffetId={mergeBuffetPricesPreferLocked(
           tableBuffetModel?.buffetPricesByBuffetId ?? {},
           sessionOrders,

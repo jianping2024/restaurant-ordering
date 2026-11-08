@@ -114,6 +114,7 @@ export async function GET(
       slot_key: snapshot.slotKey,
       buffet_ids: snapshot.openableBuffetIds,
       prices: snapshot.pricesByBuffetId,
+      min_guest_count: snapshot.minGuestCountByBuffetId,
       checkout_entry: checkoutEntry,
     });
   } catch (err) {

@@ -316,11 +316,7 @@ function WaiterBoardInner({
   } | null>(null);
 
   /** Prefetch「当前可开套餐」so the open sheet often paints complete on first frame. */
-  const {
-    openableBuffetIds: boardOpenableBuffetIds,
-    openablePricesByBuffetId: boardOpenablePricesByBuffetId,
-    refreshOpenableBuffetIds: refreshBoardOpenableBuffetIds,
-  } = useWaiterOpenableBuffetIds(
+  const boardOpenable = useWaiterOpenableBuffetIds(
     restaurant.id,
     restaurant.slug,
     !isDemo && supportsBuffetOpenTable,
@@ -916,9 +912,7 @@ function WaiterBoardInner({
         isTakeawayTable={
           openTableTarget != null && takeawayTableIds.has(openTableTarget.tableId)
         }
-        boardOpenableBuffetIds={boardOpenableBuffetIds}
-        boardOpenablePricesByBuffetId={boardOpenablePricesByBuffetId}
-        refreshBoardOpenableBuffetIds={refreshBoardOpenableBuffetIds}
+        boardOpenable={boardOpenable}
       />
     </div>
   );

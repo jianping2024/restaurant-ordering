@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
   isBuffetPackagesEditorReady,
@@ -11,11 +11,11 @@ import { useWaiterBuffetOpenMutation } from '@/components/waiter/useWaiterBuffet
 import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
+  type WaiterOpenableState,
 } from '@/components/waiter/useWaiterOpenableBuffetIds';
 import {
   buffetGuestRuleForDraft,
   resolveBuffetFormAlignState,
-  type ResolvedBuffetPriceRow,
 } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -36,13 +36,11 @@ type Props = {
   onOpenTableSuccess: (model: WaiterTablePageModel) => void;
   onStaleBoard: () => void;
   /**
-   * Board-prefetched「当前可开套餐」. When passed, this form does not start its own fetch
-   * (board already owns `useWaiterOpenableBuffetIds`).
+   * Board-prefetched「当前可开套餐」snapshot. When passed, this form does not start its own
+   * fetch (board already owns `useWaiterOpenableBuffetIds`); it re-checks the version once
+   * when the sheet opens so settings changed since the board loaded are picked up.
    */
-  boardOpenableBuffetIds?: string[] | null;
-  /** Prices from the same openable snapshot as `boardOpenableBuffetIds`. */
-  boardOpenablePricesByBuffetId?: Record<string, ResolvedBuffetPriceRow>;
-  refreshBoardOpenableBuffetIds?: () => Promise<void>;
+  boardOpenable?: WaiterOpenableState;
 };
 
 export function WaiterBoardOpenTableForm({
@@ -53,9 +51,7 @@ export function WaiterBoardOpenTableForm({
   onClose,
   onOpenTableSuccess,
   onStaleBoard,
-  boardOpenableBuffetIds,
-  boardOpenablePricesByBuffetId,
-  refreshBoardOpenableBuffetIds,
+  boardOpenable,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
@@ -63,23 +59,28 @@ export function WaiterBoardOpenTableForm({
     () => model.buffets.filter((b) => b.is_active),
     [model.buffets],
   );
-  const useBoardOpenable = boardOpenableBuffetIds !== undefined;
   const localOpenable = useWaiterOpenableBuffetIds(
     restaurant.id,
     restaurant.slug,
-    !useBoardOpenable,
+    boardOpenable === undefined,
   );
-  const openableBuffetIds = useBoardOpenable
-    ? boardOpenableBuffetIds
-    : localOpenable.openableBuffetIds;
-  const openablePricesByBuffetId = useBoardOpenable
-    ? (boardOpenablePricesByBuffetId ?? {})
-    : localOpenable.openablePricesByBuffetId;
-  const refreshOpenableBuffetIds =
-    refreshBoardOpenableBuffetIds ?? localOpenable.refreshOpenableBuffetIds;
+  const {
+    openableBuffetIds,
+    openablePricesByBuffetId,
+    openableMinGuestCountByBuffetId,
+    refreshOpenableBuffetIds,
+  } = boardOpenable ?? localOpenable;
+  // Sheet open = one version compare against the board's snapshot (lifecycle one-shot,
+  // `unchanged` when nothing moved). The local hook already ensures on mount.
+  const refreshBoardOpenable = boardOpenable?.refreshOpenableBuffetIds;
+  useEffect(() => {
+    if (refreshBoardOpenable) void refreshBoardOpenable();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per sheet open
+  }, []);
   const buffetOptions = useMemo(
-    () => pickableBuffetOptions(activeBuffets, openableBuffetIds, null),
-    [activeBuffets, openableBuffetIds],
+    () =>
+      pickableBuffetOptions(activeBuffets, openableBuffetIds, null, openableMinGuestCountByBuffetId),
+    [activeBuffets, openableBuffetIds, openableMinGuestCountByBuffetId],
   );
 
   const buffetFormAlign = useMemo(

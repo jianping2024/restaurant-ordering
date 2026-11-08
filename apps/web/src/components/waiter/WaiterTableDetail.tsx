@@ -313,6 +313,7 @@ function WaiterTableDetailInner({
   const {
     openableBuffetIds,
     openablePricesByBuffetId,
+    openableMinGuestCountByBuffetId,
     refreshOpenableBuffetIds,
   } = useWaiterOpenableBuffetIds(restaurant.id, restaurant.slug, !isDemo, contextTableId);
   /** 开台确认后套餐固定：只能调人数（server 409 `buffet_switch_locked` is the authority). */
@@ -324,8 +325,16 @@ function WaiterTableDetailInner({
         model?.buffets ?? [],
         isDemo ? activeBuffets.map((b) => b.id) : openableBuffetIds,
         currentBuffetId,
+        openableMinGuestCountByBuffetId,
       ),
-    [activeBuffets, currentBuffetId, isDemo, model?.buffets, openableBuffetIds],
+    [
+      activeBuffets,
+      currentBuffetId,
+      isDemo,
+      model?.buffets,
+      openableBuffetIds,
+      openableMinGuestCountByBuffetId,
+    ],
   );
   /**
    * Same openable snapshot as the open sheet; locked open-time unit prices win for

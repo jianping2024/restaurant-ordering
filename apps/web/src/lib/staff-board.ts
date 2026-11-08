@@ -252,7 +252,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
         .eq('restaurant_id', restaurantId),
       admin
         .from('buffets')
-        .select('id, restaurant_id, name, is_active, description, min_guest_count, created_at, updated_at')
+        .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
         .eq('restaurant_id', restaurantId)
         .order('name'),
     ]);

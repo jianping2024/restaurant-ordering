@@ -13,19 +13,22 @@ export type WaiterOpenableCacheEntry = {
   openableBuffetIds: string[];
   /** Adult/child prices for `openableBuffetIds`. Same snapshot as the ids. */
   pricesByBuffetId: Record<string, ResolvedBuffetPriceRow>;
+  /** Active buffets' `min_guest_count` — sole floor source, same version as prices. */
+  minGuestCountByBuffetId: Record<string, number>;
 };
 
 export type WaiterOpenableEnsureResult = {
   openableBuffetIds: string[];
   pricesByBuffetId: Record<string, ResolvedBuffetPriceRow>;
+  minGuestCountByBuffetId: Record<string, number>;
   version: number;
   slotKey: string;
   checkoutEntry: CheckoutEntrySignals | null;
   unchanged: boolean;
 };
 
-/** Bumped when the cached snapshot shape changes (2: prices, 3: adult/child toggles). */
-const CACHE_SCHEMA_VERSION = 3;
+/** Bumped when the cached snapshot shape changes (2: prices, 3: adult/child toggles, 4: minimums). */
+const CACHE_SCHEMA_VERSION = 4;
 const STORAGE_KEY_PREFIX = 'mesa:waiter-buffet-openable';
 
 const memoryByRestaurantId = new Map<string, WaiterOpenableCacheEntry>();
@@ -50,6 +53,8 @@ function readStorage(restaurantId: string): WaiterOpenableCacheEntry | null {
     if (!Array.isArray(parsed.openableBuffetIds)) return null;
     const pricesByBuffetId = parseCachedPrices(parsed.pricesByBuffetId);
     if (!pricesByBuffetId) return null;
+    const minGuestCountByBuffetId = parseMinGuestCounts(parsed.minGuestCountByBuffetId);
+    if (!minGuestCountByBuffetId) return null;
     const openableBuffetIds = parsed.openableBuffetIds
       .map(String)
       .filter((id) => pricesByBuffetId[id]);
@@ -58,6 +63,7 @@ function readStorage(restaurantId: string): WaiterOpenableCacheEntry | null {
       slotKey: parsed.slotKey,
       openableBuffetIds,
       pricesByBuffetId,
+      minGuestCountByBuffetId,
     };
   } catch {
     return null;
@@ -106,6 +112,7 @@ type WaiterOpenableApiBody =
       slot_key: string;
       buffet_ids: string[];
       prices: Record<string, ResolvedBuffetPriceRow>;
+      min_guest_count: Record<string, number>;
       checkout_entry?: unknown;
     };
 
@@ -121,14 +128,28 @@ function parseWaiterOpenableApiBody(raw: unknown): WaiterOpenableApiBody {
   if (!Array.isArray(row.buffet_ids)) throw new Error('buffet_openable_invalid_ids');
   const prices = parseCachedPrices(row.prices);
   if (!prices) throw new Error('buffet_openable_invalid_prices');
+  const minGuestCount = parseMinGuestCounts(row.min_guest_count);
+  if (!minGuestCount) throw new Error('buffet_openable_invalid_min_guest_count');
   const buffetIds = row.buffet_ids.map(String).filter((id) => prices[id]);
   return {
     version,
     slot_key: slotKey,
     buffet_ids: buffetIds,
     prices,
+    min_guest_count: minGuestCount,
     checkout_entry: row.checkout_entry,
   };
+}
+
+function parseMinGuestCounts(raw: unknown): Record<string, number> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out: Record<string, number> = {};
+  for (const [buffetId, value] of Object.entries(raw as Record<string, unknown>)) {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0) return null;
+    out[buffetId] = n;
+  }
+  return out;
 }
 
 function parseCachedPrices(raw: unknown): Record<string, ResolvedBuffetPriceRow> | null {
@@ -205,10 +226,12 @@ export function ensureWaiterOpenable(params: {
           slotKey: body.slot_key,
           openableBuffetIds: cached.openableBuffetIds,
           pricesByBuffetId: cached.pricesByBuffetId,
+          minGuestCountByBuffetId: cached.minGuestCountByBuffetId,
         });
         return {
           openableBuffetIds: cached.openableBuffetIds,
           pricesByBuffetId: cached.pricesByBuffetId,
+          minGuestCountByBuffetId: cached.minGuestCountByBuffetId,
           version: body.version,
           slotKey: body.slot_key,
           checkoutEntry,
@@ -220,10 +243,12 @@ export function ensureWaiterOpenable(params: {
         slotKey: body.slot_key,
         openableBuffetIds: body.buffet_ids,
         pricesByBuffetId: body.prices,
+        minGuestCountByBuffetId: body.min_guest_count,
       });
       return {
         openableBuffetIds: entry.openableBuffetIds,
         pricesByBuffetId: entry.pricesByBuffetId,
+        minGuestCountByBuffetId: entry.minGuestCountByBuffetId,
         version: entry.version,
         slotKey: entry.slotKey,
         checkoutEntry,

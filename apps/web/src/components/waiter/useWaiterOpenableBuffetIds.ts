@@ -11,6 +11,7 @@ import {
 import type { Buffet } from '@/types';
 
 const EMPTY_PRICES: Record<string, ResolvedBuffetPriceRow> = {};
+const EMPTY_MIN_GUEST_COUNTS: Record<string, number> = {};
 
 function snapshotFromCache(restaurantId: string): WaiterOpenableCacheEntry | null {
   return restaurantId ? peekWaiterOpenableCache(restaurantId) : null;
@@ -46,6 +47,7 @@ export function useWaiterOpenableBuffetIds(
         slotKey: result.slotKey,
         openableBuffetIds: result.openableBuffetIds,
         pricesByBuffetId: result.pricesByBuffetId,
+        minGuestCountByBuffetId: result.minGuestCountByBuffetId,
       });
       setCheckoutEntry(result.checkoutEntry);
     } catch {
@@ -65,9 +67,25 @@ export function useWaiterOpenableBuffetIds(
   return {
     openableBuffetIds: cached ? cached.openableBuffetIds : null,
     openablePricesByBuffetId: cached?.pricesByBuffetId ?? EMPTY_PRICES,
+    openableMinGuestCountByBuffetId: cached?.minGuestCountByBuffetId ?? EMPTY_MIN_GUEST_COUNTS,
     checkoutEntry,
     refreshOpenableBuffetIds: refresh,
   };
+}
+
+/** One openable snapshot read (ids + prices + minimums + refresh) — passed down as one value. */
+export type WaiterOpenableState = ReturnType<typeof useWaiterOpenableBuffetIds>;
+
+/**
+ * Sole floor source of `min_guest_count` (open sheet / table detail / checkout headcount
+ * adjust): the versioned openable snapshot, never the page's buffet list (that one is not
+ * re-read when settings change).
+ */
+export function withOpenableMinGuestCount(
+  buffets: readonly Buffet[],
+  minGuestCountByBuffetId: Readonly<Record<string, number>>,
+): Buffet[] {
+  return buffets.map((b) => ({ ...b, min_guest_count: minGuestCountByBuffetId[b.id] ?? 0 }));
 }
 
 /**
@@ -78,10 +96,14 @@ export function pickableBuffetOptions(
   buffets: readonly Buffet[],
   openableBuffetIds: readonly string[] | null,
   currentBuffetId: string | null,
+  minGuestCountByBuffetId: Readonly<Record<string, number>>,
 ): Buffet[] {
-  return buffets.filter(
-    (b) =>
-      b.id === currentBuffetId
-      || (b.is_active && (openableBuffetIds ?? []).includes(b.id)),
+  return withOpenableMinGuestCount(
+    buffets.filter(
+      (b) =>
+        b.id === currentBuffetId
+        || (b.is_active && (openableBuffetIds ?? []).includes(b.id)),
+    ),
+    minGuestCountByBuffetId,
   );
 }

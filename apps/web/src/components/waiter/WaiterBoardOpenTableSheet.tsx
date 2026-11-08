@@ -11,7 +11,7 @@ import {
 } from '@/lib/waiter-board-open-table';
 import type { UILanguage } from '@/lib/i18n';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import type { WaiterOpenableState } from '@/components/waiter/useWaiterOpenableBuffetIds';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   openTableSheetLayout,
@@ -39,9 +39,7 @@ type Props = {
    */
   isTakeawayTable?: boolean;
   /** Prefetched on the board; forwarded into the open form so the sheet does not cold-fetch. */
-  boardOpenableBuffetIds?: string[] | null;
-  boardOpenablePricesByBuffetId?: Record<string, ResolvedBuffetPriceRow>;
-  refreshBoardOpenableBuffetIds?: () => Promise<void>;
+  boardOpenable?: WaiterOpenableState;
 };
 
 export function WaiterBoardOpenTableSheet({
@@ -56,9 +54,7 @@ export function WaiterBoardOpenTableSheet({
   openTableDefaults,
   lang,
   isTakeawayTable = false,
-  boardOpenableBuffetIds,
-  boardOpenablePricesByBuffetId,
-  refreshBoardOpenableBuffetIds,
+  boardOpenable,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
@@ -154,9 +150,7 @@ export function WaiterBoardOpenTableSheet({
         onClose={onClose}
         onOpenTableSuccess={onOpenTableSuccess}
         onStaleBoard={onStaleBoard}
-        boardOpenableBuffetIds={boardOpenableBuffetIds}
-        boardOpenablePricesByBuffetId={boardOpenablePricesByBuffetId}
-        refreshBoardOpenableBuffetIds={refreshBoardOpenableBuffetIds}
+        boardOpenable={boardOpenable}
       />
     );
   })();

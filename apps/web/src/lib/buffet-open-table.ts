@@ -61,7 +61,10 @@ export type BuffetOpenParams = {
   displayName: string;
   restaurantId: string;
   sessionId: string;
-  /** The table's one buffet line after this write; null clears the buffet (0 + 0 guests). */
+  /**
+   * The table's one buffet line after this write.
+   * null voids every active buffet line (not used for 0-guest headcount — keep a 0+0 line).
+   */
   line: OrderItem | null;
 };
 

@@ -4206,9 +4206,6 @@ export const MESSAGES = {
         'Quando ativo, o menu de continuar pedido do staff mostra pesquisa por codigo ou nome. O menu do cliente (QR) nunca mostra. Desligado por defeito.',
       takeawayOrderingDesc:
         'Ativo: pode marcar um grupo takeaway, pratos takeaway e consumiveis de embalagem.',
-      staffMenuDishSearch: 'Pesquisa de pratos (staff)',
-      staffMenuDishSearchDesc:
-        'Quando ativo, o menu de continuar pedido do staff mostra pesquisa por codigo ou nome. O menu do cliente (QR) nunca mostra. Desligado por defeito.',
       takeawayCloseConfirmTitle: 'Desligar takeaway na loja?',
       takeawayCloseConfirmBody: 'As mesas do grupo takeaway voltam a abrir como sala.',
       takeawayCloseConfirmCancel: 'Cancelar',

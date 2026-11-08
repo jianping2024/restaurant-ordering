@@ -212,8 +212,8 @@ export function WaiterBuffetPackagesEditor({
 }
 
 /**
- * Submit-ready: a package is picked, prices settled, and the package (when it has guests)
- * has a price.
+ * Submit-ready: a package is picked and unit prices for that package are settled
+ * (including 0 + 0 guests — package stays, charge is zero).
  */
 export function isBuffetPackagesEditorReady(
   draft: TableBuffetSelection | null,
@@ -221,6 +221,6 @@ export function isBuffetPackagesEditorReady(
   priceLoading: boolean,
 ): boolean {
   if (priceLoading || !draft) return false;
-  if (!effectiveTableBuffet(draft)) return true;
+  if (!effectiveTableBuffet(draft)) return false;
   return draftPricePreview(draft, resolvedByBuffetId).ok;
 }

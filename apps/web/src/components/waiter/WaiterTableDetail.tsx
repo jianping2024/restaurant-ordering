@@ -14,7 +14,6 @@ import {
   pickableBuffetOptions,
   useWaiterOpenableBuffetIds,
 } from '@/components/waiter/useWaiterOpenableBuffetIds';
-import { hasEnteredCheckout } from '@/lib/buffet-checkout-entry';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
@@ -312,12 +311,11 @@ function WaiterTableDetailInner({
   const {
     openableBuffetIds,
     openablePricesByBuffetId,
-    checkoutEntry,
     refreshOpenableBuffetIds,
   } = useWaiterOpenableBuffetIds(restaurant.id, restaurant.slug, !isDemo, contextTableId);
-  /** 已进入结账：只能调人数，不能换套餐（server 409 `buffet_switch_locked` is the authority). */
-  const buffetSwitchLocked = checkoutEntry != null && hasEnteredCheckout(checkoutEntry);
+  /** 开台确认后套餐固定：只能调人数（server 409 `buffet_switch_locked` is the authority). */
   const currentBuffetId = useMemo(() => currentTableBuffet(orders)?.buffetId ?? null, [orders]);
+  const buffetPackageLocked = currentBuffetId != null;
   const buffetOptions = useMemo(
     () =>
       pickableBuffetOptions(
@@ -1210,13 +1208,19 @@ function WaiterTableDetailInner({
                 lang={lang}
                 buffetOptions={buffetOptions}
                 openableLoaded={isDemo || openableBuffetIds != null}
-                packageLockedHint={buffetSwitchLocked ? t.buffetSwitchLocked : null}
+                packageLocked={buffetPackageLocked}
                 draft={buffetDraft}
                 onSelectBuffet={(buffetId) => {
                   whenDetailActionsArmed(() => {
-                    if (detailSessionBusy || detailActions.buffetHeadcountLocked) return;
+                    if (
+                      detailSessionBusy
+                      || detailActions.buffetHeadcountLocked
+                      || buffetPackageLocked
+                    ) {
+                      return;
+                    }
+                    // Cold open draft only — package select never autosaves.
                     selectBuffet(buffetId);
-                    scheduleBuffetAutosave();
                   });
                 }}
                 onSetGuestCount={(which, value) => {

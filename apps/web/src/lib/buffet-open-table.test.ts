@@ -99,7 +99,7 @@ describe('planBuffetOpenWrites', () => {
     assert.equal(plan.carrier.items.filter((item) => item.item_status === 'voided').length, 2);
   });
 
-  it('null line clears the buffet (0 + 0 guests)', () => {
+  it('null line clears the buffet (void-only path; 0-guest keeps a 0+0 line instead)', () => {
     const prevA = buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z');
     const carrier = orderRow('order-1', TABLE_1, [prevA], '2026-01-01T10:00:00.000Z', 'ts-v1');
     const plan = planBuffetOpenWrites([carrier], {

@@ -4,7 +4,10 @@
  */
 export const BUFFET_CHANGED = 'buffet_changed' as const;
 
-/** 409 when the table's buffet would change after it entered checkout. */
+/**
+ * 409 when an occupied table's package would change (X→Y / X→无 / 无→X).
+ * Package is fixed after open confirm; headcount changes do not unlock it.
+ */
 export const BUFFET_SWITCH_LOCKED = 'buffet_switch_locked' as const;
 
 /**
@@ -24,7 +27,7 @@ export type CheckoutEntrySignals = {
   invoiceJobCount: number;
 };
 
-/** Sole「是否进入结账」: called checkout, any collection, or any invoice → buffet switch locked. */
+/** Sole「是否进入结账」: called checkout, any collection, or any invoice. */
 export function hasEnteredCheckout(signals: CheckoutEntrySignals): boolean {
   return (
     signals.sessionBilling

@@ -10,6 +10,7 @@ import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import {
   currentTableBuffet,
   effectiveTableBuffet,
+  totalGuestsFromCounts,
   type ResolvedBuffetPriceRow,
   type TableBuffetSelection,
 } from '@/lib/buffet-order';
@@ -37,7 +38,8 @@ type Props = {
 
 /**
  * Sole checkout-detail headcount editor after zero-headcount soft-confirm.
- * Adjusts the current package's headcount only; a table without a package picks one.
+ * Package is fixed when the table already has one; only headcount is edited.
+ * Confirm still requires at least one guest (checkout soft-confirm path).
  */
 export function CheckoutHeadcountAdjustModal({
   open,
@@ -64,6 +66,7 @@ export function CheckoutHeadcountAdjustModal({
   }, [open, sessionOrders, activeBuffets]);
 
   const effectiveDraft = effectiveTableBuffet(draft);
+  const hasGuests = effectiveDraft != null && totalGuestsFromCounts(effectiveDraft) > 0;
 
   return (
     <Modal
@@ -82,6 +85,7 @@ export function CheckoutHeadcountAdjustModal({
           buffetOptions={activeBuffets}
           draft={draft}
           onSelectBuffet={(buffetId) => {
+            if (packageLocked) return;
             setDraft((prev) => ({
               buffetId,
               adults: prev?.adults ?? 0,
@@ -103,7 +107,7 @@ export function CheckoutHeadcountAdjustModal({
           draft={draft}
           resolvedByBuffetId={buffetPricesByBuffetId}
         />
-        {!effectiveDraft ? (
+        {!hasGuests ? (
           <p className="text-sm text-brand-text-muted">{labels.needHeadcount}</p>
         ) : null}
         <ModalConfirmActions
@@ -114,11 +118,11 @@ export function CheckoutHeadcountAdjustModal({
             onClose();
           }}
           onConfirm={() => {
-            if (busy || !effectiveDraft) return;
+            if (busy || !effectiveDraft || !hasGuests) return;
             void onConfirm(effectiveDraft);
           }}
           busy={busy}
-          confirmDisabled={!effectiveDraft}
+          confirmDisabled={!hasGuests}
         />
       </div>
     </Modal>

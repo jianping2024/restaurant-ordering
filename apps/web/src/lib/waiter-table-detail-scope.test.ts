@@ -113,7 +113,7 @@ describe('waiter-table-detail-scope', () => {
     assert.equal(already.buffets.length, 1);
   });
 
-  it('buildWaiterTableDetailBootFromBoard idle + occupied chrome stub', () => {
+  it('buildWaiterTableDetailBootFromBoard idle + occupied package seed', () => {
     const board = {
       tables: [{ id: T1, display_name: '1', sort_order: 0, seat_min: 1, seat_max: 4 }],
       sessionMetaByTableId: {} as Record<string, never>,
@@ -134,6 +134,7 @@ describe('waiter-table-detail-scope', () => {
       partyMembers: [] as [],
       checkoutRequestedTableIds: [] as string[],
       checkoutRequestedAtByTableId: {} as Record<string, string>,
+      tableSummaries: [] as [],
     };
     const idle = buildWaiterTableDetailBootFromBoard(board, T1);
     assert.ok(idle);
@@ -149,19 +150,37 @@ describe('waiter-table-detail-scope', () => {
         },
         checkoutRequestedTableIds: [T1],
         checkoutRequestedAtByTableId: { [T1]: '2026-01-01T01:00:00Z' },
+        tableSummaries: [
+          {
+            tableId: T1,
+            displayName: '1',
+            seatMin: 1,
+            seatMax: 4,
+            buffetHeadcount: { adults: 2, children: 1 },
+            currentBuffetId: 'b1',
+            sessionTotal: 40,
+            orderedDishQty: 0,
+            hasBuffet: true,
+            occupied: true,
+            updatedAt: '2026-01-01T00:00:00Z',
+          },
+        ],
       },
       T1,
     );
     assert.ok(occupied);
     assert.equal(occupied?.detail.sessionMeta?.sessionId, 's1');
-    assert.equal(occupied?.detail.orders.length, 0);
+    assert.equal(occupied?.detail.orders.length, 1);
+    assert.equal(occupied?.detail.orders[0]?.items[0]?.buffet_id, 'b1');
+    assert.equal(occupied?.detail.orders[0]?.items[0]?.adult_count, 2);
+    assert.equal(occupied?.detail.orders[0]?.items[0]?.child_count, 1);
     assert.equal(occupied?.detail.checkoutRequested, true);
     assert.equal(occupied?.detail.checkoutRequestedAt, '2026-01-01T01:00:00Z');
     assert.equal(occupied?.buffets[0]?.id, 'b1');
     assert.equal(isAuthoritativeIdleWaiterTableBoot(occupied), false);
   });
 
-  it('occupied chrome stub works without open-table defaults', () => {
+  it('occupied boot works without open-table defaults or board package', () => {
     const occupied = buildWaiterTableDetailBootFromBoard(
       {
         tables: [{ id: T1, display_name: '1', sort_order: 0, seat_min: 1, seat_max: 4 }],
@@ -172,11 +191,13 @@ describe('waiter-table-detail-scope', () => {
         partyMembers: [],
         checkoutRequestedTableIds: [],
         checkoutRequestedAtByTableId: {},
+        tableSummaries: [],
       },
       T1,
     );
     assert.ok(occupied);
     assert.equal(occupied?.buffets.length, 0);
+    assert.equal(occupied?.detail.orders.length, 0);
     assert.equal(occupied?.detail.sessionMeta?.sessionId, 's1');
   });
 });

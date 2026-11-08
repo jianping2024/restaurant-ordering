@@ -162,12 +162,13 @@ function WaiterTableDetailInner({
         partyMembers: waiterBoard.partyMembers,
         checkoutRequestedTableIds: waiterBoard.checkoutRequestedTableIds,
         checkoutRequestedAtByTableId: waiterBoard.checkoutRequestedAtByTableId,
+        tableSummaries: waiterBoard.tableSummaries,
       },
       tableId,
     );
   }, [embeddedInDashboard, tableId, waiterBoard]);
   const resolvedInitialModel = initialModel ?? boardBoot;
-  // Published seed / idle board boot skip mount pull; occupied chrome stub still reconciles orders.
+  // Published seed / idle board boot skip mount pull; occupied boot still reconciles dish lines.
   const skipEntryReconcile =
     hasAuthoritativeSeed || isAuthoritativeIdleWaiterTableBoot(boardBoot);
   const {
@@ -1204,6 +1205,10 @@ function WaiterTableDetailInner({
             {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
 
             {detailActions.showBuffetPanel ? (
+              /* Open session without known package: never paint unlocked multi-pick. */
+              hasOpenSession && !buffetPackageLocked ? (
+                <WaiterTableDetailContentSkeleton label={t.tableDetailLoading} />
+              ) : (
               <WaiterTableBuffetPanel
                 lang={lang}
                 buffetOptions={buffetOptions}
@@ -1269,6 +1274,7 @@ function WaiterTableDetailInner({
                       }
                 }
               />
+              )
             ) : null}
 
             {detailActions.showOccupiedToolbar ? (

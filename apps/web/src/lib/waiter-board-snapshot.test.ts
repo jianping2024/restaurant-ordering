@@ -96,6 +96,7 @@ describe('buildWaiterBoardTableSummaries', () => {
     });
     const a = summaries.find((row) => row.tableId === TABLE_A)!;
     assert.deepEqual(a.buffetHeadcount, { adults: 3, children: 2 });
+    assert.equal(a.currentBuffetId, 'buffet-1');
     assert.equal(a.hasBuffet, true);
   });
 });
@@ -109,6 +110,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMin: 2,
         seatMax: 4,
         buffetHeadcount: null,
+        currentBuffetId: null,
         sessionTotal: 0,
         orderedDishQty: 0,
         hasBuffet: false,
@@ -121,6 +123,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMin: 2,
         seatMax: 4,
         buffetHeadcount: { adults: 2, children: 0 },
+        currentBuffetId: null,
         sessionTotal: 20,
         orderedDishQty: 0,
         hasBuffet: false,
@@ -147,6 +150,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMin: 2,
         seatMax: 4,
         buffetHeadcount: { adults: 2, children: 0 },
+        currentBuffetId: 'buffet-b',
         sessionTotal: 20,
         orderedDishQty: 0,
         hasBuffet: true,
@@ -159,6 +163,7 @@ describe('sortWaiterBoardTableSummaries', () => {
         seatMin: 2,
         seatMax: 4,
         buffetHeadcount: null,
+        currentBuffetId: null,
         sessionTotal: 0,
         orderedDishQty: 0,
         hasBuffet: false,

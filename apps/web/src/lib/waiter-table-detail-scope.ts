@@ -12,6 +12,8 @@ import { tableIdsEqual } from '@/lib/restaurant-tables';
 import { snapshotToPageModel } from '@/lib/waiter-table-detail-snapshot';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
+import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
+import type { Order } from '@/types';
 
 /** Table detail transport: full includes open-table buffets/prices; live is occupancy only. */
 export type WaiterTableDetailFetchScope = 'full' | 'live';
@@ -46,7 +48,68 @@ type BoardBootSource = Pick<
   | 'partyMembers'
   | 'checkoutRequestedTableIds'
   | 'checkoutRequestedAtByTableId'
+  | 'tableSummaries'
 >;
+
+function boardSummaryForTable(
+  summaries: readonly WaiterBoardTableSummary[],
+  tableId: string,
+): WaiterBoardTableSummary | null {
+  return (
+    summaries.find((row) => row.tableId === tableId)
+    ?? summaries.find((row) => tableIdsEqual(row.tableId, tableId))
+    ?? null
+  );
+}
+
+/**
+ * Occupied board→detail first paint: seed the locked package + headcount the floor
+ * already shows (`currentBuffetId` / `buffetHeadcount`). Keeps `currentTableBuffet`
+ * as the sole reader — no empty-orders unlocked multi-pick flash.
+ */
+export function occupiedBootOrdersFromBoardSummary(
+  tableId: string,
+  sessionMeta: WaiterTableSessionMeta,
+  summary: WaiterBoardTableSummary | null,
+  buffetNameById: ReadonlyMap<string, string>,
+): Order[] {
+  const buffetId = summary?.currentBuffetId;
+  if (!buffetId) return [];
+  const adults = summary.buffetHeadcount?.adults ?? 0;
+  const children = summary.buffetHeadcount?.children ?? 0;
+  const stamp = sessionMeta.openedAt;
+  const name = buffetNameById.get(buffetId) ?? '';
+  return [
+    {
+      id: `board-boot:${tableId}`,
+      restaurant_id: '',
+      session_id: sessionMeta.sessionId,
+      table_id: tableId,
+      display_name: summary.displayName,
+      status: 'done',
+      items: [
+        {
+          id: `buffet:${buffetId}`,
+          kind: 'buffet_base',
+          name,
+          name_pt: name,
+          qty: 1,
+          price: 0,
+          emoji: '🍽️',
+          item_status: 'done',
+          buffet_id: buffetId,
+          adult_count: adults,
+          child_count: children,
+          added_at: stamp,
+          batch_id: '__buffet__',
+        },
+      ],
+      total_amount: 0,
+      created_at: stamp,
+      updated_at: stamp,
+    },
+  ];
+}
 
 function findBoardTable(
   tables: BoardBootSource['tables'],
@@ -104,7 +167,8 @@ export function resolveWaiterTableDetailPaintPhase(input: {
 /**
  * Board → detail boot — one WaiterTablePageModel shape:
  * - idle: full open-table defaults (skip entry reconcile)
- * - occupied: chrome stub (session + checkout + buffet defaults, orders []); always reconcile
+ * - occupied: session + checkout + buffet defaults + board-known package/headcount
+ *   orders (locked first paint); always reconcile for authoritative dish lines
  */
 export function buildWaiterTableDetailBootFromBoard(
   board: BoardBootSource,
@@ -126,6 +190,14 @@ export function buildWaiterTableDetailBootFromBoard(
 
   const buffets = board.openTableDefaults?.buffets ?? [];
   const buffetPricesByBuffetId = board.openTableDefaults?.buffetPricesByBuffetId ?? {};
+  const buffetNameById = new Map(buffets.map((buffet) => [buffet.id, buffet.name]));
+  const summary = boardSummaryForTable(board.tableSummaries, tableId);
+  const orders = occupiedBootOrdersFromBoardSummary(
+    tableId,
+    sessionMeta,
+    summary,
+    buffetNameById,
+  );
 
   return snapshotToPageModel(
     {
@@ -134,7 +206,7 @@ export function buildWaiterTableDetailBootFromBoard(
       buffets,
       buffetPricesByBuffetId,
       sessionMeta,
-      orders: [],
+      orders,
       checkoutRequested: isTableCheckoutRequested(tableId, board.checkoutRequestedTableIds),
       checkoutRequestedAt: checkoutRequestedAtForTable(
         tableId,

@@ -1,5 +1,5 @@
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
+import { currentTableBuffet, type BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { sortWaiterTableCards } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -18,6 +18,11 @@ export type WaiterBoardTableSummary = {
   seatMin: number;
   seatMax: number;
   buffetHeadcount: BuffetGuestHeadcount | null;
+  /**
+   * Sole current package id for this table (`currentTableBuffet`) — board→detail boot
+   * seeds the locked package from this; null when no active buffet line.
+   */
+  currentBuffetId: string | null;
   sessionTotal: number;
   /** Sole dish-portion count for board title-row `×N`; from waiter card. */
   orderedDishQty: number;
@@ -45,6 +50,7 @@ export function buildWaiterBoardTableSummaries(
       seatMin: table.seat_min ?? DEFAULT_TABLE_SEAT_MIN,
       seatMax: table.seat_max ?? DEFAULT_TABLE_SEAT_MAX,
       buffetHeadcount: card.buffetHeadcount,
+      currentBuffetId: currentTableBuffet(view)?.buffetId ?? null,
       sessionTotal: card.sessionTotal,
       orderedDishQty: card.orderedDishQty,
       hasBuffet: card.hasBuffet,

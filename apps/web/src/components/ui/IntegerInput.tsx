@@ -21,6 +21,7 @@ export function IntegerInput({
   clearZeroOnFocus = false,
   onFocus,
   onBlur,
+  onKeyDown,
   ...props
 }: IntegerInputProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -44,6 +45,11 @@ export function IntegerInput({
       onBlur={(e) => {
         if (draft !== null) commitDraft(draft);
         onBlur?.(e);
+      }}
+      onKeyDown={(e) => {
+        // Enter commits the same way as blur (sole commit path stays blur parse).
+        if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.currentTarget.blur();
+        onKeyDown?.(e);
       }}
       onChange={(e) => setDraft(sanitizeIntegerDraft(e.target.value))}
       className={`${FORM_CONTROL_TEXT_CLASS} ${className}`.trim()}

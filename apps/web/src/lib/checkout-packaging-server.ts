@@ -20,6 +20,7 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { generateAppendBatchId } from '@/lib/resolve-append-cart-items';
 import { findActiveTableSession, type TableSessionRef } from '@/lib/table-session-open';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { evenSplitEditLockFailure } from '@/lib/checkout-active-bill-split';
 import type { Order } from '@/types';
 
 export type CheckoutPackagingResult =
@@ -63,6 +64,8 @@ async function loadCheckoutPackagingTarget(
   if (normalizeOrderingChannel(session.ordering_channel) !== 'takeaway') {
     return { ok: false, status: 409, error: 'packaging_only_on_takeaway_session' };
   }
+  const locked = await evenSplitEditLockFailure({ admin, restaurantId, sessionId: session.id });
+  if (locked) return locked;
 
   return {
     ok: true,

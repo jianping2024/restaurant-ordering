@@ -3,6 +3,7 @@ import { loadStaffAuditActor } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { EVEN_SPLIT_EDIT_LOCKED } from '@/lib/checkout-split-continuation';
 import type { Order, OrderItem } from '@/types';
 
 export const runtime = 'nodejs';
@@ -109,8 +110,8 @@ export async function PATCH(
         { status: 409 },
       );
     }
-    if (result.code === 'conflict') {
-      return NextResponse.json({ error: 'conflict' }, { status: 409 });
+    if (result.code === 'conflict' || result.code === EVEN_SPLIT_EDIT_LOCKED) {
+      return NextResponse.json({ error: result.code }, { status: 409 });
     }
     return NextResponse.json({ error: result.code }, { status: 500 });
   }

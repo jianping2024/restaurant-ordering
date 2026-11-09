@@ -10,6 +10,7 @@ import {
   commitByItemConsumerRowEdit,
   ensureSplitPersonNames,
   isCheckoutSplitLocked,
+  isEvenSplitEditLocked,
   isStaffCheckoutSplitModeFrozen,
   staffMayChangeCheckoutSplitMode,
   isPausedCheckoutSplit,
@@ -64,6 +65,18 @@ describe('isCheckoutSplitLocked', () => {
     assert.equal(isCheckoutSplitLocked(split(), true), true);
     assert.equal(isCheckoutSplitLocked(split({ status: 'confirmed' }), false), false);
     assert.equal(isCheckoutSplitLocked(split(), false), false);
+  });
+});
+
+describe('isEvenSplitEditLocked', () => {
+  it('freezes only an even split once a collection exists', () => {
+    const paidRow = { result: [{ name: 'A', amount: 10, paid: true }] };
+    assert.equal(isEvenSplitEditLocked(split({ split_mode: 'even', ...paidRow })), true);
+    assert.equal(isEvenSplitEditLocked(split({ split_mode: 'even' }), true), true);
+    assert.equal(isEvenSplitEditLocked(split({ split_mode: 'even' }), false), false);
+    assert.equal(isEvenSplitEditLocked(split({ split_mode: 'by_item', ...paidRow }), true), false);
+    assert.equal(isEvenSplitEditLocked(split({ split_mode: 'whole_table', ...paidRow }), true), false);
+    assert.equal(isEvenSplitEditLocked(null, true), false);
   });
 });
 

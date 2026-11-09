@@ -174,6 +174,21 @@ export function isCheckoutSplitLocked(
   return false;
 }
 
+/** Sole error code: even bill frozen after the first collection. */
+export const EVEN_SPLIT_EDIT_LOCKED = 'even_split_locked';
+
+/**
+ * Sole rule: an even split with any collection (paid row or ledger) is frozen — no resume,
+ * no take-away/packaging, no headcount change, no void, no total change on re-submit.
+ * New orders go to a new table. Unpaid even stays editable (re-split on the new total).
+ */
+export function isEvenSplitEditLocked(
+  split: BillSplit | null | undefined,
+  hasCollectedLedger = false,
+): boolean {
+  return split?.split_mode === 'even' && isCheckoutSplitLocked(split, hasCollectedLedger);
+}
+
 /**
  * Staff mode chips: even/by_item already on the wire cannot change mode
  * (including back to whole_table). Whole_table unpaid stays switchable.

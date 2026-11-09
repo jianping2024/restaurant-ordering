@@ -285,7 +285,7 @@ describe('resumeCheckoutBlockReason', () => {
     );
   });
 
-  it('omits session resume for even (no footer button; collections ignored)', () => {
+  it('even: resume only while nobody has paid (frozen after the first collection)', () => {
     const even = billSplit({
       split_mode: 'even',
       result: [
@@ -294,8 +294,16 @@ describe('resumeCheckoutBlockReason', () => {
       ],
     });
     assert.equal(resumeCheckoutBlockReason(even, []), 'even_session');
+    const unpaid = billSplit({
+      split_mode: 'even',
+      result: [
+        { name: 'Alice', amount: 10 },
+        { name: 'Bob', amount: 10 },
+      ],
+    });
+    assert.equal(resumeCheckoutBlockReason(unpaid, []), null);
     assert.equal(
-      resumeCheckoutBlockReason(even, [
+      resumeCheckoutBlockReason(unpaid, [
         {
           id: 'p1',
           party_id: null,

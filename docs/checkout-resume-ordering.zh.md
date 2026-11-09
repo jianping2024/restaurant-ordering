@@ -57,8 +57,14 @@
 |------|-------------------|
 | **按菜**（`by_item`） | **无会话脚恢复**；仅员工票级解锁（按钮文案仍是「恢复点单」）。 |
 | **整桌总计** | 已有收款或台账非空 → **禁止**恢复。无收款时可恢复，分单 `cancelled`。 |
-| **均摊**（`even`） | 已有部分收款 → 分单 **锁定**（`confirmed`）。**零收款** → 分单 `cancelled`，再次结账可重选。 |
+| **均摊**（`even`） | **零收款** → 可恢复，分单 `cancelled`，再次结账可重选。**已有收款** → 账单冻结，**禁止**恢复（新点单另开台）。 |
 | ~~自定义~~ | **已删除**。 |
+
+## 5.1 均摊收款后冻结（2026-11-09）
+
+均摊只要有一笔收款（`result` 有 `paid` 或台账有记录），整张账单冻结：不能恢复点单、不能加/删打包费或包装费、不能改人数、不能作废菜品（含厨房作废）、不能打折、重新提交不得改总额。判断唯一入口 `isEvenSplitEditLocked`（`lib/checkout-split-continuation.ts`），服务端经 `evenSplitEditLockFailure` 统一返回 409 `even_split_locked`；结账台隐藏打包费入口、跳过零人数调整提示，提示文案 `bill.evenSplitLocked`。新点单请另开台。
+
+均摊**未收款**时仍可改金额：结账台改人数/加打包费后按新总额对原座位重新平分（`allocateEvenAmounts`），不再提交旧金额。
 
 ## 6. 允许与禁止（一览）
 
@@ -97,13 +103,13 @@
 |------|----------------|------------------|
 | 已收款项跨恢复保留 | ✓ | ✓ `session_collected_payments` 不随恢复删除 |
 | 整桌部分收款后可恢复 | ✓ | ✓ |
-| 均摊无会话脚恢复 | ✓ | `resumeCheckoutBlockReason` → `even_session` |
+| 均摊有收款禁止恢复 | ✓ | `resumeCheckoutBlockReason` → `even_session`；服务端 `resumeTableSessionOrdering` 409 `even_split_locked` |
 | 按菜无会话脚恢复 | ✓ | `resumeCheckoutBlockReason` → `individual_session` |
 | 按菜票级解锁文案「恢复点单」 | ✓ | 份额区 sole `checkout.resumeOrdering` |
 | 部分收款后锁定已付菜品行 | ✓ | `lockedByItemLineKeys` + `paidSplitPersonNames` |
 | 已收款后禁止降自助餐人数低于锁定座位 | ✓ | `lockedBuffetHeadcountByBuffetId` + buffet 管道 409 |
 | 均摊零收款恢复 | 撤销分单 | `cancelled` |
-| 均摊部分收款恢复 | 保留分单 | `confirmed` |
+| 均摊部分收款恢复 | 禁止 | 409 `even_split_locked` |
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |
 | 楼面再次呼叫结账 | reopen 保留分单 / 无则 whole_table | `ensureStaffCheckoutEntryForTable` + `loadActiveBillSplitForSession` |
 | 客人底栏无恢复/刷新 | ✓ | `GuestBillBottomDock` |

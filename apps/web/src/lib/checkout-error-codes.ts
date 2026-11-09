@@ -72,6 +72,7 @@ export const CHECKOUT_ERROR_STATUS = {
   client_request_id_conflict: 409,
   whole_table_paid: 409,
   discount_locked_after_payment: 409,
+  even_split_locked: 409,
   // 500 — server fault
   session_lookup_failed: 500,
   party_lookup_failed: 500,
@@ -114,6 +115,7 @@ export type CheckoutErrorCopyKey =
   | 'tableNotAvailable'
   | 'invalidNif'
   | 'splitPlanLocked'
+  | 'evenSplitLocked'
   | 'individualClaimConflict'
   | 'individualUnitMismatch'
   | 'byItemCutChangeAtCollect'
@@ -148,4 +150,5 @@ export const CHECKOUT_ERROR_COPY: Partial<Record<CheckoutErrorCode, CheckoutErro
   split_mode_locked: 'splitPlanLocked',
   locked_allocation_changed: 'splitPlanLocked',
   split_shape_locked: 'splitPlanLocked',
+  even_split_locked: 'evenSplitLocked',
 };

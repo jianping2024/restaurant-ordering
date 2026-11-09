@@ -52,6 +52,10 @@ import {
   BUFFET_OPEN_ALREADY_OPEN,
   type BuffetWaiterOpenIntent,
 } from '@/lib/buffet-waiter-open-intent';
+import {
+  EVEN_SPLIT_EDIT_LOCKED,
+  isEvenSplitEditLocked,
+} from '@/lib/checkout-split-continuation';
 import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import { resolveOrderingChannelForTable } from '@/lib/instore-takeaway-server';
 
@@ -280,6 +284,9 @@ export async function runBuffetWaiterOpenPipeline(
           sessionId,
         );
 
+        if (isEvenSplitEditLocked(split, collectedPayments.length > 0)) {
+          return pipelineFailure(409, EVEN_SPLIT_EDIT_LOCKED, { code: EVEN_SPLIT_EDIT_LOCKED });
+        }
         const calledKeys = await loadCalledTicketKeys(admin, split?.id);
         const floors = lockedBuffetHeadcountByBuffetId(
           split,

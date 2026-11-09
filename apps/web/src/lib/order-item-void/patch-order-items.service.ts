@@ -6,6 +6,8 @@ import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
 import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
+import { evenSplitEditLockFailure } from '@/lib/checkout-active-bill-split';
+import { EVEN_SPLIT_EDIT_LOCKED } from '@/lib/checkout-split-continuation';
 import { guardIndividualClaims } from '@/lib/individual-claim-guard';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
@@ -45,7 +47,8 @@ export type PatchOrderItemsResult =
         | 'reason_detail_required'
         | 'update_failed'
         | 'menu_decrement_not_allowed'
-        | 'claimed_by_ticket';
+        | 'claimed_by_ticket'
+        | typeof EVEN_SPLIT_EDIT_LOCKED;
       lineKeys?: string[];
     };
 
@@ -82,6 +85,15 @@ export async function patchOrderItemsWithVoidAudit(
     !(input.menuDecrementAllowed ?? false)
   ) {
     return { ok: false, code: 'menu_decrement_not_allowed' };
+  }
+
+  if (newlyVoided.length > 0 && input.existing.session_id) {
+    const locked = await evenSplitEditLockFailure({
+      admin: input.admin,
+      restaurantId: input.restaurantId,
+      sessionId: input.existing.session_id,
+    });
+    if (locked) return { ok: false, code: locked.error };
   }
 
   const reasonValidation = validateVoidItemReason(

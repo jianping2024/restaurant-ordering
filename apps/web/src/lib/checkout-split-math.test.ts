@@ -84,6 +84,22 @@ describe('checkout-split-math', () => {
     assert.equal(discountedObligationAmount(1.85, 10), 1.67);
     assert.equal(discountedObligationAmount(10.9, 10), 9.81);
     assert.equal(checkoutPayableAmount(billSplit({ total_amount: 21.8 }), 10), 19.62);
+    // Half-cent cases a float factor misrounds (UAT 2026-11-09 S5b: table stuck at €0.01).
+    assert.equal(checkoutPayableAmount(billSplit({ total_amount: 51.95 }), 30), 36.37);
+    assert.equal(discountedObligationAmount(10.75, 6), 10.11);
+    assert.equal(discountedObligationAmount(0.45, 30), 0.32);
+  });
+
+  it('discount rounding equals exact half-up cents for every integer rate', () => {
+    for (let rate = 0; rate <= 100; rate += 1) {
+      for (let cents = 0; cents <= 20000; cents += 1) {
+        const exact = Math.floor((cents * (100 - rate) + 50) / 100) / 100;
+        const got = discountedObligationAmount(cents / 100, rate);
+        if (got !== exact) {
+          assert.fail(`pre=${cents / 100} rate=${rate}: got ${got}, want ${exact}`);
+        }
+      }
+    }
   });
 
   it('resolveCheckoutDiscountMoneyView is sole bar/person/collect money view', () => {

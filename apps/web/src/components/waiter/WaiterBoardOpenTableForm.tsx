@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
-import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import {
   isBuffetPackagesEditorReady,
   WaiterBuffetPackagesEditor,
@@ -19,13 +18,14 @@ import {
 } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
-import { WaiterTableIcon } from '@/components/waiter/waiter-table-detail-icons';
-import {
-  buttonIcon,
-  openTableSheetLayout,
-  WaiterTablePrimaryButton,
-  WaiterTableSecondaryButton,
-} from '@/components/waiter/waiter-table-detail-ui';
+import { openTableSheetLayout } from '@/components/waiter/waiter-table-detail-ui';
+
+/** Footer controls owned by the sheet Modal (pinned); form only reports busy / ready / submit. */
+export type WaiterBoardOpenTableFooterActions = {
+  busy: boolean;
+  confirmDisabled: boolean;
+  onConfirm: () => void;
+};
 
 type Props = {
   model: WaiterTablePageModel;
@@ -35,6 +35,7 @@ type Props = {
   onClose: () => void;
   onOpenTableSuccess: (model: WaiterTablePageModel) => void;
   onStaleBoard: () => void;
+  onFooterActionsChange: (actions: WaiterBoardOpenTableFooterActions | null) => void;
   /**
    * Board-prefetched「当前可开套餐」snapshot. When passed, this form does not start its own
    * fetch (board already owns `useWaiterOpenableBuffetIds`); it re-checks the version once
@@ -51,10 +52,9 @@ export function WaiterBoardOpenTableForm({
   onClose,
   onOpenTableSuccess,
   onStaleBoard,
+  onFooterActionsChange,
   boardOpenable,
 }: Props) {
-  const t = WAITER_TEXT[lang];
-
   const activeBuffets = useMemo(
     () => model.buffets.filter((b) => b.is_active),
     [model.buffets],
@@ -144,6 +144,17 @@ export function WaiterBoardOpenTableForm({
     }
   }, [onClose, onOpenTableSuccess, onStaleBoard, submit]);
 
+  useLayoutEffect(() => {
+    onFooterActionsChange({
+      busy: submitting,
+      confirmDisabled: !editorReady,
+      onConfirm: () => {
+        void handleSubmit();
+      },
+    });
+    return () => onFooterActionsChange(null);
+  }, [editorReady, handleSubmit, onFooterActionsChange, submitting]);
+
   return (
     <div className={openTableSheetLayout.stack}>
       <WaiterBuffetPackagesEditor
@@ -157,27 +168,6 @@ export function WaiterBoardOpenTableForm({
         priceLoading={priceLoading}
         layout="sheet"
       />
-
-      <div className={openTableSheetLayout.actionRow}>
-        <WaiterTableSecondaryButton
-          type="button"
-          onClick={onClose}
-          disabled={submitting}
-          className={openTableSheetLayout.actionButton}
-        >
-          {t.closeTableCancel}
-        </WaiterTableSecondaryButton>
-        <WaiterTablePrimaryButton
-          type="button"
-          onClick={() => void handleSubmit()}
-          disabled={submitting || !editorReady}
-          loading={submitting}
-          className={openTableSheetLayout.actionButton}
-          icon={<WaiterTableIcon className={buttonIcon.sm} />}
-        >
-          {t.buffetConfirm}
-        </WaiterTablePrimaryButton>
-      </div>
     </div>
   );
 }

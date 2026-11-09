@@ -3,6 +3,7 @@ import {
   listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
 import { lineTotal } from '@/lib/cart-totals';
+import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import { isBuffetBaseItem, isKitchenRemakeItem, isMenuCatalogItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import {
@@ -323,11 +324,17 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
   return lines;
 }
 
-/** Session billable total — same basis as bill details, receipts, and checkout. */
+/**
+ * Session billable total — same basis as bill details, receipts, and checkout.
+ * Summed in integer cents so the persisted bill amount is exact (no 51.449999… float noise
+ * reaching `bill_splits.result` / SQL discount allocation).
+ */
 export function sumBillableSessionTotal(orders: Order[]): number {
-  return buildBillableSessionItems(orders).reduce(
-    (sum, row) => sum + billableLineAmount(row),
-    0,
+  return centsToEuros(
+    buildBillableSessionItems(orders).reduce(
+      (sum, row) => sum + eurosToCents(billableLineAmount(row)),
+      0,
+    ),
   );
 }
 

@@ -18,14 +18,22 @@ export function clampCheckoutDiscountRate(discountRate: number): number {
   return Math.min(100, Math.max(0, discountRate));
 }
 
-/** Per-row independent round — SQL `checkout_round_discount_amount`. Prefer {@link allocateDiscountedSplitObligations} for multi-person bills. */
+/**
+ * Sole discount rounding — SQL `checkout_round_discount_amount` / `checkout_payable_from_total`
+ * (`round(pre × (1 − rate/100), 2)`, numeric half away from zero). Integer math only: a float
+ * factor misrounds half-cents (51.95 × 0.7 → 3636.4999… → 36.36 vs PG 36.37).
+ * Rate is kept to 1/100 %.
+ * Prefer {@link allocateDiscountedSplitObligations} for multi-person bills.
+ */
 export function discountedObligationAmount(
   preDiscountAmount: number,
   discountRate: number,
 ): number {
-  const factor = 1 - clampCheckoutDiscountRate(discountRate) / 100;
-  // Cents-first then round: avoids float (19.95×0.9→17.955→JS 17.95 vs PG round 17.96).
-  return centsToEuros(Math.round(eurosToCents(Number(preDiscountAmount)) * factor));
+  const preCents = eurosToCents(Number(preDiscountAmount));
+  const keepBasisPoints = 10000 - Math.round(clampCheckoutDiscountRate(discountRate) * 100);
+  const scaled = Math.abs(preCents) * keepBasisPoints;
+  const cents = Math.floor((scaled * 2 + 10000) / 20000);
+  return centsToEuros(preCents < 0 ? -cents : cents);
 }
 
 /**
@@ -77,8 +85,7 @@ export function sumSplitRowAmounts(rows: SplitResult[]): number {
 
 /** Summary bar「应收」— must match SQL `checkout_payable_from_total`. */
 export function checkoutPayableAmount(split: BillSplit, discountRate: number): number {
-  const factor = 1 - clampCheckoutDiscountRate(discountRate) / 100;
-  return centsToEuros(Math.round(eurosToCents(Number(split.total_amount)) * factor));
+  return discountedObligationAmount(Number(split.total_amount), discountRate);
 }
 
 /**

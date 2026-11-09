@@ -17,6 +17,8 @@ export type CheckoutRequestErrorLabels = {
   /** Staff NIF paths only; the guest phone never sends a NIF. */
   invalidNif?: string;
   splitPlanLocked: string;
+  /** Staff checkout: even split frozen after the first collection. */
+  evenSplitLocked?: string;
   /** Individual checkout (optional — only the guest bill page passes these). */
   individualClaimConflict?: string;
   /** Carries `{dish}` — filled from the first rejected line via `context.dish`. */

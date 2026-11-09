@@ -722,7 +722,10 @@ export function StaffCheckoutSplitEditor({
         lang={lang}
         copy={{
           splitMode: billT.splitMode,
-          splitPlanLocked: billT.splitPlanLocked,
+          splitPlanLocked:
+            splitDraft.splitMode === 'even' && splitDraft.splitLocked
+              ? billT.evenSplitLocked
+              : billT.splitPlanLocked,
           people: billT.people,
           splitResult: billT.splitResult,
           splitPaid: billT.splitPaid,

@@ -10,7 +10,12 @@ import {
   fractionCutChangedLineKeys,
   fractionUnitConflictLineKeys,
 } from '@/lib/by-item-fraction-unit';
-import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
+import {
+  EVEN_SPLIT_EDIT_LOCKED,
+  isEvenSplitEditLocked,
+  validateCheckoutContinuation,
+} from '@/lib/checkout-split-continuation';
+import { eurosToCents } from '@/lib/money-allocation';
 import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import {
@@ -225,6 +230,13 @@ export async function submitCheckoutRequestForTable(
     });
     if (!continuation.ok) {
       return checkoutFailure(continuation.issue);
+    }
+    // Frozen even bill: the session total must still be the one the seats were split on.
+    if (
+      isEvenSplitEditLocked(existingSplitRow as BillSplit, collectedPayments.length > 0) &&
+      eurosToCents(total) !== eurosToCents(Number((existingSplitRow as BillSplit).total_amount))
+    ) {
+      return checkoutFailure(EVEN_SPLIT_EDIT_LOCKED);
     }
   }
 

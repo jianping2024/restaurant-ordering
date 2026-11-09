@@ -60,6 +60,8 @@ import { writePendingCheckoutPrintAsk } from '@/lib/checkout-print-ask-store';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { menuItemImageUrlLookupFromRows } from '@/lib/menu-image';
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
+import { isEvenSplitEditLocked } from '@/lib/checkout-split-continuation';
+import { allocateEvenAmounts } from '@/lib/money-allocation';
 import { buildCheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
@@ -169,6 +171,11 @@ export function CheckoutRequestDetailHost({
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const billT = getMessages(lang).bill;
+  /** Even split with a collection: bill frozen (no take-away / packaging / headcount). */
+  const evenSplitLocked = isEvenSplitEditLocked(
+    request,
+    getCollectedForSession(request.session_id).length > 0,
+  );
   const beforeResume = useCallback(async () => {
     const prepared = await prepareStaffCheckoutResumeOrdering({
       request,
@@ -193,6 +200,7 @@ export function CheckoutRequestDetailHost({
               tableNotAvailable: t.callCheckoutTableNotAvailable,
               invalidNif: billT.nifInvalid,
               splitPlanLocked: billT.splitPlanLocked,
+              evenSplitLocked: billT.evenSplitLocked,
               fallback: t.callCheckoutFailed,
             }),
             'error',
@@ -450,12 +458,14 @@ export function CheckoutRequestDetailHost({
 
   useEffect(() => {
     if (!ordersReady || !buffetModelReady || !sessionChannelReady) return;
-    const shouldPrompt = shouldPromptCheckoutZeroHeadcount({
-      restaurantHasActiveBuffets,
-      guestCountConfirmed,
-      acknowledgedZeroHeadcount,
-      orderingChannel: orderingChannelForPrompt,
-    });
+    const shouldPrompt =
+      !evenSplitLocked &&
+      shouldPromptCheckoutZeroHeadcount({
+        restaurantHasActiveBuffets,
+        guestCountConfirmed,
+        acknowledgedZeroHeadcount,
+        orderingChannel: orderingChannelForPrompt,
+      });
     // Close if channel/headcount later says no (e.g. takeaway stamp arrived after a dine_in default flash).
     // Do this even while adjust is open — takeaway must not keep either dialog.
     if (!shouldPrompt) {
@@ -468,6 +478,7 @@ export function CheckoutRequestDetailHost({
   }, [
     acknowledgedZeroHeadcount,
     buffetModelReady,
+    evenSplitLocked,
     guestCountConfirmed,
     headcountAdjustOpen,
     orderingChannelForPrompt,
@@ -480,13 +491,22 @@ export function CheckoutRequestDetailHost({
   const refreshBillAfterOrdersChange = useCallback(
     async (nextOrders: Order[]) => {
       const mode = request.split_mode;
+      // Even (unpaid — paid even is frozen): re-split the new total over the same seats.
+      const evenResult = (): SplitResult[] => {
+        const rows = request.result ?? [];
+        const amounts = allocateEvenAmounts(
+          sumBillableSessionTotal(nextOrders),
+          rows.map((row) => row.name),
+        );
+        return rows.map((row, index) => ({ ...row, amount: amounts[index] ?? 0 }));
+      };
       const payload =
         mode === 'whole_table'
           ? buildWholeTableCheckoutPayload(0)
           : {
               splitMode: mode,
               persons: request.persons ?? [],
-              result: request.result ?? [],
+              result: mode === 'even' ? evenResult() : request.result ?? [],
             };
       const outcome = await requestCheckoutRequest({
         slug: restaurantSlug,
@@ -506,6 +526,7 @@ export function CheckoutRequestDetailHost({
             tableNotAvailable: t.callCheckoutTableNotAvailable,
             invalidNif: billT.nifInvalid,
             splitPlanLocked: billT.splitPlanLocked,
+            evenSplitLocked: billT.evenSplitLocked,
             fallback: t.callCheckoutFailed,
           }),
           'error',
@@ -985,7 +1006,7 @@ export function CheckoutRequestDetailHost({
         }
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         supplyCharge={
-          can(capabilities, 'checkout.confirm_payment')
+          can(capabilities, 'checkout.confirm_payment') && !evenSplitLocked
             ? orderingChannelForPrompt === 'takeaway'
               ? {
                   addLabel: t.packagingAdd,

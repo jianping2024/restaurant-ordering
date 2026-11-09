@@ -324,9 +324,10 @@ export function resumeCheckoutBlockReason(
   if (isByItemPerTicketCheckoutPlan(split)) {
     return 'individual_session';
   }
-  // Even: no session resume button (no per-ticket unlock either).
+  // Even: frozen after the first collection (new orders → new table); unpaid even may resume
+  // (RPC cancels the plan, guests re-call after ordering).
   if (split.split_mode === 'even') {
-    return 'even_session';
+    return hasConfirmedPerson(split) || collectedPayments.length > 0 ? 'even_session' : null;
   }
   if (!isWholeTableSplit(split)) return null;
   if (hasConfirmedPerson(split)) return 'whole_table_paid';

@@ -15,6 +15,7 @@ import { isTakeawayChargeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { generateAppendBatchId } from '@/lib/resolve-append-cart-items';
 import { findActiveTableSession, type TableSessionRef } from '@/lib/table-session-open';
+import { evenSplitEditLockFailure } from '@/lib/checkout-active-bill-split';
 import type { Order } from '@/types';
 
 export type CheckoutTakeawayResult =
@@ -56,6 +57,8 @@ async function loadCheckoutTakeawayTarget(
   if (!session || session.id !== split.session_id) {
     return { ok: false, status: 409, error: 'no_active_session' };
   }
+  const locked = await evenSplitEditLockFailure({ admin, restaurantId, sessionId: session.id });
+  if (locked) return locked;
 
   return {
     ok: true,

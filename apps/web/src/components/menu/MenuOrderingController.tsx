@@ -241,16 +241,11 @@ export function MenuOrderingController({
   const { submitFeedback, signalSubmitFeedback } = useCustomerMenuSubmitFeedback();
   const cartRef = useRef(cart);
   cartRef.current = cart;
-  const setCartTracked = useCallback(
-    (value: CartItem[] | ((prev: CartItem[]) => CartItem[])) => {
-      setCartState((prev) => {
-        const next = typeof value === 'function' ? value(prev) : value;
-        onCartDraftChange?.(next);
-        return next;
-      });
-    },
-    [onCartDraftChange],
-  );
+  // Mirror the cart to the parent draft after commit — never inside a state updater
+  // (that updates WaiterTableDetail while this component renders).
+  useEffect(() => {
+    onCartDraftChange?.(cart);
+  }, [cart, onCartDraftChange]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
@@ -372,8 +367,8 @@ export function MenuOrderingController({
   );
   // Buffet switched / menu edited: cart lines follow the table's current prices.
   useEffect(() => {
-    setCartTracked((prev) => repriceCartLines(prev, menuItems));
-  }, [menuItems, setCartTracked]);
+    setCartState((prev) => repriceCartLines(prev, menuItems));
+  }, [menuItems, setCartState]);
 
   const catalogView = useMemo(
     () =>
@@ -441,10 +436,10 @@ export function MenuOrderingController({
       const prev = cartRef.current;
       const next = upsertCartItemQty(prev, item, nextQty);
       cartRef.current = next;
-      setCartTracked(next);
+      setCartState(next);
       bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
     },
-    [setCartTracked],
+    [setCartState],
   );
 
   /**
@@ -577,7 +572,7 @@ export function MenuOrderingController({
 
   // 更新备注（手写）— cart drawer uses lineId
   const updateNote = (lineId: string, note: string) => {
-    setCartTracked((prev) =>
+    setCartState((prev) =>
       updateCartLineNoteByLineId(prev, lineId, clampAppendCartNote(note)),
     );
   };
@@ -590,7 +585,7 @@ export function MenuOrderingController({
       return;
     }
     const id = detailItem.id;
-    setCartTracked((prev) => {
+    setCartState((prev) => {
       const base = prev.some((c) => c.menuItemId === id)
         ? prev
         : upsertCartItemQty(prev, detailItem, 1);
@@ -601,7 +596,7 @@ export function MenuOrderingController({
   };
 
   const toggleNotePreset = (lineId: string, presetId: string) => {
-    setCartTracked((prev) => {
+    setCartState((prev) => {
       const line = prev.find((c) => c.lineId === lineId);
       if (!line) return prev;
       return updateCartLineNotePresetsByLineId(
@@ -625,7 +620,7 @@ export function MenuOrderingController({
       return;
     }
     const id = detailItem.id;
-    setCartTracked((prev) => {
+    setCartState((prev) => {
       const base = prev.some((c) => c.menuItemId === id)
         ? prev
         : upsertCartItemQty(prev, detailItem, 1);
@@ -677,7 +672,7 @@ export function MenuOrderingController({
       menuItems,
     );
     cartRef.current = next;
-    setCartTracked(next);
+    setCartState(next);
     bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
     setDetailMenuItemId(null);
   }, [
@@ -691,7 +686,7 @@ export function MenuOrderingController({
     ensureGuestCanPlaceOrder,
     lang,
     menuItems,
-    setCartTracked,
+    setCartState,
   ]);
 
   const t = MENU_PAGE_MESSAGES[lang];
@@ -742,9 +737,9 @@ export function MenuOrderingController({
   const closeOrderedDrawer = useCallback(() => setOrderedOpen(false), []);
 
   const clearSubmitCart = useCallback(() => {
-    setCartTracked([]);
+    setCartState([]);
     setCartOpen(false);
-  }, [setCartTracked]);
+  }, [setCartState]);
 
   const completeGuestSubmit = useCallback(() => {
     completeGuestOrderSubmit({
@@ -874,7 +869,7 @@ export function MenuOrderingController({
         return;
       }
       restartSubmitCooldown();
-      setCartTracked([]);
+      setCartState([]);
       setCartOpen(false);
       setDemoToast(true);
       setTimeout(() => setDemoToast(false), 3500);
@@ -1367,7 +1362,7 @@ export function MenuOrderingController({
           const prev = cartRef.current;
           const next = setCartLineQtyByLineId(prev, lineId, qty);
           cartRef.current = next;
-          setCartTracked(next);
+          setCartState(next);
           if (next.length === 0) setCartOpen(false);
         }}
         onClearCart={clearSubmitCart}

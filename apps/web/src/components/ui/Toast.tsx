@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { mintBrowserUuid } from '@/lib/browser-uuid';
 import { createPortal } from 'react-dom';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -62,7 +63,7 @@ let toastListeners: ((toasts: ToastItem[]) => void)[] = [];
 let toasts: ToastItem[] = [];
 
 export function showToast(message: string, type: ToastType = 'info') {
-  const item: ToastItem = { id: Date.now().toString(), message, type };
+  const item: ToastItem = { id: mintBrowserUuid(), message, type };
   toasts = [...toasts, item];
   toastListeners.forEach(fn => fn(toasts));
 }

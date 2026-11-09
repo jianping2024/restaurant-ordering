@@ -331,7 +331,7 @@ describe('sumBillableSessionTotal', () => {
     assert.equal(orders[0].items[1].price, 0);
   });
 
-  it('bills zero for fully free limited rows when menu price is non-zero', () => {
+  it('bills every portion of a limited dish priced above €0 (allowance only when priced €0)', () => {
     const orders = [
       {
         id: 'o1',
@@ -368,10 +368,10 @@ describe('sumBillableSessionTotal', () => {
       },
     ] as Order[];
 
-    assert.equal(sumBillableSessionTotal(orders), 35.9);
+    assert.equal(sumBillableSessionTotal(orders), 35.9 + 3 * 1.5);
   });
 
-  it('bills only chargeable qty at overage price when menu price is non-zero', () => {
+  it('bills only chargeable qty at overage price when the dish is priced €0', () => {
     const orders = [
       {
         id: 'o1',
@@ -397,7 +397,7 @@ describe('sumBillableSessionTotal', () => {
             name: 'susi1',
             name_pt: 'susi1',
             qty: 5,
-            price: 1.5,
+            price: 0,
             emoji: '',
             per_person_qty_limit: 2,
             over_limit_unit_price: 4.5,

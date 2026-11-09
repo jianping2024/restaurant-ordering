@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { WaiterBoardOpenTableForm } from '@/components/waiter/WaiterBoardOpenTableForm';
+import {
+  WaiterBoardOpenTableForm,
+  type WaiterBoardOpenTableFooterActions,
+} from '@/components/waiter/WaiterBoardOpenTableForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import {
@@ -42,6 +45,69 @@ type Props = {
   boardOpenable?: WaiterOpenableState;
 };
 
+/**
+ * Open-table Modal actions: pinned in `Modal.footer`, equal-width fill, confirm keeps table icon.
+ * (Not `ModalConfirmActions` — that hug/end row is for ordinary dialogs.)
+ */
+function OpenTableSheetFooterActions({
+  cancelLabel,
+  confirmLabel,
+  onCancel,
+  onConfirm,
+  busy,
+  confirmDisabled = false,
+}: {
+  cancelLabel: string;
+  confirmLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  busy: boolean;
+  confirmDisabled?: boolean;
+}) {
+  return (
+    <div className={openTableSheetLayout.actionRow}>
+      <WaiterTableSecondaryButton
+        type="button"
+        onClick={onCancel}
+        disabled={busy}
+        className={openTableSheetLayout.actionButton}
+      >
+        {cancelLabel}
+      </WaiterTableSecondaryButton>
+      <WaiterTablePrimaryButton
+        type="button"
+        onClick={onConfirm}
+        disabled={busy || confirmDisabled}
+        loading={busy}
+        className={openTableSheetLayout.actionButton}
+        icon={<WaiterTableIcon className={buttonIcon.sm} />}
+      >
+        {confirmLabel}
+      </WaiterTablePrimaryButton>
+    </div>
+  );
+}
+
+function OpenTableSheetCancelFooter({
+  label,
+  onClose,
+}: {
+  label: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className={openTableSheetLayout.actionRow}>
+      <WaiterTableSecondaryButton
+        type="button"
+        onClick={onClose}
+        className={openTableSheetLayout.actionButton}
+      >
+        {label}
+      </WaiterTableSecondaryButton>
+    </div>
+  );
+}
+
 export function WaiterBoardOpenTableSheet({
   open,
   onClose,
@@ -66,7 +132,20 @@ export function WaiterBoardOpenTableSheet({
     return buildIdleOpenTablePageModel(openTableDefaults, table);
   }, [hasSeed, openTableDefaults, table]);
 
+  const hasPickableBuffets =
+    sheetModel != null && activeBuffetsFromModel(sheetModel).length > 0;
+
   const [takeawaySubmitting, setTakeawaySubmitting] = useState(false);
+  const [buffetFooter, setBuffetFooter] = useState<WaiterBoardOpenTableFooterActions | null>(
+    null,
+  );
+
+  const onFooterActionsChange = useCallback(
+    (actions: WaiterBoardOpenTableFooterActions | null) => {
+      setBuffetFooter(actions);
+    },
+    [],
+  );
 
   const openTakeaway = useCallback(async () => {
     setTakeawaySubmitting(true);
@@ -89,36 +168,16 @@ export function WaiterBoardOpenTableSheet({
     }
   }, [onClose, onStaleBoard, restaurant.slug, tableId]);
 
-  const takeawaySimpleOpen = (
-    <div className={openTableSheetLayout.stack}>
-      <p className="text-sm text-brand-text-muted text-center py-2">
-        {t.takeawayHeadcountLockedHint}
-      </p>
-      <div className={openTableSheetLayout.actionRow}>
-        <WaiterTableSecondaryButton
-          type="button"
-          onClick={onClose}
-          disabled={takeawaySubmitting}
-          className={openTableSheetLayout.actionButton}
-        >
-          {t.closeTableCancel}
-        </WaiterTableSecondaryButton>
-        <WaiterTablePrimaryButton
-          type="button"
-          onClick={() => void openTakeaway()}
-          disabled={takeawaySubmitting}
-          loading={takeawaySubmitting}
-          className={openTableSheetLayout.actionButton}
-          icon={<WaiterTableIcon className={buttonIcon.sm} />}
-        >
-          {t.takeawayOpenConfirm}
-        </WaiterTablePrimaryButton>
-      </div>
-    </div>
-  );
-
   const sheetBody = (() => {
-    if (isTakeawayTable) return takeawaySimpleOpen;
+    if (isTakeawayTable) {
+      return (
+        <div className={openTableSheetLayout.stack}>
+          <p className="text-sm text-brand-text-muted text-center py-2">
+            {t.takeawayHeadcountLockedHint}
+          </p>
+        </div>
+      );
+    }
 
     if (missingSeed || !sheetModel) {
       return (
@@ -126,16 +185,14 @@ export function WaiterBoardOpenTableSheet({
           <p className="text-sm text-brand-text-muted py-4 text-center">
             {missingSeed ? t.buffetNoRule : t.actionFailed}
           </p>
-          <SheetCancelButton label={t.closeTableCancel} onClose={onClose} />
         </div>
       );
     }
 
-    if (activeBuffetsFromModel(sheetModel).length === 0) {
+    if (!hasPickableBuffets) {
       return (
         <div className={openTableSheetLayout.stack}>
           <p className="text-sm text-brand-text-muted py-4 text-center">{t.buffetNoRule}</p>
-          <SheetCancelButton label={t.closeTableCancel} onClose={onClose} />
         </div>
       );
     }
@@ -150,28 +207,50 @@ export function WaiterBoardOpenTableSheet({
         onClose={onClose}
         onOpenTableSuccess={onOpenTableSuccess}
         onStaleBoard={onStaleBoard}
+        onFooterActionsChange={onFooterActionsChange}
         boardOpenable={boardOpenable}
       />
     );
   })();
 
+  const sheetFooter = (() => {
+    if (isTakeawayTable) {
+      return (
+        <OpenTableSheetFooterActions
+          cancelLabel={t.closeTableCancel}
+          confirmLabel={t.takeawayOpenConfirm}
+          onCancel={onClose}
+          onConfirm={() => void openTakeaway()}
+          busy={takeawaySubmitting}
+        />
+      );
+    }
+
+    if (missingSeed || !sheetModel || !hasPickableBuffets) {
+      return <OpenTableSheetCancelFooter label={t.closeTableCancel} onClose={onClose} />;
+    }
+
+    return (
+      <OpenTableSheetFooterActions
+        cancelLabel={t.closeTableCancel}
+        confirmLabel={t.buffetConfirm}
+        onCancel={onClose}
+        onConfirm={() => buffetFooter?.onConfirm()}
+        busy={buffetFooter?.busy ?? false}
+        confirmDisabled={buffetFooter == null || buffetFooter.confirmDisabled}
+      />
+    );
+  })();
+
   return (
-    <Modal open={open} onClose={onClose} title={`${t.table} ${displayName}`} size="lg">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`${t.table} ${displayName}`}
+      size="lg"
+      footer={sheetFooter}
+    >
       {sheetBody}
     </Modal>
-  );
-}
-
-function SheetCancelButton({ label, onClose }: { label: string; onClose: () => void }) {
-  return (
-    <div className={openTableSheetLayout.actionRow}>
-      <WaiterTableSecondaryButton
-        type="button"
-        onClick={onClose}
-        className={openTableSheetLayout.actionButton}
-      >
-        {label}
-      </WaiterTableSecondaryButton>
-    </div>
   );
 }

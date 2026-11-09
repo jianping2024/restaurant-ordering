@@ -114,14 +114,17 @@ export const waiterDetailLayout = {
   orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;
 
-/** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */
+/**
+ * Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used).
+ * `actionRow` / `actionButton` belong in `Modal.footer` only — equal-width fill + table icon on confirm.
+ */
 export const openTableSheetLayout = {
   stack: 'flex flex-col gap-4',
   buffetHeader: 'space-y-1',
   guestBlock:
     'space-y-3 rounded-xl border border-brand-border/50 bg-brand-bg/40 px-3 py-3',
   total: waiterFloorType.estimatedTotal,
-  actionRow: 'flex flex-col-reverse gap-2 sm:flex-row',
+  actionRow: 'flex w-full flex-col-reverse gap-2 sm:flex-row',
   actionButton: 'w-full sm:flex-1 justify-center',
 } as const;
 

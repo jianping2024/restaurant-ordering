@@ -1,11 +1,14 @@
 import { formatCustomerOrderSubmittedTime } from '@/lib/format-dashboard-date';
-import { formatStaffBuffetLineLabel } from '@/lib/order-list-display';
+import {
+  formatOrderItemQuantityLabel,
+} from '@/lib/order-list-display';
 import {
   resolveKitchenItemProgressLabel,
   type CustomerKitchenProgress,
 } from '@/lib/kitchen-progress-display';
-import { isKitchenRemakeItem, orderBatchDisplayGroupKey, orderItemBatchKey } from '@/lib/order-items';
+import { isBuffetBaseItem, isKitchenRemakeItem, orderBatchDisplayGroupKey, orderItemBatchKey } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { stationTicketOrderTimeIso } from '@/lib/table-guest-count';
 import {
@@ -13,12 +16,19 @@ import {
   type PeerFloatThumb,
 } from '@/lib/table-order-round/sushi-peer-float-display';
 import type { UILanguage } from '@/lib/i18n';
-import type { MenuItem, Order } from '@/types';
+import type { MenuItem, Order, OrderItem } from '@/types';
 
 export type CustomerSubmittedOrderLine = {
   key: string;
-  /** Localized name + qty only. The thumb owns the picture. */
+  /** Localized dish name only — qty and unit price are separate fields. */
   label: string;
+  /** Menu `× N` or buffet `· A-C` (receipt); empty string when none. */
+  quantityLabel: string;
+  /**
+   * Unit price for non-buffet lines (`OrderItem.price`).
+   * Null for `buffet_base` — that row’s `price` is the headcount line total, not a unit.
+   */
+  unitPrice: number | null;
   thumb: PeerFloatThumb;
   /** Wire note on the order line (choice labels + presets + free text); null when empty. */
   note: string | null;
@@ -46,6 +56,12 @@ export type BuildCustomerSubmittedDisplayOptions = {
   /** Live catalog. Photo and emoji come from here when the dish is still on the menu. */
   menuItems?: readonly OrderedMenuThumb[];
 };
+
+function guestSubmittedUnitPrice(item: Pick<OrderItem, 'kind' | 'price'>): number | null {
+  if (isBuffetBaseItem(item)) return null;
+  const price = Number(item.price);
+  return Number.isFinite(price) ? price : null;
+}
 
 /** Read-only submitted-order rows grouped by append batch — no locale/time in UI components. */
 export function buildCustomerSubmittedDisplayOrders(
@@ -96,7 +112,9 @@ export function buildCustomerSubmittedDisplayOrders(
       const noteRaw = typeof item.note === 'string' ? item.note.trim() : '';
       bucket.lines.push({
         key: `${order.id}-${idx}`,
-        label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
+        label: resolveMenuItemLocalizedName(item, lang),
+        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+        unitPrice: guestSubmittedUnitPrice(item),
         thumb: resolvePeerFloatThumb({
           menu: menuById.get(item.id),
           fallbackEmoji: item.emoji,

@@ -48,11 +48,12 @@ type Props = MenuPageFooterView & {
   guidance?: ReactNode;
 };
 
+/** Sole footer euro total — always full `€X.XX`, never ellipsis. */
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
   return (
-    <span className="flex min-w-0 shrink items-baseline gap-1">
+    <span className="flex shrink-0 items-baseline gap-1">
       <span className={CUSTOMER_MENU_TYPE.footerAmountLabel}>{totalLabel}</span>
-      <span className={`${CUSTOMER_MENU_TYPE.moneyAmount} truncate`}>€{amount.toFixed(2)}</span>
+      <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{amount.toFixed(2)}</span>
     </span>
   );
 }
@@ -385,7 +386,7 @@ export function CustomerMenuFooter(props: Props) {
         submitFeedback ? (
           <span className={customerMenuBottomBarSuccessActionClass} aria-hidden>
             <span className="shrink-0">✓</span>
-            <span className="truncate">{submitFeedback.message}</span>
+            <span className="min-w-0 truncate">{submitFeedback.message}</span>
           </span>
         ) : (
           <FooterPrimaryAction

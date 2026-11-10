@@ -41,10 +41,18 @@ export const customerMenuBottomBarRowClass = `flex w-full min-w-0 ${CUSTOMER_MEN
 export const customerMenuBottomBarGuidanceClass =
   'flex h-[4.5rem] w-full min-w-0 flex-col justify-end gap-1.5 border-b border-brand-border/60 px-3 pb-1.5 sm:px-4';
 
+/**
+ * Left summary (icon + amount / hint). Takes remaining row width.
+ * Amount is never ellipsized — do not put overflow-hidden here.
+ */
 export const customerMenuBottomBarSummarySlotClass =
-  'flex min-w-0 flex-1 items-center overflow-hidden';
+  'flex min-w-0 flex-1 items-center';
 
-export const customerMenuBottomBarActionSlotClass = 'min-w-0 shrink-0';
+/**
+ * Right primary / success action. Yields width before the euro amount:
+ * may shrink; label truncates inside the pill.
+ */
+export const customerMenuBottomBarActionSlotClass = 'min-w-0 shrink';
 
 /** Icon box + text spacing (draft cart / ordered bag); box already pads 12px right of the glyph. */
 export const customerMenuBottomBarIconGapClass = 'gap-2';
@@ -53,8 +61,7 @@ export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-ink';
 
 /**
  * Sole 44×44 box around a footer icon (cart / ordered / round): icon sits
- * bottom-left, badge top-right — the badge stays inside the box so the summary
- * slot's `overflow-hidden` (amount truncate) never clips it.
+ * bottom-left, badge top-right inside the box (never negative offset).
  */
 export const customerMenuBottomBarIconBoxClass =
   'relative flex h-11 w-11 shrink-0 items-end justify-start';
@@ -79,15 +86,20 @@ export function formatCustomerMenuFooterBadgeCount(count: number): string {
   return n > 99 ? '99+' : String(n);
 }
 
+/**
+ * Sole footer CTA / success / disabled pill base.
+ * `min-w-0` (not shrink-0): yields to the full euro amount on narrow phones;
+ * label truncation lives on the text node inside the pill.
+ */
 const customerMenuBottomBarPrimaryActionBaseClass =
-  `inline-flex h-10 max-w-full shrink-0 items-center justify-center rounded-lg px-3 sm:px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
+  `inline-flex h-10 min-w-0 max-w-full items-center justify-center truncate rounded-lg px-3 sm:px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
 
 export const customerMenuBottomBarPrimaryActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
 
 /** Sole submit success pill in the primary action slot (replaces the success toast). */
 export const customerMenuBottomBarSuccessActionClass =
-  `${customerMenuBottomBarPrimaryActionBaseClass} min-w-0 gap-1.5 mesa-alert-success`;
+  `${customerMenuBottomBarPrimaryActionBaseClass} gap-1.5 mesa-alert-success`;
 
 export const customerMenuBottomBarDisabledActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} pointer-events-none bg-brand-border/20 text-brand-text-muted`;

@@ -201,7 +201,7 @@ sole yield rule is the CSS `[data-guest-bill-page]:has(<text field>:focus) [data
 
 ### Guest bottom dock surface
 
-sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + `CUSTOMER_MENU_SHELL_WIDTH_CLASS`; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + same shell width; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content; never nest the fixed dock under `mesa-menu-shell` / `container-type` (iOS WebKit traps `position:fixed` — width container stays on content host only).
+sole `customerBottomDockSurfaceClass` (fixed bottom-0, opaque `bg-brand-card`, border-t, safe-area pad; no width) — menu footer = surface + `CUSTOMER_MENU_SHELL_WIDTH_CLASS`; guest bill sole `GuestBillBottomDock` (editing: call gold then outline「返回点单」; awaiting/settled: outline back only; no guest「恢复点单」/「刷新页面」) = surface + same shell width; never a floating `bottom-4 -translate-x-1/2` CTA over scrolling content; never nest the fixed dock under `mesa-menu-shell` / `container-type` (iOS WebKit traps `position:fixed` — width container stays on content host only). Menu footer euro sole `FooterAmount` always full `€X.XX` (never truncate); row priority icon → full amount → right CTA/success yields (`action` shrink + label truncate) — never ellipsis the total.
 
 ### By-item fraction unit (one cut per dish)
 

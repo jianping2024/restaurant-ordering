@@ -66,9 +66,16 @@ export function CheckoutHeadcountAdjustModal({
     setPackageLocked(current != null);
     setDraft(
       current
-        ?? (activeBuffets[0] ? { buffetId: activeBuffets[0].id, adults: 0, children: 0 } : null),
+        ?? (activeBuffets[0]
+          ? selectTableBuffetDraft(
+              null,
+              activeBuffets[0].id,
+              buffetPricesByBuffetId[activeBuffets[0].id],
+              activeBuffets[0],
+            )
+          : null),
     );
-  }, [open, sessionOrders, activeBuffets]);
+  }, [open, sessionOrders, activeBuffets, buffetPricesByBuffetId]);
 
   const effectiveDraft = effectiveTableBuffet(draft);
   const hasGuests = effectiveDraft != null && totalGuestsFromCounts(effectiveDraft) > 0;
@@ -92,7 +99,12 @@ export function CheckoutHeadcountAdjustModal({
           onSelectBuffet={(buffetId) => {
             if (packageLocked) return;
             setDraft((prev) =>
-              selectTableBuffetDraft(prev, buffetId, buffetPricesByBuffetId[buffetId]),
+              selectTableBuffetDraft(
+                prev,
+                buffetId,
+                buffetPricesByBuffetId[buffetId],
+                activeBuffets.find((b) => b.id === buffetId) ?? null,
+              ),
             );
           }}
           onSetGuestCount={(which, value) => {

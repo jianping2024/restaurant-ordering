@@ -395,17 +395,45 @@ export function buffetGuestRuleFor(
   };
 }
 
-/** Sole package pick: headcount carries over; a side the package's rule disables → 0. */
+/**
+ * Raise headcount to the package minimum when short — prefer adults if that side is on,
+ * else children. Already at/above minimum is unchanged. Sole bump used by package pick.
+ */
+export function ensureTableBuffetDraftMinGuests(
+  selection: TableBuffetSelection,
+  rule: BuffetGuestRule,
+): TableBuffetSelection {
+  const { adults, children } = normalizeBuffetGuestCounts(selection.adults, selection.children);
+  const next = { buffetId: selection.buffetId, adults, children };
+  const need = rule.minGuestCount - (adults + children);
+  if (need <= 0) return next;
+  if (rule.adultEnabled) {
+    next.adults = adults + need;
+    return next;
+  }
+  if (rule.childEnabled) {
+    next.children = children + need;
+    return next;
+  }
+  return next;
+}
+
+/**
+ * Sole package pick: headcount carries over; a side the package's rule disables → 0;
+ * then raise to `min_guest_count` when short (prefer adults).
+ */
 export function selectTableBuffetDraft(
   prev: TableBuffetSelection | null,
   buffetId: string,
   resolved: Pick<ResolvedBuffetPriceRow, 'adult_enabled' | 'child_enabled'> | null | undefined,
+  buffet?: Pick<Buffet, 'min_guest_count'> | null,
 ): TableBuffetSelection {
-  return {
+  const picked = {
     buffetId,
     adults: resolved?.adult_enabled === false ? 0 : (prev?.adults ?? 0),
     children: resolved?.child_enabled === false ? 0 : (prev?.children ?? 0),
   };
+  return ensureTableBuffetDraftMinGuests(picked, buffetGuestRuleFor(buffet, resolved));
 }
 
 /** Rule for the draft's buffet among `buffets` + `resolvedByBuffetId`; null without a draft. */

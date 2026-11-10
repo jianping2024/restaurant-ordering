@@ -11,8 +11,9 @@ alwaysApply: true
 
 1. **Recommend one best-practice end-state** — how the concept should be represented after the change (one source of truth, no contradictory UI/metrics).
 2. **Analyze / plan headings:** Heading 3 is that end-state only. Do not present “低风险补丁 vs 最佳实践” as equal choices unless Will explicitly asks for a stopgap.
-3. **Reject as the plan:** hide-when-lying badges, extra if/else beside the real formula, second pending/progress calculator, “先改文案再说口径”, copy-nearby then dedupe later.
-4. **If unsure which design is best:** ask Will to pick among **best-practice** alternatives — never default to the smallest patch.
+3. **Implement the same end-state** — widen/rename the sole helper or phase input; do **not** ship a parallel optional `foo?: boolean` / `!!foo` / extra OR branch beside the real gate (Will catch: 2026-11-10 guest awaiting).
+4. **Reject as the plan or diff:** hide-when-lying badges, extra if/else beside the real formula, second pending/progress calculator, “先改文案再说口径”, copy-nearby then dedupe later, keep-old + forward-only wrapper.
+5. **If unsure which design is best:** ask Will to pick among **best-practice** alternatives — never default to the smallest patch.
 
 ## Allowed narrow fixes (not “patches”)
 
@@ -23,3 +24,7 @@ alwaysApply: true
 ## Conflicts
 
 Wins over “minimal diff”, “ship a small gate first”, and “patch then harden later”. Aligns with `analysis-before-code.mdc` end-state gate and skill `mesa-analyze-before-code`.
+
+## Cross-project
+
+Same standing order is also a **Cursor User Rule** (`Best practice only — never patch-first (all projects)`) so it applies outside this repo.

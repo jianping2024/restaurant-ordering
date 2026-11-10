@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>按菜领完呼叫 · 同桌其他人及时通知 — 静态说明</title>
+  <!--
+    场景：A 把剩余菜领完并呼叫结账；B 仍停在按菜认票页。
+    既有链路：table_checkout_signals(call) → IndividualCheckoutNotice 弹框 + refreshBill。
+    目标端态：刷新后菜池以服务端 persons 为唯一真相；本机草稿压到剩余；呼叫 CTA 在冲突/无剩余时不可提交。
+    打开：浏览器打开本文件（file://…/docs/design/mockups/2026-11-10-guest-claim-call-peer-notify.static.html）。
+  -->
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --on-gold: 247 244 238;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --danger: 185 28 28;
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 { font-size: 1.45rem; margin: 0 0 0.35rem; color: rgb(var(--ink)); }
+    .lead { margin: 0 0 1.25rem; color: rgb(var(--ink-muted)); font-size: 0.95rem; line-height: 1.5; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 0.5rem 1rem;
+      margin-bottom: 1.5rem; font-size: 0.8rem; color: rgb(var(--ink-muted));
+    }
+    .meta code {
+      font-size: 0.75rem; padding: 0.15rem 0.4rem; border-radius: 0.35rem;
+      background: rgb(var(--card)); border: 1px solid rgb(var(--border) / 0.7);
+    }
+    h2 { font-size: 1.05rem; margin: 1.75rem 0 0.75rem; color: rgb(var(--ink)); }
+    .flow {
+      display: grid; gap: 0.65rem; margin: 0 0 1.25rem;
+      padding: 1rem 1.1rem; border-radius: 1rem;
+      background: rgb(var(--card)); border: 1px solid rgb(var(--border) / 0.75);
+      font-size: 0.88rem; line-height: 1.45;
+    }
+    .flow ol { margin: 0; padding-left: 1.2rem; }
+    .flow li { margin: 0.35rem 0; }
+    .phones {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .phone {
+      border-radius: 1.25rem; border: 1px solid rgb(var(--border));
+      background: rgb(var(--card)); overflow: hidden;
+      box-shadow: 0 10px 28px rgb(var(--ink) / 0.08);
+    }
+    .phone-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 0.9rem; background: rgb(var(--ink)); color: rgb(var(--on-gold));
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .phone-bar span { opacity: 0.75; font-weight: 500; }
+    .phone-body { padding: 0.9rem; position: relative; min-height: 420px; }
+    .tag {
+      display: inline-block; font-size: 0.7rem; font-weight: 600;
+      padding: 0.15rem 0.45rem; border-radius: 999px; margin-bottom: 0.6rem;
+    }
+    .tag-before { background: rgb(var(--ink-muted) / 0.15); color: rgb(var(--ink-muted)); }
+    .tag-after { background: rgb(var(--gold) / 0.18); color: rgb(var(--gold)); }
+    .money {
+      border: 1px solid rgb(var(--border) / 0.8); border-radius: 0.85rem;
+      padding: 0.7rem 0.8rem; margin-bottom: 0.7rem; font-size: 0.78rem;
+    }
+    .money-row { display: flex; justify-content: space-between; gap: 0.5rem; margin: 0.2rem 0; }
+    .money strong { color: rgb(var(--gold)); }
+    .dish {
+      border: 1px solid rgb(var(--border)); border-radius: 0.85rem;
+      padding: 0.7rem 0.75rem; margin-bottom: 0.55rem; background: #fff;
+    }
+    .dish.over {
+      border-color: rgb(var(--danger) / 0.45);
+      box-shadow: 0 0 0 1px rgb(var(--danger) / 0.2);
+    }
+    .dish.locked { opacity: 0.72; background: rgb(var(--border) / 0.22); }
+    .dish-title { margin: 0; font-size: 0.88rem; font-weight: 600; }
+    .dish-meta { margin: 0.25rem 0 0.55rem; font-size: 0.72rem; color: rgb(var(--ink-muted)); }
+    .dish.over .dish-meta { color: rgb(var(--danger)); font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chip {
+      min-height: 2rem; padding: 0 0.65rem; border-radius: 999px;
+      border: 1px solid rgb(var(--border)); background: #fff;
+      font-size: 0.75rem; color: rgb(var(--text));
+    }
+    .chip:disabled { opacity: 0.45; }
+    .others {
+      margin-top: 0.75rem; padding: 0.7rem 0.75rem; border-radius: 0.85rem;
+      border: 1px solid rgb(var(--gold) / 0.35); background: rgb(var(--gold) / 0.06);
+      font-size: 0.78rem;
+    }
+    .others h4 { margin: 0 0 0.35rem; font-size: 0.82rem; }
+    .dock {
+      margin-top: 0.85rem; display: grid; gap: 0.45rem;
+    }
+    .btn {
+      min-height: 2.75rem; border-radius: 0.85rem; border: 0;
+      font-size: 0.9rem; font-weight: 600; cursor: default;
+    }
+    .btn-gold { background: rgb(var(--gold)); color: rgb(var(--on-gold)); }
+    .btn-gold:disabled { opacity: 0.45; }
+    .btn-soft {
+      background: transparent; border: 1.5px solid rgb(var(--border));
+      color: rgb(var(--text));
+    }
+    .banner {
+      margin: 0.55rem 0 0; font-size: 0.78rem; color: rgb(var(--danger)); font-weight: 600;
+    }
+    .modal-layer {
+      position: absolute; inset: 0; display: flex; align-items: flex-end;
+      background: rgb(15 23 42 / 0.42); padding: 0.75rem;
+    }
+    .modal {
+      width: 100%; border-radius: 1rem; background: #fff;
+      border: 1px solid rgb(var(--border)); padding: 0.9rem;
+      box-shadow: 0 16px 40px rgb(0 0 0 / 0.18);
+    }
+    .modal h3 { margin: 0 0 0.35rem; font-size: 0.95rem; color: rgb(var(--ink)); }
+    .modal p { margin: 0 0 0.55rem; font-size: 0.78rem; color: rgb(var(--text)); }
+    .modal ul { margin: 0 0 0.7rem; padding: 0; list-style: none; font-size: 0.78rem; }
+    .modal li {
+      display: flex; justify-content: space-between; gap: 0.5rem;
+      padding: 0.4rem 0; border-bottom: 1px solid rgb(var(--border) / 0.7);
+    }
+    .modal .ok {
+      width: 100%; min-height: 2.5rem; border: 0; border-radius: 0.75rem;
+      background: rgb(var(--gold)); color: rgb(var(--on-gold)); font-weight: 600;
+    }
+    .gap-box {
+      margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 1rem;
+      border: 1px dashed rgb(var(--gold) / 0.55); background: rgb(var(--gold) / 0.06);
+      font-size: 0.88rem; line-height: 1.5;
+    }
+    .gap-box h3 { margin: 0 0 0.45rem; font-size: 0.95rem; color: rgb(var(--ink)); }
+    .gap-box ul { margin: 0; padding-left: 1.15rem; }
+    footer {
+      margin-top: 2rem; font-size: 0.75rem; color: rgb(var(--ink-muted));
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>按菜领完呼叫 · 同桌其他人及时通知</h1>
+    <p class="lead">
+      A 把桌上剩余菜领完并点「呼叫结账」。B 还停在按菜认票页时，应立刻弹通知、刷新菜池，
+      并拦住「再领 / 再提交」。认票草稿只在本机；真正锁菜发生在呼叫写入服务端之后。
+    </p>
+    <div class="meta">
+      <span>门铃表 <code>table_checkout_signals</code>（kind=call）</span>
+      <span>弹框 <code>IndividualCheckoutNotice</code></span>
+      <span>刷新 <code>refreshBill</code> → <code>GuestClaimPanel</code></span>
+    </div>
+
+    <h2>时间线（一人呼叫 → 其他人）</h2>
+    <div class="flow">
+      <ol>
+        <li>A 本机草稿认领剩余菜 → 点呼叫 → 服务端 <code>individual_checkout_apply</code> 写入票并锁菜。</li>
+        <li>同事务插入 <code>table_checkout_signals</code>（call：名字 + 菜行 + 金额）。</li>
+        <li>B 匿名 Realtime 收到门铃 → 拉新信号 → <strong>弹框</strong> + <code>refreshBill</code>。</li>
+        <li>B 认票区按最新 <code>persons</code> 重算「别人已领 / 剩余」；超领标红；呼叫 CTA 在冲突或无可领时不可提交。</li>
+        <li>若信号晚到、B 抢先提交：服务端 <code>claim_conflict</code> 拒绝，并刷新账单（文案：有菜已被其他人认领）。</li>
+      </ol>
+    </div>
+
+    <h2>手机对照 · 呼叫前</h2>
+    <div class="phones">
+      <section class="phone" aria-label="手机 A 呼叫前">
+        <div class="phone-bar">手机 A · 张三 <span>认票中</span></div>
+        <div class="phone-body">
+          <span class="tag tag-before">呼叫前</span>
+          <div class="money">
+            <div class="money-row"><span>我的</span><strong>€28.00</strong></div>
+            <div class="money-row"><span>别人</span><span>€0.00</span></div>
+            <div class="money-row"><span>未领</span><span>€0.00</span></div>
+          </div>
+          <div class="dish">
+            <p class="dish-title">套餐A</p>
+            <p class="dish-meta">剩 0 · 我的 2 成人</p>
+            <div class="chips"><button class="chip" type="button" disabled>+1 成人</button></div>
+          </div>
+          <div class="dock">
+            <button class="btn btn-gold" type="button">🔔 呼叫结账</button>
+            <button class="btn btn-soft" type="button">← 返回点单</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="phone" aria-label="手机 B 呼叫前">
+        <div class="phone-bar">手机 B · 李四 <span>也在认票</span></div>
+        <div class="phone-body">
+          <span class="tag tag-before">呼叫前 · 本机草稿仍以为还有菜</span>
+          <div class="money">
+            <div class="money-row"><span>我的</span><strong>€14.00</strong></div>
+            <div class="money-row"><span>别人</span><span>€0.00</span></div>
+            <div class="money-row"><span>未领</span><span>€14.00</span></div>
+          </div>
+          <div class="dish">
+            <p class="dish-title">套餐A</p>
+            <p class="dish-meta">剩 1 · 我的 1 成人（本机草稿，未提交）</p>
+            <div class="chips"><button class="chip" type="button">+1 成人</button></div>
+          </div>
+          <div class="dock">
+            <button class="btn btn-gold" type="button">🔔 呼叫结账</button>
+            <button class="btn btn-soft" type="button">← 返回点单</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <h2>手机对照 · A 呼叫后（目标端态）</h2>
+    <div class="phones">
+      <section class="phone" aria-label="手机 A 呼叫后">
+        <div class="phone-bar">手机 A · 张三 <span>待结账</span></div>
+        <div class="phone-body">
+          <span class="tag tag-after">已提交 · 本机不弹自己的呼叫框</span>
+          <div class="money">
+            <div class="money-row"><span>本票</span><strong>€28.00</strong></div>
+            <div class="money-row"><span>提示</span><span>请到柜台付款</span></div>
+          </div>
+          <div class="dish locked">
+            <p class="dish-title">套餐A ×2</p>
+            <p class="dish-meta">已呼叫 · 暂不能点单</p>
+          </div>
+          <div class="dock">
+            <button class="btn btn-soft" type="button">← 返回点单</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="phone" aria-label="手机 B 呼叫后">
+        <div class="phone-bar">手机 B · 李四 <span>认票页 + 通知</span></div>
+        <div class="phone-body">
+          <span class="tag tag-after">收到 call 信号后</span>
+          <div class="money">
+            <div class="money-row"><span>我的</span><strong>€0.00</strong></div>
+            <div class="money-row"><span>别人</span><span>€28.00</span></div>
+            <div class="money-row"><span>未领</span><span>€0.00</span></div>
+          </div>
+          <!-- 目标：超领草稿压到剩余后，菜从可编辑列表消失，只出现在别人块 -->
+          <div class="others">
+            <h4>张三 · 已呼叫 · €28.00</h4>
+            <div>套餐A · 2 成人</div>
+          </div>
+          <p class="banner">桌上已无可领菜 · 呼叫结账不可用</p>
+          <div class="dock">
+            <button class="btn btn-gold" type="button" disabled>先认领菜品</button>
+            <button class="btn btn-soft" type="button">← 返回点单</button>
+          </div>
+
+          <div class="modal-layer" aria-label="呼叫结账通知">
+            <div class="modal">
+              <h3>呼叫结账</h3>
+              <p>同桌有人呼叫结账</p>
+              <ul>
+                <li><span>张三 · 套餐A ×2</span><strong>€28.00</strong></li>
+              </ul>
+              <button class="ok" type="button">知道了</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <h2>若 B 本机草稿与 A 重叠（刷新瞬间）</h2>
+    <div class="phones">
+      <section class="phone" aria-label="超领标红过渡">
+        <div class="phone-bar">手机 B · 过渡态</div>
+        <div class="phone-body">
+          <span class="tag tag-before">现状：标红 + 禁提交，菜单行不自动压回剩余</span>
+          <div class="dish over">
+            <p class="dish-title">套餐A</p>
+            <p class="dish-meta">超出剩余份数，请调整</p>
+            <div class="chips">
+              <button class="chip" type="button" disabled>+1 成人</button>
+              <button class="chip" type="button">−</button>
+            </div>
+          </div>
+          <div class="dock">
+            <button class="btn btn-gold" type="button" disabled>🔔 呼叫结账</button>
+          </div>
+        </div>
+      </section>
+      <section class="phone" aria-label="自动压到剩余">
+        <div class="phone-bar">手机 B · 目标</div>
+        <div class="phone-body">
+          <span class="tag tag-after">目标：与自助餐座位同一规则，菜单份额也压到剩余</span>
+          <div class="others">
+            <h4>张三 · 已呼叫</h4>
+            <div>套餐A 已被领完 → 本机超领清零 → 卡片从可编辑列表移除</div>
+          </div>
+          <div class="dock">
+            <button class="btn btn-gold" type="button" disabled>先认领菜品</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="gap-box">
+      <h3>本说明页对应的改动重点（待确认后实现）</h3>
+      <ul>
+        <li><strong>保留</strong>：门铃表 + 弹框 + <code>refreshBill</code> + 服务端超领拒绝（不另开第二套实时源）。</li>
+        <li><strong>补齐</strong>：服务端 <code>persons</code> 更新后，本机菜单认领也压到剩余（与现有自助餐 clamp 同一入口），减少「红框还挂着旧份数」。</li>
+        <li><strong>不改</strong>：顾客不订阅 <code>bill_splits</code>；认票草稿在呼叫前不广播给其他手机。</li>
+      </ul>
+    </div>
+
+    <footer>
+      文件：docs/design/mockups/2026-11-10-guest-claim-call-peer-notify.static.html<br />
+      file:///Users/chenjianping/Documents/restaurant-ordering/docs/design/mockups/2026-11-10-guest-claim-call-peer-notify.static.html
+    </footer>
+  </div>
+</body>
+</html>

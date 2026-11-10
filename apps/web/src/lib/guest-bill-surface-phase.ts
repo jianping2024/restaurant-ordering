@@ -9,9 +9,11 @@ export type GuestBillSurfacePhase = 'editing' | 'awaiting_payment' | 'settled';
 /**
  * Next bill surface after a sync (or local call latch).
  *
- * - Live call / unpaid hold → `awaiting_payment`
- * - Split `paid`, or no live session (table closed after last collect) → `settled`
- * - Otherwise (resume, by-item ticket paid while table still open) → `editing`
+ * - This phone's unpaid called ticket → `awaiting_payment`
+ * - Shared plan holds every phone ({@link guestSharedPlanHoldsAwaiting}) → same shell
+ * - Local latch right after this phone called → `awaiting_payment` until sync confirms
+ * - Split `paid`, or no live session → `settled`
+ * - Otherwise (resume, unlock frees the pool, by-item ticket paid while table open) → `editing`
  *
  * No live session always settles — including phones still on the call-checkout editor
  * that never pressed 呼叫结账 (staff collected the last person and closed the table).
@@ -20,8 +22,8 @@ export function resolveGuestBillSurfacePhase(params: {
   previousPhase: GuestBillSurfacePhase;
   /** This phone has a called unpaid by-item ticket. */
   phoneHoldsOrdering: boolean;
-  /** Whole-table / even plan is requested|confirmed. */
-  tablePlanHoldsCheckout: boolean;
+  /** Shared plan: every phone on awaiting/submitted (whole/even called, or by-item pool full). */
+  sharedPlanHoldsAwaiting: boolean;
   /** Local latch right after this phone called, before server confirms. */
   localCalledLatch: boolean;
   /** Live open/billing session id; null when the table has no active session. */
@@ -30,7 +32,7 @@ export function resolveGuestBillSurfacePhase(params: {
 }): GuestBillSurfacePhase {
   const liveAwaiting =
     params.phoneHoldsOrdering ||
-    params.tablePlanHoldsCheckout ||
+    params.sharedPlanHoldsAwaiting ||
     params.localCalledLatch;
 
   // Awaiting only while the table session is still live (latch alone after close → settled).

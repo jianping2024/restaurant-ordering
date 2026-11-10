@@ -5,15 +5,21 @@ import {
   resolveGuestBillSurfacePhase,
 } from './guest-bill-surface-phase';
 
+const base = {
+  previousPhase: 'editing' as const,
+  phoneHoldsOrdering: false,
+  sharedPlanHoldsAwaiting: false,
+  localCalledLatch: false,
+  sessionId: 's1' as string | null,
+  splitStatus: null as 'requested' | 'confirmed' | 'paid' | null,
+};
+
 describe('resolveGuestBillSurfacePhase', () => {
   it('enters awaiting when this phone holds ordering', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
-        previousPhase: 'editing',
+        ...base,
         phoneHoldsOrdering: true,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
-        sessionId: 's1',
         splitStatus: 'requested',
       }),
       'awaiting_payment',
@@ -23,12 +29,19 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('enters awaiting from local call latch before sync', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
-        previousPhase: 'editing',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
+        ...base,
         localCalledLatch: true,
-        sessionId: 's1',
-        splitStatus: null,
+      }),
+      'awaiting_payment',
+    );
+  });
+
+  it('enters awaiting when the shared plan holds every phone', () => {
+    assert.equal(
+      resolveGuestBillSurfacePhase({
+        ...base,
+        sharedPlanHoldsAwaiting: true,
+        splitStatus: 'requested',
       }),
       'awaiting_payment',
     );
@@ -37,12 +50,9 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('settles when session closes after awaiting', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'awaiting_payment',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
         sessionId: null,
-        splitStatus: null,
       }),
       'settled',
     );
@@ -51,12 +61,8 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('settles when session closes while still on the call-checkout editor', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
-        previousPhase: 'editing',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
+        ...base,
         sessionId: null,
-        splitStatus: null,
       }),
       'settled',
     );
@@ -65,12 +71,10 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('settles when session closes even if local call latch is still set', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'awaiting_payment',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
         localCalledLatch: true,
         sessionId: null,
-        splitStatus: null,
       }),
       'settled',
     );
@@ -79,11 +83,8 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('stays settled when split is paid', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'awaiting_payment',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
-        sessionId: 's1',
         splitStatus: 'paid',
       }),
       'settled',
@@ -93,12 +94,21 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('returns to editing when by-item ticket paid but table still open', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'awaiting_payment',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
-        sessionId: 's1',
         splitStatus: 'requested',
+      }),
+      'editing',
+    );
+  });
+
+  it('returns to editing when unlock frees the shared awaiting hold', () => {
+    assert.equal(
+      resolveGuestBillSurfacePhase({
+        ...base,
+        previousPhase: 'awaiting_payment',
+        sharedPlanHoldsAwaiting: false,
+        splitStatus: 'confirmed',
       }),
       'editing',
     );
@@ -107,11 +117,8 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('returns to editing after staff resume (session open, no hold)', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'awaiting_payment',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
-        sessionId: 's1',
         splitStatus: 'confirmed',
       }),
       'editing',
@@ -121,12 +128,9 @@ describe('resolveGuestBillSurfacePhase', () => {
   it('keeps settled across empty post-close syncs', () => {
     assert.equal(
       resolveGuestBillSurfacePhase({
+        ...base,
         previousPhase: 'settled',
-        phoneHoldsOrdering: false,
-        tablePlanHoldsCheckout: false,
-        localCalledLatch: false,
         sessionId: null,
-        splitStatus: null,
       }),
       'settled',
     );

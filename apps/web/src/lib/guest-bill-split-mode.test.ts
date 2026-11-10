@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import {
   guestBillSplitModeFromSplit,
   guestBillSplitModeLocked,
-  guestTablePlanHoldsCheckout,
+  guestSharedPlanHoldsAwaiting,
   resolveGuestBillSplitMode,
 } from './guest-bill-split-mode';
 import type { BillSplit } from '../types';
@@ -82,17 +82,46 @@ describe('resolveGuestBillSplitMode', () => {
   });
 });
 
-describe('guestTablePlanHoldsCheckout', () => {
-  it('ignores by-item plans', () => {
+describe('guestSharedPlanHoldsAwaiting', () => {
+  it('does not hold by-item when dishes remain unclaimed', () => {
     assert.equal(
-      guestTablePlanHoldsCheckout(split({ split_mode: 'by_item', status: 'requested' })),
+      guestSharedPlanHoldsAwaiting({
+        split: split({
+          split_mode: 'by_item',
+          status: 'requested',
+          result: [{ name: 'A', amount: 10 }],
+          total_amount: 28,
+        }),
+        collectedPayments: [],
+        tableTotal: 28,
+      }),
       false,
     );
   });
 
-  it('treats requested whole_table as holding checkout', () => {
+  it('holds by-item when every euro is on called tickets still owed', () => {
     assert.equal(
-      guestTablePlanHoldsCheckout(split({ status: 'requested' })),
+      guestSharedPlanHoldsAwaiting({
+        split: split({
+          split_mode: 'by_item',
+          status: 'requested',
+          result: [{ name: 'A', amount: 28 }],
+          total_amount: 28,
+        }),
+        collectedPayments: [],
+        tableTotal: 28,
+      }),
+      true,
+    );
+  });
+
+  it('treats requested whole_table as holding awaiting for every phone', () => {
+    assert.equal(
+      guestSharedPlanHoldsAwaiting({
+        split: split({ status: 'requested' }),
+        collectedPayments: [],
+        tableTotal: 28,
+      }),
       true,
     );
   });

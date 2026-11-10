@@ -36,6 +36,7 @@ import {
   unitDenForQty,
 } from '@/lib/by-item-fraction-unit';
 import {
+  compareRationals,
   normalizeRational,
   rationalFromNumber,
   sumRationals,
@@ -368,7 +369,49 @@ export function clampGuestClaimBuffetRows(
   return changed ? { ...claim, rows } : claim;
 }
 
-/** Apply a guest claim row patch; buffet adult/child fields are clamped to seat ceil. */
+/**
+ * Sole guest claim clamp after others lock shares: buffet seats + menu qty both capped to
+ * what is still left for this phone. Menu over-claim drafts clear when remaining is 0.
+ */
+export function clampGuestClaimRows(
+  claim: GuestClaim,
+  lineSpecs: ReadonlyArray<ByItemLineSpec>,
+  others: ByItemLineAllocation,
+): GuestClaim {
+  const afterBuffet = clampGuestClaimBuffetRows(claim, lineSpecs, others);
+  let changed = afterBuffet !== claim;
+  const rows = { ...afterBuffet.rows };
+  for (const spec of lineSpecs) {
+    if (spec.mode !== 'menu') continue;
+    const row = rows[spec.key];
+    if (!row) continue;
+    const mine = rationalFromGuestClaimRow(row);
+    if (mine.num <= 0) continue;
+    const left = lineAvailability(spec, others);
+    if (left.mode !== 'menu') continue;
+    if (compareRationals(mine, left.remaining) <= 0) continue;
+    changed = true;
+    if (left.remaining.num <= 0) {
+      rows[spec.key] = {
+        ...row,
+        qtyWhole: '',
+        qtyNum: '',
+        qtyDen: '',
+        unitDen: undefined,
+      };
+      continue;
+    }
+    const lockedUnit = fractionUnitOfLine(others[spec.key] ?? []);
+    rows[spec.key] = {
+      ...row,
+      ...rationalToRowQtyFields(left.remaining),
+      unitDen: unitDenForQty(left.remaining, lockedUnit ?? row.unitDen),
+    };
+  }
+  return changed ? { ...afterBuffet, rows } : afterBuffet;
+}
+
+/** Apply a guest claim row patch; shares are clamped to what others left. */
 export function applyGuestClaimRowPatch(
   claim: GuestClaim,
   spec: ByItemLineSpec,
@@ -379,8 +422,7 @@ export function applyGuestClaimRowPatch(
     ...claim,
     rows: { ...claim.rows, [spec.key]: { ...claimRowFor(claim, spec), ...patch } },
   };
-  if (spec.mode !== 'buffet') return next;
-  return clampGuestClaimBuffetRows(next, [spec], others);
+  return clampGuestClaimRows(next, [spec], others);
 }
 
 function mySharesOf(

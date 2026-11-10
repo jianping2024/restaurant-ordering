@@ -8,7 +8,7 @@
  * UI phase sole {@link resolveGuestBillSurfacePhase} — not {@link individualPhoneHoldsOrdering}.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { guestTablePlanHoldsCheckout } from '@/lib/guest-bill-split-mode';
+import { guestSharedPlanHoldsAwaiting } from '@/lib/guest-bill-split-mode';
 import {
   resolveGuestBillSurfacePhase,
   type GuestBillSurfacePhase,
@@ -31,7 +31,7 @@ export type BillOrdersRefresh = {
 function phaseInputsFromSnapshot(
   snapshot: Pick<
     CustomerBillSyncSnapshot,
-    'individualTickets' | 'existingSplit' | 'sessionId'
+    'individualTickets' | 'existingSplit' | 'sessionId' | 'total' | 'collectedPayments'
   >,
   localCalledLatch: boolean,
   previousPhase: GuestBillSurfacePhase,
@@ -40,10 +40,14 @@ function phaseInputsFromSnapshot(
     snapshot.individualTickets,
     snapshot.existingSplit?.result ?? [],
   );
-  const tablePlanHoldsCheckout = guestTablePlanHoldsCheckout(snapshot.existingSplit);
+  const sharedPlanHoldsAwaiting = guestSharedPlanHoldsAwaiting({
+    split: snapshot.existingSplit,
+    collectedPayments: snapshot.collectedPayments,
+    tableTotal: snapshot.total,
+  });
   return {
     phoneHoldsOrdering,
-    tablePlanHoldsCheckout,
+    sharedPlanHoldsAwaiting,
     localCalledLatch,
     sessionId: snapshot.sessionId,
     splitStatus: snapshot.existingSplit?.status ?? null,
@@ -89,6 +93,8 @@ export function useCustomerBillReadModel(
           individualTickets: initial.individualTickets ?? [],
           existingSplit: initial.existingSplit,
           sessionId: initial.sessionId,
+          collectedPayments: initial.collectedPayments,
+          total: deriveBillView(initial.orders).total,
         },
         false,
         'editing',
@@ -127,15 +133,14 @@ export function useCustomerBillReadModel(
   }, []);
 
   const applyPhaseFromSnapshot = useCallback((synced: CustomerBillSyncSnapshot) => {
-    const phoneHoldsOrdering = individualPhoneHoldsOrdering(
-      synced.individualTickets,
-      synced.existingSplit?.result ?? [],
+    const inputs = phaseInputsFromSnapshot(
+      synced,
+      localCalledLatchRef.current,
+      surfacePhaseRef.current,
     );
-    setOrderingHeld(phoneHoldsOrdering);
-    const nextPhase = resolveGuestBillSurfacePhase(
-      phaseInputsFromSnapshot(synced, localCalledLatchRef.current, surfacePhaseRef.current),
-    );
-    if (phoneHoldsOrdering || guestTablePlanHoldsCheckout(synced.existingSplit)) {
+    setOrderingHeld(inputs.phoneHoldsOrdering);
+    const nextPhase = resolveGuestBillSurfacePhase(inputs);
+    if (inputs.phoneHoldsOrdering || inputs.sharedPlanHoldsAwaiting) {
       localCalledLatchRef.current = false;
     }
     surfacePhaseRef.current = nextPhase;

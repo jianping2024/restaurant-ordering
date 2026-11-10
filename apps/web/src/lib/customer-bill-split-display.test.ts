@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildCustomerSplitDisplayRows,
+  buildCustomerTableSettlementSummary,
+  guestByItemPoolFullyCalled,
+  guestByItemPoolFullyCalledFromSplit,
   orderCustomerTableSplitRows,
   type CustomerSplitRowDisplay,
 } from './customer-bill-split-display';
@@ -67,6 +70,67 @@ describe('partial split display rows', () => {
   });
 });
 
+
+describe('guestByItemPoolFullyCalled', () => {
+  it('is true only when the table has money, nothing unclaimed, and called outstanding', () => {
+    assert.equal(
+      guestByItemPoolFullyCalled({ table: 42, unclaimed: 0, called: 42 }),
+      true,
+    );
+    assert.equal(
+      guestByItemPoolFullyCalled({ table: 42, unclaimed: 10, called: 32 }),
+      false,
+    );
+    assert.equal(
+      guestByItemPoolFullyCalled({ table: 42, unclaimed: 0, called: 0 }),
+      false,
+    );
+    assert.equal(
+      guestByItemPoolFullyCalled({ table: 0, unclaimed: 0, called: 0 }),
+      false,
+    );
+  });
+
+  it('reads from a by-item split + ledger via the sole summary', () => {
+    const split = {
+      id: 'bs1',
+      restaurant_id: 'r1',
+      session_id: 's1',
+      table_id: 't1',
+      display_name: 'A1',
+      order_ids: [] as string[],
+      status: 'requested' as const,
+      split_mode: 'by_item' as const,
+      persons: [],
+      result: [{ name: '张三', amount: 28, party_id: 'p1' }],
+      total_amount: 28,
+      created_at: '',
+    };
+    assert.equal(
+      guestByItemPoolFullyCalledFromSplit({
+        split,
+        collectedPayments: [],
+        tableTotal: 28,
+      }),
+      true,
+    );
+    assert.equal(
+      guestByItemPoolFullyCalledFromSplit({
+        split: { ...split, split_mode: 'whole_table' },
+        collectedPayments: [],
+        tableTotal: 28,
+      }),
+      false,
+    );
+    const rows = buildCustomerSplitDisplayRows(split.result, [], 0, 28);
+    assert.deepEqual(buildCustomerTableSettlementSummary(rows, 28), {
+      table: 28,
+      collected: 0,
+      called: 28,
+      unclaimed: 0,
+    });
+  });
+});
 
 describe('orderCustomerTableSplitRows', () => {
   const row = (

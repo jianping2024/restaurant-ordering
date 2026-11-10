@@ -233,7 +233,7 @@ sole `normalizeByItemDraftPartyIds` (unpaid same-name coalesce then same-dish di
 
 ### Customer bill read-model
 
-sole `useCustomerBillReadModel` + `syncCustomerBill` full (orders+split+ledger+session); never orders-only `live` half-shell or freeze `submitted`/payments from mount props.
+sole `useCustomerBillReadModel` + `syncCustomerBill` full (orders+split+ledger+session); never orders-only `live` half-shell or freeze `submitted`/payments from mount props. UI phase sole `resolveGuestBillSurfacePhase`; shared-plan awaiting sole `guestSharedPlanHoldsAwaiting` (whole/even requested|confirmed, or by-item `guestByItemPoolFullyCalled`) → same `BillCheckoutSubmittedScreen` for every phone; unlock that frees the pool returns to editing. Guest claim clamp sole `clampGuestClaimRows` (buffet + menu).
 
 ### By-item collect amount
 

@@ -4,7 +4,7 @@ import {
   type SplitSettlementStatus,
 } from '@/lib/checkout-split-settlement';
 import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
-import type { SplitResult } from '@/types';
+import type { BillSplit, SplitResult } from '@/types';
 
 export type CustomerSplitRowDisplay = {
   name: string;
@@ -71,6 +71,35 @@ export function buildCustomerTableSettlementSummary(
     called: centsToEuros(outstandingCents),
     unclaimed: centsToEuros(Math.max(0, eurosToCents(tableTotal) - obligationCents)),
   };
+}
+
+/**
+ * By-item: every euro is on called tickets and someone still owes — nothing left to claim.
+ * Sole gate for sending every phone to the existing awaiting-checkout shell (not a new page).
+ */
+export function guestByItemPoolFullyCalled(
+  summary: Pick<CustomerTableSettlementSummary, 'table' | 'unclaimed' | 'called'>,
+): boolean {
+  return summary.table > 0 && summary.unclaimed <= 0 && summary.called > 0;
+}
+
+/** Split + ledger + table total → {@link guestByItemPoolFullyCalled}. */
+export function guestByItemPoolFullyCalledFromSplit(params: {
+  split: BillSplit | null | undefined;
+  collectedPayments: ReadonlyArray<SessionCollectedPayment>;
+  tableTotal: number;
+}): boolean {
+  const split = params.split;
+  if (!split || split.split_mode !== 'by_item') return false;
+  const rows = buildCustomerSplitDisplayRows(
+    (split.result ?? []) as SplitResult[],
+    [...params.collectedPayments],
+    0,
+    params.tableTotal,
+  );
+  return guestByItemPoolFullyCalled(
+    buildCustomerTableSettlementSummary(rows, params.tableTotal),
+  );
 }
 
 /**

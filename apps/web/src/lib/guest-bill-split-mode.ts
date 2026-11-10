@@ -3,6 +3,8 @@
  * Lock when the shared plan already has a non-draft mode or any collection.
  * Mode order/labels sole source: {@link GUEST_SPLIT_MODE_ORDER}.
  */
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { guestByItemPoolFullyCalledFromSplit } from '@/lib/customer-bill-split-display';
 import { isWholeTableSplit } from './checkout-split-intent';
 import {
   GUEST_SPLIT_MODE_ORDER,
@@ -65,9 +67,27 @@ export function resolveGuestBillSplitMode(params: {
   return { mode: params.draft, locked };
 }
 
-/** Whole-table / even plan already called — every phone shows the submitted screen. */
-export function guestTablePlanHoldsCheckout(split: BillSplit | null): boolean {
+/**
+ * Shared plan puts every guest phone on the awaiting/submitted shell
+ * (not only the phone that called).
+ *
+ * - whole_table / even: status requested|confirmed
+ * - by_item: nothing left to claim and someone still owes
+ *   ({@link guestByItemPoolFullyCalledFromSplit})
+ */
+export function guestSharedPlanHoldsAwaiting(params: {
+  split: BillSplit | null;
+  collectedPayments: ReadonlyArray<SessionCollectedPayment>;
+  tableTotal: number;
+}): boolean {
+  const split = params.split;
   if (!split) return false;
-  if (split.split_mode === 'by_item') return false;
+  if (split.split_mode === 'by_item') {
+    return guestByItemPoolFullyCalledFromSplit({
+      split,
+      collectedPayments: params.collectedPayments,
+      tableTotal: params.tableTotal,
+    });
+  }
   return split.status === 'requested' || split.status === 'confirmed';
 }

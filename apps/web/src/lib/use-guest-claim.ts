@@ -18,7 +18,7 @@ import {
   claimAllRemaining,
   claimNameTaken,
   claimFromServerTicket,
-  clampGuestClaimBuffetRows,
+  clampGuestClaimRows,
   clearGuestClaimDraft,
   guestClaimForDisplay,
   guestClaimIssue,
@@ -99,7 +99,7 @@ export function useGuestClaim(params: {
       const local = loadGuestClaimDraft(restaurantId, sessionId);
       if (local && !paidKeys.has(splitPartyKey(local.partyId, local.name))) {
         setClaim(
-          clampGuestClaimBuffetRows(
+          clampGuestClaimRows(
             local,
             lineSpecs,
             othersAllocation(persons ?? [], local, lineSpecs),
@@ -160,10 +160,10 @@ export function useGuestClaim(params: {
     setClaim((prev) => pruneClaimRows(prev, lineSpecs));
   }, [lineSpecs]);
 
-  // Others took buffet seats → squash any local over-claim drafts to the live ceil.
+  // Others locked shares → squash local over-claim drafts to what is still left.
   useEffect(() => {
     setClaim((prev) =>
-      clampGuestClaimBuffetRows(prev, lineSpecs, othersAllocation(persons ?? [], prev, lineSpecs)),
+      clampGuestClaimRows(prev, lineSpecs, othersAllocation(persons ?? [], prev, lineSpecs)),
     );
   }, [lineSpecs, persons]);
 

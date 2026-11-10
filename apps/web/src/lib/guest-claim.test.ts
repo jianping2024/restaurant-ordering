@@ -9,6 +9,7 @@ import {
   claimNameTaken,
   claimRowFor,
   clampGuestClaimBuffetRows,
+  clampGuestClaimRows,
   guestBuffetSeatCeil,
   guestClaimForDisplay,
   guestCalledTicket,
@@ -33,6 +34,7 @@ import {
   type GuestClaim,
 } from './guest-claim';
 import type { SplitPerson, SplitResult } from '../types';
+import { rationalFromGuestClaimRow } from './guest-claim-qty-stack';
 import { splitPartyKey } from './split-party-id';
 
 const ME = '11111111-1111-4111-8111-111111111111';
@@ -291,6 +293,32 @@ describe('guest buffet seat ceil + clamp', () => {
     const clamped = clampGuestClaimBuffetRows(dirty, specs, others);
     assert.equal(clamped.rows.BF!.adultQty, '1');
     assert.equal(clamped.rows.BF!.childQty, '1');
+  });
+});
+
+describe('clampGuestClaimRows menu', () => {
+  it('clears a menu over-claim when others already took the whole line', () => {
+    const ana: SplitPerson = {
+      name: 'Ana',
+      party_id: 'ana',
+      item_shares: [{ key: 'L1', qty_num: 4, qty_den: 1, party_id: 'ana' }],
+    };
+    const others = othersAllocation([ana], claim('Me'), specs);
+    const dirty = withQty(claim('Me'), specs[0]!, { qtyWhole: '1' });
+    const clamped = clampGuestClaimRows(dirty, specs, others);
+    assert.equal(rationalFromGuestClaimRow(clamped.rows.L1!).num, 0);
+  });
+
+  it('caps a menu over-claim down to what others left', () => {
+    const ana: SplitPerson = {
+      name: 'Ana',
+      party_id: 'ana',
+      item_shares: [{ key: 'L1', qty_num: 3, qty_den: 1, party_id: 'ana' }],
+    };
+    const others = othersAllocation([ana], claim('Me'), specs);
+    const dirty = withQty(claim('Me'), specs[0]!, { qtyWhole: '2' });
+    const clamped = clampGuestClaimRows(dirty, specs, others);
+    assert.deepEqual(rationalFromGuestClaimRow(clamped.rows.L1!), { num: 1, den: 1 });
   });
 });
 

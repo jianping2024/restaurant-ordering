@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>顾客按菜 · 现有待结账页 — 静态还原</title>
+  <!--
+    对照产品页 BillCheckoutSubmittedScreen（按菜）。
+    从上到下：顶栏 → 提示插画文案 →（有本机票才有）本次菜品清单 → 整桌总计+三笔 → 分单结果 → 评价 → 底栏「返回点单」。
+    打开：浏览器打开本文件。
+  -->
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --muted: 138 131 119;
+      --gold: 139 101 48;
+      --on-gold: 247 244 238;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 55% 40% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { margin: 0 0 0.35rem; font-size: 1.35rem; color: rgb(var(--ink)); }
+    .lead { margin: 0 0 1rem; color: rgb(var(--muted)); font-size: 0.92rem; line-height: 1.5; }
+    .note {
+      margin: 0 0 1.25rem; padding: 0.75rem 0.9rem; border-radius: 0.85rem;
+      border: 1px solid rgb(var(--border) / 0.8); background: rgb(var(--card));
+      font-size: 0.82rem; color: rgb(var(--muted)); line-height: 1.45;
+    }
+    .phones {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .phone {
+      border-radius: 1.35rem; border: 1px solid rgb(var(--border));
+      background: rgb(var(--bg)); overflow: hidden;
+      box-shadow: 0 12px 32px rgb(var(--ink) / 0.1);
+      max-width: 390px;
+    }
+    .phone-label {
+      padding: 0.55rem 0.85rem; font-size: 0.75rem; font-weight: 600;
+      background: rgb(var(--ink)); color: rgb(var(--on-gold));
+    }
+    .shell { min-height: 640px; display: flex; flex-direction: column; }
+    .header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.75rem; padding: 0.85rem 1rem 0.5rem;
+    }
+    .header .store { font-size: 1.05rem; font-weight: 700; color: rgb(var(--ink)); }
+    .header .table { font-size: 0.8rem; color: rgb(var(--muted)); }
+    .main { padding: 0.5rem 1rem 5.5rem; display: grid; gap: 0.85rem; flex: 1; }
+    .hero { text-align: center; padding-top: 0.35rem; }
+    .hero-illu {
+      width: 72px; height: 72px; margin: 0 auto 0.75rem; border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, rgb(var(--gold) / 0.35), transparent 55%),
+        rgb(var(--card));
+      border: 1px solid rgb(var(--border) / 0.7);
+      display: grid; place-items: center; font-size: 1.6rem;
+    }
+    .hero-title {
+      margin: 0; font-size: 1.05rem; line-height: 1.35; color: rgb(var(--gold));
+      font-weight: 600; padding: 0 0.25rem;
+    }
+    .hero-sub {
+      margin: 0.45rem 0 0; font-size: 0.84rem; line-height: 1.35; color: rgb(var(--muted));
+    }
+    .card {
+      background: rgb(var(--card)); border: 1px solid rgb(var(--border));
+      border-radius: 0.85rem; overflow: hidden;
+    }
+    .card-h {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+      padding: 0.55rem 1rem; border-bottom: 1px solid rgb(var(--border));
+      font-size: 0.8rem; color: rgb(var(--text)); font-weight: 500;
+    }
+    .card-h .euro { color: rgb(var(--gold)); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .line {
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 0.55rem 1rem; border-bottom: 1px solid rgb(var(--border));
+      font-size: 0.84rem;
+    }
+    .line:last-child { border-bottom: 0; }
+    .thumb {
+      width: 40px; height: 40px; border-radius: 0.55rem; flex-shrink: 0;
+      background: rgb(var(--border) / 0.45); display: grid; place-items: center;
+      font-size: 1.1rem;
+    }
+    .line .name { flex: 1; min-width: 0; }
+    .line .qty { color: rgb(var(--muted)); font-variant-numeric: tabular-nums; font-size: 0.8rem; }
+    .line .amt { width: 3.6rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .total-card { text-align: center; padding: 1.05rem 1rem; }
+    .total-card .lbl { margin: 0; font-size: 0.8rem; font-weight: 500; }
+    .total-card .big {
+      margin: 0.25rem 0 0; font-size: 1.85rem; font-weight: 700;
+      color: rgb(var(--gold)); font-variant-numeric: tabular-nums;
+    }
+    .summary {
+      margin: 0.85rem 0 0; padding-top: 0.7rem; border-top: 1px solid rgb(var(--border));
+      text-align: left; font-size: 0.8rem;
+    }
+    .summary-row {
+      display: flex; justify-content: space-between; gap: 0.75rem; margin: 0.28rem 0;
+    }
+    .summary-row dt { color: rgb(var(--muted)); }
+    .summary-row dd { margin: 0; font-variant-numeric: tabular-nums; }
+    .split-h { padding: 0.55rem 1rem; border-bottom: 1px solid rgb(var(--border)); }
+    .split-h .t { margin: 0; font-size: 0.8rem; color: rgb(var(--muted)); }
+    .split-h .n { margin: 0.2rem 0 0; font-size: 0.68rem; color: rgb(var(--muted) / 0.85); line-height: 1.35; }
+    .split-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+      padding: 0.7rem 1rem; border-bottom: 1px solid rgb(var(--border));
+    }
+    .split-row:last-child { border-bottom: 0; }
+    .who { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: rgb(var(--ink) / 0.12); color: rgb(var(--ink));
+      display: grid; place-items: center; font-size: 0.7rem; font-weight: 700;
+    }
+    .who-name { font-size: 0.84rem; }
+    .pill {
+      display: inline-block; margin-left: 0.35rem; padding: 0.1rem 0.45rem;
+      border-radius: 999px; border: 1px solid rgb(var(--border));
+      font-size: 0.68rem; color: rgb(var(--muted)); vertical-align: middle;
+    }
+    .pill-paid {
+      border-color: rgb(16 185 129 / 0.45); color: rgb(4 120 87); background: rgb(16 185 129 / 0.1);
+    }
+    .split-amt { font-weight: 600; font-variant-numeric: tabular-nums; color: rgb(var(--gold)); }
+    .feedback { padding: 0.9rem 1rem; }
+    .feedback h3 { margin: 0; font-size: 0.92rem; font-weight: 600; }
+    .feedback .hint { margin: 0.3rem 0 0; font-size: 0.78rem; color: rgb(var(--muted)); }
+    .fb-item {
+      margin-top: 0.7rem; padding: 0.7rem; border-radius: 0.65rem;
+      border: 1px solid rgb(var(--border));
+    }
+    .votes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.65rem; }
+    .vote {
+      min-height: 2.15rem; border-radius: 999px; border: 1px solid rgb(var(--border));
+      background: transparent; font-size: 0.78rem; color: rgb(var(--muted));
+    }
+    .fb-actions { display: flex; gap: 0.45rem; margin-top: 0.85rem; }
+    .btn {
+      min-height: 2.35rem; padding: 0 0.9rem; border-radius: 0.65rem;
+      font-size: 0.84rem; font-weight: 600;
+    }
+    .btn-outline { border: 1.5px solid rgb(var(--border)); background: transparent; color: rgb(var(--text)); }
+    .btn-solid { border: 0; background: rgb(var(--gold)); color: rgb(var(--on-gold)); opacity: 0.55; }
+    .dock {
+      position: sticky; bottom: 0; padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, rgb(var(--bg)), rgb(var(--bg) / 0.92) 70%, transparent);
+    }
+    .dock a, .dock .back {
+      display: grid; place-items: center; min-height: 2.75rem; width: 100%;
+      border-radius: 0.85rem; border: 1.5px solid rgb(var(--border));
+      background: rgb(var(--card)); color: rgb(var(--text)); font-size: 0.9rem; font-weight: 600;
+      text-decoration: none;
+    }
+    .muted-block {
+      padding: 0.85rem 1rem; font-size: 0.8rem; color: rgb(var(--muted));
+      border: 1px dashed rgb(var(--border)); border-radius: 0.85rem; background: rgb(var(--card) / 0.55);
+    }
+    footer {
+      margin-top: 1.5rem; font-size: 0.72rem; color: rgb(var(--muted)); word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>现有待结账页（按菜）长什么样</h1>
+    <p class="lead">
+      就是现在呼叫结账成功后看到的那一页，不是新页面。
+      左边：自己刚呼叫过的手机；右边：同一页、但本机没有未结清票时（没有「我的菜品清单」、也没有「你已呼叫」那句）。
+    </p>
+    <p class="note">
+      顺序固定：提示 →（有则）我的菜品清单 → 整桌总计与汇总 → 分单结果 → 评价 → 底栏只有「返回点单」。
+      「已呼叫结账 / 待认领」为 0 的行不显示。
+    </p>
+
+    <div class="phones">
+      <!-- 自己呼叫过 -->
+      <section class="phone" aria-label="自己呼叫后的待结账">
+        <div class="phone-label">现有页 · 自己已呼叫</div>
+        <div class="shell">
+          <div class="header">
+            <div class="store">示例餐厅</div>
+            <div class="table">桌号 A-06</div>
+          </div>
+          <div class="main">
+            <section class="hero">
+              <div class="hero-illu" aria-hidden="true">✓</div>
+              <p class="hero-title">请携带手机上的分单信息到前台支付</p>
+              <p class="hero-sub">你已呼叫结账，暂时不能点单。需要加菜请联系服务员。</p>
+            </section>
+
+            <section class="card">
+              <div class="card-h">
+                <span>张三 的账单</span>
+                <span class="euro">€28.00</span>
+              </div>
+              <div class="line">
+                <div class="thumb" aria-hidden="true">🍜</div>
+                <p class="name">套餐A</p>
+                <span class="qty">×2</span>
+                <span class="amt">€27.00</span>
+              </div>
+              <div class="line">
+                <div class="thumb" aria-hidden="true">🥤</div>
+                <p class="name">可乐</p>
+                <span class="qty">×1</span>
+                <span class="amt">€1.00</span>
+              </div>
+            </section>
+
+            <section class="card total-card">
+              <p class="lbl">总计</p>
+              <p class="big">€42.00</p>
+              <dl class="summary">
+                <div class="summary-row"><dt>已收款</dt><dd>€0.00</dd></div>
+                <div class="summary-row"><dt>已呼叫结账</dt><dd>€42.00</dd></div>
+                <!-- 待认领 = 0 → 不显示 -->
+              </dl>
+            </section>
+
+            <section class="card">
+              <div class="split-h">
+                <p class="t">分单结果</p>
+                <p class="n">金额仅供参考，以收款为准</p>
+              </div>
+              <div class="split-row">
+                <div class="who">
+                  <div class="avatar">张</div>
+                  <div>
+                    <span class="who-name">张三</span>
+                    <span class="pill">我</span>
+                  </div>
+                </div>
+                <div class="split-amt">€28.00</div>
+              </div>
+              <div class="split-row">
+                <div class="who">
+                  <div class="avatar">李</div>
+                  <div><span class="who-name">李四</span></div>
+                </div>
+                <div class="split-amt">€14.00</div>
+              </div>
+            </section>
+
+            <section class="card feedback">
+              <h3>本次菜品体验如何？</h3>
+              <p class="hint">10秒即可完成，可跳过</p>
+              <div class="fb-item">
+                <div class="line" style="padding:0;border:0">
+                  <div class="thumb">🍜</div>
+                  <p class="name">套餐A</p>
+                  <span class="qty">×2</span>
+                </div>
+                <div class="votes">
+                  <button type="button" class="vote">👍 赞</button>
+                  <button type="button" class="vote">👎 踩</button>
+                </div>
+              </div>
+              <div class="fb-actions">
+                <button type="button" class="btn btn-outline">跳过</button>
+                <button type="button" class="btn btn-solid" disabled>提交评价</button>
+              </div>
+            </section>
+          </div>
+          <div class="dock"><div class="back">← 返回点单</div></div>
+        </div>
+      </section>
+
+      <!-- 同一页、无本机票 -->
+      <section class="phone" aria-label="无本机票时的同一待结账页">
+        <div class="phone-label">同一页 · 本机没有未结清票</div>
+        <div class="shell">
+          <div class="header">
+            <div class="store">示例餐厅</div>
+            <div class="table">桌号 A-06</div>
+          </div>
+          <div class="main">
+            <section class="hero">
+              <div class="hero-illu" aria-hidden="true">✓</div>
+              <p class="hero-title">请携带手机上的分单信息到前台支付</p>
+              <!-- 没有「你已呼叫结账…」：那句只在自己锁定点单时出现 -->
+            </section>
+
+            <p class="muted-block">
+              没有「张三 的账单」菜品清单块——本机没有未结清的票时，产品页本来就不渲染这一段。
+            </p>
+
+            <section class="card total-card">
+              <p class="lbl">总计</p>
+              <p class="big">€42.00</p>
+              <dl class="summary">
+                <div class="summary-row"><dt>已收款</dt><dd>€0.00</dd></div>
+                <div class="summary-row"><dt>已呼叫结账</dt><dd>€42.00</dd></div>
+              </dl>
+            </section>
+
+            <section class="card">
+              <div class="split-h">
+                <p class="t">分单结果</p>
+                <p class="n">金额仅供参考，以收款为准</p>
+              </div>
+              <div class="split-row">
+                <div class="who">
+                  <div class="avatar">张</div>
+                  <div><span class="who-name">张三</span></div>
+                </div>
+                <div class="split-amt">€28.00</div>
+              </div>
+              <div class="split-row">
+                <div class="who">
+                  <div class="avatar">李</div>
+                  <div>
+                    <span class="who-name">李四</span>
+                    <span class="pill pill-paid">已收款</span>
+                  </div>
+                </div>
+                <div class="split-amt">€14.00</div>
+              </div>
+            </section>
+
+            <section class="card feedback">
+              <h3>本次菜品体验如何？</h3>
+              <p class="hint">10秒即可完成，可跳过</p>
+              <p class="hint" style="margin-top:0.65rem">评价区仍在；同桌有人评过/跳过后其他人也不再弹。</p>
+            </section>
+          </div>
+          <div class="dock"><div class="back">← 返回点单</div></div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      文件：docs/design/mockups/2026-11-10-guest-by-item-awaiting-checkout.static.html<br />
+      file:///Users/chenjianping/Documents/restaurant-ordering/docs/design/mockups/2026-11-10-guest-by-item-awaiting-checkout.static.html
+    </footer>
+  </div>
+</body>
+</html>

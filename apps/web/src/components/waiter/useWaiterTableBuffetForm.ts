@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   buffetFormAlignKey,
+  buffetGuestRuleFor,
+  ensureTableBuffetDraftMinGuests,
   selectTableBuffetDraft,
   type BuffetFormAlignState,
   type ResolvedBuffetPriceRow,
@@ -24,16 +26,24 @@ type Params = {
 
 /**
  * Draft the form should show for an align state; undefined while table context is pending.
- * Idle / no-buffet session preselects the default package at 0 + 0.
+ * Idle / no-buffet session preselects the default package via sole `selectTableBuffetDraft`
+ * (0+0 then raise to min when the package requires it). Occupied keeps server headcount as-is.
  */
 function draftFromAlignState(
   alignState: BuffetFormAlignState,
+  activeBuffets: Buffet[],
+  buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
 ): TableBuffetSelection | null | undefined {
   if (alignState.mode === 'pending') return undefined;
   if (alignState.mode === 'occupied') return alignState.selection;
-  return alignState.defaultBuffetId
-    ? { buffetId: alignState.defaultBuffetId, adults: 0, children: 0 }
-    : null;
+  if (!alignState.defaultBuffetId) return null;
+  const buffet = activeBuffets.find((b) => b.id === alignState.defaultBuffetId) ?? null;
+  return selectTableBuffetDraft(
+    null,
+    alignState.defaultBuffetId,
+    buffetPricesByBuffetId[alignState.defaultBuffetId],
+    buffet,
+  );
 }
 
 function resolvedPricesForActiveBuffets(
@@ -60,9 +70,11 @@ export function useWaiterTableBuffetForm({
   buffetPricesByBuffetId,
 }: Params) {
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
+  const activeBuffetsRef = useRef(activeBuffets);
+  activeBuffetsRef.current = activeBuffets;
 
   const [draft, setDraft] = useState<TableBuffetSelection | null>(
-    () => draftFromAlignState(alignState) ?? null,
+    () => draftFromAlignState(alignState, activeBuffets, buffetPricesByBuffetId) ?? null,
   );
   const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
     Record<string, ResolvedBuffetPriceRow | null>
@@ -76,7 +88,10 @@ export function useWaiterTableBuffetForm({
     [alignState, sessionId, tableId],
   );
 
-  const alignedDraft = useMemo(() => draftFromAlignState(alignState), [alignState]);
+  const alignedDraft = useMemo(
+    () => draftFromAlignState(alignState, activeBuffets, buffetPricesByBuffetId),
+    [alignState, activeBuffets, buffetPricesByBuffetId],
+  );
   const alignedDraftRef = useRef(alignedDraft);
   alignedDraftRef.current = alignedDraft;
 
@@ -98,12 +113,35 @@ export function useWaiterTableBuffetForm({
     );
   }, [activeBuffetIds, buffetPricesByBuffetId]);
 
+  /**
+   * Cold open: openable snapshot may land after the first idle draft (0+0).
+   * Re-apply sole min bump when package options/prices refresh — never on occupied
+   * (server headcount stays authoritative until the waiter taps).
+   */
+  useEffect(() => {
+    if (alignState.mode === 'occupied' || alignState.mode === 'pending') return;
+    setDraft((prev) => {
+      if (!prev) return prev;
+      const buffet = activeBuffets.find((b) => b.id === prev.buffetId);
+      if (!buffet) return prev;
+      const next = ensureTableBuffetDraftMinGuests(
+        prev,
+        buffetGuestRuleFor(buffet, resolvedByBuffetId[prev.buffetId]),
+      );
+      if (next.adults === prev.adults && next.children === prev.children) return prev;
+      return next;
+    });
+  }, [activeBuffets, alignState.mode, resolvedByBuffetId]);
+
   const resolvedRef = useRef(resolvedByBuffetId);
   resolvedRef.current = resolvedByBuffetId;
 
-  /** Pick the table's one package; headcount carries over (a side its rule disables → 0). */
+  /** Pick the table's one package; headcount carries over, then raises to package minimum. */
   const selectBuffet = useCallback((buffetId: string) => {
-    setDraft((prev) => selectTableBuffetDraft(prev, buffetId, resolvedRef.current[buffetId]));
+    const buffet = activeBuffetsRef.current.find((b) => b.id === buffetId) ?? null;
+    setDraft((prev) =>
+      selectTableBuffetDraft(prev, buffetId, resolvedRef.current[buffetId], buffet),
+    );
   }, []);
 
   const setBuffetGuestCount = useCallback((which: 'adults' | 'children', value: number) => {

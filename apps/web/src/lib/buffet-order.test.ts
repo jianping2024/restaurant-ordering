@@ -26,8 +26,10 @@ import {
   BUFFET_SIDE_DISABLED,
   buffetGuestCountViolation,
   buffetGuestRuleFor,
+  ensureTableBuffetDraftMinGuests,
   formatBuffetGuestCountViolationMessage,
   parseBuffetGuestCountViolation,
+  selectTableBuffetDraft,
 } from '@/lib/buffet-order';
 import {
   mergeBuffetPricesPreferLocked,
@@ -404,6 +406,87 @@ describe('buffetGuestCountViolation', () => {
     assert.deepEqual(
       buffetGuestRuleFor({ min_guest_count: 3 }, { adult_enabled: false, child_enabled: true }),
       { minGuestCount: 3, adultEnabled: false, childEnabled: true },
+    );
+  });
+});
+
+describe('ensureTableBuffetDraftMinGuests / selectTableBuffetDraft', () => {
+  const bothOn = { adult_enabled: true, child_enabled: true } as const;
+  const adultOnly = { adult_enabled: true, child_enabled: false } as const;
+  const childOnly = { adult_enabled: false, child_enabled: true } as const;
+
+  it('bumps adults when short of minimum', () => {
+    assert.deepEqual(
+      ensureTableBuffetDraftMinGuests(
+        { buffetId: 'a', adults: 0, children: 0 },
+        { minGuestCount: 10, adultEnabled: true, childEnabled: true },
+      ),
+      { buffetId: 'a', adults: 10, children: 0 },
+    );
+  });
+
+  it('leaves draft alone when already at or above minimum', () => {
+    assert.deepEqual(
+      ensureTableBuffetDraftMinGuests(
+        { buffetId: 'a', adults: 8, children: 4 },
+        { minGuestCount: 10, adultEnabled: true, childEnabled: true },
+      ),
+      { buffetId: 'a', adults: 8, children: 4 },
+    );
+  });
+
+  it('adds shortfall onto adults when both sides are on', () => {
+    assert.deepEqual(
+      ensureTableBuffetDraftMinGuests(
+        { buffetId: 'a', adults: 3, children: 2 },
+        { minGuestCount: 10, adultEnabled: true, childEnabled: true },
+      ),
+      { buffetId: 'a', adults: 8, children: 2 },
+    );
+  });
+
+  it('bumps children when adults are disabled', () => {
+    assert.deepEqual(
+      ensureTableBuffetDraftMinGuests(
+        { buffetId: 'a', adults: 0, children: 1 },
+        { minGuestCount: 5, adultEnabled: false, childEnabled: true },
+      ),
+      { buffetId: 'a', adults: 0, children: 5 },
+    );
+  });
+
+  it('selectTableBuffetDraft carries headcount then raises to min', () => {
+    assert.deepEqual(
+      selectTableBuffetDraft(
+        { buffetId: 'old', adults: 2, children: 1 },
+        'new',
+        bothOn,
+        { min_guest_count: 10 },
+      ),
+      { buffetId: 'new', adults: 9, children: 1 },
+    );
+  });
+
+  it('selectTableBuffetDraft zeros a disabled side before raising', () => {
+    assert.deepEqual(
+      selectTableBuffetDraft(
+        { buffetId: 'old', adults: 2, children: 3 },
+        'new',
+        adultOnly,
+        { min_guest_count: 10 },
+      ),
+      { buffetId: 'new', adults: 10, children: 0 },
+    );
+    assert.deepEqual(
+      selectTableBuffetDraft(null, 'new', childOnly, { min_guest_count: 4 }),
+      { buffetId: 'new', adults: 0, children: 4 },
+    );
+  });
+
+  it('selectTableBuffetDraft with min 0 stays at carried counts', () => {
+    assert.deepEqual(
+      selectTableBuffetDraft(null, 'new', bothOn, { min_guest_count: 0 }),
+      { buffetId: 'new', adults: 0, children: 0 },
     );
   });
 });

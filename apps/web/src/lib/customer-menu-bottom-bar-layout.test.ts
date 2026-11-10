@@ -6,6 +6,7 @@ import { describe, it } from 'node:test';
 import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
   customerBottomDockSurfaceClass,
+  customerMenuBottomBarActionSlotClass,
   customerMenuBottomBarCountBadgeClass,
   customerMenuBottomBarIconBoxClass,
   customerMenuBottomBarDockClass,
@@ -13,6 +14,8 @@ import {
   customerMenuBottomBarIconGapClass,
   customerMenuBottomBarPrimaryActionClass,
   customerMenuBottomBarRowClass,
+  customerMenuBottomBarSuccessActionClass,
+  customerMenuBottomBarSummarySlotClass,
   customerMenuPageBottomPaddingClass,
   formatCustomerMenuFooterBadgeCount,
   CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS,
@@ -133,11 +136,22 @@ describe('customer menu bottom bar visual tokens', () => {
     assert.doesNotMatch(customerMenuBottomBarCountBadgeClass, /h-\[18px\]|text-\[10px\]/);
   });
 
-  it('keeps the badge inside a 44px icon box so overflow-hidden summary never clips it', () => {
+  it('keeps the badge inside a 44px icon box (no negative offset)', () => {
     assert.match(customerMenuBottomBarIconBoxClass, /\bh-11 w-11\b/);
     assert.match(customerMenuBottomBarIconBoxClass, /\brelative\b/);
     assert.match(customerMenuBottomBarCountBadgeClass, /\bright-0 top-0\b/);
     assert.doesNotMatch(customerMenuBottomBarCountBadgeClass, /-right-|-top-/);
+  });
+
+  it('gives full euro amount priority — summary never clips; action yields', () => {
+    assert.doesNotMatch(customerMenuBottomBarSummarySlotClass, /overflow-hidden/);
+    assert.match(customerMenuBottomBarSummarySlotClass, /flex-1/);
+    assert.match(customerMenuBottomBarActionSlotClass, /(^|\s)shrink(\s|$)/);
+    assert.doesNotMatch(customerMenuBottomBarActionSlotClass, /shrink-0/);
+    assert.match(customerMenuBottomBarPrimaryActionClass, /\bmin-w-0\b/);
+    assert.match(customerMenuBottomBarPrimaryActionClass, /\btruncate\b/);
+    assert.doesNotMatch(customerMenuBottomBarPrimaryActionClass, /shrink-0/);
+    assert.match(customerMenuBottomBarSuccessActionClass, /\bmin-w-0\b/);
   });
 });
 
@@ -161,6 +175,15 @@ describe('one representation — customer menu bottom inset + badge', () => {
     assert.match(
       footer,
       /function OrderedSummary[\s\S]*?<FooterIconSlot[\s\S]*?count=\{submittedCount\}[\s\S]*?<FooterAmount/,
+    );
+    // Sole FooterAmount: full euro, never truncate on the money node.
+    assert.match(
+      footer,
+      /function FooterAmount[\s\S]*?shrink-0[\s\S]*?CUSTOMER_MENU_TYPE\.moneyAmount\}>€\{amount\.toFixed\(2\)\}/,
+    );
+    assert.doesNotMatch(
+      footer,
+      /function FooterAmount[\s\S]*?moneyAmount[^\n]*truncate/,
     );
 
     const sheetLayout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-sheet-layout.ts'), 'utf8');

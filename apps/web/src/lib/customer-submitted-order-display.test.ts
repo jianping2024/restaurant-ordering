@@ -186,7 +186,9 @@ describe('buildCustomerSubmittedDisplayOrders', () => {
       },
     );
     const line = groups[0]?.lines[0];
-    assert.equal(line?.label, '可乐 × 1');
+    assert.equal(line?.label, '可乐');
+    assert.equal(line?.quantityLabel, '× 1');
+    assert.equal(line?.unitPrice, 2);
     assert.equal(line?.thumb.imageUrl, 'https://example.com/cola.jpg');
     assert.equal(line?.thumb.emoji, '🥤');
   });
@@ -213,9 +215,36 @@ describe('buildCustomerSubmittedDisplayOrders', () => {
       'zh',
     );
     const line = groups[0]?.lines[0];
-    assert.equal(line?.label, 'Buffet livre · A2-C2');
+    assert.equal(line?.label, 'Buffet livre');
+    assert.equal(line?.quantityLabel, '· A2-C2');
+    assert.equal(line?.unitPrice, null);
     assert.equal(line?.thumb.imageUrl, undefined);
     assert.equal(line?.thumb.emoji, '🍽️');
+  });
+
+  it('keeps qty and unit price off the dish name for menu lines', () => {
+    const groups = buildCustomerSubmittedDisplayOrders(
+      [
+        orderWithItems([
+          {
+            id: 'i1',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 3,
+            price: 2.5,
+            emoji: '🥤',
+            batch_id: 'batch-a',
+            added_at: '2026-07-15T12:30:00.000Z',
+          },
+        ]),
+      ],
+      'en',
+    );
+    const line = groups[0]?.lines[0];
+    assert.equal(line?.label, 'Cola');
+    assert.equal(line?.quantityLabel, '× 3');
+    assert.equal(line?.unitPrice, 2.5);
+    assert.doesNotMatch(line?.label ?? '', /×/);
   });
 
   it('handles missing items array', () => {

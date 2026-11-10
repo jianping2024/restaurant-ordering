@@ -1,4 +1,5 @@
 import { PeerFloatDishThumb } from '@/components/menu/PeerFloatDishThumb';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import type { CustomerSubmittedOrderGroup } from '@/lib/customer-submitted-order-display';
 
 type Props = {
@@ -52,29 +53,48 @@ export function CustomerOrderedItemsList({
               <BatchTimeDivider label={group.submittedTimeLabel} />
             ) : null}
             <div className="space-y-1">
-              {group.lines.map((line) => (
-                <div
-                  key={line.key}
-                  className="flex items-center justify-between gap-3 text-sm text-brand-text"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <PeerFloatDishThumb thumb={line.thumb} />
-                    <div className="min-w-0 flex-1">
-                      <p className="min-w-0">{line.label}</p>
-                      {line.note ? (
-                        <p className="mt-0.5 text-[12px] leading-snug text-brand-text-muted">
-                          {line.note}
-                        </p>
-                      ) : null}
+              {group.lines.map((line) => {
+                const showUnitPrice = line.unitPrice != null;
+                const showQty = Boolean(line.quantityLabel);
+                const showMid = showUnitPrice || showQty || Boolean(line.statusLabel);
+                return (
+                  <div
+                    key={line.key}
+                    className="flex items-center justify-between gap-3 text-sm text-brand-text"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <PeerFloatDishThumb thumb={line.thumb} />
+                      <div className="min-w-0 flex-1">
+                        <p className="min-w-0 truncate">{line.label}</p>
+                        {line.note ? (
+                          <p className="mt-0.5 text-[12px] leading-snug text-brand-text-muted">
+                            {line.note}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
+                    {showMid ? (
+                      <div className="flex shrink-0 items-center gap-2 tabular-nums">
+                        {showUnitPrice ? (
+                          <span className={CUSTOMER_MENU_TYPE.moneyAmount}>
+                            €{line.unitPrice!.toFixed(2)}
+                          </span>
+                        ) : null}
+                        {showQty ? (
+                          <span className="text-[13px] font-medium text-brand-text-muted">
+                            {line.quantityLabel}
+                          </span>
+                        ) : null}
+                        {line.statusLabel ? (
+                          <span className="text-[12px] text-brand-text-muted">
+                            {line.statusLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
-                  {line.statusLabel ? (
-                    <span className="shrink-0 text-[12px] text-brand-text-muted tabular-nums">
-                      {line.statusLabel}
-                    </span>
-                  ) : null}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}

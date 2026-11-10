@@ -18,6 +18,10 @@ import {
   unstackGuestClaimUnit,
 } from '@/lib/guest-claim-qty-stack';
 import { unitDenForQty } from '@/lib/by-item-fraction-unit';
+import {
+  GUEST_CLAIM_PORTION_CHIP_CLASS,
+  GUEST_CLAIM_PORTION_MINUS_CLASS,
+} from '@/lib/guest-claim-portion-chip';
 
 export type GuestClaimDishCardLabels = {
   left: string;
@@ -52,11 +56,6 @@ function fill(template: string, values: Record<string, string | number>): string
 function euro(amount: number): string {
   return `€${amount.toFixed(2)}`;
 }
-
-const CHIP_CLASS =
-  'h-11 rounded-xl border border-brand-border bg-brand-bg/60 px-1 flex items-center justify-center gap-1 text-base font-semibold leading-none tabular-nums whitespace-nowrap text-brand-gold transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:border-dashed disabled:bg-transparent disabled:text-brand-text-muted/50';
-const MINUS_CLASS =
-  'w-10 h-10 shrink-0 rounded-full border border-brand-border bg-brand-card text-brand-text flex items-center justify-center text-xl leading-none disabled:opacity-40';
 
 type Props = {
   spec: ByItemLineSpec;
@@ -261,7 +260,7 @@ export function GuestClaimDishCard({
                     type="button"
                     disabled={!canAdd}
                     onClick={() => addMenuUnit(den)}
-                    className={CHIP_CLASS}
+                    className={GUEST_CLAIM_PORTION_CHIP_CLASS}
                   >
                     {den === 1 ? '+1' : `+1/${den}`}
                   </button>
@@ -276,7 +275,7 @@ export function GuestClaimDishCard({
                     type="button"
                     disabled={readOnly || value >= ceil}
                     onClick={() => setBuffetField(field, value + 1)}
-                    className={CHIP_CLASS}
+                    className={GUEST_CLAIM_PORTION_CHIP_CLASS}
                   >
                     +1
                     <span className="text-[13px] font-normal text-brand-text-muted">{label}</span>
@@ -295,7 +294,7 @@ export function GuestClaimDishCard({
                 aria-label={labels.minusAria}
                 disabled={minusMenuDen == null}
                 onClick={minusMenuUnit}
-                className={MINUS_CLASS}
+                className={GUEST_CLAIM_PORTION_MINUS_CLASS}
               >
                 −
               </button>
@@ -314,7 +313,7 @@ export function GuestClaimDishCard({
                       aria-label={labels.minusAria}
                       disabled={readOnly}
                       onClick={() => setBuffetField(field, value - 1)}
-                      className={MINUS_CLASS}
+                      className={GUEST_CLAIM_PORTION_MINUS_CLASS}
                     >
                       −
                     </button>

@@ -52,7 +52,8 @@
       "All chrome-devtools / user-chrome-devtools / cursor-ide-browser MCP calls on localhost are pre-authorized for Mesa UAT.",
       "Documented UAT credentials (qiantai1, baiyun@gmail.com) and mesa-local-uat / mesa-print-smoke against localhost are pre-authorized.",
       "supabase-local read-only asserts during npm run dev are pre-authorized; user-supabase stays read-only asserts only.",
-      "cursor-app-control move_agent_to_root for Mesa worktrees is pre-authorized."
+      "cursor-app-control move_agent_to_root for Mesa worktrees is pre-authorized.",
+      "When the user asks to commit/merge / 合进 main / land on main / merge to main, local git checkout main and git merge (no --force) into local main are pre-authorized."
     ],
     "block_instructions": [
       "BLOCK and require explicit user click for supabase db reset or any hard database wipe.",

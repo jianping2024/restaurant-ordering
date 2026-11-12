@@ -21,7 +21,8 @@ If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not
 ## Still allowed without extra ask
 
 - Local commits on a feature branch
-- Local `git merge` into local `main` when the user asked to land the change that way
+- Local `git merge` into local `main` when the user asked to land the change that way —「commit merge」「合进 main」「没问题就 merge」count; do not require the literal words “merge to main”
+- If Auto-review blocks only that local merge after Will asked to land, retry once with `requestSmartModeApproval` (User Rule *Post-plan full auto*); never for force-push / hard reset / db wipe
 - Pushing `main` only when the user explicitly says push / ship (`git push origin main`)
 
 ## After land on local `main` (mandatory last step — no extra ask)

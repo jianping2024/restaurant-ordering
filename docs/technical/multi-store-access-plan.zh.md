@@ -1,379 +1,349 @@
-# 多店访问与老板汇总 — 技术方案（修订稿 · 待 Will 确认）
+# 多店访问与多店概览 — 技术方案（重写稿 · 待 Will 确认）
 
-> **状态**：修订稿 · 未编码 · 2026-11-17  
-> **发起**：Will（老板有多家店，要看多店数据）  
-> **作者**：Cursor Auto · **第一轮评审**：Claude（§11）· **第二轮复核**：Cursor（§11b，已并入正文）· **第三轮评审**：Claude（§11c，已并入正文）  
-> **关联**：`docs/product/02-feature-map.md`、`docs/ai-schema.md`、`apps/web/src/lib/staff-gate-db.ts`、`docs/role-permissions-architecture.zh.md`
+> **状态**：重写稿 · 未编码 · 2026-11-17  
+> **发起**：Will（老板有多家店，要用一个账号看多店数据、进各店操作）  
+> **路线**：员工账号多店店籍（ops 关联）；管理员邮箱账号保持一店一个。旧稿（管理员账号多店）已废弃，见 §15 评审历史。  
+> **关联**：`docs/ai-schema.md`、`docs/role-permissions-architecture.zh.md`、`docs/product/02-feature-map.md`
 
 ---
 
 ## 0. 一句话结论
 
-**一个登录账号 → 账户级登录名 + 多店店籍（每店角色/权限）→ 经营页 URL 里的店 slug 即当前店 → Dashboard 另开跨店只读汇总。**  
-不上集团层；cookie 只记「上次所在店」作登录落地，不承载当前店。
+**一个员工账号（全平台唯一登录名）由 ops 关联到多家店 → 在每家店它就是那家店的员工，权限由那家店配置 → 网址里的店 slug 决定当前在哪家店 → 另有一个只读的多店概览页。管理员邮箱账号不变，仍一店一个。**
 
 ---
 
 ## 1. 背景与目标
 
-### 1.1 业务动机
+### 1.1 需求
 
-- 老板多家店：同一账号看多店数据。
-- 店员通常一店；偶发一人两店：切店，不再注册第二账号。
+- 老板（或店长）用**一个账号**看多家店的数据，并能进入每家店，按那家店给的权限操作。
+- 偶尔有员工在两家店上班，也用同一个账号。
 
 ### 1.2 目标
 
-1. 同一 `auth.users` 可关联多家 `restaurants`（店籍）。
-2. **当前店 = 经营 URL 中的店标识**（见 §2）；楼面 / 厨房 / 结账 / 单店设置 / 单店报表只认该店。
-3. Dashboard **跨店只读汇总**（筛选 + 合计）+ 下钻进单店页（并导航到该店 URL）。
-4. 两层隔离写清：
-   - **RLS**：管「这个用户是不是这家店的人」（按 `restaurant_id` + 用户店籍 / `owner_id`）。
-   - **应用层**：管「这个请求声称在操作哪家店」——必须与 URL/请求中的店一致且 ∈ 有权店；**RLS 不负责「当前店」**。
+1. 同一个员工账号可以属于多家店，每家店一行店籍，角色/权限各自独立。
+2. 当前店 = 网址里的店 slug；楼面、厨房、结账、后台、设置、报表只认这家店。
+3. 多店概览页：只读，按店分行 + 合计。
+4. 单店用户（现在几乎全部用户）体验不变。
 
 ### 1.3 非目标
 
 | 不做 | 理由 |
 |------|------|
-| 集团 / 品牌 org、总部角色、跨店统一菜单/结算 | 本期不是连锁中台 |
-| 厨房 / 结账 / 楼面多店混合实时 | 与单店 Realtime、打印、会话冲突 |
-| 每店一个登录账号当默认 | 体验与审计差 |
-| 仅 UI 挂店列表、库仍 `user_id` 唯一 | 假开通 |
-| 改顾客点餐 / 桌码 / print-agent 设备配对模型 | 天然单店；本方案仅约束 `print_agent` 店籍一行 |
+| 管理员邮箱账号管多家店 | 管理员账号就是「这家店的后台账号」，一店一个，不混 |
+| 集团 / 品牌层、总部角色、跨店统一菜单或结算 | 不是连锁中台 |
+| 厨房 / 结账 / 楼面多店混在一屏 | 与单店 Realtime、打印、会话冲突 |
+| 店里自己把员工拉进别的店（邀请流程） | 只有 ops 能关联，见 §3 规则 1 |
+| 改顾客点餐 / 桌码 / 打印 agent 配对 | 天然单店 |
+| on-prem 一台机器多店 | 本期 on-prem 仍单店 |
 
 ### 1.4 已否决
 
-1. 只做选店、不做汇总。  
-2. 先做 org 再做店籍。  
-3. owner 继续 `maybeSingle`、仅员工多店。  
-4. **用共享 cookie 表示当前店**（多标签串店）——第一轮评审驳回，本修订采纳。  
-5. 「login_name 只写第一行、其余继承」——驳回；必须账户级唯一表。
+1. **管理员邮箱账号多店**（`owner_id` 一人多店）：打破「一店一个管理员账号」，与需求相反。
+2. **只做只读汇总、不让账号进多店**：Will 明确要一个账号进各店操作。
+3. **店里发邀请、本人接受**：多出邀请表和防枚举逻辑；改为只有 ops 关联。
+4. **用共享 cookie 表示当前店**：多标签页会串店。
+5. **登录名留在店籍行、只写第一行**：账号级的东西必须放账号级表。
 
 ---
 
-## 2. 端态形状（唯一）
+## 2. 术语（全文统一）
 
-| 概念 | 唯一表示 |
-|------|----------|
-| **身份** | `auth.users` 一条 |
-| **账户登录名** | 账户级表（如 `staff_identities(user_id PK, login_name UNIQUE)`）；**不**在店籍行存 `login_name` |
-| **店籍** | `restaurant_staff_accounts` 多行：`UNIQUE (restaurant_id, user_id)`；每行本店 `role`/`role_id`/`display_name`/`disabled_at` |
-| **店主身份** | `restaurants.owner_id`（方案 A）；**不等于**员工预设角色 `owner`；有权列表 = 名下店 ∪ 已启用且非 `print_agent` 的店籍。禁止店主在自己名下店再插 staff 行 |
-| **当前店（经营）** | **URL 中的店 slug**（员工/厨房已有 `/[slug]/staff|kitchen…`；单店 Dashboard 也纳入店作用域路径）。每个经营请求带该店；`loadPrincipal(user, restaurantId)` 逐请求校验店籍。切店 = 导航；页面卸载 → Realtime 自然重绑 |
-| **跨店汇总** | 独立只读入口（路径**不**绑单一经营当前店，例如 `/dashboard/multi-store` 或现 home 在「店数≥2」时的汇总模式）；范围 = 有权且在该店具备 `dashboard.overview.view` 的店；写操作禁止 |
-| **登录落地默认** | cookie `mesa_last_restaurant_id`：仅「上次所在店」，用于登录后默认进哪家；**不**参与写路径鉴权 |
-
-**一句话：** 人可以有很多店；每个浏览器标签页各自在一个店 URL 里干活；看数用跨店只读页；cookie 只帮你记上次进哪家。
+| 词 | 指什么 | 代码里 |
+|----|--------|--------|
+| **管理员账号** | 每家店的后台邮箱账号，权限 `*`，一店一个；由我们自己掌握 | `restaurants.owner_id`；`principal.kind === 'owner'`（`resolve.ts:53` 注释「Backend admin」） |
+| **员工账号** | 用登录名登录的账号（合成邮箱 `{login_name}@…`） | `restaurant_staff_accounts` + Auth 用户 |
+| **店主 / 店长** | 员工账号在某家店的**角色**，不是管理员账号 | 预设角色 `owner`（显示名「店主」）或自定义角色 |
+| **店籍** | 某员工账号在某家店的一行：角色、显示名、本店禁用 | `restaurant_staff_accounts` 一行 |
+| **多店账号** | 有 ≥2 行店籍的员工账号 | — |
+| **当前店** | 本次请求 / 本页面操作的那家店 | 网址里的 slug |
 
 ---
 
-## 3. 当前事实（已证实）
+## 3. 端态规则（5 条，唯一）
 
-1. `restaurant_staff_accounts.user_id` 全局唯一；`login_name` 表级唯一（`docs/ai-schema.md` / 迁移 `20260712120000_staff_login_name_unique_drop_email.sql`）。  
-2. `loadStaffGateAccountForUser` / `loadOwnerRestaurantForUser` 均 `maybeSingle()`（`staff-gate-db.ts`）。  
-3. `loadPrincipalWithCapabilities`：店主赢过 staff 行；店主/员工都绑**一家** `restaurantId`（`permissions/principal.ts`）。  
-4. 产品地图「多门店连锁总部账号」= 当前不做。  
-5. **RLS 侧已按「这家店 + 当前用户」查店籍**（`staff_has_restaurant_permission` / `is_active_restaurant_staff` / `assert_restaurant_session_operator` 等）——一人多行店籍在数据库层天然兼容，**不必为多店改这些 RLS 函数语义**。  
-6. **账户级危险路径（一人多店后会串店）已在代码核对：**  
-   - `reset-password` → `auth.admin.updateUserById` 改全局密码；  
-   - `DELETE staff/[id]` → `retireStaffAuthUser` 可拆掉整个 Auth 用户；  
-   - `PATCH staff` → `staffMetadataPayload` 写入单店形状 `user_metadata` + `kickStaffUserSessions` 踢光全部会话；改 `login_name` 即改登录邮箱（`buildStaffEmail`）；  
-   - **店内禁用 = 全局封号**：`api/dashboard/staff/[id]` 禁用调 `setStaffUserBanned(user_id, true)`（启用时 unban、删除时 ban）；ops `restaurants/[id]/staff/[staffId]` 禁用同样 ban + 踢会话；  
-   - **ops 删店删光 Auth 用户**：`apps/ops/src/lib/purge-restaurant.ts` 收集 `owner_id` + 全部店籍 `user_id` 后逐个 `auth.admin.deleteUser`。  
-7. **API 当前店由用户推导**：`requirePermission(key)` / `loadPrincipal()` 无店参数；`/api/dashboard/*`、`/api/restaurant/*` 不带 slug（前端约 34 处 `fetch`）。仅 `/api/restaurants/[slug]/…` 带店。  
-8. **metadata 仍参与落地**：`supabase/middleware.ts`（`meta.restaurant_slug`）、`staff-change-password-gate.ts`。  
-9. **店籍表 `login_name` 其他读取方**：`order-history/resolve-staff-operator.ts` 等。  
-10. **建店入口**：`RestaurantOnboarding` 客户端 insert（自助一店）；on-prem 由 `license-materialize` 写 `owner_id`。  
-11. **Realtime**：`use-restaurant-realtime-refresh` 订阅带 `filter`，多店不串推。  
-12. **未逐文件核实**：浏览器端 Supabase 直查是否都显式 `.eq('restaurant_id', …)`；依赖 RLS 隐式收窄到「唯一店」的查询在多店后会返回并集。
+1. **账号全平台唯一，只有 ops 能把它关联到多家店。** 店里只能建本店员工，不能关联到别的店。
+2. **在每家店它就是那家店的员工。** 角色和权限由那家店设置，各店互不影响。
+3. **店里可以改它在本店的角色/权限/显示名、禁用、删除。** 删除 = 解除本店关联，只影响本店；删的是最后一家店时才注销账号。禁用只影响本店，不封整个账号。
+4. **多店账号的密码和登录名，由本人、ops，或它所关联任一家店的管理员账号来改；带「员工管理」权限的普通员工不能改。** 单店账号和现在一样（有「员工管理」权限即可）。
+5. **登录后能选店、切店；另有一个只读的多店概览页。**
+
+**补充约束（DB 强制）：**
+- 管理员账号不能在任何店有店籍（管理员和员工是两类账号，不混）。
+- 管理员账号一店一个：`restaurants.owner_id` 非空时唯一。
+- `print_agent`（打印设备账号）全平台只能有一行店籍，不能被关联到别的店，也不能成为管理员。
 
 ---
 
-## 4. 数据与门禁模型
+## 4. 当前事实（已对照代码）
 
-### 4.1 账户级 vs 店籍级
+1. 店籍表 `user_id` 全局唯一，`login_name` 在店籍行上且全局唯一（`docs/ai-schema.md`、迁移 `20260712120000_staff_login_name_unique_drop_email.sql`）。
+2. 有**两套**按用户推导单店的鉴权：
+   - `permissions/principal.ts` 的 `loadPrincipalWithCapabilities()`（无店参数）+ `require.ts` 的 `requirePermission(key)`；
+   - `staff-api-auth.ts:125-175` 的 `staffSessionForSlug(slug)`，按 user `.maybeSingle()` 取店籍，另有一份权限加载 `loadStaffCapabilities`（`:70-101`，与 `principal.ts:22-63` 重复）。
+   - `[slug]/kitchen/page.tsx` 混用两者（`:19` 按 slug 门禁，`:50` 用无店 principal 取权限）。
+3. 查店籍和管理员店都用 `.maybeSingle()`（`staff-gate-db.ts:17-30, 57-61, 83-93`）。
+4. 登录预检按登录名取单行，按该行禁用/暂停决定能否登录（`staff-access.ts:87-127`；`api/auth/login/route.ts:85-103`）。
+5. `user_metadata` 存单店字段，解析器缺任一字段即返回 null（`staff-account.ts:141-157`）；强制改密标志 `must_change_password` 和账号类型都经它读取（`staff-change-password-gate.ts`、`dashboard-access.ts:153`、中间件 `supabase/middleware.ts:97-101`）。
+6. 店内禁用会封整个账号（`api/dashboard/staff/[id]/route.ts:66`，启用解封 `:81`）；ops 禁用同样封号并踢会话（`apps/ops/.../staff/[staffId]/route.ts:54-55`）。
+7. 删除员工会注销整个 Auth 账号（`staff/[id]/route.ts:174` → `retireStaffAuthUser`）；注销失败的保留分支靠改邮箱释放登录名（`packages/shared/src/staff-user-ban.ts:32-53`）。
+8. ops 删店会删光该店所有人的 Auth 账号（`apps/ops/src/lib/purge-restaurant.ts`）。
+9. 改角色权限会踢掉该角色所有人的全部会话（`api/dashboard/roles/[id]/route.ts:113-115`），同时已经 `bumpPermissionsVersion`。
+10. 重置员工密码会写单店形状的 metadata（`staff/[id]/reset-password/route.ts:51-60`）。
+11. ops 员工接口只有列表和禁用/启用，没有新建或关联（`apps/ops/src/app/api/ops/restaurants/[id]/staff/**`）。
+12. 店作用域 API：`/api/restaurants/[slug]/**` 已有 40 个 route；`/api/dashboard/**` + `/api/restaurant/**` 有 31 个 route 不带店，前端约 34 处请求调用它们；后台页面 25 个、`/dashboard` 链接约 129 处。
+13. 浏览器端直接查库的组件只有 4 个（`RestaurantOnboarding` 插入建店；`CheckoutRequestsProvider`、`TablesManager`、`CheckoutRequestDetailHost` 已带 `restaurant_id` 条件）。
+14. 数据库 RLS 函数按「这家店 + 当前用户」判断（`staff_has_restaurant_permission` / `is_active_restaurant_staff` 等），一人多行店籍天然兼容，不用改语义。
+15. 店籍行 `login_name` 的读取方：`order-history/resolve-staff-operator.ts`、`audit/resolve-actor.ts:40-50`、`table-party-groups-server.ts:96-101`、`staff-dashboard-api.ts`、`StaffAccountsManager.tsx`、`staff-accounts-list.ts`、`types/index.ts`、`packages/shared/src/print-agent-staff.ts`、ops 员工列表与审计。
+16. 概览数据由 `dashboard-overview.ts` 按 `(admin, restaurantId)` 计算，可逐店复用。
+17. Realtime 订阅带店过滤（`use-restaurant-realtime-refresh`），不会串推。
+18. ops 可以改店 slug（`apps/ops/src/app/api/ops/restaurants/[id]/route.ts:178-206`）。
 
-| 层级 | 内容 | 操作归属 |
-|------|------|----------|
-| **账户** | `auth.users` + `staff_identities.login_name` + 密码 | 本人改密；平台；**严格门禁下的**店内重置（见下） |
-| **店籍** | `(restaurant_id, user_id)` 行：角色、display_name、本店禁用 | 本店 `settings.staff.manage` |
+---
 
-**账户级门闩（唯一一条规则，重置密码与改 `login_name` 共用）：** 仅当目标用户的**全部**店籍（含已禁用、含 `print_agent` 行）都落在操作者拥有 `settings.staff.manage` 的店内，**且**目标不是任何店的 `owner_id` 时，才允许；否则只能本人改或走平台。判定与执行在同一事务内，并与「关联已有账号」互斥加锁（防判定后被插入新店籍）。
+## 5. 数据模型与迁移
 
-**删除员工（端态）：** 只删本店店籍行；仅当已无剩余店籍且不是任何店店主时，才 `retireStaffAuthUser`。
+### 5.1 表
 
-**禁用员工（端态）：** 店内禁用只写本店 `disabled_at`，**不** ban、**不**踢会话（principal 逐请求读 DB 即生效）。Auth ban/unban 仅用于账户级事件，且以「剩余有效店籍」判定：最后一个有效店籍被禁用且非店主 → ban；任一店籍启用 → unban。Web 与 ops 共用此规则。
+```text
+staff_identities                         -- 新表：员工账号级
+  user_id              uuid PK  FK auth.users ON DELETE CASCADE
+  login_name           text UNIQUE
+  must_change_password boolean not null default false
+  created_at, updated_at
 
-**删店（ops purge，端态）：** 只删除「删店后无剩余店籍且不是任何其他店店主」的 Auth 用户；其余用户只删本店店籍。
+restaurant_staff_accounts                -- 店籍
+  去掉 user_id 全局唯一 → UNIQUE (restaurant_id, user_id)
+  删除 login_name 列（第二步，见 5.3）
+  其余列不变：role / role_id / display_name / disabled_at …
 
-**user_metadata（端态）：** 不再存 `restaurant_id` / `restaurant_slug` / `staff_role` / `staff_account_id` 作为门禁真相；principal 与登录落地只信 DB（含 middleware、改密门禁）。踢会话仅用于账户级事件（账号 ban、重置密码、退役等），**不**因单店改角色/禁用而踢光所有店会话。
+restaurants
+  owner_id 非空时唯一（partial unique index）
+```
 
-**`print_agent`：** 该 `user_id` 全局仅一条店籍，且不可再关联为人类员工；人类员工不可改为 `print_agent`（设备账号不参加人选店）。
+- `staff_identities` 每个员工账号一行（含 `print_agent`）；管理员账号没有行。
+- RLS：`staff_identities` 不对浏览器开放，只走服务端 admin client。
 
-**约束落点：** 上述跨行/跨表约束（本条 + §4.2 店主约束）由 DB trigger 强制，不靠应用层自觉。
+### 5.2 约束（DB trigger）
 
-### 4.2 店籍表变更
+| 触发 | 检查 |
+|------|------|
+| 店籍 insert / update | 该 user 不是任何店的 `owner_id`；该 user 若有 `print_agent` 店籍则不能有第二行；不能把人类员工改成 `print_agent` |
+| `restaurants.owner_id` insert / update（含 onboarding、`license-materialize`） | 该 user 在任何店都没有店籍 |
 
-- 去掉 `user_id` 全局唯一 → `UNIQUE (restaurant_id, user_id)`。  
-- 店籍行 **删除 `login_name`**（迁到 `staff_identities`）；`display_name` 留店籍行。  
-- 员工预设角色名 `owner` ≠ `restaurants.owner_id` 店主；文档与 UI 文案分开。  
-- 约束：若 `restaurants.owner_id = user_id`，禁止该店存在该用户 staff 行。DB trigger 双向：店籍 insert/update 时查店主；`restaurants.owner_id` 变更（含 `license-materialize`）时查店籍。
-- 迁移前先跑存量违约查询（店主在自家店已有 staff 行、`print_agent` 账号多行等），清理后再加约束。
-- 读取店籍 `login_name` 的调用点（`resolve-staff-operator.ts`、审计/操作历史显示等）在删列前改为 join `staff_identities`。
+这样员工账号直接调接口建店也会被拒，不用另外收紧建店入口。
 
-### 4.3 当前店与校验
+### 5.3 迁移步骤（两步，可回滚）
 
-- 经营页：URL slug → `restaurantId` → `assertUserAuthorizedForRestaurant(userId, restaurantId)`（**单点存在性检查**，Edge 不每次拉全量列表）。  
-- 登录：`listAuthorizedRestaurantsForUser` → 0 / 1 / N 家流程；N 家时优先 `mesa_last_restaurant_id` 若仍有权，否则选店页。  
-- 切店：导航到目标店 URL，并更新 `mesa_last_restaurant_id`。  
-- **API 当前店传输（唯一）：** 店作用域 API 一律由请求显式携带当前店（路径段或 header 二选一，实现时定一种，见 §9），服务端唯一入口 `requirePermission(key, restaurantId)` / `loadPrincipalForRestaurant` 做店籍校验；不再提供「从用户推导店」的无参版本。
-- **禁止**仅信 body/`restaurant_id` 而不核对店籍。
-- **浏览器直查审计：** 凡依赖 RLS 隐式收窄到唯一店、未显式 `.eq('restaurant_id', …)` 的客户端查询，P0 逐个补上当前店条件。
+1. **违约预查**（有结果先人工清理）：同一 user 是两家店的 `owner_id`；管理员账号在某店有店籍；`print_agent` 账号多行。
+2. **第一步迁移**：建 `staff_identities`，从店籍行回填 `login_name`，从 `user_metadata` 回填 `must_change_password`；放开 `user_id` 唯一、加 `UNIQUE(restaurant_id, user_id)`；加 trigger 和 `owner_id` 唯一。旧 `login_name` 列暂留，代码改为只读新表。
+3. **第二步迁移**（第一批代码稳定后）：`rg login_name` 中对店籍行的读取清零后，删店籍行 `login_name` 列。
+4. 存量 `user_metadata` 里的 `restaurant_id` / `restaurant_slug` / `staff_role` / `staff_account_id` 读路径一律忽略，新写路径不再写；不批量清理（避免踢掉所有人会话）。
 
-### 4.4 Sole helpers
+迁移顺序按 `docs/db-migration-runbook.zh.md`：先本地 Docker，再云端。
+
+---
+
+## 6. 当前店与鉴权
+
+### 6.1 当前店从哪来
+
+- **页面**：网址里的 slug。员工 / 厨房已有 `/[slug]/staff…`、`/[slug]/kitchen…`；后台改为 `/dashboard/r/[slug]/…`（推荐，见 §13 待定 1）。
+- **接口**：一律放在现有前缀 `/api/restaurants/[slug]/…` 下；31 个 `/api/dashboard/**`、`/api/restaurant/**` route 迁进来，不另开前缀、不用请求头，不长期保留旧路径。
+- slug 每次请求解析成 `restaurantId`；解析失败（旧书签、ops 改了 slug）→ 页面回上次所在店或选店页，接口 404。
+- **禁止**只信 body 里的 `restaurant_id` 而不核对店籍。
+
+### 6.2 唯一鉴权入口
 
 ```text
 listAuthorizedRestaurantsForUser(userId)
-  → owned ∪ active non-print_agent staff rows
-
-assertUserAuthorizedForRestaurant(userId, restaurantId)  -- 单店门闩
+  → 管理员：名下那一家
+  → 员工：所有店籍中「已启用、非 print_agent」的店
+  → 每项带 suspended_at；暂停店列出并标暂停，但不作为默认进入的店
 
 loadPrincipalForRestaurant(userId, restaurantId)
-  → owner(*) | staff capabilities at that store
+  → 管理员且是这家店的 owner_id：权限 *
+  → 否则读这家店的店籍：已启用、角色未禁用 → 该角色权限；否则无权
+  → 暂停：管理员可只读进入看暂停提示，员工拒绝；写操作沿用现有 suspended 门禁
+
+requirePermission(key, restaurantId)   -- 接口门禁，店参数必填
+
+resolveStaffLoginTarget(loginName)     -- 登录预检
+  → staff_identities.login_name → user_id → listAuthorizedRestaurantsForUser
+  → 「可进入」为空才拒绝（错误码按全部禁用 / 全部暂停区分）
 ```
 
-禁止第二套「员工配置店 id[]」字段；合并 `loadStaffGateAccountForUser` 与 `loadStaffGateByUserId` 为同一实现后再扩展。
+**删除，不留转发壳：** 无参 `loadPrincipalWithCapabilities()` / `loadPrincipal()` / `requirePermission(key)`；`staff-api-auth.ts` 的 `staffSessionForSlug` / `loadStaffCapabilities`；`staff-gate-db.ts` 两个重复的单行查询；`staff-access.ts#preflightStaffLogin` 的单行逻辑；`parseStaffUserMetadata`。删掉无参入口后，漏改的调用点会在 TypeScript 编译时报错。
 
-### 4.5 Principal
+### 6.3 上次所在店
+
+cookie `mesa_last_restaurant_id`：持久（约 90 天）、HttpOnly、SameSite=Lax，值为 `userId:restaurantId`。只用于登录后默认进哪家；读取时 userId 必须与当前登录一致且该店仍可进入，否则忽略。**不参与任何鉴权。**
+
+---
+
+## 7. 账号级与店级操作
+
+| 操作 | 谁能做 | 实现要点 |
+|------|--------|----------|
+| 关联到另一家店 / 从某店解除关联（ops 侧） | 只有 ops | ops 员工页新增「关联已有账号」（按登录名，选该店角色）；写平台审计 |
+| 在本店新建员工 | 本店「员工管理」权限 | 同时写 `staff_identities` + 店籍行；登录名已存在 → 报「登录名已被占用」（不提示是哪家店的） |
+| 改本店角色 / 权限 / 显示名 | 本店「员工管理」权限 | 只改本店店籍行；**不踢会话**（靠 `permissions_version` 生效） |
+| 改角色本身的权限 | 本店角色管理权限 | 删掉 `roles/[id]` 里的全局踢会话 |
+| 本店禁用 / 启用 | 本店「员工管理」权限（Web 与 ops 同规则） | 只写本店 `disabled_at`；**不碰 Auth 封禁、不踢会话** |
+| 本店删除 | 本店「员工管理」权限 | 删本店店籍行；没有剩余店籍时才 `retireStaffAuthUser`，并删 `staff_identities` 行 |
+| 重置密码 / 改登录名 | 单店账号：本店「员工管理」权限；**多店账号：本人、ops，或任一关联店的管理员账号** | 设 `staff_identities.must_change_password`；改密后踢该账号全部会话（账号级事件） |
+| ops 删店 | ops | 只注销「删店后没有剩余店籍、也不是其他店管理员」的账号；其余只删本店店籍 |
+| Auth 封禁 | 只作平台制裁（ops）和注销时使用 | 任何店内操作都不封、不解封 |
+
+**强制改密：** `must_change_password` 读写 `staff_identities`（登录、改密页、中间件），不再走 metadata。
+
+---
+
+## 8. 产品流程
+
+### 8.1 登录
 
 ```text
-Principal = {
-  userId,
-  restaurantId,  // 本请求的店（来自 URL），不是 cookie
-  kind: 'owner' | 'staff',
-  capabilities,
-}
+员工：登录名 → resolveStaffLoginTarget 预检 → signIn
+管理员：邮箱 → signIn（流程不变）
+→ must_change_password 为真 → 改密页（改完继续）
+→ listAuthorizedRestaurantsForUser
+   0 家：无可进入店铺的提示
+   1 家：直接进（写 last cookie）
+   N 家：上次所在店仍可进 → 直接进；否则选店页
 ```
 
-切店 UI 另调 `listAuthorizedRestaurantsForUser`（可缓存），不塞进每个 principal 强制全量。
+A 店禁用或暂停只让 A 从可进入列表里消失，不影响登录 B。
+
+### 8.2 切店
+
+顶栏店名下拉（只在可进入店 ≥2 时显示）→ 导航到目标店网址 → 更新 last cookie → 页面和 Realtime 随网址重载。两个标签页可以各开一家店。
+
+### 8.3 ops 关联
+
+ops → 某店 → 员工 → 「关联已有账号」：输入登录名、选该店角色 → 新增店籍行。ops 也可在这里解除关联。都写 `writePlatformAudit`。
+
+### 8.4 多店概览页（只读）
+
+- 路径 `/dashboard/multi-store`（推荐，见 §13 待定 2）；不带店 slug，不属于任何一家店。
+- 入口：可进入店 ≥2 才在侧栏显示（仅 UX，不是授权）。
+- 范围：逐店 `loadPrincipalForRestaurant` + `dashboard.overview.view` 通过的店；店名标签可多选。
+- 每家店一行：已收、未收、已结桌/人、在座桌/人（`DashboardTodayKpis` 的 `todayRevenue`、`diningUncollectedAmount`、`todayTableCount`/`todayGuests`、`diningTableCount`/`diningGuests`），加一行合计；营收取不到显示「—」；暂停店标「已暂停」。
+- 数据：服务端逐店调 `dashboard-overview` 现有 `(admin, restaurantId)` 计算，数字与单店首页一致；不在浏览器端直查。
+- 打开时加载一次 + 手动刷新，不轮询。
+- 不新增全局权限 key。
 
 ---
 
-## 5. 产品流程
+## 9. 分批上线
 
-### 5.1 登录
+| 批次 | 内容 | 上线后行为 | 验收重点 |
+|------|------|-----------|----------|
+| **第一批：纯重构** | §5.3 第一步迁移；鉴权合并为 §6.2；后台页面与接口迁入店作用域网址；旧 `/dashboard/*` 与 PWA 启动页跳转；`login_name`、`must_change_password` 读新表；浏览器直查补店条件 | **所有人行为与现在一致**（还没有多店账号） | 单店全流程回归；编译无无店入口 |
+| **第二批：开放多店** | 登录选店 / 切店；§7 全部规则（禁用不封号、删除即解除关联、改权限不踢会话、规则 4、ops 删店）；ops 关联界面 | ops 没关联第二家店前仍与单店一样 | 先只给测试账号关联两家店，跑 §11 全部场景 |
+| **第三批：概览页** | §8.4 | 多店账号多一个页面 | 数字与各店首页一致 |
+| **收尾** | §5.3 第二步：删店籍行 `login_name` 列 | — | `rg` 清零 |
 
-```text
-登录成功 → listAuthorizedRestaurants
-  → 0：无店籍错误页
-  → 1：写 last cookie → 进该店 URL（原 post-login）
-  → N：选店（可预填 last）→ 写 last → 进该店 URL
-```
-
-### 5.2 切店
-
-顶栏下拉（仅授权店）→ 导航到目标店作用域 URL → 更新 last cookie → Realtime 随页面重绑。
-
-### 5.3 员工管理
-
-- 本店新增店籍；已有账号 → **同一创建入口**支持「关联已有 login/email」（不另开平行 API；ops 新建员工遇已存在 login 也走此入口）。  
-- 关联须**本人确认**（邀请 → 被邀请人登录后接受才生成店籍）；唯一例外：操作者是目标现有全部店籍所在店的店主（同一老板名下店之间）可直接关联。接口不回显 login 是否存在，防枚举。  
-- 本店 `disabled_at` 不影响他店（见 §4.1 禁用端态）。
-
-### 5.3b 第二家店的来源
-
-见 §9 待决：ops 建店后绑 `owner_id`，或老板自助建店（改 `RestaurantOnboarding` 为「已有店也可新建」）。
-
-### 5.4 跨店汇总（P2）
-
-| 能力 | V1 |
-|------|-----|
-| 有权且具备该店 `dashboard.overview.view` 的店列表 + 多选（默认全选） | ✅ |
-| 今日已收/未收按店分行 + 合计（复用 `dashboard-overview` 单店 sole，按店调用） | ✅ |
-| 点店名 → 设 last + 进入该店 Dashboard URL | ✅ |
-| 增值分析多店 | P3 |
-| 跨店写 | ❌ |
-
-入口显示条件：授权店数 ≥ 2（**仅 UX**，不是授权白名单）。授权仍逐店 `dashboard.overview.view`（店主 `*`）。**不**新增 `dashboard.multi_store.view`。
+**第一批和第二批必须先后上线、不能拆反：** 放开 `user_id` 唯一（第一批迁移）之后，ops 还没法关联第二家店，所以不会出现多店账号；等第二批的账号级 / 店级规则上线后，ops 才开始关联。
 
 ---
 
-## 6. 分期
-
-| 期 | 交付 | 验收 |
-|----|------|------|
-| **P0** | 存量违约查询 → 迁移（唯一约束 + `staff_identities` + 去掉店籍 `login_name` + print_agent/店主 trigger）+ 账户级 vs 店籍级操作拆分（改密/改登录名/删除/禁用 ban/ops 删店/metadata/踢会话，Web 与 ops 同规则）+ URL 当前店 + API 显式带店 + `list`/`assert`/`loadPrincipalForRestaurant` + 登录选店 + 顶栏切店 + 门禁调用点改完 + 浏览器直查审计 | 一人两店不串数据；A 店重置/改登录名不能接管 B 店人；删/禁 A 店籍不断 B 登录；ops 删 A 店不删 B 店的人 |
-| **P1** | 创建入口支持关联已有账号（邀请 + 本人确认） | 同一 login 两店不同角色；未确认不生成店籍 |
-| **P2** | 跨店今日汇总只读页 | 数字与单店页一致 |
-| **P3** | 增值分析等店筛选 | 可选 |
-
-P0 迁移一旦放宽 `user_id` 唯一，账户级操作拆分**必须同批**，否则存在跨店接管窗口。
-
----
-
-## 7. 主要改动面
+## 10. 改动面
 
 | 区域 | 动作 |
 |------|------|
-| 迁移 + `ai-schema.md` | §4.1–4.2 |
-| `staff-gate-db.ts` / `staff-identity-gate.ts` / `staff-access.ts` | 合并重复 gate 查询；列表 + 按店加载 |
-| `permissions/principal.ts`、`require.ts`、middleware、`dashboard-access*` | `loadPrincipalForRestaurant`；`requirePermission(key, restaurantId)`；Dashboard 单店路径纳入 slug 作用域 |
-| `/api/dashboard/*`、`/api/restaurant/*` 全部店作用域路由 + 前端 `fetch` 调用点 | 显式带当前店（§4.3） |
-| `supabase/middleware.ts`、`staff-change-password-gate.ts` | 去掉 `meta.restaurant_slug` 落地，改读 DB + last cookie |
-| `auth/post-login-redirect.ts`、`api/auth/login`、选店页 | 落地 |
-| `api/dashboard/staff/**`、`staff-dashboard-api.ts`（`staffMetadataPayload`） | 账户/店籍拆分（含禁用不 ban、改登录名走账户级门闩）；关联已有账号 |
-| ops `api/ops/restaurants/[id]/staff/**`、`apps/ops/src/lib/purge-restaurant.ts` | 禁用/新建同规则；删店只退役无剩余店籍且非店主的用户 |
-| `order-history/resolve-staff-operator.ts`、审计 actor 显示 | `login_name` 改读 `staff_identities` |
-| 浏览器端 Supabase 直查 | 补显式当前店条件 |
-| 旁路店主判定并入 principal：`checkout-confirm-payment-auth.ts`、`print-agent/receipt-printers/route.ts` 等 | 去掉第二套 `slug+owner_id` 门禁 |
-| 壳 UI 切店；P2 汇总页 | |
-| Realtime | 随 URL 页面生命周期，无轮询 |
-| `02-feature-map.md`、sole 索引、场景文档 | 落地时同步 |
+| `supabase/migrations` + `docs/ai-schema.md` | §5 |
+| `permissions/principal.ts`、`require.ts`、`staff-api-auth.ts`、`staff-gate-db.ts`、`staff-access.ts`、`staff-identity-gate.ts`、`dashboard-access.ts`、`settings-restaurant-auth.ts` | 合并为 §6.2；删除无店入口与重复实现 |
+| 42 个调用鉴权的文件（route + page） | 改为带店 |
+| `app/dashboard/**`（25 个页面、约 129 处链接）、`lib/dashboard-top-nav.ts`、`lib/dashboard-feature-registry.ts`、`lib/pwa/site-manifest.ts`（启动页） | 迁入 `/dashboard/r/[slug]/…`；旧路径跳转 |
+| `api/dashboard/**`、`api/restaurant/**`（31 个 route）+ 前端约 34 处请求 | 迁入 `/api/restaurants/[slug]/…` |
+| `lib/supabase/middleware.ts`、`lib/supabase/middleware-session-policy.ts` | 从网址取店；不再读 metadata |
+| `auth/post-login-redirect.ts`、`api/auth/login`、`auth/staff-change-password*`、`staff-change-password-gate.ts`、`staff-account.ts` | §8.1；`must_change_password` 读写新表；删 `parseStaffUserMetadata` |
+| 选店页、顶栏切店 | 新增 |
+| `api/dashboard/staff/**`、`staff-dashboard-api.ts`、`StaffAccountsManager.tsx` | §7；规则 4 在 UI 与接口同时判断 |
+| `api/dashboard/roles/[id]` | 删全局踢会话 |
+| `packages/shared`：`staff-user-ban.ts`、`print-agent-staff.ts`、`create-restaurant.ts` | 注销时删 `staff_identities`；打印账号写新表；建店受 §5.2 约束 |
+| ops：`restaurants/[id]/staff/**`、`purge-restaurant.ts` | 禁用不封号；新增关联 / 解除关联；删店只注销无剩余店籍的账号 |
+| `login_name` 读取方（§4 第 15 条） | 改读 `staff_identities` |
+| 旁路管理员判定：`checkout-confirm-payment-auth.ts`、`print-agent/receipt-printers/route.ts` | 并入 `loadPrincipalForRestaurant` |
+| 浏览器直查（§4 第 13 条） | 确认都带当前店条件 |
+| 多店概览页 | 新增 |
+| `02-feature-map.md`、`agent-sole-index.zh.md`、测试场景文档 | 落地时同步 |
 
-**稳定点：** 顾客 anon；print-agent 设备一对店；RLS 按店函数语义；capability 注册表不因汇总新增全局 key。
+**不动：** 顾客端；打印 agent 设备配对；RLS 函数语义；权限注册表；管理员账号的登录与 onboarding 流程。
 
 ---
 
-## 8. 风险与验证
+## 11. 风险与验收
 
-### 8.1 风险
+### 11.1 风险
 
-| 风险 | 缓解 |
+| 风险 | 控制 |
 |------|------|
-| 多标签 cookie 串店 | 已改为 URL 权威 |
-| 改密/改登录名/删号/禁用封号/踢会话/ops 删店跨店 | P0 账户级规则 + UAT |
-| 关联已有账号被滥用（枚举、拉人后接管） | 邀请 + 本人确认；不回显存在性；与账户级门闩互斥 |
-| 加约束时存量违约导致迁移失败 | 迁移前违约查询 + 清理 |
-| 浏览器直查返回多店并集 | P0 直查审计 |
-| Dashboard 迁入店作用域路径工作量大 | P0 必须做完单店写路径；旧 `/dashboard/*` 书签与 PWA `start_url` 重定向到 last 店 URL |
-| P2 汇总逐店调用性能 | 实现时评估；店数大再考虑批量口径（仍复用单店 sole） |
-| gate 双查询残留 | P0 先合并再改 |
-| on-prem shadow admin | 只返回已认领一家 |
-| 汇总口径 | 只复用单店 sole |
+| **串店**：改完后读写到错误的店 | 删除所有无店鉴权入口，漏改即编译报错；一人两店、两标签页交叉写验收 |
+| 单店用户回归 | 一家店直接进、不出现选店；旧链接和 PWA 跳转；第一批纯重构单独上线回归 |
+| 迁移失败或数据不一致 | 违约预查；两步迁移，旧列晚删 |
+| 禁用不再封号后被禁用的人还能登录 | 登录预检「可进入为空即拒绝」+ 逐请求读店籍 |
+| 多店账号被单店员工改密码接管他店 | 规则 4 |
+| ops 改 slug 后旧链接失效 | §6.1 回上次所在店或选店页 |
+| 概览页逐店计算慢 | 实现时测；店多时再考虑批量，口径仍复用单店计算 |
 
-### 8.2 验收场景
+### 11.2 验收场景
 
-1. 一人一店：无选店，行为同现网。  
-2. 老板两店：两标签分别开 A/B URL，写操作互不串。  
-3. 员工仅 A：打 B API → 403；改 cookie 无效。  
-4. 同人 A 收银 / B 服务员：侧栏随 URL 店变。  
-5. A 禁用：不可进 A；B 仍可。  
-6. A 有 staff.manage 者不能重置「还是 B 店店主」的人的密码。  
-7. 删 A 店籍：B 仍可登录；最后一店籍且非店主才退役 Auth。  
-8. P2 汇总数字 = 各单店页之和/分行一致。  
-9. 顾客扫码、打印配对回归。  
-10. A 有 staff.manage 者不能改「还在 B 店」的人的登录名。  
-11. ops 删除 A 店：同时在 B 店的员工与 B 店店主仍可登录。  
-12. A 店关联已有账号：被邀请人未确认前无 A 店籍；接口不泄露 login 是否存在。  
-13. 店主插入自家店 staff 行、`print_agent` 账号再关联他店：DB 拒绝。
-
----
-
-## 9. 待决项（本轮已锁建议 · 待 Will 拍板）
-
-1. **店主店籍：** 方案 A（锁定）。  
-2. **login_name：** 账户级表、全局一人一个（锁定）。  
-3. **P2 最小集：** 今日已收/未收按店 + 合计 + 下钻；增值分析 P3（锁定）。  
-4. **cookie：** 仅 `mesa_last_restaurant_id` 落地默认，同登录会话寿命（锁定）。  
-5. **权限：** 不新增 `dashboard.multi_store.view`；逐店 `dashboard.overview.view`（锁定）。  
-6. **on-prem：** Mode B 本阶段单店（锁定）。
-
-**仍须 Will 一句话确认的实现偏好（非推翻端态）：**
-
-- 单店 Dashboard 最终路径形态：例如 `/dashboard/r/[slug]/…` 或 `/(restaurant)/[slug]/dashboard/…`（实现时定一种，sole 一条）。  
-- 跨店汇总路径名。  
-- API 当前店传输：路径段（如 `/api/r/[slug]/…`）或 header（如 `x-mesa-restaurant`），二选一。
-
-**仍须 Will 拍板的产品项：**
-
-- 第二家店从哪来：ops 建店后绑 `owner_id`，或老板自助建店（影响 P0 是否改 onboarding）。
+1. 单店员工、单店管理员：登录、各页面、接口与现在一致，不出现选店。
+2. 测试账号 ops 关联 A、B 两店：登录出现选店；上次所在店记住。
+3. 两个标签页分别在 A、B 写操作，数据各进各店。
+4. 该账号在 A 是收银、在 B 是店长：侧栏与可用功能随网址变。
+5. 只属于 A 的员工请求 B 的接口：403；改 cookie 无效。
+6. A 店禁用该账号：进不了 A，B 正常，登录不受影响；A 暂停同理。
+7. A 店删除该账号：只解除 A 关联，B 正常；只剩一家店时删除才注销账号。
+8. A 店改某角色权限：该账号在 B 的标签页不被登出。
+9. A 店有「员工管理」权限的普通员工不能重置该多店账号的密码、不能改其登录名；A 或 B 的管理员账号可以；ops 可以。
+10. ops 删除 A 店：B 店的人（含该多店账号、B 管理员）都能正常登录。
+11. 管理员账号被关联为员工、管理员账号再当第二家店的管理员、打印账号被关联到别的店：DB 拒绝。
+12. 新员工首次登录强制改密生效（读新表）。
+13. 多店概览：只列有概览权限的店，数字与各店首页一致；单店账号看不到入口。
+14. 旧 `/dashboard/*` 书签、手机桌面图标：进入上次所在店或选店页。
+15. ops 改 A 店 slug：已开的 A 标签页刷新后回到选店或上次所在店，不报错白屏。
+16. 顾客扫码点餐、打印 agent 配对与出单：回归正常。
 
 ---
 
-## 10. 文档同步（落地时）
+## 12. 合理性与难度（评估结论）
 
-- `02-feature-map.md`：多门店改为本方案范围（无集团层）。  
-- `ai-schema.md`：`staff_identities` + 店籍约束。  
-- `docs/test-scenarios/YYYY-MM-DD-multi-store-access.md`。  
-- `agent-sole-index.zh.md`：sole helpers 一行。
-
----
-
-## 11. 第一轮评审结论栏（Claude · 2026-11-17）
-
-| 项 | 结论 | 备注 |
-|----|------|------|
-| 端态（§2） | 修改后通过 | 当前店改 URL；cookie 降级 |
-| 店籍模型（§4.1） | 修改后通过 | 方案 A；login_name 账户级表 |
-| 当前店（§4.2） | 修改后通过 | 见上 |
-| 分期（§6） | 修改后通过 | 账户/店籍拆分进 P0 |
-| 非目标（§1.3） | 通过 | |
-| 待决（§9） | 见原建议 | 已并入正文 §9 |
-
-**Claude 总评（原文要旨）：** 修改后再评，暂不进入实现。必改 5 条：URL 当前店；账户/店籍操作拆分进 P0；login_name 上移；补全调用点；§3 补 RLS 兼容与两层隔离。
+- **合理**：符合「一个账号进多家店、每店权限各自配置」；管理员账号模型不变；RLS 本来就按「店 + 人」判断，数据模型只是放开唯一约束 + 登录名上移。
+- **难度**：中等偏大。约八成是机械改动（网址和接口带店：25 个页面、约 129 处链接、31 个 route、约 34 处请求）；真正要小心的是鉴权合并（两套入口合一）和账号级 / 店级规则。
+- **风险可控**：最大风险是串店，靠「删除无店入口 → 编译期暴露漏改」控制；功能默认不生效（ops 不关联就没有多店账号），可以先用测试账号验证，再给真实账号开。
 
 ---
 
-## 11b. 第二轮复核（Cursor · 2026-11-17）
+## 13. 待定（实现前由 Will 确认，均已有推荐值）
 
-| Claude 要求 | Cursor 结论 | 说明 |
-|-------------|-------------|------|
-| 当前店 = URL，cookie 降级 | **采纳** | 已用代码核对：多标签共享 cookie 会串写；员工路由已有 slug，Dashboard 需纳入店作用域 |
-| 方案 A + 禁止店主自拍 staff 行 | **采纳** | 对齐 role-permissions「店主 ≠ staff 行」 |
-| `staff_identities` 上移 login_name | **采纳** | 「首行继承」驳回正确；`buildStaffEmail(login_name)` 本就账户级 |
-| 改密/删号/metadata/踢会话拆分进 P0 | **采纳** | 已核对 `reset-password`、`DELETE staff`、`staffMetadataPayload`、`kickStaffUserSessions` |
-| 不新增 multi_store.view | **采纳** | 避免全局平行白名单 |
-| on-prem 单店 | **采纳** | |
-| §7 调用点清单 | **采纳并写入 §7** | gate 双查询先合并；旁路 `owner_id` 判定并入 principal |
-| RLS 已兼容多行 | **采纳写入 §3.5** | |
-
-**Cursor 追加一条（已写入 §2）：** 跨店汇总页是**只读、非单一当前店**入口，路径不要假装成某一店的经营 URL；与「经营当前店 = slug」不冲突，而是第四概念「汇总范围」的 UI 落点。
-
-**第二轮总评：修订稿可通过，待 Will 确认 §9 锁定项 + Dashboard 路径命名偏好后即可进入实现（仍须 Will 说「按方案改」）。** 无需再大改端态；实现前不必第三轮架构评审，除非 Will 否定 URL 当前店或账户级 login 表。
+1. **后台网址形态**：推荐 `/dashboard/r/[slug]/…`（避开 `/dashboard/settings` 等固定段与 slug 冲突；`/[slug]/…` 下已有顾客页 `menu`、`bill`，不混放）。
+2. **多店概览网址**：推荐 `/dashboard/multi-store`。
 
 ---
 
-## 11c. 第三轮评审（Claude · 2026-11-17 · 对照代码）
+## 14. 未核实
 
-**结论：** 端态（URL 当前店、方案 A、账户级 login 表）成立；但 P0 范围漏了以下跨店账户级操作与未定义项，§11b「不必第三轮」不成立。
-
-**并入状态（2026-11-17）：** 已并入正文 —— 11c.1 → §3.6–3.9、§4.1、§4.2、§4.3、§7；11c.2 → §4.1（门闩/trigger）、§4.2（存量查询）、§5.3/5.3b（邀请确认、建店来源）、§8.1、§9；11c.4 → §3.12、§4.3、§8.1；验收 → §8.2 #10–13；P0 → §6。下文保留为评审记录。
-
-### 11c.1 已核实漏洞（代码证据）
-
-| # | 问题 | 证据 | P0 要求 |
-|---|------|------|---------|
-| 1 | **店内禁用 = 全局封号**：禁用员工调用 `setStaffUserBanned(user_id, true)`（`ban_duration` 876000h），ops 端再 `kickStaffUserSessions` | `apps/web/src/app/api/dashboard/staff/[id]/route.ts:66`（启用 unban :81，删除 :159）；`apps/ops/src/app/api/ops/restaurants/[id]/staff/[staffId]/route.ts:55` | 店内禁用只写 `disabled_at`；ban/unban 仅限账户级事件，并按「剩余有效店籍」判定。否则 §5.3 与验收 5 不成立 |
-| 2 | **ops 删店删光 Auth 用户**：收集 `owner_id` + 全部店籍 `user_id` 后逐个 `auth.admin.deleteUser` | `apps/ops/src/lib/purge-restaurant.ts:117-173` | 仅删除「无剩余店籍且非任何店店主」的用户；否则删 A 店会删掉 B 店员工或老板本人 |
-| 3 | **ops 员工接口未列入改动面** | `apps/ops/src/app/api/ops/restaurants/[id]/staff/**` | ops 创建/禁用走同一账户级/店籍级规则；ops 新建遇已存在 login 走同一「关联已有账号」入口 |
-| 4 | **改 `login_name` 是账户级操作**：登录邮箱由 `buildStaffEmail(login_name)` 派生 | `PATCH staff` 路径 | 改登录名与店内重置密码同一门禁（全部店籍在操作者管辖内且非店主），否则为另一接管路径 |
-| 5 | **API 层当前店传输未定义**：`requirePermission(key)` / `loadPrincipal()` 无店参数，店由用户推导 | `apps/web/src/lib/permissions/require.ts:22`；112 个 `route.ts`，`/api/dashboard/*`、`/api/restaurant/*` 不带 slug；前端 34 处 `fetch('/api/restaurant\|dashboard/…')` | 定唯一传输方式（路径段或 header 二选一）+ 唯一校验入口（如 `requirePermission(key, restaurantId)` 必填），列入 §4.3 / §7 |
-| 6 | **中间件 / 改密门禁仍用 metadata 落地** | `apps/web/src/lib/supabase/middleware.ts:101`（`meta.restaurant_slug`）；`apps/web/src/lib/staff-change-password-gate.ts:26` | 列入 §7；落地改为 `listAuthorizedRestaurantsForUser` + last cookie |
-| 7 | **`login_name` 其他读取方** | `apps/web/src/lib/order-history/resolve-staff-operator.ts:28` 直接 select 店籍 `login_name` | 迁移删列前改为 join `staff_identities`；审计/操作历史显示同步 |
-
-### 11c.2 设计缺口
-
-1. **「关联已有账号」须本人同意**：否则可枚举 login、拉人进店；且「无店籍、非店主」的账号被拉入后其全部店籍都在 A，A 即可重置密码接管。端态：邀请 + 本人确认；或仅允许同一店主名下店之间直接关联。
-2. **约束须 DB 层双向强制（trigger）**：「店主不得在自家店有 staff 行」「`print_agent` 账号全局仅一行店籍且不可再关联为人类员工」跨行/跨表，CHECK/UNIQUE 不够。触发点：店籍 insert/update、`restaurants.owner_id` 变更（含 `license-materialize`）、角色改为 `print_agent`。
-3. **第二家店的来源未定**：现建店入口为 `RestaurantOnboarding` 客户端 insert。须定：ops 建店后绑 `owner_id`，还是老板自助建店（影响 P0 是否改 onboarding）。
-4. **重置密码门禁同事务判断**：「全部店籍」含已禁用与 `print_agent` 行；与「关联已有账号」互斥加锁，避免判定后被插入新店籍的竞态。
-5. **迁移前存量查询**：先查「店主在自家店已有 staff 行」等违约数据，否则加约束失败；旧 `/dashboard/*` 书签与 PWA `start_url` 须重定向。
-
-### 11c.3 已核实无需改
-
-- SQL：未见按 `auth.uid()` 取单一店的函数；§3.5「RLS 按店+用户、多行兼容」基本成立。
-- Realtime：`use-restaurant-realtime-refresh` 订阅带 `filter`，不会串推。
-
-### 11c.4 未核实（列为 P0 审计项）
-
-- 浏览器端 Supabase 直查未写 `.eq('restaurant_id', …)`、依赖 RLS 隐式收窄到唯一店的查询：多店后会返回并集。须逐文件扫。
-- P2 汇总按店逐个调用单店 sole 的性能。
-
-**第三轮总评：** 端态不变；11c 已并入正文。待 Will 拍板 §9（含「第二家店来源」「API 当前店传输」）后可进实现（仍须 Will 说「按方案改」）。
+- 打印 agent 运行时鉴权是否按 user 推导店（在「打印账号只能一行店籍」约束下预计不受影响）。
+- 夜间关台定时任务 `api/cron/nightly-close-sessions`（预计用 service role 按店遍历，不受影响）。
+- 129 处 `/dashboard` 链接中有多少是服务端重定向、多少是导航链接，实现时逐个处理。
+- 线上是否已有一人当两家店管理员、管理员同时有店籍的存量数据（§5.3 预查）。
 
 ---
 
-## 12. 给实现者的提醒
+## 15. 评审历史
 
-- 未获 Will「按方案改」前 **禁止编码**。  
-- Feature branch / worktree；不动旁路 WIP。  
-- 清冗余 → 业务场景 + UAT → `gate.sh check`；commit/merge 仅当 Will 要求。
+- **第 1–4 轮（Claude / Cursor）**：确立「网址即当前店」、账号级 / 店级操作拆分、登录名上移、ops 删店与禁用封号的跨店问题。当时的路线是「管理员账号（`owner_id`）多店 + 员工多店 + 邀请确认」。
+- **第 5 轮（Claude，对照代码）**：补出第二套鉴权入口 `staffSessionForSlug`、登录预检单行、metadata 解析器、改密竞态、建店 RLS、封禁多来源、改权限踢会话等。
+- **路线修正（Will，2026-11-17）**：管理员邮箱账号是我们自己的后台账号、一店一个，不做多店；多店只针对员工账号（店主 / 店长等角色），由 ops 关联，各店管理员管理其本店权限；管理员都是我们自己，不为防管理员加规则。本稿据此重写，旧稿全文见 git 历史（提交 `4303954d` 及其后工作区版本）。
+
+---
+
+## 16. 给实现者的提醒
+
+- 未获 Will「按方案改」前 **禁止编码**。
+- 独立 worktree / 分支；不动旁路 WIP。
+- 按 §9 分批；每批清冗余 → 业务场景 + 本地 UAT → `gate.sh check`；commit / merge 仅当 Will 要求。

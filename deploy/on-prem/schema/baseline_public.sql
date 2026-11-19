@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 8wWwvXTjoODLEYkoHNpmZNLMqMyyS3PCG6N6ouVMjzXvBwkjXgkzShihGTrLKaM
+\restrict XrPG5m2Zmr1KHWZjv0MoYuetkZeBGXIjQHFovWRXRMtsLcgVAbINEjQlbcbJthJ
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -108,10 +108,10 @@ $$;
 
 
 --
--- Name: append_order_items(uuid, uuid, uuid, text, jsonb); Type: FUNCTION; Schema: public; Owner: -
+-- Name: append_order_items(uuid, uuid, uuid, text, jsonb, uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb) RETURNS jsonb
+CREATE FUNCTION public.append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb, p_priced_buffet_id uuid) RETURNS jsonb
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public'
     AS $$
@@ -133,6 +133,7 @@ declare
   v_price numeric;
   v_qty numeric;
   v_new_id uuid;
+  v_session public.table_sessions%rowtype;
 begin
   if p_restaurant_id is null or p_session_id is null or p_table_id is null then
     return jsonb_build_object('ok', false, 'code', 'invalid_args');
@@ -144,6 +145,19 @@ begin
 
   -- Serialize all appends for this session (merge target + first-insert race).
   perform pg_advisory_xact_lock(hashtext(p_session_id::text));
+
+  -- Dish lines must be priced for the table's current buffet (same lock as switch_table_buffet).
+  if exists (
+    select 1 from jsonb_array_elements(p_new_items) e
+    where public.order_item_is_buffet_priced(e)
+  ) then
+    select * into v_session
+    from public.table_sessions
+    where id = p_session_id and restaurant_id = p_restaurant_id;
+    if public.table_session_current_buffet_id(v_session) is distinct from p_priced_buffet_id then
+      return jsonb_build_object('ok', false, 'code', 'buffet_changed');
+    end if;
+  end if;
 
   select *
     into v_order
@@ -292,13 +306,6 @@ begin
   );
 end;
 $$;
-
-
---
--- Name: FUNCTION append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb); Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON FUNCTION public.append_order_items(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_new_items jsonb) IS 'Sole guest/waiter/checkout append write: session advisory lock + latest order FOR UPDATE; append items or insert. Non-kitchen kinds: buffet_base, takeaway.';
 
 
 --
@@ -463,6 +470,133 @@ exception
     raise warning 'bill_splits_individual_sync failed: %', sqlerrm;
     return null;
 end;
+$$;
+
+
+--
+-- Name: buffet_calendar_kind(uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.buffet_calendar_kind(p_restaurant_id uuid, p_at timestamp with time zone) RETURNS text
+    LANGUAGE plpgsql STABLE
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_tz text := 'Europe/Lisbon';
+  v_date date := (p_at AT TIME ZONE v_tz)::date;
+  v_t time := (p_at AT TIME ZONE v_tz)::time;
+  v_dow int := extract(dow FROM (p_at AT TIME ZONE v_tz))::int;
+  v_override text;
+  v_friday_from time;
+BEGIN
+  SELECT r.buffet_friday_weekend_from INTO v_friday_from
+  FROM public.restaurants r
+  WHERE r.id = p_restaurant_id;
+
+  SELECT bco.kind INTO v_override
+  FROM public.buffet_calendar_overrides bco
+  WHERE bco.restaurant_id = p_restaurant_id
+    AND bco.on_date = v_date;
+
+  IF v_override = 'holiday' THEN
+    RETURN 'holiday';
+  ELSIF v_override = 'special' THEN
+    RETURN 'special';
+  ELSIF v_dow IN (0, 6) THEN
+    RETURN 'weekend';
+  ELSIF v_dow = 5 AND v_friday_from IS NOT NULL AND v_t >= v_friday_from THEN
+    RETURN 'weekend';
+  END IF;
+  RETURN 'weekday';
+END;
+$$;
+
+
+--
+-- Name: buffet_current_slot_id(uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.buffet_current_slot_id(p_restaurant_id uuid, p_at timestamp with time zone DEFAULT now()) RETURNS uuid
+    LANGUAGE sql STABLE
+    SET search_path TO 'public'
+    AS $$
+  WITH local AS (
+    SELECT
+      (p_at AT TIME ZONE 'Europe/Lisbon')::time AS t,
+      extract(dow FROM (p_at AT TIME ZONE 'Europe/Lisbon'))::int AS dow
+  )
+  SELECT ts.id
+  FROM public.buffet_time_slots ts, local
+  WHERE ts.restaurant_id = p_restaurant_id
+    AND local.dow = ANY (ts.weekdays)
+  ORDER BY public.buffet_slot_distance_seconds(ts.start_time, ts.end_time, local.t) ASC,
+    ts.sort_order ASC,
+    ts.name ASC
+  LIMIT 1;
+$$;
+
+
+--
+-- Name: buffet_openable_ids(uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.buffet_openable_ids(p_restaurant_id uuid, p_at timestamp with time zone DEFAULT now()) RETURNS SETOF uuid
+    LANGUAGE sql STABLE
+    SET search_path TO 'public'
+    AS $$
+  WITH local AS (
+    SELECT
+      (p_at AT TIME ZONE 'Europe/Lisbon')::date AS d,
+      (p_at AT TIME ZONE 'Europe/Lisbon')::time AS t,
+      extract(dow FROM (p_at AT TIME ZONE 'Europe/Lisbon'))::int AS dow,
+      public.buffet_calendar_kind(p_restaurant_id, p_at) AS cal
+  ),
+  current_slot AS (
+    SELECT ts.id
+    FROM public.buffet_time_slots ts, local
+    WHERE ts.restaurant_id = p_restaurant_id
+      AND local.dow = ANY (ts.weekdays)
+    ORDER BY public.buffet_slot_distance_seconds(ts.start_time, ts.end_time, local.t) ASC,
+      ts.sort_order ASC,
+      ts.name ASC
+    LIMIT 1
+  )
+  SELECT b.id
+  FROM public.buffets b, local, current_slot
+  WHERE b.restaurant_id = p_restaurant_id
+    AND b.is_active
+    AND EXISTS (
+      SELECT 1
+      FROM public.buffet_price_rules r
+      WHERE r.restaurant_id = p_restaurant_id
+        AND r.buffet_id = b.id
+        AND r.time_slot_id = current_slot.id
+        AND r.calendar_kind = local.cal
+        AND r.is_active
+        AND local.d >= r.valid_from
+        AND (r.valid_to IS NULL OR local.d <= r.valid_to)
+    );
+$$;
+
+
+--
+-- Name: buffet_slot_distance_seconds(time without time zone, time without time zone, time without time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.buffet_slot_distance_seconds(p_start time without time zone, p_end time without time zone, p_at time without time zone) RETURNS double precision
+    LANGUAGE sql IMMUTABLE
+    AS $$
+  SELECT CASE
+    WHEN p_start <= p_end AND p_at >= p_start AND p_at < p_end
+      THEN 0::double precision
+    WHEN p_start > p_end AND (p_at >= p_start OR p_at < p_end)
+      THEN 0::double precision
+    WHEN p_start <= p_end AND p_at < p_start
+      THEN extract(epoch FROM (p_start - p_at))
+    WHEN p_start <= p_end AND p_at >= p_end
+      THEN extract(epoch FROM (p_at - p_end))
+    ELSE 86400::double precision
+  END;
 $$;
 
 
@@ -3195,6 +3329,12 @@ begin
     raise exception 'target table has no active session';
   end if;
 
+  -- One table, one buffet: different packages (incl. one side without a buffet) never merge.
+  if public.table_session_current_buffet_id(v_source_session)
+     is distinct from public.table_session_current_buffet_id(v_target_session) then
+    raise exception 'buffet_mismatch';
+  end if;
+
   update public.bill_splits
   set session_id = v_source_session.id
   where restaurant_id = p_restaurant_id
@@ -3531,6 +3671,19 @@ COMMENT ON FUNCTION public.order_history_feed_page(p_restaurant_id uuid, p_close
 
 
 --
+-- Name: order_item_is_buffet_priced(jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.order_item_is_buffet_priced(p_item jsonb) RETURNS boolean
+    LANGUAGE sql IMMUTABLE
+    AS $$
+  SELECT coalesce(p_item->>'kind', 'menu') NOT IN ('buffet_base', 'takeaway', 'packaging')
+    AND coalesce((p_item->>'kitchen_remake')::boolean, false) = false
+    AND coalesce(p_item->>'item_status', 'pending') <> 'voided';
+$$;
+
+
+--
 -- Name: purge_table_group_member_on_soft_delete(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3700,6 +3853,54 @@ $$;
 
 
 --
+-- Name: replace_menu_item_buffet_prices(uuid, uuid, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.replace_menu_item_buffet_prices(p_restaurant_id uuid, p_menu_item_id uuid, p_prices jsonb) RETURNS void
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_entry jsonb;
+  v_buffet_id uuid;
+  v_price numeric;
+  v_buffet_ids uuid[] := ARRAY[]::uuid[];
+BEGIN
+  IF jsonb_typeof(coalesce(p_prices, '[]'::jsonb)) <> 'array' THEN
+    RAISE EXCEPTION 'invalid_buffet_prices';
+  END IF;
+
+  FOR v_entry IN SELECT value FROM jsonb_array_elements(coalesce(p_prices, '[]'::jsonb)) LOOP
+    v_buffet_id := nullif(v_entry->>'buffet_id', '')::uuid;
+    v_price := (v_entry->>'price')::numeric;
+    IF v_buffet_id IS NULL OR v_price IS NULL OR v_price < 0 THEN
+      RAISE EXCEPTION 'invalid_buffet_prices';
+    END IF;
+    IF v_buffet_id = ANY (v_buffet_ids) THEN
+      RAISE EXCEPTION 'duplicate_buffet_price';
+    END IF;
+    v_buffet_ids := v_buffet_ids || v_buffet_id;
+  END LOOP;
+
+  DELETE FROM public.menu_item_buffet_prices
+  WHERE restaurant_id = p_restaurant_id
+    AND menu_item_id = p_menu_item_id
+    AND NOT (buffet_id = ANY (v_buffet_ids));
+
+  INSERT INTO public.menu_item_buffet_prices (restaurant_id, menu_item_id, buffet_id, price)
+  SELECT
+    p_restaurant_id,
+    p_menu_item_id,
+    (e->>'buffet_id')::uuid,
+    round((e->>'price')::numeric, 2)
+  FROM jsonb_array_elements(coalesce(p_prices, '[]'::jsonb)) AS e
+  ON CONFLICT (menu_item_id, buffet_id)
+  DO UPDATE SET price = excluded.price;
+END;
+$$;
+
+
+--
 -- Name: replace_table_group_members(uuid, uuid[]); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -3759,7 +3960,7 @@ $$;
 -- Name: resolve_buffet_prices(uuid, uuid, timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.resolve_buffet_prices(p_restaurant_id uuid, p_buffet_id uuid, p_at timestamp with time zone DEFAULT now()) RETURNS TABLE(adult_price numeric, child_price numeric, rule_id uuid, time_slot_id uuid)
+CREATE FUNCTION public.resolve_buffet_prices(p_restaurant_id uuid, p_buffet_id uuid, p_at timestamp with time zone DEFAULT now()) RETURNS TABLE(adult_price numeric, child_price numeric, rule_id uuid, time_slot_id uuid, adult_enabled boolean, child_enabled boolean)
     LANGUAGE plpgsql STABLE
     AS $$
 declare
@@ -3767,63 +3968,19 @@ declare
   v_date date;
   v_t time;
   v_dow int;
-  v_override text;
   v_cal text;
   v_slot_id uuid;
-  v_friday_from time;
 begin
   v_date := (p_at at time zone v_tz)::date;
   v_t := (p_at at time zone v_tz)::time;
   v_dow := extract(dow from (p_at at time zone v_tz))::int;
-
-  select r.buffet_friday_weekend_from into v_friday_from
-  from public.restaurants r
-  where r.id = p_restaurant_id;
-
-  select bco.kind into v_override
-  from public.buffet_calendar_overrides bco
-  where bco.restaurant_id = p_restaurant_id
-    and bco.on_date = v_date;
-
-  if v_override = 'holiday' then
-    v_cal := 'holiday';
-  elsif v_override = 'special' then
-    v_cal := 'special';
-  elsif v_dow in (0, 6) then
-    v_cal := 'weekend';
-  else
-    v_cal := 'weekday';
-  end if;
-
-  if v_cal = 'weekday'
-    and v_dow = 5
-    and v_friday_from is not null
-    and v_t >= v_friday_from
-  then
-    v_cal := 'weekend';
-  end if;
+  v_cal := public.buffet_calendar_kind(p_restaurant_id, p_at);
 
   select s.id into v_slot_id
   from (
     select
       ts.id,
-      case
-        when ts.start_time <= ts.end_time
-          and v_t >= ts.start_time
-          and v_t < ts.end_time
-        then 0::double precision
-        when ts.start_time > ts.end_time
-          and (v_t >= ts.start_time or v_t < ts.end_time)
-        then 0::double precision
-        when ts.start_time <= ts.end_time
-          and v_t < ts.start_time
-        then extract(epoch from (ts.start_time - v_t))
-        when ts.start_time <= ts.end_time
-          and v_t >= ts.end_time
-        then extract(epoch from (v_t - ts.end_time))
-        else
-          86400::double precision
-      end as dist,
+      public.buffet_slot_distance_seconds(ts.start_time, ts.end_time, v_t) as dist,
       ts.sort_order,
       ts.name
     from public.buffet_time_slots ts
@@ -3837,26 +3994,28 @@ begin
           and r.buffet_id = p_buffet_id
           and r.calendar_kind = v_cal
           and r.is_active
-          and v_date between r.valid_from and r.valid_to
+          and v_date >= r.valid_from
+          and (r.valid_to is null or v_date <= r.valid_to)
       )
   ) s
   order by s.dist asc, s.sort_order asc, s.name asc
   limit 1;
 
   if v_slot_id is null then
-    return query select null::numeric, null::numeric, null::uuid, null::uuid;
+    return query select null::numeric, null::numeric, null::uuid, null::uuid, null::boolean, null::boolean;
     return;
   end if;
 
   return query
-  select r.adult_price, r.child_price, r.id, r.time_slot_id
+  select r.adult_price, r.child_price, r.id, r.time_slot_id, r.adult_enabled, r.child_enabled
   from public.buffet_price_rules r
   where r.restaurant_id = p_restaurant_id
     and r.buffet_id = p_buffet_id
     and r.time_slot_id = v_slot_id
     and r.calendar_kind = v_cal
     and r.is_active
-    and v_date between r.valid_from and r.valid_to
+    and v_date >= r.valid_from
+    and (r.valid_to is null or v_date <= r.valid_to)
   order by r.priority desc, r.valid_from desc
   limit 1;
 end;
@@ -4242,7 +4401,10 @@ CREATE FUNCTION public.settle_expired_table_order_round_cooldown(p_session_id uu
     AS $$
 DECLARE
   v_round public.table_order_rounds%ROWTYPE;
+  v_session_until timestamptz;
   v_now timestamptz := now();
+  v_closed boolean := false;
+  v_active boolean := false;
 BEGIN
   IF p_session_id IS NULL THEN
     RETURN 'noop';
@@ -4250,34 +4412,61 @@ BEGIN
 
   PERFORM pg_advisory_xact_lock(hashtext(p_session_id::text));
 
-  SELECT *
-  INTO v_round
-  FROM public.table_order_rounds
-  WHERE session_id = p_session_id
-    AND status IN ('collecting', 'pending_confirm', 'cooldown', 'finalize_failed')
-  ORDER BY created_at DESC
-  LIMIT 1
+  SELECT sushi_round_cooldown_until
+  INTO v_session_until
+  FROM public.table_sessions
+  WHERE id = p_session_id
   FOR UPDATE;
 
   IF NOT FOUND THEN
     RETURN 'noop';
   END IF;
 
-  IF v_round.status = 'cooldown'
-     AND v_round.cooldown_until IS NOT NULL
-     AND v_round.cooldown_until > v_now THEN
-    RETURN 'cooldown_active';
+  -- Clear expired session clock.
+  IF v_session_until IS NOT NULL AND v_session_until <= v_now THEN
+    UPDATE public.table_sessions
+    SET sushi_round_cooldown_until = NULL
+    WHERE id = p_session_id;
+    v_session_until := NULL;
   END IF;
 
-  IF v_round.status = 'cooldown'
-     AND (v_round.cooldown_until IS NULL OR v_round.cooldown_until <= v_now) THEN
+  -- Legacy: free the active slot by closing any cooldown round; keep remaining wait on session.
+  SELECT *
+  INTO v_round
+  FROM public.table_order_rounds
+  WHERE session_id = p_session_id
+    AND status = 'cooldown'
+  ORDER BY created_at DESC
+  LIMIT 1
+  FOR UPDATE;
+
+  IF FOUND THEN
+    IF v_round.cooldown_until IS NOT NULL
+       AND v_round.cooldown_until > v_now
+       AND (v_session_until IS NULL OR v_session_until < v_round.cooldown_until) THEN
+      UPDATE public.table_sessions
+      SET sushi_round_cooldown_until = v_round.cooldown_until
+      WHERE id = p_session_id;
+      v_session_until := v_round.cooldown_until;
+    END IF;
+
     UPDATE public.table_order_rounds
     SET status = 'closed', updated_at = v_now
     WHERE id = v_round.id
       AND status = 'cooldown';
-    RETURN 'closed';
+    v_closed := true;
   END IF;
 
+  IF v_session_until IS NOT NULL AND v_session_until > v_now THEN
+    v_active := true;
+  END IF;
+
+  IF v_active THEN
+    RETURN 'cooldown_active';
+  END IF;
+  IF v_closed THEN
+    RETURN 'closed';
+  END IF;
   RETURN 'noop';
 END;
 $$;
@@ -4287,7 +4476,7 @@ $$;
 -- Name: FUNCTION settle_expired_table_order_round_cooldown(p_session_id uuid); Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON FUNCTION public.settle_expired_table_order_round_cooldown(p_session_id uuid) IS 'Sole expired-cooldown settle: advisory lock + close cooldown round when until <= now; returns cooldown_active|closed|noop.';
+COMMENT ON FUNCTION public.settle_expired_table_order_round_cooldown(p_session_id uuid) IS 'Sole kitchen-cooldown settle: clear expired session clock; close legacy cooldown rounds (copy until onto session); returns cooldown_active|closed|noop. Does not block basket writes.';
 
 
 --
@@ -4337,6 +4526,148 @@ begin
     and old.id = any (print_station_ids);
   return old;
 end;
+$$;
+
+
+--
+-- Name: switch_table_buffet(uuid, uuid, uuid, text, uuid, jsonb, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.switch_table_buffet(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_display_name text, p_from_buffet_id uuid, p_buffet_line jsonb, p_line_prices jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_session public.table_sessions%rowtype;
+  v_order record;
+  v_items jsonb;
+  v_elem jsonb;
+  v_idx int;
+  v_entry jsonb;
+  v_matched int := 0;
+  v_changed boolean;
+  v_carrier_id uuid;
+  v_new_id uuid;
+BEGIN
+  IF p_line_prices IS NULL OR jsonb_typeof(p_line_prices) <> 'array' THEN
+    RETURN jsonb_build_object('ok', false, 'code', 'invalid_args');
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtext(p_session_id::text));
+
+  SELECT * INTO v_session
+  FROM public.table_sessions
+  WHERE id = p_session_id
+    AND restaurant_id = p_restaurant_id
+    AND table_id = p_table_id
+    AND status IN ('open', 'billing')
+  FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'code', 'session_not_found');
+  END IF;
+
+  IF public.table_session_current_buffet_id(v_session) IS DISTINCT FROM p_from_buffet_id THEN
+    RETURN jsonb_build_object('ok', false, 'code', 'buffet_changed');
+  END IF;
+
+  -- Every active buffet-priced dish line must carry a submitted price (same dish + batch).
+  FOR v_order IN
+    SELECT o.id, o.items
+    FROM public.orders o
+    WHERE o.restaurant_id = p_restaurant_id
+      AND o.session_id = p_session_id
+      AND o.status IN ('pending', 'cooking', 'done')
+    ORDER BY o.created_at
+    FOR UPDATE
+  LOOP
+    FOR v_elem, v_idx IN
+      SELECT e, (ord - 1)::int
+      FROM jsonb_array_elements(coalesce(v_order.items, '[]'::jsonb)) WITH ORDINALITY AS t(e, ord)
+    LOOP
+      CONTINUE WHEN NOT public.order_item_is_buffet_priced(v_elem);
+      SELECT x INTO v_entry
+      FROM jsonb_array_elements(p_line_prices) x
+      WHERE (x->>'order_id')::uuid = v_order.id
+        AND (x->>'index')::int = v_idx
+        AND x->>'menu_item_id' = v_elem->>'id'
+        AND coalesce(x->>'batch_id', '') = coalesce(v_elem->>'batch_id', '')
+      LIMIT 1;
+      IF v_entry IS NULL THEN
+        RETURN jsonb_build_object('ok', false, 'code', 'lines_changed');
+      END IF;
+      v_matched := v_matched + 1;
+    END LOOP;
+  END LOOP;
+  IF v_matched <> jsonb_array_length(p_line_prices) THEN
+    RETURN jsonb_build_object('ok', false, 'code', 'lines_changed');
+  END IF;
+
+  SELECT o.id INTO v_carrier_id
+  FROM public.orders o
+  WHERE o.restaurant_id = p_restaurant_id
+    AND o.session_id = p_session_id
+    AND o.table_id = p_table_id
+    AND o.status IN ('pending', 'cooking', 'done')
+  ORDER BY o.created_at DESC NULLS LAST
+  LIMIT 1;
+
+  FOR v_order IN
+    SELECT o.id, o.items
+    FROM public.orders o
+    WHERE o.restaurant_id = p_restaurant_id
+      AND o.session_id = p_session_id
+      AND o.status IN ('pending', 'cooking', 'done')
+  LOOP
+    v_items := public.void_active_buffet_lines_in_items(coalesce(v_order.items, '[]'::jsonb));
+    v_changed := v_items IS DISTINCT FROM v_order.items;
+    FOR v_entry IN
+      SELECT x FROM jsonb_array_elements(p_line_prices) x
+      WHERE (x->>'order_id')::uuid = v_order.id
+    LOOP
+      v_idx := (v_entry->>'index')::int;
+      v_elem := v_items->v_idx;
+      v_elem := jsonb_set(v_elem, '{price}', v_entry->'price');
+      IF nullif(v_entry->>'per_person_qty_limit', '') IS NULL THEN
+        v_elem := v_elem - 'per_person_qty_limit' - 'over_limit_unit_price';
+      ELSE
+        v_elem := v_elem
+          || jsonb_build_object(
+            'per_person_qty_limit', v_entry->'per_person_qty_limit',
+            'over_limit_unit_price', v_entry->'over_limit_unit_price'
+          );
+      END IF;
+      v_items := jsonb_set(v_items, ARRAY[v_idx::text], v_elem);
+      v_changed := true;
+    END LOOP;
+    IF v_order.id = v_carrier_id AND p_buffet_line IS NOT NULL THEN
+      v_items := v_items || jsonb_build_array(p_buffet_line);
+      v_changed := true;
+    END IF;
+    IF v_changed THEN
+      UPDATE public.orders
+      SET items = v_items,
+          total_amount = public.recalc_order_total_from_items(v_items)
+      WHERE id = v_order.id;
+    END IF;
+  END LOOP;
+
+  IF v_carrier_id IS NULL AND p_buffet_line IS NOT NULL THEN
+    INSERT INTO public.orders (restaurant_id, session_id, table_id, display_name, status, items, total_amount)
+    VALUES (
+      p_restaurant_id,
+      p_session_id,
+      p_table_id,
+      coalesce(nullif(trim(p_display_name), ''), p_table_id::text),
+      'done',
+      jsonb_build_array(p_buffet_line),
+      public.recalc_order_total_from_items(jsonb_build_array(p_buffet_line))
+    )
+    RETURNING id INTO v_new_id;
+    v_carrier_id := v_new_id;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'carrier_order_id', v_carrier_id, 'inserted', v_new_id IS NOT NULL);
+END;
 $$;
 
 
@@ -4406,6 +4737,94 @@ $$;
 --
 
 COMMENT ON FUNCTION public.table_session_allows_checkout_signals(p_session_id uuid) IS 'SECURITY DEFINER: guest Realtime/SELECT on table_checkout_signals while session is open, billing, or closed (last-pay doorbell after close). Do not use for orders/rounds.';
+
+
+--
+-- Name: table_sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.table_sessions (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    restaurant_id uuid NOT NULL,
+    status text DEFAULT 'open'::text NOT NULL,
+    opened_at timestamp with time zone DEFAULT now() NOT NULL,
+    closed_at timestamp with time zone,
+    merge_into_session_id uuid,
+    closed_reason text,
+    table_id uuid NOT NULL,
+    closed_by_user_id uuid,
+    opened_by_user_id uuid,
+    settled_payable_amount numeric,
+    opened_by_name text,
+    ordering_channel text DEFAULT 'dine_in'::text NOT NULL,
+    sushi_round_cooldown_until timestamp with time zone,
+    CONSTRAINT table_sessions_ordering_channel_check CHECK ((ordering_channel = ANY (ARRAY['dine_in'::text, 'takeaway'::text]))),
+    CONSTRAINT table_sessions_status_check CHECK ((status = ANY (ARRAY['open'::text, 'billing'::text, 'closed'::text])))
+);
+
+ALTER TABLE ONLY public.table_sessions REPLICA IDENTITY FULL;
+
+
+--
+-- Name: COLUMN table_sessions.closed_by_user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.closed_by_user_id IS 'Auth user who closed the session: checkout/settled/operational close, or merge operator when closed_reason=merged. Null for auto_nightly or legacy.';
+
+
+--
+-- Name: COLUMN table_sessions.opened_by_user_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.opened_by_user_id IS 'Supabase auth user who opened the session (waiter buffet / waiter order). Null for legacy sessions or guest-only paths.';
+
+
+--
+-- Name: COLUMN table_sessions.settled_payable_amount; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.settled_payable_amount IS 'Billable session payable written at settled checkout close (sumBillableSessionTotal). Null for operational closes and legacy rows.';
+
+
+--
+-- Name: COLUMN table_sessions.opened_by_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.opened_by_name IS 'Opener label stamped at session open (same ladder as resolveStaffOperatorDisplayName / Auth username). Board and history read this; do not re-resolve from opened_by_user_id for display.';
+
+
+--
+-- Name: COLUMN table_sessions.ordering_channel; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.ordering_channel IS 'Stamped at open: dine_in | takeaway. Sole source for menu price, print badge, revenue split after open.';
+
+
+--
+-- Name: COLUMN table_sessions.sushi_round_cooldown_until; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.table_sessions.sushi_round_cooldown_until IS 'Sushi table kitchen-send cooldown end; null = not cooling. Blocks submit/finalize only — not free-dish basket writes.';
+
+
+--
+-- Name: table_session_current_buffet_id(public.table_sessions); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.table_session_current_buffet_id(s public.table_sessions) RETURNS uuid
+    LANGUAGE sql STABLE
+    SET search_path TO 'public'
+    AS $$
+  SELECT (it->>'buffet_id')::uuid
+  FROM public.orders o
+  CROSS JOIN LATERAL jsonb_array_elements(coalesce(o.items, '[]'::jsonb)) AS it
+  WHERE o.session_id = s.id
+    AND it->>'kind' = 'buffet_base'
+    AND coalesce(it->>'item_status', '') <> 'voided'
+    AND nullif(it->>'buffet_id', '') IS NOT NULL
+  ORDER BY coalesce(it->>'added_at', '') DESC
+  LIMIT 1;
+$$;
 
 
 --
@@ -5170,7 +5589,6 @@ DECLARE
   v_meal_cap integer;
   v_now timestamptz := now();
   v_use_round boolean := false;
-  v_settle text;
 BEGIN
   IF p_qty IS NULL OR p_qty < 1 THEN
     RETURN jsonb_build_object('ok', false, 'error', 'invalid_qty');
@@ -5189,17 +5607,14 @@ BEGIN
 
   v_note := left(trim(coalesce(p_note, '')), 120);
 
-  -- Sole cooldown settle (re-entrant advisory lock with settle fn).
-  v_settle := public.settle_expired_table_order_round_cooldown(p_session_id);
-  IF v_settle = 'cooldown_active' THEN
-    RETURN jsonb_build_object('ok', false, 'error', 'round_cooldown_active');
-  END IF;
+  -- Settle may return cooldown_active (session clock still running) — writes still allowed.
+  PERFORM public.settle_expired_table_order_round_cooldown(p_session_id);
 
   SELECT *
   INTO v_round
   FROM public.table_order_rounds
   WHERE session_id = p_session_id
-    AND status IN ('collecting', 'pending_confirm', 'cooldown', 'finalize_failed')
+    AND status IN ('collecting', 'pending_confirm', 'finalize_failed')
   ORDER BY created_at DESC
   LIMIT 1
   FOR UPDATE;
@@ -5209,9 +5624,6 @@ BEGIN
       RETURN jsonb_build_object('ok', false, 'error', 'round_basket_locked');
     ELSIF v_round.status IN ('collecting', 'pending_confirm') THEN
       v_use_round := true;
-    ELSE
-      -- Active cooldown should already have returned above; treat residual as unusable.
-      v_use_round := false;
     END IF;
   END IF;
 
@@ -5320,7 +5732,7 @@ $$;
 -- Name: FUNCTION upsert_table_order_round_line(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_guest_client_id uuid, p_menu_item_id uuid, p_qty integer, p_note text, p_qty_mode text, p_live_guest_count integer, p_per_person_round_cap integer, p_session_ordered_qty integer, p_apply_meal_limit boolean, p_per_person_meal_limit integer); Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON FUNCTION public.upsert_table_order_round_line(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_guest_client_id uuid, p_menu_item_id uuid, p_qty integer, p_note text, p_qty_mode text, p_live_guest_count integer, p_per_person_round_cap integer, p_session_ordered_qty integer, p_apply_meal_limit boolean, p_per_person_meal_limit integer) IS 'Sole guest round-line upsert: settle_expired cooldown + session lock + FOR UPDATE; round cap + optional meal free cap.';
+COMMENT ON FUNCTION public.upsert_table_order_round_line(p_restaurant_id uuid, p_session_id uuid, p_table_id uuid, p_guest_client_id uuid, p_menu_item_id uuid, p_qty integer, p_note text, p_qty_mode text, p_live_guest_count integer, p_per_person_round_cap integer, p_session_ordered_qty integer, p_apply_meal_limit boolean, p_per_person_meal_limit integer) IS 'Sole guest round-line upsert: settle session kitchen cooldown (does not block write) + session lock + FOR UPDATE; round cap + optional meal free cap.';
 
 
 --
@@ -5682,18 +6094,35 @@ CREATE TABLE public.buffet_price_rules (
     time_slot_id uuid NOT NULL,
     calendar_kind text NOT NULL,
     valid_from date NOT NULL,
-    valid_to date NOT NULL,
+    valid_to date,
     adult_price numeric(10,2) NOT NULL,
     child_price numeric(10,2) NOT NULL,
     priority integer DEFAULT 0 NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     note text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    adult_enabled boolean DEFAULT true NOT NULL,
+    child_enabled boolean DEFAULT true NOT NULL,
     CONSTRAINT buffet_price_rules_calendar_kind_check CHECK ((calendar_kind = ANY (ARRAY['weekday'::text, 'weekend'::text, 'holiday'::text, 'special'::text]))),
-    CONSTRAINT buffet_price_rules_valid_range CHECK ((valid_to >= valid_from))
+    CONSTRAINT buffet_price_rules_side_enabled CHECK ((adult_enabled OR child_enabled)),
+    CONSTRAINT buffet_price_rules_valid_range CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))
 );
 
 ALTER TABLE ONLY public.buffet_price_rules REPLICA IDENTITY FULL;
+
+
+--
+-- Name: COLUMN buffet_price_rules.adult_enabled; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.buffet_price_rules.adult_enabled IS 'Whether this rule sells adult seats; disabled side headcount must be 0 (price kept, not shown).';
+
+
+--
+-- Name: COLUMN buffet_price_rules.child_enabled; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.buffet_price_rules.child_enabled IS 'Whether this rule sells child seats; disabled side headcount must be 0 (price kept, not shown).';
 
 
 --
@@ -5727,6 +6156,9 @@ CREATE TABLE public.buffets (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     vat_rate numeric(5,2) DEFAULT 13 NOT NULL,
+    min_guest_count integer DEFAULT 0 NOT NULL,
+    CONSTRAINT buffets_description_length CHECK (((description IS NULL) OR (char_length(description) <= 40))),
+    CONSTRAINT buffets_min_guest_count_range CHECK (((min_guest_count >= 0) AND (min_guest_count <= 99))),
     CONSTRAINT buffets_vat_rate_range CHECK (((vat_rate >= (0)::numeric) AND (vat_rate <= (100)::numeric)))
 );
 
@@ -5738,6 +6170,13 @@ ALTER TABLE ONLY public.buffets REPLICA IDENTITY FULL;
 --
 
 COMMENT ON COLUMN public.buffets.vat_rate IS 'VAT / IVA rate in percent for buffet headcount lines (e.g. 13). Required; default 13.';
+
+
+--
+-- Name: COLUMN buffets.min_guest_count; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.buffets.min_guest_count IS 'Minimum adults+children headcount to open / keep this buffet on a table (0 = no minimum).';
 
 
 --
@@ -6012,6 +6451,29 @@ CREATE TABLE public.menu_choice_options (
 --
 
 COMMENT ON TABLE public.menu_choice_options IS 'Options inside a choice group. Referenced by menu_items.choice_bindings.';
+
+
+--
+-- Name: menu_item_buffet_prices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.menu_item_buffet_prices (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    restaurant_id uuid NOT NULL,
+    menu_item_id uuid NOT NULL,
+    buffet_id uuid NOT NULL,
+    price numeric(10,2) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT menu_item_buffet_prices_price_nonnegative CHECK ((price >= (0)::numeric))
+);
+
+
+--
+-- Name: TABLE menu_item_buffet_prices; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.menu_item_buffet_prices IS 'Per-buffet dine-in unit price for one dish. Table current buffet has a row → that price; else menu_items.price. Takeaway ignores it.';
 
 
 --
@@ -6747,6 +7209,7 @@ CREATE TABLE public.restaurants (
     business_hours jsonb DEFAULT '{}'::jsonb NOT NULL,
     storefront_intro jsonb DEFAULT jsonb_build_object('pt', '', 'en', '', 'zh', '') NOT NULL,
     takeaway_vat_rate numeric DEFAULT 13 NOT NULL,
+    buffet_config_version integer DEFAULT 0 NOT NULL,
     CONSTRAINT restaurants_buffet_service_mode_check CHECK ((buffet_service_mode = ANY (ARRAY['classic'::text, 'sushi'::text]))),
     CONSTRAINT restaurants_cloud_owner_required CHECK (((deployment_mode <> 'cloud'::text) OR (owner_id IS NOT NULL))),
     CONSTRAINT restaurants_country_code_check CHECK ((country_code ~ '^[A-Z]{2}$'::text)),
@@ -6946,6 +7409,13 @@ COMMENT ON COLUMN public.restaurants.storefront_intro IS 'Guest storefront intro
 --
 
 COMMENT ON COLUMN public.restaurants.takeaway_vat_rate IS 'IVA percent points for checkout take-away charge lines (orders.items kind=takeaway). Default 13.';
+
+
+--
+-- Name: COLUMN restaurants.buffet_config_version; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.restaurants.buffet_config_version IS 'Monotonic counter bumped when staff buffet config changes (buffets, slots, price rules, calendar, friday policy). Staff clients compare before re-fetching openable buffet ids.';
 
 
 --
@@ -7194,66 +7664,6 @@ COMMENT ON TABLE public.table_session_events IS 'Append-only mid-session audit (
 
 
 --
--- Name: table_sessions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.table_sessions (
-    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
-    restaurant_id uuid NOT NULL,
-    status text DEFAULT 'open'::text NOT NULL,
-    opened_at timestamp with time zone DEFAULT now() NOT NULL,
-    closed_at timestamp with time zone,
-    merge_into_session_id uuid,
-    closed_reason text,
-    table_id uuid NOT NULL,
-    closed_by_user_id uuid,
-    opened_by_user_id uuid,
-    settled_payable_amount numeric,
-    opened_by_name text,
-    ordering_channel text DEFAULT 'dine_in'::text NOT NULL,
-    CONSTRAINT table_sessions_ordering_channel_check CHECK ((ordering_channel = ANY (ARRAY['dine_in'::text, 'takeaway'::text]))),
-    CONSTRAINT table_sessions_status_check CHECK ((status = ANY (ARRAY['open'::text, 'billing'::text, 'closed'::text])))
-);
-
-ALTER TABLE ONLY public.table_sessions REPLICA IDENTITY FULL;
-
-
---
--- Name: COLUMN table_sessions.closed_by_user_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.table_sessions.closed_by_user_id IS 'Auth user who closed the session: checkout/settled/operational close, or merge operator when closed_reason=merged. Null for auto_nightly or legacy.';
-
-
---
--- Name: COLUMN table_sessions.opened_by_user_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.table_sessions.opened_by_user_id IS 'Supabase auth user who opened the session (waiter buffet / waiter order). Null for legacy sessions or guest-only paths.';
-
-
---
--- Name: COLUMN table_sessions.settled_payable_amount; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.table_sessions.settled_payable_amount IS 'Billable session payable written at settled checkout close (sumBillableSessionTotal). Null for operational closes and legacy rows.';
-
-
---
--- Name: COLUMN table_sessions.opened_by_name; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.table_sessions.opened_by_name IS 'Opener label stamped at session open (same ladder as resolveStaffOperatorDisplayName / Auth username). Board and history read this; do not re-resolve from opened_by_user_id for display.';
-
-
---
--- Name: COLUMN table_sessions.ordering_channel; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.table_sessions.ordering_channel IS 'Stamped at open: dine_in | takeaway. Sole source for menu price, print badge, revenue split after open.';
-
-
---
 -- Name: abnormal_operations abnormal_operations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7366,6 +7776,14 @@ ALTER TABLE ONLY public.buffets
 
 
 --
+-- Name: buffets buffets_restaurant_id_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.buffets
+    ADD CONSTRAINT buffets_restaurant_id_id_key UNIQUE (restaurant_id, id);
+
+
+--
 -- Name: cash_drawer_jobs cash_drawer_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7470,11 +7888,35 @@ ALTER TABLE ONLY public.menu_choice_options
 
 
 --
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_item_buffet_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_item_buffet_prices
+    ADD CONSTRAINT menu_item_buffet_prices_item_buffet_key UNIQUE (menu_item_id, buffet_id);
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_item_buffet_prices
+    ADD CONSTRAINT menu_item_buffet_prices_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: menu_items menu_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.menu_items
     ADD CONSTRAINT menu_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: menu_items menu_items_restaurant_id_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_items
+    ADD CONSTRAINT menu_items_restaurant_id_id_key UNIQUE (restaurant_id, id);
 
 
 --
@@ -8002,6 +8444,20 @@ CREATE INDEX idx_menu_choice_groups_restaurant_sort ON public.menu_choice_groups
 --
 
 CREATE INDEX idx_menu_choice_options_restaurant_group_sort ON public.menu_choice_options USING btree (restaurant_id, group_id, sort_order, created_at);
+
+
+--
+-- Name: idx_menu_item_buffet_prices_buffet; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_menu_item_buffet_prices_buffet ON public.menu_item_buffet_prices USING btree (restaurant_id, buffet_id);
+
+
+--
+-- Name: idx_menu_item_buffet_prices_restaurant; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_menu_item_buffet_prices_restaurant ON public.menu_item_buffet_prices USING btree (restaurant_id);
 
 
 --
@@ -8635,6 +9091,13 @@ CREATE TRIGGER menu_choice_options_same_restaurant BEFORE INSERT OR UPDATE OF re
 
 
 --
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER menu_item_buffet_prices_updated_at BEFORE UPDATE ON public.menu_item_buffet_prices FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+
+--
 -- Name: menu_items menu_items_print_station_ids_restaurant; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -9113,6 +9576,30 @@ ALTER TABLE ONLY public.menu_choice_options
 
 ALTER TABLE ONLY public.menu_choice_options
     ADD CONSTRAINT menu_choice_options_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_buffet_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_item_buffet_prices
+    ADD CONSTRAINT menu_item_buffet_prices_buffet_fkey FOREIGN KEY (restaurant_id, buffet_id) REFERENCES public.buffets(restaurant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_menu_item_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_item_buffet_prices
+    ADD CONSTRAINT menu_item_buffet_prices_menu_item_fkey FOREIGN KEY (restaurant_id, menu_item_id) REFERENCES public.menu_items(restaurant_id, id) ON DELETE CASCADE;
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_item_buffet_prices
+    ADD CONSTRAINT menu_item_buffet_prices_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id) ON DELETE CASCADE;
 
 
 --
@@ -10176,6 +10663,37 @@ CREATE POLICY menu_choice_options_select ON public.menu_choice_options FOR SELEC
 
 
 --
+-- Name: menu_item_buffet_prices; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.menu_item_buffet_prices ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_owner_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_item_buffet_prices_owner_all ON public.menu_item_buffet_prices TO authenticated USING ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid))))) WITH CHECK ((restaurant_id IN ( SELECT restaurants.id
+   FROM public.restaurants
+  WHERE (restaurants.owner_id = ( SELECT auth.uid() AS uid)))));
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_public_read; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_item_buffet_prices_public_read ON public.menu_item_buffet_prices FOR SELECT USING (true);
+
+
+--
+-- Name: menu_item_buffet_prices menu_item_buffet_prices_staff_menu_all; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY menu_item_buffet_prices_staff_menu_all ON public.menu_item_buffet_prices TO authenticated USING (public.staff_has_restaurant_permission(restaurant_id, ARRAY['dashboard.menu.view'::text])) WITH CHECK (public.staff_has_restaurant_permission(restaurant_id, ARRAY['dashboard.menu.view'::text]));
+
+
+--
 -- Name: menu_items; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -10907,5 +11425,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 8wWwvXTjoODLEYkoHNpmZNLMqMyyS3PCG6N6ouVMjzXvBwkjXgkzShihGTrLKaM
+\unrestrict XrPG5m2Zmr1KHWZjv0MoYuetkZeBGXIjQHFovWRXRMtsLcgVAbINEjQlbcbJthJ
 

@@ -105,6 +105,7 @@ export async function ensurePrintAgentStaff(
       email_confirm: true,
       user_metadata: {
         account_type: 'staff',
+        must_change_password: false,
         staff_role: PRINT_AGENT_STAFF_ROLE,
         restaurant_id: restaurantId,
         restaurant_slug: restaurantSlug,
@@ -177,6 +178,7 @@ export async function ensurePrintAgentStaff(
     await admin.auth.admin.updateUserById(userId, {
       user_metadata: {
         account_type: 'staff',
+        must_change_password: false,
         staff_role: PRINT_AGENT_STAFF_ROLE,
         restaurant_id: restaurantId,
         staff_account_id: row.id,

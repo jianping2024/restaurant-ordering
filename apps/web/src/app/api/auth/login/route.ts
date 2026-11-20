@@ -156,7 +156,15 @@ export async function POST(req: Request) {
       });
       if (mustChangePassword && !redirect.mustChangePassword) {
         try {
-          await setStaffMustChangePassword(createAdminClient(), data.user.id, true);
+          const admin = createAdminClient();
+          await setStaffMustChangePassword(admin, data.user.id, true);
+          // Legacy mirror (rollback compatibility §5.4); never read.
+          await admin.auth.admin.updateUserById(data.user.id, {
+            user_metadata: {
+              ...(data.user.user_metadata as Record<string, unknown>),
+              must_change_password: true,
+            },
+          });
         } catch {
           // Still send them to change-password; the page gate re-reads the flag.
         }

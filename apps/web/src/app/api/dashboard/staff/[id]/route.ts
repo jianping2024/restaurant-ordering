@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   isPrintAgentStaffRole,
   kickStaffUserSessions,
+  loadStaffIdentity,
   retireStaffAuthUser,
   setStaffUserBanned,
 } from '@mesa/shared';
@@ -10,6 +11,7 @@ import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permis
 import {
   loadOwnerRestaurantWithSlug,
   loadStaffAccountViews,
+  staffMetadataPayload,
   validateStaffRoleChange,
 } from '@/lib/staff-dashboard-api';
 
@@ -119,6 +121,17 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
   }
 
   if (roleChange && !('error' in roleChange)) {
+    // Legacy mirror (rollback compatibility §5.4): role label + current forced-change flag.
+    const identity = await loadStaffIdentity(loaded.admin, existing.user_id as string);
+    await loaded.admin.auth.admin.updateUserById(existing.user_id as string, {
+      user_metadata: staffMetadataPayload(
+        data.id as string,
+        loaded.restaurant.id,
+        loaded.restaurant.slug,
+        String(data.role),
+        identity?.must_change_password === true,
+      ),
+    });
     await kickStaffUserSessions(loaded.admin, existing.user_id as string);
   }
 

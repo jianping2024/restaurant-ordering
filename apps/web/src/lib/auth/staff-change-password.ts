@@ -56,7 +56,24 @@ export async function changeStaffPasswordWithSession(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  let admin: ReturnType<typeof createAdminClient>;
+  let identity: Awaited<ReturnType<typeof loadStaffIdentity>>;
+  try {
+    admin = createAdminClient();
+    identity = await loadStaffIdentity(admin, user.id);
+  } catch {
+    return { ok: false, error: 'update_failed' };
+  }
+
+  // Staff: also clear the legacy metadata mirror (rollback compatibility §5.4; never read).
+  const { error } = await supabase.auth.updateUser(
+    identity
+      ? {
+          password: newPassword,
+          data: { ...user.user_metadata, must_change_password: false },
+        }
+      : { password: newPassword },
+  );
   if (error) {
     return { ok: false, error: 'update_failed' };
   }
@@ -64,8 +81,6 @@ export async function changeStaffPasswordWithSession(
   // Account-level flag lives in staff_identities (no browser grant → admin client).
   let path: string | null = null;
   try {
-    const admin = createAdminClient();
-    const identity = await loadStaffIdentity(admin, user.id);
     if (identity) {
       if (identity.must_change_password) {
         await setStaffMustChangePassword(admin, user.id, false);

@@ -4,6 +4,7 @@ import { buildStaffEmail } from '@/lib/staff-account';
 import {
   listHumanStaffAccountsForRestaurant,
   mapStaffRow,
+  staffMetadataPayload,
   validateStaffCreateBody,
 } from '@/lib/staff-dashboard-api';
 import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
@@ -79,6 +80,14 @@ export async function POST(req: Request) {
     email,
     password: parsed.password,
     email_confirm: true,
+    // Legacy mirror (rollback compatibility §5.4); reads use staff_identities.
+    user_metadata: {
+      account_type: 'staff',
+      must_change_password: true,
+      staff_role: staffRoleLabel,
+      restaurant_id: restaurant.id,
+      restaurant_slug: restaurant.slug,
+    },
   });
 
   if (createError) {
@@ -130,8 +139,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'insert_failed', message: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json(
-    { staff: mapStaffRow(row as Record<string, unknown>, parsed.login_name) },
-    { status: 201 },
-  );
+  const account = mapStaffRow(row as Record<string, unknown>, parsed.login_name);
+  await admin.auth.admin.updateUserById(userId, {
+    user_metadata: staffMetadataPayload(
+      account.id,
+      restaurant.id,
+      restaurant.slug,
+      staffRoleLabel,
+      true,
+    ),
+  });
+
+  return NextResponse.json({ staff: account }, { status: 201 });
 }

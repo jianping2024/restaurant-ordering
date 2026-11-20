@@ -5,7 +5,11 @@ import {
   loadStaffIdentity,
   setStaffMustChangePassword,
 } from '@mesa/shared';
-import { loadOwnerRestaurantWithSlug, mapStaffRow } from '@/lib/staff-dashboard-api';
+import {
+  loadOwnerRestaurantWithSlug,
+  mapStaffRow,
+  staffMetadataPayload,
+} from '@/lib/staff-dashboard-api';
 import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 
 export const runtime = 'nodejs';
@@ -49,6 +53,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const { error: updateError } = await loaded.admin.auth.admin.updateUserById(userId, {
     password,
+    // Legacy mirror (rollback compatibility §5.4); the flag is read from staff_identities.
+    user_metadata: staffMetadataPayload(
+      account.id as string,
+      loaded.restaurant.id,
+      loaded.restaurant.slug,
+      String(account.role ?? ''),
+      true,
+    ),
   });
 
   if (updateError) {

@@ -128,3 +128,17 @@ export function buildStaffEmail(loginName: string): string {
   const ln = normalizeLoginName(loginName);
   return `${ln}@${STAFF_EMAIL_DOMAIN}`;
 }
+
+/**
+ * Legacy single-store auth metadata. **Write-only** in batch 1 (rollback compatibility,
+ * multi-store plan §5.4): every staff write mirrors it, nothing reads it — reads go to
+ * `staff_identities` / membership rows. Stop writing at contract stage.
+ */
+export type StaffUserMetadata = {
+  account_type: 'staff';
+  must_change_password?: boolean;
+  staff_role: StaffRole;
+  restaurant_id: string;
+  staff_account_id: string;
+  restaurant_slug: string;
+};

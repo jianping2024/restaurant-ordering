@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { isPrintAgentStaffRole, loadStaffLoginNames } from '@mesa/shared';
-import { validateLoginName } from '@/lib/staff-account';
+import { validateLoginName, type StaffRole, type StaffUserMetadata } from '@/lib/staff-account';
 import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { RestaurantStaffAccount } from '@/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -104,6 +104,24 @@ export async function listHumanStaffAccountsForRestaurant(
   } catch (e) {
     return { staff: [], error: { message: e instanceof Error ? e.message : String(e) } };
   }
+}
+
+/** Legacy metadata mirror (write-only, rollback compatibility §5.4 — never read). */
+export function staffMetadataPayload(
+  accountId: string,
+  restaurantId: string,
+  slug: string,
+  roleLabel: string,
+  mustChangePassword: boolean,
+): StaffUserMetadata {
+  return {
+    account_type: 'staff',
+    must_change_password: mustChangePassword,
+    staff_role: roleLabel as StaffRole,
+    restaurant_id: restaurantId,
+    staff_account_id: accountId,
+    restaurant_slug: slug,
+  };
 }
 
 export function validateStaffCreateBody(body: Record<string, unknown>) {

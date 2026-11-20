@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 import {
-  normalizeStoredPermissions,
-  resolveCapabilitiesFromRolePermissions,
-  staffLandingPathFromCapabilities,
-} from '@/lib/permissions/resolve';
+  STAFF_ROLE_COLUMNS,
+  normalizeStaffRoleRow,
+  resolveStaffRoleCapabilities,
+} from '@/lib/permissions/restaurant-access-rules';
 import type { Capabilities } from '@/lib/permissions/can';
 
 export type StaffGateCapabilitiesInput = {
@@ -20,13 +21,15 @@ export async function loadStaffCapabilitiesForGateAccount(
 
   const { data: role } = await admin
     .from('restaurant_roles')
-    .select('permissions, disabled_at')
+    .select(STAFF_ROLE_COLUMNS)
     .eq('id', account.role_id)
     .eq('restaurant_id', account.restaurant_id)
     .maybeSingle();
 
-  if (!role || role.disabled_at) return new Set();
-  return resolveCapabilitiesFromRolePermissions(normalizeStoredPermissions(role.permissions));
+  return (
+    resolveStaffRoleCapabilities(normalizeStaffRoleRow(role), account.restaurant_id)
+      ?.capabilities ?? new Set()
+  );
 }
 
 /** Staff post-login / change-password landing — capabilities only. */

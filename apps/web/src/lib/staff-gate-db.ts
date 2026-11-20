@@ -79,15 +79,3 @@ export async function loadOwnerRestaurantForUser(
     claimedRestaurant,
   });
 }
-
-export async function loadStaffGateByUserId(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-): Promise<StaffGateAccount | null> {
-  const { data } = await admin
-    .from('restaurant_staff_accounts')
-    .select(STAFF_GATE_SELECT)
-    .eq('user_id', userId)
-    .maybeSingle();
-  return normalizeStaffGateRow(data);
-}

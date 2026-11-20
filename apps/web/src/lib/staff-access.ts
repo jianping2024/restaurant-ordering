@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import {
   deriveStaffLoginPreflight,
+  type OwnerGateRestaurant,
   type StaffGateAccount,
   type StaffLoginPreflightResult,
 } from '@/lib/staff-identity-gate';
@@ -68,6 +69,7 @@ export const loadAuthUserWithAdmin = cache(async (): Promise<AuthUserWithAdmin |
 export const loadAuthOwnershipGate = cache(async (): Promise<{
   auth: AuthUserWithAdmin;
   ownedRestaurantId: string | null;
+  ownedRestaurant: OwnerGateRestaurant | null;
   staff: StaffGateAccount | null;
 } | null> => {
   const auth = await loadAuthUserWithAdmin();
@@ -80,7 +82,7 @@ export const loadAuthOwnershipGate = cache(async (): Promise<{
     }),
     loadStaffGateAccountForUser(auth.admin, auth.user.id),
   ]);
-  return { auth, ownedRestaurantId: ownedRestaurant?.id ?? null, staff };
+  return { auth, ownedRestaurantId: ownedRestaurant?.id ?? null, ownedRestaurant, staff };
 });
 
 /** Check staff account exists, is enabled, and restaurant is not suspended — before Supabase sign-in. */

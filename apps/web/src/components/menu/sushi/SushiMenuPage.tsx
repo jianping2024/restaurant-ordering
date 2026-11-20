@@ -43,7 +43,6 @@ import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { useSessionMenuTimeSlotId } from '@/lib/use-session-menu-time-slot';
 import {
   EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
-  filterMenuItemsByDietaryPrefs,
   type CustomerMenuDietaryFilterPrefs,
 } from '@/lib/customer-menu-dietary-filter';
 import type { AllergenCode } from '@/lib/allergens';
@@ -266,11 +265,6 @@ export function SushiMenuPage({
       ),
     [catalogMenuItems, menuItemBuffetPrices, tableBuffetId],
   );
-  // Buffet switched / menu edited: cart lines follow the table's current prices.
-  useEffect(() => {
-    setCart((prev) => repriceCartLines(prev, menuItems));
-  }, [menuItems, setCart]);
-
   const refreshOrderedFromRealtime = useCallback(() => {
     void refreshSessionContext('full');
   }, [refreshSessionContext]);
@@ -354,34 +348,47 @@ export function SushiMenuPage({
     });
   }, [vegFilterEnabled, allergenFilterEnabled]);
 
-  const filteredMenuItems = useMemo(
-    () =>
-      filterMenuItemsByDietaryPrefs(menuItems, {
-        vegetarianOnly: vegFilterEnabled ? dietaryPrefs.vegetarianOnly : false,
-        excludeAllergenCodes: allergenFilterEnabled ? dietaryPrefs.excludeAllergenCodes : [],
-      }),
-    [menuItems, dietaryPrefs, vegFilterEnabled, allergenFilterEnabled],
+  const activeDietaryPrefs = useMemo(
+    () => ({
+      vegetarianOnly: vegFilterEnabled ? dietaryPrefs.vegetarianOnly : false,
+      excludeAllergenCodes: allergenFilterEnabled ? dietaryPrefs.excludeAllergenCodes : [],
+    }),
+    [dietaryPrefs, vegFilterEnabled, allergenFilterEnabled],
   );
 
   const catalogView = useMemo(
     () =>
       resolveCustomerMenuCatalogView({
         menuCategories,
-        menuItems: filteredMenuItems,
+        menuItems,
         recommendedItemIds,
         menuTimeSlotId,
         activeTopId: activeTopCategory,
         activeSubpath,
+        tableBuffet: {
+          buffetId: tableBuffetId,
+          buffetPrices: menuItemBuffetPrices,
+          staffAssisted: false,
+        },
+        dietaryPrefs: activeDietaryPrefs,
       }),
     [
       menuCategories,
-      filteredMenuItems,
+      menuItems,
       recommendedItemIds,
       menuTimeSlotId,
       activeTopCategory,
       activeSubpath,
+      tableBuffetId,
+      menuItemBuffetPrices,
+      activeDietaryPrefs,
     ],
   );
+  const buffetHiddenItemIds = catalogView.buffetHiddenItemIds;
+  // Menu edited / buffet set: cart lines follow the table's prices; narrowing-hidden dishes leave.
+  useEffect(() => {
+    setCart((prev) => repriceCartLines(prev, menuItems, buffetHiddenItemIds));
+  }, [buffetHiddenItemIds, menuItems, setCart]);
   const currentTop = catalogView.currentTopId;
   const subCategories = catalogView.subCategories;
   const currentSubpath = catalogView.currentSubpath;
@@ -587,10 +594,10 @@ export function SushiMenuPage({
 
   useEffect(() => {
     if (!detailMenuItemId) return;
-    if (!filteredMenuItems.some((m) => m.id === detailMenuItemId)) {
+    if (!catalogView.servedItems.some((m) => m.id === detailMenuItemId)) {
       setDetailMenuItemId(null);
     }
-  }, [detailMenuItemId, filteredMenuItems]);
+  }, [catalogView.servedItems, detailMenuItemId]);
 
   const ensureDetailCartLine = useCallback(
     (item: TablePriced<MenuItem>) => {

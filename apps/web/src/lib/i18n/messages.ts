@@ -491,6 +491,8 @@ export const MESSAGES = {
       buffetPricesTitle: 'Buffet 价格',
       buffetPricesHint:
         '逐条添加：这桌当前套餐有配置就按配置价，没配置的套餐走原价；外卖不受影响。寿司模式下填 0 = 含在套餐内（按每人限量）。',
+      buffetPricesGuestMenuHint:
+        '为某套餐配置菜品价格后，该套餐的客人扫码点餐页只显示已配置价格的菜品（含 0 元）；该套餐一道都没配置时照常显示全部菜品。员工代点不受影响。',
       buffetPriceBuffetLabel: '套餐',
       buffetPriceAdd: '添加 Buffet 价格',
       buffetPriceRemove: '删除{name}价格',
@@ -2418,6 +2420,8 @@ export const MESSAGES = {
       buffetPricesTitle: 'Buffet prices',
       buffetPricesHint:
         'One row per buffet: a table on that buffet pays this price; other buffets pay the regular price. Take-away is not affected. In sushi mode, 0 = included in the buffet (per-person limit applies).',
+      buffetPricesGuestMenuHint:
+        'Once dishes have a price for a buffet, guests on that buffet only see those dishes (0 € included) on the QR menu; if no dish has a price for it, guests see the full menu. Staff ordering is not affected.',
       buffetPriceBuffetLabel: 'Buffet',
       buffetPriceAdd: 'Add buffet price',
       buffetPriceRemove: 'Remove {name} price',
@@ -3890,6 +3894,8 @@ export const MESSAGES = {
       buffetPricesTitle: 'Preços por buffet',
       buffetPricesHint:
         'Uma linha por buffet: a mesa com esse buffet paga este preço; os outros buffets pagam o preço normal. Take-away não é afetado. No modo sushi, 0 = incluído no buffet (aplica-se o limite por pessoa).',
+      buffetPricesGuestMenuHint:
+        'Depois de configurar preços de pratos para um buffet, os clientes desse buffet só veem esses pratos (incluindo 0 €) no menu QR; se nenhum prato tiver preço para ele, veem o menu completo. Pedidos feitos pela equipa não são afetados.',
       buffetPriceBuffetLabel: 'Buffet',
       buffetPriceAdd: 'Adicionar preço de buffet',
       buffetPriceRemove: 'Remover preço de {name}',

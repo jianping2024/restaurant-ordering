@@ -62,6 +62,7 @@ export function CustomerStorefrontMenuPreview({
         menuTimeSlotId: null,
         activeTopId: activeTop,
         activeSubpath,
+        tableBuffet: null,
       }),
     [catalog, activeTop, activeSubpath],
   );

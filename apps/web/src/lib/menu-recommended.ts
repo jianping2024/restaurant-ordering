@@ -1,6 +1,12 @@
 import { coerceCartQty } from '@/lib/cart-totals';
 import {
+  filterMenuItemsByDietaryPrefs,
+  type CustomerMenuDietaryFilterPrefs,
+} from '@/lib/customer-menu-dietary-filter';
+import {
   filterMenuItemsForOrderingChannel,
+  narrowMenuItemsToTableBuffet,
+  type MenuItemBuffetPriceMap,
   type TablePriced,
 } from '@/lib/instore-takeaway';
 import { isMenuItemServedInTimeSlot } from '@/lib/menu-time-slot';
@@ -36,12 +42,15 @@ export type CustomerMenuCatalogView = {
   currentSubpath: string;
   currentItems: MenuItem[];
   /**
-   * Channel + time-slot filtered dishes (display prices). Guest dish search
+   * Channel + time-slot (+ guest buffet narrowing, + dietary prefs) filtered dishes
+   * (display prices). Guest dish search
    * reads available rows that also appear in `topCategoryIdByItemId`.
    */
   servedItems: MenuItem[];
   /** Served dish id → nav top category id (rail cart-qty badge). */
   topCategoryIdByItemId: ReadonlyMap<string, string>;
+  /** Dishes hidden only by guest buffet narrowing (cart drops these lines). */
+  buffetHiddenItemIds: ReadonlySet<string>;
 };
 
 function collectDescendantIds(
@@ -99,6 +108,8 @@ function itemsForCategoryScope(params: {
  * Recommended dishes are a content rail, not a category.
  * After channel + time-slot filters, a category appears in nav only when it still has
  * at least one dish in `servedItems` (empty shells / channel-emptied / slot-emptied hidden).
+ * Guest QR table buffet narrowing (`narrowMenuItemsToTableBuffet`) mounts here only, right after
+ * channel + time slot — list / recommended / nav / search all follow `servedItems`.
  */
 export function resolveCustomerMenuCatalogView(params: {
   menuCategories: readonly MenuCategory[];
@@ -110,12 +121,39 @@ export function resolveCustomerMenuCatalogView(params: {
   activeSubpath: string;
   /** dine_in | takeaway — packaging never; dine_in = none|sellable; takeaway = sellable|takeaway_only. */
   orderingChannel?: 'dine_in' | 'takeaway';
+  /**
+   * The table's buffet + price config. Staff-assisted ordering and the storefront preview
+   * never narrow (`staffAssisted: true` / null).
+   */
+  tableBuffet: {
+    buffetId: string | null;
+    buffetPrices: MenuItemBuffetPriceMap;
+    staffAssisted: boolean;
+  } | null;
+  /** Sushi guest dietary filter — applied after narrowing so it never flips the narrowing. */
+  dietaryPrefs?: CustomerMenuDietaryFilterPrefs;
 }): CustomerMenuCatalogView {
   const channel = params.orderingChannel ?? 'dine_in';
   const channelItems = filterMenuItemsForOrderingChannel(params.menuItems, channel);
-  const servedItems = channelItems.filter((item) =>
+  const slotItems = channelItems.filter((item) =>
     isMenuItemServedInTimeSlot(item, params.menuTimeSlotId),
   );
+  const tableBuffet = params.tableBuffet;
+  const narrowedItems =
+    tableBuffet && !tableBuffet.staffAssisted
+      ? narrowMenuItemsToTableBuffet(slotItems, {
+          channel,
+          buffetId: tableBuffet.buffetId,
+          buffetPrices: tableBuffet.buffetPrices,
+        })
+      : slotItems;
+  const narrowedIds = new Set(narrowedItems.map((item) => item.id));
+  const buffetHiddenItemIds = new Set(
+    slotItems.filter((item) => !narrowedIds.has(item.id)).map((item) => item.id),
+  );
+  const servedItems = params.dietaryPrefs
+    ? filterMenuItemsByDietaryPrefs(narrowedItems, params.dietaryPrefs)
+    : [...narrowedItems];
 
   const childrenByParent = new Map<string, string[]>();
   params.menuCategories
@@ -173,6 +211,7 @@ export function resolveCustomerMenuCatalogView(params: {
     }),
     servedItems,
     topCategoryIdByItemId,
+    buffetHiddenItemIds,
   };
 }
 

@@ -2222,6 +2222,7 @@ export function MenuManager({
               labels={{
                 title: t.buffetPricesTitle,
                 hint: t.buffetPricesHint,
+                guestMenuHint: t.buffetPricesGuestMenuHint,
                 buffetLabel: t.buffetPriceBuffetLabel,
                 add: t.buffetPriceAdd,
                 remove: t.buffetPriceRemove,

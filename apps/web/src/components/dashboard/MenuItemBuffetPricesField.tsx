@@ -10,6 +10,8 @@ export type MenuItemBuffetPriceDraftRow = { buffet_id: string; price: string };
 type Labels = {
   title: string;
   hint: string;
+  /** Guest QR menu narrowing notice (staff ordering unaffected). */
+  guestMenuHint: string;
   buffetLabel: string;
   add: string;
   remove: string;
@@ -51,6 +53,7 @@ export function MenuItemBuffetPricesField({ buffets, rows, onChange, showErrors,
     <div className="rounded-xl border border-brand-gold/60 bg-brand-bg/40 p-3 space-y-3">
       <p className="text-sm font-medium text-brand-text">{labels.title}</p>
       <p className="text-[12px] text-brand-text-muted leading-snug">{labels.hint}</p>
+      <p className="text-[12px] font-medium text-brand-gold leading-snug">{labels.guestMenuHint}</p>
       {rows.map((row, index) => {
         const invalid = showErrors && !isValidBuffetPriceDraft(row.price);
         const options = buffets.filter(

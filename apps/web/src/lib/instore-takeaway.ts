@@ -139,9 +139,21 @@ export type MenuItemPricingContext = {
 
 export type MenuItemPricedFields = MenuItemTakeawayFields & { id: string };
 
+/** Sole「该菜配了该套餐价」: a `menu_item_buffet_prices` row (0 included) for dish × buffet. */
+function menuItemBuffetConfiguredPrice(
+  itemId: string,
+  buffetId: string,
+  buffetPrices: MenuItemBuffetPriceMap,
+): number | null {
+  const configured = buffetPrices[itemId]?.[buffetId];
+  return typeof configured === 'number' && Number.isFinite(configured) && configured >= 0
+    ? configured
+    : null;
+}
+
 /**
  * Sole unit price for one dish on a table (catalog display, cart, append writes, sushi
- * free/paid split, buffet-switch repricing):
+ * free/paid split):
  * - takeaway: takeaway price when the dish sells takeaway with a price > 0, else original;
  *   buffet config is never read;
  * - dine-in: the current buffet's configured price for this dish when set, else original.
@@ -158,12 +170,29 @@ export function menuItemUnitPriceForChannel(
     return Number(item.price) || 0;
   }
   if (buffetId) {
-    const configured = buffetPrices[item.id]?.[buffetId];
-    if (typeof configured === 'number' && Number.isFinite(configured) && configured >= 0) {
-      return configured;
-    }
+    const configured = menuItemBuffetConfiguredPrice(item.id, buffetId, buffetPrices);
+    if (configured !== null) return configured;
   }
   return Number(item.price) || 0;
+}
+
+/**
+ * Sole guest buffet narrowing (QR menu only; staff-assisted never calls it; no server gate).
+ * `items` must already be channel + time-slot filtered — this never re-checks those.
+ * Dine-in table with a buffet: when ≥1 available dish has that buffet's configured price,
+ * only configured dishes stay (the rest, drinks/desserts included, are hidden); when none
+ * does, every dish stays. Takeaway / no buffet → unchanged.
+ */
+export function narrowMenuItemsToTableBuffet<T extends MenuItemPricedFields & { available: boolean }>(
+  items: readonly T[],
+  pricing: MenuItemPricingContext,
+): readonly T[] {
+  const { channel, buffetId, buffetPrices } = pricing;
+  if (channel === 'takeaway' || !buffetId) return items;
+  const configured = items.filter(
+    (item) => menuItemBuffetConfiguredPrice(item.id, buffetId, buffetPrices) !== null,
+  );
+  return configured.some((item) => item.available) ? configured : items;
 }
 
 declare const tablePricedBrand: unique symbol;

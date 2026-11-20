@@ -24,6 +24,10 @@ const MINT_ALLOWED = new Set([
   'apps/web/src/lib/permissions/authorized-restaurant-id.ts',
   'apps/web/src/lib/staff-gate-db.ts',
 ]);
+const PUBLIC_MINT_ALLOWED = new Set([
+  'apps/web/src/lib/permissions/authorized-restaurant-id.ts',
+  'apps/web/src/lib/customer-restaurant-gate.ts',
+]);
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -55,6 +59,13 @@ for (const file of walk(webSrc)) {
     lines.forEach((l, i) => {
       if (/mintAuthorizedRestaurantId\s*\(/.test(l)) {
         report(file, i + 1, 'mintAuthorizedRestaurantId outside the sole auth entry');
+      }
+    });
+  }
+  if (!PUBLIC_MINT_ALLOWED.has(rel)) {
+    lines.forEach((l, i) => {
+      if (/mintPublicRestaurantId\s*\(/.test(l)) {
+        report(file, i + 1, 'mintPublicRestaurantId outside the sole public slug gate');
       }
     });
   }

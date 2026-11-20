@@ -13,6 +13,7 @@ import {
   buildDashboardTopNavItems,
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import { dashboardShellRoleLabel } from '@/lib/top-bar-role-label';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
@@ -68,6 +69,7 @@ export function DashboardTopBar({
               logoutLabel={navT.logout}
               compact
               licenseMenu={licenseMenu}
+              printAgentDevicesUrl={restaurantApiPath(restaurant.slug, '/print-agent/devices')}
               open={openPanel === 'settings'}
               onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
               onSignOut={() => void dashboardSignOutAndRedirect()}

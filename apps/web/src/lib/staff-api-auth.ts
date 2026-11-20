@@ -1,6 +1,5 @@
 import 'server-only';
 
-import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import type { PermissionKey } from '@/lib/permissions/registry';
@@ -9,6 +8,7 @@ import {
   type RestaurantPrincipal,
 } from '@/lib/permissions/restaurant-access';
 import { loadAuthUserWithAdmin } from '@/lib/staff-access';
+import { loadRestaurantRefBySlug } from '@/lib/staff-gate-db';
 import { isRestaurantSuspended } from '@mesa/shared';
 
 export type StaffAuthContext = {
@@ -32,33 +32,6 @@ export function staffAuthErrorStatus(error: StaffAuthLoadError): number {
   if (error === 'migration_required') return 503;
   if (error === 'restaurant_not_found') return 404;
   return 503;
-}
-
-export async function loadRestaurantBySlug(slug: string) {
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured' as const };
-  }
-
-  const { data: restaurant, error } = await admin
-    .from('restaurants')
-    .select('id, slug')
-    .eq('slug', slug)
-    .maybeSingle();
-
-  if (error) {
-    if (isDbMigrationRequiredError(error)) {
-      return { error: 'migration_required' as const };
-    }
-    return { error: 'restaurant_not_found' as const };
-  }
-  if (!restaurant) {
-    return { error: 'restaurant_not_found' as const };
-  }
-
-  return { admin, restaurant: restaurant as { id: string; slug: string } };
 }
 
 function staffAuthContextFromPrincipal(
@@ -89,12 +62,23 @@ function staffAuthContextFromPrincipal(
 export async function staffSessionForSlug(slug: string): Promise<StaffAuthContext | null> {
   const auth = await loadAuthUserWithAdmin();
   if (!auth) return null;
-  const loaded = await loadRestaurantBySlug(slug);
-  if ('error' in loaded) return null;
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return null;
+  }
+  let restaurant;
+  try {
+    restaurant = await loadRestaurantRefBySlug(admin, slug);
+  } catch {
+    return null;
+  }
+  if (!restaurant) return null;
 
-  const access = await loadPrincipalForRestaurant(auth.user.id, loaded.restaurant.id);
+  const access = await loadPrincipalForRestaurant(auth.user.id, restaurant.id);
   if (!access || isRestaurantSuspended(access.restaurant.suspended_at)) return null;
-  return staffAuthContextFromPrincipal(access, loaded.restaurant.slug);
+  return staffAuthContextFromPrincipal(access, restaurant.slug);
 }
 
 export async function staffSessionForRestaurant(target: {

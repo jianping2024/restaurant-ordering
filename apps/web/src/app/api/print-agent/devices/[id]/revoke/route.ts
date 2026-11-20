@@ -1,34 +1,7 @@
-import { NextResponse } from 'next/server';
-import { revokePrintAgentDevice } from '@mesa/shared';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
+/** @deprecated One-release rollback alias of `/api/restaurants/[slug]/print-agent/devices/[id]/revoke` (plan §5.4); removed in batch 2. */
+import { legacyStoreApi } from '@/lib/legacy-store-api';
+import { POST as storePOST } from '@/app/api/restaurants/[slug]/print-agent/devices/[id]/revoke/route';
 
-type RouteContext = { params: { id: string } };
+export const runtime = 'nodejs';
 
-/** Owner: revoke a paired print agent device (sets revoked_at). */
-export async function POST(_req: Request, { params }: RouteContext) {
-  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
-    requireWritable: true,
-  });
-  if (auth instanceof NextResponse) return auth;
-
-  const deviceId = params.id?.trim();
-  if (!deviceId) {
-    return NextResponse.json({ error: 'missing_id' }, { status: 400 });
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
-  }
-
-  const result = await revokePrintAgentDevice(admin, deviceId, auth.restaurantId);
-  if (!result.ok) {
-    const status = result.error === 'not_found' ? 404 : 500;
-    return NextResponse.json({ error: result.error, detail: result.detail }, { status });
-  }
-
-  return NextResponse.json({ ok: true, id: result.deviceId });
-}
+export const POST = legacyStoreApi(storePOST);

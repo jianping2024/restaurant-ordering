@@ -36,6 +36,8 @@ type Props = {
   allowChangePassword?: boolean;
   /** Sole account-menu entry for restaurant license clock (opens shared renewal contact). */
   licenseMenu?: DashboardLicenseMenuRow | null;
+  /** Store-scoped devices API (`restaurantApiPath(slug, '/print-agent/devices')`). */
+  printAgentDevicesUrl: string;
 };
 
 export function PersonalSettingsMenu({
@@ -48,6 +50,7 @@ export function PersonalSettingsMenu({
   onOpenChange,
   allowChangePassword = true,
   licenseMenu = null,
+  printAgentDevicesUrl,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
@@ -67,7 +70,7 @@ export function PersonalSettingsMenu({
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch('/api/print-agent/devices', { credentials: 'include' });
+        const res = await fetch(printAgentDevicesUrl, { credentials: 'include' });
         if (cancelled) return;
         if (res.status === 401 || res.status === 403) {
           setNotifyMode({ status: 'denied' });
@@ -91,7 +94,7 @@ export function PersonalSettingsMenu({
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, printAgentDevicesUrl]);
 
   const handleLogout = () => {
     setOpen(false);

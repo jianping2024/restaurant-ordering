@@ -9,6 +9,7 @@ import {
 } from '@/lib/guest-ordering-notice';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 import type { CustomerRestaurantRow } from '@/lib/customer-session-context';
+import { mintPublicRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 
 type AdminClient = SupabaseClient;
 
@@ -52,7 +53,7 @@ export async function loadCustomerRestaurantGate(
   return {
     kind: 'found',
     restaurant: {
-      id: data.id as string,
+      id: mintPublicRestaurantId(data.id as string),
       name: data.name as string,
       slug: data.slug as string,
       logo_url: data.logo_url as string | null | undefined,

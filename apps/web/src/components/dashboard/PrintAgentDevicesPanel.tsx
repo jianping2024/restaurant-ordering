@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +30,7 @@ export function PrintAgentDevicesPanel({
   recommendedVersion?: string;
 }) {
   const { lang } = useLanguage();
+  const store = useDashboardStore();
   const t = getMessages(lang).printAssistant;
   const locale = UI_LOCALE_BY_LANG[lang];
   const [devices, setDevices] = useState(initialDevices);
@@ -42,14 +44,14 @@ export function PrintAgentDevicesPanel({
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/print-agent/devices', { credentials: 'include' });
+      const res = await fetch(store.api('/print-agent/devices'), { credentials: 'include' });
       if (!res.ok) return;
       const json = (await res.json()) as { devices?: PrintAgentDeviceHeartbeatRow[] };
       setDevices(json.devices || []);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     const onVisible = () => {
@@ -70,7 +72,7 @@ export function PrintAgentDevicesPanel({
     setRevokingId(target.id);
     setError('');
     try {
-      const res = await fetch(`/api/print-agent/devices/${target.id}/revoke`, {
+      const res = await fetch(store.api(`/print-agent/devices/${target.id}/revoke`), {
         method: 'POST',
         credentials: 'include',
       });

@@ -15,3 +15,15 @@ export type AuthorizedRestaurantId = string & { readonly __brand: 'AuthorizedRes
 export function mintAuthorizedRestaurantId(restaurantId: string): AuthorizedRestaurantId {
   return restaurantId as AuthorizedRestaurantId;
 }
+
+/**
+ * Store id from a **public** slug resolve (guest catalog / customer APIs).
+ * Not interchangeable with `AuthorizedRestaurantId`: no session principal.
+ * Sole mint: `mintPublicRestaurantId` (callers restricted by check-store-id-source).
+ */
+export type PublicRestaurantId = string & { readonly __brand: 'PublicRestaurantId' };
+
+/** Sole mint for public store id. */
+export function mintPublicRestaurantId(restaurantId: string): PublicRestaurantId {
+  return restaurantId as PublicRestaurantId;
+}

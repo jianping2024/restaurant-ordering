@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
@@ -19,6 +20,7 @@ export function PrintAgentPairingPanel({
   initialPairings?: PrintAgentPairingListItem[];
 }) {
   const { lang } = useLanguage();
+  const store = useDashboardStore();
   const t = getMessages(lang).printAssistant;
   const [pairings, setPairings] = useState<PairingRow[]>(initialPairings);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export function PrintAgentPairingPanel({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/print-agent/pairings', { credentials: 'include' });
+      const res = await fetch(store.api('/print-agent/pairings'), { credentials: 'include' });
       const data = (await res.json()) as {
         pairings?: PairingRow[];
         pending_count?: number;
@@ -50,7 +52,7 @@ export function PrintAgentPairingPanel({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     setPairings(initialPairings);
@@ -93,7 +95,7 @@ export function PrintAgentPairingPanel({
     setFreshCode(null);
     setCodeCopied(false);
     try {
-      const res = await fetch('/api/print-agent/pairing', {
+      const res = await fetch(store.api('/print-agent/pairing'), {
         method: 'POST',
         credentials: 'include',
       });
@@ -123,7 +125,7 @@ export function PrintAgentPairingPanel({
     setRevokingId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/print-agent/pairings/${encodeURIComponent(id)}/revoke`, {
+      const res = await fetch(store.api(`/print-agent/pairings/${encodeURIComponent(id)}/revoke`), {
         method: 'POST',
         credentials: 'include',
       });

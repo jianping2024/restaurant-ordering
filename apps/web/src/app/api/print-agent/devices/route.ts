@@ -1,20 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getPrintAgentDevicesBundle } from '@/lib/print-agent-devices-bundle';
-import { requireAnyPermission } from '@/lib/permissions/require';
-import type { PermissionKey } from '@/lib/permissions/registry';
+/** @deprecated One-release rollback alias of `/api/restaurants/[slug]/print-agent/devices` (plan §5.4); removed in batch 2. */
+import { legacyStoreApi } from '@/lib/legacy-store-api';
+import { GET as storeGET } from '@/app/api/restaurants/[slug]/print-agent/devices/route';
 
 export const runtime = 'nodejs';
 
-const devicesReadPermissions = [
-  'settings.print_assistant.manage',
-  'print_agent.receipt_printers.read',
-] as const satisfies readonly PermissionKey[];
-
-/** Paired print agents + heartbeat fields (Dashboard / staff menu). */
-export async function GET() {
-  const auth = await requireAnyPermission(devicesReadPermissions);
-  if (auth instanceof NextResponse) return auth;
-
-  const { devices } = await getPrintAgentDevicesBundle(auth.principal.restaurantId);
-  return NextResponse.json({ devices });
-}
+export const GET = legacyStoreApi(storeGET);

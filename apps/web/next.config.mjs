@@ -28,6 +28,10 @@ const nextConfig = {
         destination: '/dashboard/settings/print-assistant',
         permanent: true,
       },
+      // 发布 0 回滚兼容：store-scoped URLs (bookmarks / PWA icons from batch 1) still open after a
+      // rollback to release 0. Temporary (307) on purpose; 第一批的真实 `/dashboard/r/[slug]` 路由取代它.
+      { source: '/dashboard/r/:slug', destination: '/dashboard', permanent: false },
+      { source: '/dashboard/r/:slug/:path*', destination: '/dashboard/:path*', permanent: false },
     ];
   },
   async headers() {

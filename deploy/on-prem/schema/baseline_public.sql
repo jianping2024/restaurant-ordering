@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict YQtiKjIecfRPyzYPcLWb2g9WUZh2b3k4H3cwmgyV8tD2nRxxO88SSQ7HM5trPHL
+\restrict x01dmCxGDECxRmxC377WSO9bIyj2Sa55ttaOCj4fXm9gmY0KpbtdXtKVODmo7y4
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -11495,5 +11495,8 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YQtiKjIecfRPyzYPcLWb2g9WUZh2b3k4H3cwmgyV8tD2nRxxO88SSQ7HM5trPHL
+\unrestrict x01dmCxGDECxRmxC377WSO9bIyj2Sa55ttaOCj4fXm9gmY0KpbtdXtKVODmo7y4
 
+
+-- Triggers on non-public tables calling public functions (not in --schema=public dump).
+CREATE TRIGGER auth_users_sync_staff_identity_must_change_password AFTER UPDATE OF raw_user_meta_data ON auth.users FOR EACH ROW EXECUTE FUNCTION public.sync_staff_identity_must_change_password();

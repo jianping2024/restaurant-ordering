@@ -244,7 +244,18 @@ fi
 
 write_upgrade "running" "migrate" "applying incremental migrations" "false"
 echo "== migrate =="
-MESA_MIGRATE_INCREMENTAL_ONLY=1 ./scripts/apply-migrations.sh
+migrate_rc=0
+MESA_MIGRATE_INCREMENTAL_ONLY=1 ./scripts/apply-migrations.sh || migrate_rc=$?
+if [[ "$migrate_rc" == "3" ]]; then
+  # Data precheck failed before any SQL ran: DB unchanged, running web untouched.
+  trap - ERR
+  write_upgrade "failed" "migrate-precheck" "data precheck found violations; no migration applied — clean data, then re-run upgrade" "false"
+  echo "Upgrade aborted at migrate precheck (DB unchanged). See violations above." >&2
+  exit 3
+elif [[ "$migrate_rc" != "0" ]]; then
+  write_upgrade "failed" "migrate" "apply-migrations exited ${migrate_rc}" "false"
+  exit "$migrate_rc"
+fi
 MIGRATIONS_APPLIED=true
 write_upgrade "running" "migrate" "migrations applied" "true"
 

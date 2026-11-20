@@ -18,6 +18,10 @@
 #   otherwise TEMP … ON COMMIT DROP dies after the CREATE statement (Pirata 2026-10-31).
 #
 # Pending is a bash path array from glob + sql_scalar checks — never from psql stdout.
+#
+# Data prechecks: before ANY pending file runs, if a migration with a data precheck is
+# pending, run that read-only precheck; any row → print it and exit 3 (nothing applied,
+# no half-migrated state). upgrade.sh records exit 3 as phase "migrate-precheck".
 set -euo pipefail
 
 ONPREM_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -27,6 +31,13 @@ BASELINE="${ONPREM_DIR}/schema/baseline_public.sql"
 COVERED_FILE="${ONPREM_DIR}/schema/baseline_covered_migrations.txt"
 REALTIME_ENSURE="${ONPREM_DIR}/schema/ensure_realtime_publication.sql"
 ENV_FILE="${ONPREM_DIR}/.env"
+# Multi-store step 1 (docs/technical/multi-store-access-plan.zh.md §5.3): violation listing.
+# Sole source is repo scripts/db/multi-store-precheck.sql; pack-release copies it into
+# schema/ because a store's installed upgrade.sh only syncs deploy/on-prem (+ web/migrations).
+MULTI_STORE_MIGRATION="20261120120000_staff_identities_multi_store_step1.sql"
+MULTI_STORE_PRECHECK="${ONPREM_DIR}/schema/multi-store-precheck.sql"
+[[ -f "$MULTI_STORE_PRECHECK" ]] || MULTI_STORE_PRECHECK="${ROOT}/scripts/db/multi-store-precheck.sql"
+PRECHECK_EXIT=3
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 cd "$ONPREM_DIR"
@@ -199,6 +210,36 @@ collect_pending_paths() {
   done
 }
 
+# Abort before any pending SQL runs when legacy data would violate the multi-store rules.
+precheck_multi_store_if_pending() {
+  local f needed=0
+  for f in "$@"; do
+    [[ "$(basename "$f")" == "$MULTI_STORE_MIGRATION" ]] && needed=1
+  done
+  [[ "$needed" == "1" ]] || return 0
+
+  if [[ ! -f "$MULTI_STORE_PRECHECK" ]]; then
+    echo "ERROR: ${MULTI_STORE_MIGRATION} is pending but ${MULTI_STORE_PRECHECK} is missing — refusing to migrate." >&2
+    exit "$PRECHECK_EXIT"
+  fi
+  echo "Multi-store precheck (read-only) before ${MULTI_STORE_MIGRATION}..."
+  local report
+  report=$(sql_report_file "$MULTI_STORE_PRECHECK")
+  if [[ -n "$report" ]]; then
+    {
+      echo "ERROR: 多店迁移违约预查未通过，升级已中止，本次没有执行任何迁移（数据库未改动）。"
+      echo "违约明细（类型|账号 user_id|门店）："
+      printf '%s\n' "$report" | sed 's/^/  /'
+      echo "说明：owner_of_multiple_restaurants = 同一账号是多家店的管理员；"
+      echo "      owner_has_staff_membership = 管理员账号同时有员工店籍；"
+      echo "      print_agent_multiple_memberships = 打印代理账号有多行店籍。"
+      echo "处理：联系平台人工清理上述数据后，重新执行升级。"
+    } >&2
+    exit "$PRECHECK_EXIT"
+  fi
+  echo "Multi-store precheck OK (0 violations)."
+}
+
 apply_pending_sql_files() {
   local pending=()
   collect_pending_paths pending
@@ -207,6 +248,8 @@ apply_pending_sql_files() {
     echo "No pending incremental migrations (baseline covers current tree)."
     return 0
   fi
+
+  precheck_multi_store_if_pending "${pending[@]}"
 
   echo "Pending incremental migrations: ${#pending[@]}"
   local f base applied=0

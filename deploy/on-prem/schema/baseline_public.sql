@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict i9dT62vqUp37dhOGX72yPJrP5CJhKxtXsokofyeF1niaxQHboGLZoK1GdMPpjKq
+\restrict YQtiKjIecfRPyzYPcLWb2g9WUZh2b3k4H3cwmgyV8tD2nRxxO88SSQ7HM5trPHL
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1961,6 +1961,75 @@ begin
   end if;
   return new;
 end;
+$$;
+
+
+--
+-- Name: enforce_restaurant_owner_not_staff(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.enforce_restaurant_owner_not_staff() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  IF NEW.owner_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+  IF TG_OP = 'UPDATE' AND NEW.owner_id IS NOT DISTINCT FROM OLD.owner_id THEN
+    RETURN NEW;
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtextextended('staff_membership:' || NEW.owner_id::text, 0));
+
+  IF EXISTS (
+    SELECT 1 FROM public.restaurant_staff_accounts a WHERE a.user_id = NEW.owner_id
+  ) THEN
+    RAISE EXCEPTION 'owner_user_has_staff_membership'
+      USING ERRCODE = 'check_violation',
+            DETAIL = 'A staff account cannot become a backend admin (restaurants.owner_id).';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: enforce_staff_membership_rules(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.enforce_staff_membership_rules() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended('staff_membership:' || NEW.user_id::text, 0));
+
+  IF EXISTS (SELECT 1 FROM public.restaurants r WHERE r.owner_id = NEW.user_id) THEN
+    RAISE EXCEPTION 'staff_user_is_restaurant_owner'
+      USING ERRCODE = 'check_violation',
+            DETAIL = 'A backend admin account (restaurants.owner_id) cannot hold staff memberships.';
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND OLD.role <> 'print_agent' AND NEW.role = 'print_agent' THEN
+    RAISE EXCEPTION 'staff_role_cannot_become_print_agent'
+      USING ERRCODE = 'check_violation';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.restaurant_staff_accounts a
+    WHERE a.user_id = NEW.user_id
+      AND a.id <> NEW.id
+      AND (NEW.role = 'print_agent' OR a.role = 'print_agent')
+  ) THEN
+    RAISE EXCEPTION 'print_agent_single_membership'
+      USING ERRCODE = 'check_violation',
+            DETAIL = 'A print_agent account has exactly one membership row.';
+  END IF;
+
+  RETURN NEW;
+END;
 $$;
 
 
@@ -4574,6 +4643,56 @@ $$;
 
 
 --
+-- Name: sync_staff_identity_from_membership(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sync_staff_identity_from_membership() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+BEGIN
+  INSERT INTO public.staff_identities (user_id, login_name, must_change_password)
+  SELECT
+    NEW.user_id,
+    NEW.login_name,
+    COALESCE(u.raw_user_meta_data -> 'must_change_password' = 'true'::jsonb, false)
+  FROM auth.users u
+  WHERE u.id = NEW.user_id
+  ON CONFLICT (user_id) DO UPDATE
+    SET login_name = EXCLUDED.login_name
+    WHERE public.staff_identities.login_name IS DISTINCT FROM EXCLUDED.login_name;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: sync_staff_identity_must_change_password(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sync_staff_identity_must_change_password() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+DECLARE
+  next_flag boolean :=
+    COALESCE(NEW.raw_user_meta_data -> 'must_change_password' = 'true'::jsonb, false);
+BEGIN
+  IF next_flag IS NOT DISTINCT FROM
+     COALESCE(OLD.raw_user_meta_data -> 'must_change_password' = 'true'::jsonb, false) THEN
+    RETURN NEW;
+  END IF;
+
+  UPDATE public.staff_identities
+     SET must_change_password = next_flag
+   WHERE user_id = NEW.id
+     AND must_change_password IS DISTINCT FROM next_flag;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: table_session_allows_checkout_signals(uuid); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -6974,8 +7093,16 @@ CREATE TABLE public.restaurant_staff_accounts (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     disabled_at timestamp with time zone,
     role_id uuid,
+    favorited_at timestamp with time zone,
     CONSTRAINT restaurant_staff_accounts_role_check CHECK ((role = ANY (ARRAY['kitchen'::text, 'waiter'::text, 'cashier'::text, 'frontdesk'::text, 'print_agent'::text, 'custom'::text, 'owner'::text])))
 );
+
+
+--
+-- Name: COLUMN restaurant_staff_accounts.favorited_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.restaurant_staff_accounts.favorited_at IS 'Store favorite for store picker/switcher (UX only); null = not favorited. Gone with the membership row.';
 
 
 --
@@ -7364,6 +7491,26 @@ COMMENT ON COLUMN public.session_collected_payments.payment_lines IS 'Sole multi
 --
 
 COMMENT ON COLUMN public.session_collected_payments.party_id IS 'Stable seat/ticket id (same as bill_splits.result[].party_id). Authoritative for attribution; person_index is legacy-only when this is null.';
+
+
+--
+-- Name: staff_identities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.staff_identities (
+    user_id uuid NOT NULL,
+    login_name text NOT NULL,
+    must_change_password boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: TABLE staff_identities; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.staff_identities IS 'Account-level staff identity (login name, forced password change). Server/admin client only — no anon/authenticated access.';
 
 
 --
@@ -7946,11 +8093,11 @@ ALTER TABLE ONLY public.restaurant_staff_accounts
 
 
 --
--- Name: restaurant_staff_accounts restaurant_staff_accounts_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: restaurant_staff_accounts restaurant_staff_accounts_restaurant_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.restaurant_staff_accounts
-    ADD CONSTRAINT restaurant_staff_accounts_user_id_key UNIQUE (user_id);
+    ADD CONSTRAINT restaurant_staff_accounts_restaurant_id_user_id_key UNIQUE (restaurant_id, user_id);
 
 
 --
@@ -7999,6 +8146,22 @@ ALTER TABLE ONLY public.restaurants
 
 ALTER TABLE ONLY public.session_collected_payments
     ADD CONSTRAINT session_collected_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: staff_identities staff_identities_login_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_identities
+    ADD CONSTRAINT staff_identities_login_name_key UNIQUE (login_name);
+
+
+--
+-- Name: staff_identities staff_identities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_identities
+    ADD CONSTRAINT staff_identities_pkey PRIMARY KEY (user_id);
 
 
 --
@@ -8816,6 +8979,13 @@ CREATE UNIQUE INDEX restaurant_tables_active_display_name_unique ON public.resta
 
 
 --
+-- Name: restaurants_owner_id_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX restaurants_owner_id_unique ON public.restaurants USING btree (owner_id) WHERE (owner_id IS NOT NULL);
+
+
+--
 -- Name: session_collected_payments_client_request_uidx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8998,6 +9168,20 @@ CREATE TRIGGER print_stations_strip_menu_item_ids BEFORE DELETE ON public.print_
 
 
 --
+-- Name: restaurant_staff_accounts restaurant_staff_accounts_enforce_membership_rules; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER restaurant_staff_accounts_enforce_membership_rules BEFORE INSERT OR UPDATE OF user_id, role ON public.restaurant_staff_accounts FOR EACH ROW EXECUTE FUNCTION public.enforce_staff_membership_rules();
+
+
+--
+-- Name: restaurant_staff_accounts restaurant_staff_accounts_sync_staff_identity; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER restaurant_staff_accounts_sync_staff_identity AFTER INSERT OR UPDATE OF login_name, user_id ON public.restaurant_staff_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_staff_identity_from_membership();
+
+
+--
 -- Name: restaurant_table_group_members restaurant_table_group_members_same_restaurant; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -9030,6 +9214,20 @@ CREATE TRIGGER restaurants_after_insert_seed_print_stations AFTER INSERT ON publ
 --
 
 CREATE TRIGGER restaurants_after_insert_seed_restaurant_tables AFTER INSERT ON public.restaurants FOR EACH ROW EXECUTE FUNCTION public.seed_default_restaurant_tables_for_restaurant();
+
+
+--
+-- Name: restaurants restaurants_enforce_owner_not_staff; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER restaurants_enforce_owner_not_staff BEFORE INSERT OR UPDATE OF owner_id ON public.restaurants FOR EACH ROW EXECUTE FUNCTION public.enforce_restaurant_owner_not_staff();
+
+
+--
+-- Name: staff_identities staff_identities_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER staff_identities_set_updated_at BEFORE UPDATE ON public.staff_identities FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 
 --
@@ -9826,6 +10024,14 @@ ALTER TABLE ONLY public.session_collected_payments
 
 ALTER TABLE ONLY public.session_collected_payments
     ADD CONSTRAINT session_collected_payments_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.table_sessions(id) ON DELETE CASCADE;
+
+
+--
+-- Name: staff_identities staff_identities_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.staff_identities
+    ADD CONSTRAINT staff_identities_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 
 --
@@ -11110,6 +11316,12 @@ CREATE POLICY session_collected_payments_owner_select ON public.session_collecte
 
 
 --
+-- Name: staff_identities; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.staff_identities ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: subscription_base_product; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -11283,5 +11495,5 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict i9dT62vqUp37dhOGX72yPJrP5CJhKxtXsokofyeF1niaxQHboGLZoK1GdMPpjKq
+\unrestrict YQtiKjIecfRPyzYPcLWb2g9WUZh2b3k4H3cwmgyV8tD2nRxxO88SSQ7HM5trPHL
 

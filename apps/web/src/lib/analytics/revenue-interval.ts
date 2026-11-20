@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { auditMoney } from '@/lib/audit/money';
 import {
   addCalendarDays,
@@ -72,7 +73,7 @@ export function parseDashboardRevenueIntervalDates(input: {
 
 export async function loadDashboardRevenueIntervalTotal(params: {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   startDate: string;
   endDate: string;
   startUtc: string;

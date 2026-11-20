@@ -11,7 +11,7 @@
 # fingerprint and invalidates every marker.
 #
 #   gate.sh scan     validate scan.md, record scan marker
-#   gate.sh check    scoped lint + typecheck → commit gate
+#   gate.sh check    scoped lint + typecheck (+ web store-id source check) → commit gate
 #   gate.sh build    scoped production build → optional helper (pack/on-prem; not push)
 #   gate.sh uat           validate uat.md (## 测试项 + ## 证据), record UAT marker
 #   gate.sh uat-evidence  run a command, append exit=N line under ## 证据
@@ -136,6 +136,8 @@ cmd_check() {
   if ((web)); then
     npm run lint -w @mesa/web
     npm run typecheck -w @mesa/web
+    # Store-id source (multi-store §6.2): supplements the AuthorizedRestaurantId brand.
+    node scripts/agent-gates/check-store-id-source.mjs
   fi
   if ((ops)); then
     npm run lint -w @mesa/ops

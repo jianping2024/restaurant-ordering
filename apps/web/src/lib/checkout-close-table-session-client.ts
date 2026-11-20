@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 export type CheckoutCloseTableSessionApiBody = {
   ok?: boolean;
   error?: string;
@@ -6,11 +7,11 @@ export type CheckoutCloseTableSessionApiBody = {
   print_ok?: boolean;
 };
 
-export async function postCheckoutCloseTableSessionClient(body: {
+export async function postCheckoutCloseTableSessionClient(slug: string, body: {
   table_id: string;
   print_bill?: boolean;
 }): Promise<{ status: number; body: CheckoutCloseTableSessionApiBody }> {
-  const res = await fetch('/api/dashboard/checkout-close-table-session', {
+  const res = await fetch(restaurantApiPath(slug, '/checkout-close-table-session'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeAllergenCodes } from '@/lib/allergens';
@@ -130,7 +131,7 @@ function categoryDepth(categoryId: string, categories: MenuCategory[]): number {
 
 async function loadActiveCategories(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<MenuCategory[] | MenuMutationError> {
   const { data, error } = await admin
     .from('menu_categories')
@@ -146,7 +147,7 @@ async function loadActiveCategories(
 
 async function loadMenuItems(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<MenuItem[] | MenuMutationError> {
   const { data, error } = await admin
     .from('menu_items')
@@ -160,7 +161,7 @@ async function loadMenuItems(
 
 async function getCategoryById(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   categoryId: string,
 ): Promise<MenuCategory | MenuMutationError> {
   const { data, error } = await admin
@@ -181,7 +182,7 @@ async function getCategoryById(
 
 export async function createMenuCategory(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: {
     parent_id?: string | null;
     name_pt: string;
@@ -253,7 +254,7 @@ export async function createMenuCategory(
 
 export async function updateMenuCategory(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   categoryId: string,
   input: {
     name_pt: string;
@@ -316,7 +317,7 @@ export async function updateMenuCategory(
 
 export async function reorderMenuCategories(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   parentId: string | null,
   orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuMutationError> {
@@ -371,7 +372,7 @@ export async function reorderMenuCategories(
 
 export async function deleteMenuCategory(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: {
     category_id: string;
     mode: 'empty' | 'migrate' | 'delete_all';
@@ -561,7 +562,7 @@ function validateMenuItemInput(
 }
 
 function buildMenuItemPayload(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   category: MenuCategory,
   input: MenuItemInput,
   normalizedCode: string,
@@ -607,7 +608,7 @@ function buildMenuItemPayload(
 
 async function withValidatedNotePresetGroupIds(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: MenuItemInput,
 ): Promise<MenuItemInput | MenuMutationError> {
   const allowed = await listRestaurantNotePresetGroupIds(admin, restaurantId);
@@ -623,7 +624,7 @@ async function withValidatedNotePresetGroupIds(
 
 async function withValidatedDishOrderConfig(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: MenuItemInput,
   mainDishId?: string | null,
 ): Promise<MenuItemInput | MenuMutationError> {
@@ -659,7 +660,7 @@ async function withValidatedDishOrderConfig(
 
 async function assertMenuItemPrintStationIds(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   ids: string[],
 ): Promise<MenuMutationError | null> {
   if (ids.length === 0) return null;
@@ -680,7 +681,7 @@ async function assertMenuItemPrintStationIds(
 /** Sole write of one dish's buffet price set (atomic replace RPC). Returns buffet id → price. */
 async function replaceMenuItemBuffetPrices(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   menuItemId: string,
   prices: MenuItemBuffetPriceInput[],
 ): Promise<{ prices: Record<string, number> } | MenuMutationError> {
@@ -701,7 +702,7 @@ async function replaceMenuItemBuffetPrices(
 
 export async function createMenuItem(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: MenuItemInput,
 ): Promise<{ item: MenuItem; buffetPrices: Record<string, number> } | MenuMutationError> {
   const noteValidated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
@@ -751,7 +752,7 @@ export async function createMenuItem(
 
 export async function reorderMenuItems(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuMutationError> {
   if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
@@ -823,7 +824,7 @@ export async function reorderMenuItems(
 
 export async function updateMenuItem(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   itemId: string,
   input: MenuItemInput,
 ): Promise<{ item: MenuItem; buffetPrices: Record<string, number> } | MenuMutationError> {
@@ -894,7 +895,7 @@ export async function updateMenuItem(
 
 export async function deleteMenuItem(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   itemId: string,
 ): Promise<{ ok: true } | MenuMutationError> {
   const id = parseTableIdParam(itemId);
@@ -935,7 +936,7 @@ export async function deleteMenuItem(
 
 export async function batchSetMenuItemsAvailable(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   itemIds: string[],
   available: boolean,
 ): Promise<{ ok: true } | MenuMutationError> {
@@ -1007,7 +1008,7 @@ function trimmedUrl(value: unknown): string | null {
  */
 export async function setMenuItemImage(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   itemId: string,
   input: MenuItemMediaInput,
 ): Promise<{ item: MenuItem } | MenuMutationError> {
@@ -1134,7 +1135,7 @@ export async function setMenuItemImage(
 
 export async function createPrintStation(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: {
     name_pt: string;
     name_en?: string | null;
@@ -1177,7 +1178,7 @@ export async function createPrintStation(
 
 export async function updatePrintStation(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   stationId: string,
   input: {
     name_pt: string;
@@ -1220,7 +1221,7 @@ export async function updatePrintStation(
 
 export async function reorderPrintStations(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuMutationError> {
   if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
@@ -1273,7 +1274,7 @@ export async function reorderPrintStations(
 
 export async function deletePrintStation(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   stationId: string,
 ): Promise<{ ok: true } | MenuMutationError> {
   const id = parseTableIdParam(stationId);
@@ -1462,7 +1463,7 @@ export function parseMenuItemPrintStationIds(raw: unknown): string[] {
 
 export async function listRecommendedMenuItemIds(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<string[] | MenuMutationError> {
   const { data, error } = await admin
     .from('menu_recommended_items')
@@ -1483,7 +1484,7 @@ function parseRecommendedMenuItemId(raw: unknown): string | MenuMutationError {
 
 export async function addRecommendedMenuItems(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   menuItemIdsRaw: unknown,
 ): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
   const menuItemIds = parseRecommendedMenuItemIds(menuItemIdsRaw);
@@ -1545,7 +1546,7 @@ export async function addRecommendedMenuItems(
 
 export async function removeRecommendedMenuItem(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   menuItemIdRaw: unknown,
 ): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
   const menuItemId = parseRecommendedMenuItemId(menuItemIdRaw);
@@ -1572,7 +1573,7 @@ export async function removeRecommendedMenuItem(
 
 export async function reorderRecommendedMenuItems(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIdsRaw: unknown,
 ): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
   if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {

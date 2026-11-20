@@ -13,6 +13,7 @@ import {
 import { staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { isRolePresetKey, type RolePresetKey } from '@/lib/permissions/role-templates';
 import type { Principal } from '@/lib/permissions/types';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 
 export type RestaurantRef = {
   id: string;
@@ -53,6 +54,11 @@ export type RestaurantPrincipal = {
   principal: Principal;
   capabilities: Capabilities;
   restaurant: RestaurantRef;
+};
+
+/** `RestaurantPrincipal` admitted by the sole auth entry — carries the branded store id. */
+export type AuthorizedRestaurantPrincipal = RestaurantPrincipal & {
+  restaurantId: AuthorizedRestaurantId;
 };
 
 export type AuthorizedRestaurant = RestaurantRef & { access: 'owner' | 'staff' };
@@ -124,16 +130,6 @@ export function resolveRestaurantMembershipPrincipal(input: {
     capabilities: role.capabilities,
     restaurant: membership.restaurant,
   };
-}
-
-/**
- * §6.2 suspension rule: the admin account may still enter a suspended store
- * (read-only, to see the notice); staff are refused. Write paths keep their own
- * suspended gates.
- */
-export function principalAdmittedWhileSuspended(access: RestaurantPrincipal): boolean {
-  if (!isRestaurantSuspended(access.restaurant.suspended_at)) return true;
-  return access.principal.kind === 'owner';
 }
 
 /**

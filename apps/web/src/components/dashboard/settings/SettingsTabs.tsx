@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -26,6 +27,7 @@ export function SettingsTabs({
   capabilities: capabilitiesPayload,
   showSystemLogs = false,
 }: Props) {
+  const { href: storeHref } = useDashboardStore();
   const pathname = usePathname();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
@@ -51,8 +53,8 @@ export function SettingsTabs({
           return (
             <Link
               key={item.id}
-              href={item.href}
-              prefetch={shouldPrefetchDashboardNav(item.href)}
+              href={storeHref(item.page)}
+              prefetch={shouldPrefetchDashboardNav(storeHref(item.page))}
               aria-current={active ? 'page' : undefined}
               className={tabClass(active)}
             >

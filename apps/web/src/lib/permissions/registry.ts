@@ -179,26 +179,27 @@ export const NAV_PERMISSION: Record<string, PermissionKey> = {
   guestNotice: 'dashboard.guest_notice.view',
 };
 
-/** Dashboard pathname prefix → required permission (longest match wins at resolve time). */
+/** Store-relative dashboard page prefix → required permission (longest match wins; `''` = every other page). */
 export const DASHBOARD_ROUTE_PERMISSIONS: { prefix: string; permission: PermissionKey }[] = [
-  { prefix: '/dashboard/settings', permission: 'dashboard.settings.view' },
-  { prefix: '/dashboard/checkout', permission: 'dashboard.checkout.view' },
-  { prefix: '/dashboard/orders', permission: 'dashboard.orders.view' },
-  { prefix: '/dashboard/dish-history', permission: 'dashboard.dish_history.view' },
-  { prefix: '/dashboard/tables', permission: 'dashboard.tables.view' },
-  { prefix: '/dashboard/menu', permission: 'dashboard.menu.view' },
-  { prefix: '/dashboard/waiter', permission: 'dashboard.waiter_board.view' },
-  { prefix: '/dashboard/value-analytics', permission: 'dashboard.value_analytics.view' },
-  { prefix: '/dashboard/abnormal-operations', permission: 'dashboard.abnormal_ops.view' },
-  { prefix: '/dashboard/operation-logs', permission: 'dashboard.operation_logs.view' },
-  { prefix: '/dashboard/guest-notice', permission: 'dashboard.guest_notice.view' },
-  { prefix: '/dashboard', permission: 'dashboard.overview.view' },
+  { prefix: '/settings', permission: 'dashboard.settings.view' },
+  { prefix: '/checkout', permission: 'dashboard.checkout.view' },
+  { prefix: '/orders', permission: 'dashboard.orders.view' },
+  { prefix: '/dish-history', permission: 'dashboard.dish_history.view' },
+  { prefix: '/tables', permission: 'dashboard.tables.view' },
+  { prefix: '/menu', permission: 'dashboard.menu.view' },
+  { prefix: '/waiter', permission: 'dashboard.waiter_board.view' },
+  { prefix: '/value-analytics', permission: 'dashboard.value_analytics.view' },
+  { prefix: '/abnormal-operations', permission: 'dashboard.abnormal_ops.view' },
+  { prefix: '/operation-logs', permission: 'dashboard.operation_logs.view' },
+  { prefix: '/guest-notice', permission: 'dashboard.guest_notice.view' },
+  { prefix: '', permission: 'dashboard.overview.view' },
 ];
 
-export function dashboardRoutePermission(pathname: string): PermissionKey | null {
+export function dashboardRoutePermission(page: string): PermissionKey | null {
+  const bare = page.split('?')[0] ?? '';
   const sorted = [...DASHBOARD_ROUTE_PERMISSIONS].sort((a, b) => b.prefix.length - a.prefix.length);
   for (const row of sorted) {
-    if (pathname === row.prefix || pathname.startsWith(`${row.prefix}/`)) {
+    if (row.prefix === '' || bare === row.prefix || bare.startsWith(`${row.prefix}/`)) {
       return row.permission;
     }
   }

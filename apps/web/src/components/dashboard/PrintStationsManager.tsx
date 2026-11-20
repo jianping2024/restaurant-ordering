@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
@@ -56,6 +57,7 @@ export function PrintStationsManager({
   initialItems = [],
   onStationsChange,
 }: PrintStationsManagerProps) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).printStations;
   const tm = getMessages(lang).menuManager;
@@ -135,13 +137,13 @@ export function PrintStationsManager({
         kitchen_enabled: stationForm.kitchen_enabled,
       };
       if (editingStation) {
-        const result = await updatePrintStationClient(editingStation.id, input);
+        const result = await updatePrintStationClient(storeSlug, editingStation.id, input);
         if (!result.ok) throw new Error(result.error);
         setStations((prev) =>
           prev.map((s) => (s.id === editingStation.id ? result.data.station : s)),
         );
       } else {
-        const result = await createPrintStationClient(input);
+        const result = await createPrintStationClient(storeSlug, input);
         if (!result.ok) throw new Error(result.error);
         setStations((prev) =>
           [...prev, result.data.station].sort(compareSortOrderThenCreatedAt),
@@ -169,7 +171,7 @@ export function PrintStationsManager({
       [...applyOrderedSortOrders(prev, orderedIds)].sort(compareSortOrderThenCreatedAt),
     );
     setReorderBusy(true);
-    const result = await reorderPrintStationsClient(orderedIds);
+    const result = await reorderPrintStationsClient(storeSlug, orderedIds);
     setReorderBusy(false);
     if (!result.ok) {
       setStations(previous);
@@ -188,7 +190,7 @@ export function PrintStationsManager({
     if (!deleteTarget) return;
     setDeleteLoading(true);
     setError('');
-    const result = await deletePrintStationClient(deleteTarget.id);
+    const result = await deletePrintStationClient(storeSlug, deleteTarget.id);
     setDeleteLoading(false);
     if (!result.ok) {
       setError(t.deleteFail);

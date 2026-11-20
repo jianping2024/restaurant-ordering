@@ -13,20 +13,20 @@ import { resolveCapabilitiesForOwner } from './permissions/resolve';
 describe('middlewareAllowsPathForCapabilities', () => {
   it('aligns with preset capability sets', () => {
     const frontdeskCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/guest-notice'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/settings'), false);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/guest-notice'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/settings'), false);
 
     const waiterCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]);
-    assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/dashboard/waiter'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/dashboard/checkout'), false);
+    assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/waiter'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/checkout'), false);
   });
 
   it('owner star allows operational dashboard paths including tables', () => {
     const ownerCaps = resolveCapabilitiesForOwner();
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/settings'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/tables'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/checkout'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/waiter'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/settings'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/tables'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/checkout'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/waiter'), true);
     assert.equal(
       dashboardCapabilityMiddlewareRedirectPath(ownerCaps, '/dashboard/tables', 'demo'),
       null,

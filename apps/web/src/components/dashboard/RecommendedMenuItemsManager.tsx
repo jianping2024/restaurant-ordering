@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
@@ -41,6 +42,7 @@ export function RecommendedMenuItemsManager({
   recommendedItemIds,
   onRecommendedItemIdsChange,
 }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
   const [error, setError] = useState('');
@@ -117,7 +119,7 @@ export function RecommendedMenuItemsManager({
     if (pendingIds.length === 0 || saving) return;
     setSaving(true);
     setError('');
-    const result = await addRecommendedMenuItemsClient(pendingIds);
+    const result = await addRecommendedMenuItemsClient(storeSlug, pendingIds);
     setSaving(false);
     if (!result.ok) {
       setError(mapRecommendedMenuApiError(result.error, result.message, errorLabels));
@@ -130,7 +132,7 @@ export function RecommendedMenuItemsManager({
   const removeItem = async (menuItemId: string) => {
     setSavingId(menuItemId);
     setError('');
-    const result = await removeRecommendedMenuItemClient(menuItemId);
+    const result = await removeRecommendedMenuItemClient(storeSlug, menuItemId);
     setSavingId(null);
     if (!result.ok) {
       setError(mapRecommendedMenuApiError(result.error, result.message, errorLabels));
@@ -146,7 +148,7 @@ export function RecommendedMenuItemsManager({
     onRecommendedItemIdsChange(next);
     setReorderBusy(true);
     setError('');
-    const result = await reorderRecommendedMenuItemsClient(next);
+    const result = await reorderRecommendedMenuItemsClient(storeSlug, next);
     setReorderBusy(false);
     if (!result.ok) {
       onRecommendedItemIdsChange(previous);

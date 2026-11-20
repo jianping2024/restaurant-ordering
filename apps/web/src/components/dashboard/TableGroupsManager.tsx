@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
@@ -72,6 +73,7 @@ export function TableGroupsManager({
   hideAddButton = false,
   takeawayOrderingEnabled = false,
 }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).tableGroups;
   const tm = getMessages(lang).menuManager;
@@ -225,8 +227,8 @@ export function TableGroupsManager({
         is_takeaway: takeawayOrderingEnabled ? form.isTakeaway : false,
       };
       const result = editing
-        ? await updateTableGroupClient({ group_id: editing.id, ...payload })
-        : await createTableGroupClient(payload);
+        ? await updateTableGroupClient(storeSlug, { group_id: editing.id, ...payload })
+        : await createTableGroupClient(storeSlug, payload);
       if (!result.ok) {
         setFormError(mapTableGroupApiError(result.error, result.message, t));
         return;
@@ -256,7 +258,7 @@ export function TableGroupsManager({
     setError('');
     setGroups(sortTableGroups(applyOrderedSortOrders(groups, orderedIds)));
     setGroupReorderBusy(true);
-    const result = await reorderTableGroupsClient(orderedIds);
+    const result = await reorderTableGroupsClient(storeSlug, orderedIds);
     setGroupReorderBusy(false);
     if (!result.ok) {
       setGroups(previousGroups);
@@ -278,7 +280,7 @@ export function TableGroupsManager({
     if (!deleteTarget) return;
     setDeleteLoading(true);
     setError('');
-    const result = await deleteTableGroupClient(deleteTarget.id);
+    const result = await deleteTableGroupClient(storeSlug, deleteTarget.id);
     setDeleteLoading(false);
     if (!result.ok) {
       setError(mapTableGroupApiError(result.error, result.message, t));

@@ -17,7 +17,7 @@ const restaurant = {
 describe('resolveWaiterBoardDashboardAccess', () => {
   it('allows store_owner with dashboard.waiter_board.view', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys(['dashboard.waiter_board.view']),
     );
     assert.equal(decision.ok, true);
@@ -28,7 +28,7 @@ describe('resolveWaiterBoardDashboardAccess', () => {
 
   it('allows frontdesk with dashboard.waiter_board.view', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys(['dashboard.waiter_board.view']),
     );
     assert.equal(decision.ok, true);
@@ -36,12 +36,12 @@ describe('resolveWaiterBoardDashboardAccess', () => {
 
   it('redirects store_owner without waiter board capability to capability landing', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys(['dashboard.overview.view']),
     );
     assert.equal(decision.ok, false);
     if (!decision.ok) {
-      assert.equal(decision.redirectTo, '/dashboard');
+      assert.equal(decision.redirectTo, `/dashboard/r/${restaurant.slug}`);
     }
   });
 

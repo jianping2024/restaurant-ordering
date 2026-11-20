@@ -2,11 +2,11 @@ import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  dashboardAccessPrincipal,
   loadDashboardAccess,
   type DashboardOperationalContext,
 } from '@/lib/dashboard-access';
 import { resolveDashboardOperationalContext } from '@/lib/dashboard-operational-context';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -15,10 +15,11 @@ export type { DashboardOperationalContext };
 /** Server-side admin context for dashboard operational pages and APIs (overview, orders, tables, menu). */
 export async function loadDashboardOperationalContext(
   permission: PermissionKey,
+  restaurantId: string,
   options?: { requireWritable?: boolean },
 ): Promise<DashboardOperationalContext> {
-  const access = await loadDashboardAccess();
-  const loaded = await loadPrincipalWithCapabilities();
+  const access = await loadDashboardAccess(restaurantId);
+  const loaded = dashboardAccessPrincipal(access);
   const resolved = resolveDashboardOperationalContext(
     access,
     loaded?.capabilities ?? null,

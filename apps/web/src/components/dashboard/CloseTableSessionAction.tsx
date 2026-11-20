@@ -15,6 +15,7 @@ import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 export type CloseTableConfirmEntry = 'generic' | 'reason';
 
 interface Props {
+  restaurantSlug: string;
   tableId: string;
   /** When true, use checkout copy in the unpaid-close reason dialog. */
   isCheckoutPending?: boolean;
@@ -34,6 +35,7 @@ interface Props {
 }
 
 export function CloseTableSessionAction({
+  restaurantSlug,
   tableId,
   isCheckoutPending = false,
   closeConfirmEntry = 'generic',
@@ -93,7 +95,7 @@ export function CloseTableSessionAction({
     setUnpaidCloseReasonError(null);
     let keepSessionBusy = false;
     try {
-      const { status, body: data } = await postCloseTableSessionClient({
+      const { status, body: data } = await postCloseTableSessionClient(restaurantSlug, {
         table_id: closeTableId,
         confirm_close: confirmClose,
         close_reason: closeReason,

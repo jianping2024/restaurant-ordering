@@ -2,12 +2,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { dashboardCapabilityMiddlewareRedirectPath } from '@/lib/dashboard-feature-registry';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { DASHBOARD_ENTRY_PATH, parseDashboardStorePath } from '@/lib/dashboard-store-routes';
 import {
   loadOwnerRestaurantForUser,
-  loadStaffGateAccountForUser,
+  loadRestaurantRefBySlug,
+  resolvePrincipalForRestaurantWith,
 } from '@/lib/staff-gate-db';
-import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
-import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import {
   isInvalidRefreshTokenError,
   shouldBypassMiddlewareSession,
@@ -66,7 +66,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (sessionUser && pathname.startsWith('/dashboard')) {
+  // Store pages: the store is the URL slug (never user_metadata). Capability gate per store;
+  // unknown slug / no access → store-less entry, which lands on the account's store.
+  const storePath = sessionUser ? parseDashboardStorePath(pathname) : null;
+  if (sessionUser && storePath) {
     let admin;
     try {
       admin = createAdminClient();
@@ -74,40 +77,29 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse;
     }
 
-    const ownedRestaurant = await loadOwnerRestaurantForUser(admin, {
-      userId: sessionUser.id,
-      email: sessionUser.email,
-      userMetadata: sessionUser.user_metadata as Record<string, unknown>,
-    });
-    if (ownedRestaurant) {
-      const redirectPath = dashboardCapabilityMiddlewareRedirectPath(
-        resolveCapabilitiesForOwner(),
-        pathname,
-        ownedRestaurant.slug,
-      );
-      if (redirectPath) {
-        const url = request.nextUrl.clone();
-        url.pathname = redirectPath;
-        return NextResponse.redirect(url);
-      }
-    } else {
-      const staff = await loadStaffGateAccountForUser(admin, sessionUser.id);
-      if (staff && !staff.disabled_at) {
-        const slug = staff.restaurant?.slug ?? '';
-        if (slug) {
-          const capabilities = await loadStaffCapabilitiesForGateAccount(admin, staff);
-          const redirectPath = dashboardCapabilityMiddlewareRedirectPath(
-            capabilities,
-            pathname,
-            slug,
-          );
-          if (redirectPath) {
-            const url = request.nextUrl.clone();
-            url.pathname = redirectPath;
-            return NextResponse.redirect(url);
-          }
-        }
-      }
+    const restaurant = await loadRestaurantRefBySlug(admin, storePath.slug);
+    const access = restaurant
+      ? await resolvePrincipalForRestaurantWith(admin, {
+          userId: sessionUser.id,
+          restaurantId: restaurant.id,
+          owned: await loadOwnerRestaurantForUser(admin, {
+            userId: sessionUser.id,
+            email: sessionUser.email,
+            userMetadata: sessionUser.user_metadata as Record<string, unknown>,
+          }),
+        })
+      : null;
+    const redirectPath = access
+      ? dashboardCapabilityMiddlewareRedirectPath(
+          access.capabilities,
+          storePath.page,
+          access.restaurant.slug,
+        )
+      : DASHBOARD_ENTRY_PATH;
+    if (redirectPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = redirectPath;
+      return NextResponse.redirect(url);
     }
   }
 

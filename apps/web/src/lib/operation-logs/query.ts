@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   OPERATION_LOG_ACTION_TYPES,
@@ -12,7 +13,7 @@ import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 import type { OperationLogRow } from '@/lib/operation-logs/types';
 
 export type OperationLogsListFilters = {
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   retentionDays: number;
   /** Lisbon calendar day (YYYY-MM-DD); default today. */
   date?: string;

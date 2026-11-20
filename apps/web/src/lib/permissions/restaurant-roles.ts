@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ensureRestaurantPresetRoles } from '@mesa/shared';
 import { normalizeStoredPermissions } from '@/lib/permissions/resolve';
@@ -25,7 +26,7 @@ function mapRoleRow(raw: Record<string, unknown>): RestaurantRoleRow {
 
 export async function listRestaurantRoles(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<RestaurantRoleRow[]> {
   await ensureRestaurantPresetRoles(admin, restaurantId);
   const { data, error } = await admin
@@ -41,7 +42,7 @@ export async function listRestaurantRoles(
 
 export async function getRestaurantRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   roleId: string,
 ): Promise<RestaurantRoleRow | null> {
   const { data, error } = await admin
@@ -58,7 +59,7 @@ export async function getRestaurantRole(
 
 export async function findPresetRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   presetKey: RolePresetKey,
 ): Promise<RestaurantRoleRow | null> {
   await ensureRestaurantPresetRoles(admin, restaurantId);
@@ -82,7 +83,7 @@ export type CreateRoleInput = {
 
 export async function createRestaurantRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: CreateRoleInput,
 ): Promise<RestaurantRoleRow> {
   let permissions = input.permissions;
@@ -120,7 +121,7 @@ export async function createRestaurantRole(
 
 export async function updateRestaurantRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   roleId: string,
   patch: {
     name?: string;
@@ -148,7 +149,7 @@ export async function updateRestaurantRole(
 
 export async function countStaffOnRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   roleId: string,
 ): Promise<number> {
   const { count, error } = await admin
@@ -163,7 +164,7 @@ export async function countStaffOnRole(
 
 export async function listStaffUserIdsOnRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   roleId: string,
 ): Promise<string[]> {
   const { data, error } = await admin
@@ -180,7 +181,7 @@ export async function listStaffUserIdsOnRole(
 
 export async function deleteRestaurantRole(
   admin: Admin,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   roleId: string,
 ): Promise<void> {
   const occupied = await countStaffOnRole(admin, restaurantId, roleId);

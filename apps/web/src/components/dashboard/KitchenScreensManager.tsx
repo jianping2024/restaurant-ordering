@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -16,10 +18,11 @@ type Props = {
 };
 
 async function apiJson<T>(
+  storeSlug: string,
   method: string,
   body?: Record<string, unknown>,
 ): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
-  const res = await fetch('/api/dashboard/kitchen-screens', {
+  const res = await fetch(restaurantApiPath(storeSlug, '/kitchen-screens'), {
     method,
     credentials: 'include',
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
@@ -31,6 +34,7 @@ async function apiJson<T>(
 }
 
 export function KitchenScreensManager({ initialScreens, kitchenStations }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchenScreens;
   const [screens, setScreens] = useState(initialScreens);
@@ -89,7 +93,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     const shared_prep_tray = stationIds.length > 1 && sharedPrepTray;
     try {
       if (editing) {
-        const result = await apiJson<{ screen: KitchenScreen }>('PATCH', {
+        const result = await apiJson<{ screen: KitchenScreen }>(storeSlug, 'PATCH', {
           screen_id: editing.id,
           name: name.trim(),
           station_ids: stationIds,
@@ -100,7 +104,7 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
           prev.map((s) => (s.id === editing.id ? result.data.screen : s)),
         );
       } else {
-        const result = await apiJson<{ screen: KitchenScreen }>('POST', {
+        const result = await apiJson<{ screen: KitchenScreen }>(storeSlug, 'POST', {
           name: name.trim(),
           station_ids: stationIds,
           shared_prep_tray,
@@ -114,13 +118,13 @@ export function KitchenScreensManager({ initialScreens, kitchenStations }: Props
     } finally {
       setSaving(false);
     }
-  }, [editing, name, stationIds, sharedPrepTray, t]);
+  }, [editing, name, stationIds, sharedPrepTray, t, storeSlug]);
 
   const runDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     setError('');
-    const result = await apiJson<{ ok: true }>('DELETE', { screen_id: deleteTarget.id });
+    const result = await apiJson<{ ok: true }>(storeSlug, 'DELETE', { screen_id: deleteTarget.id });
     setDeleting(false);
     if (!result.ok) {
       setError(t.deleteFail);

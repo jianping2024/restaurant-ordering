@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   AUDIT_EVENT,
@@ -24,7 +25,7 @@ import {
 
 export type CloseTableSessionServiceInput = {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   userId: string;
   actor: AuditActor;
   /** Dashboard actor reason (settled naming); mapped to *_forced for operational RPC. */
@@ -98,7 +99,7 @@ export type CloseTableSessionFrontdeskCheckoutResult =
 /** Cash/frontdesk 关台结账 — settled payable snapshot + close; optional best-effort bill print. */
 export async function closeTableSessionFrontdeskCheckout(input: {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   tableId: string;
   userId: string;
   actor: AuditActor;
@@ -180,7 +181,7 @@ export async function closeTableSessionFrontdeskCheckout(input: {
 
 async function enqueueCheckoutCloseBillPrint(params: {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   tableId: string;
   sessionId: string;
 }): Promise<boolean> {
@@ -238,7 +239,7 @@ function mapSettledCloseResult(result: CloseTableSettledResult): CloseTableSessi
  */
 async function bumpSessionOrdersForKitchenRealtime(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   sessionId: string,
 ): Promise<void> {
   const { error } = await admin

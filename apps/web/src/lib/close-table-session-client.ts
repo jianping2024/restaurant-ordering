@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type { CloseTableSessionApiBody } from '@/lib/close-table-session-ui';
 
 export type CloseTableSessionClientBody = {
@@ -8,9 +9,10 @@ export type CloseTableSessionClientBody = {
 };
 
 export async function postCloseTableSessionClient(
+  slug: string,
   body: CloseTableSessionClientBody,
 ): Promise<{ status: number; body: CloseTableSessionApiBody }> {
-  const res = await fetch('/api/dashboard/close-table-session', {
+  const res = await fetch(restaurantApiPath(slug, '/close-table-session'), {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

@@ -50,6 +50,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
           slug: restaurant.slug,
           buffet_service_mode: 'classic',
         },
+        loaded: { restaurantId: restaurant.id },
       },
       loaded,
     );
@@ -74,13 +75,13 @@ describe('resolveCloseTableSessionDeskActor', () => {
       capabilities: capabilitiesFromKeys(['tables.checkout_close']),
     };
     const allowed = resolveCloseTableSessionDeskActor(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       loaded,
       { gate: 'checkout_close' },
     );
     assert.equal(allowed.ok, true);
     const deniedManual = resolveCloseTableSessionDeskActor(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       loaded,
       { gate: 'manual' },
     );
@@ -102,7 +103,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
       capabilities: capabilitiesFromKeys(['tables.force_close']),
     };
     const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       loaded,
     );
     assert.equal(decision.ok, true);
@@ -134,6 +135,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
           slug: restaurant.slug,
           buffet_service_mode: 'classic',
         },
+        loaded: { restaurantId: restaurant.id },
       },
       loaded,
     );
@@ -163,6 +165,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
           slug: restaurant.slug,
           buffet_service_mode: 'classic',
         },
+        loaded: { restaurantId: restaurant.id },
       },
       loaded,
     );
@@ -195,6 +198,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
           slug: restaurant.slug,
           buffet_service_mode: 'classic',
         },
+        loaded: { restaurantId: restaurant.id },
       },
       loaded,
     );

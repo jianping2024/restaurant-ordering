@@ -24,7 +24,7 @@ import {
   normalizeRolePermissions,
   settingsPermissionChildren,
 } from '@/lib/permissions/role-permission-set';
-import { SETTINGS_NAV_TABS, firstAccessibleSettingsChildHref, resolveSettingsHubDestination } from '@/lib/settings-nav';
+import { SETTINGS_NAV_TABS, firstAccessibleSettingsChildPage, resolveSettingsHubDestination } from '@/lib/settings-nav';
 describe('permissions registry integrity', () => {
   it('every ROLE_TEMPLATES key is registered', () => {
     const known = new Set(ALL_PERMISSION_KEYS);
@@ -279,7 +279,7 @@ describe('can / resolve', () => {
   it('landing prefers waiter board then checkout', () => {
     assert.equal(
       staffLandingPathFromCapabilities('demo', capabilitiesFromKeys(['dashboard.checkout.view'])),
-      '/dashboard/checkout',
+      '/dashboard/r/demo/checkout',
     );
     assert.equal(
       staffLandingPathFromCapabilities(
@@ -296,14 +296,14 @@ describe('can / resolve', () => {
           'floor.kitchen_board.view',
         ]),
       ),
-      '/dashboard',
+      '/dashboard/r/demo',
     );
   });
 
   it('owner star landing is waiter board (same rule as staff + logo)', () => {
     assert.equal(
       staffLandingPathFromCapabilities('demo', resolveCapabilitiesForOwner()),
-      '/dashboard/waiter',
+      '/dashboard/r/demo/waiter',
     );
   });
 });
@@ -347,15 +347,15 @@ describe('settings permission tree / cascade', () => {
     assert.equal(set.has('settings.profile.manage'), false);
   });
 
-  it('firstAccessibleSettingsChildHref skips profile hub', () => {
+  it('firstAccessibleSettingsChildPage skips profile hub', () => {
     assert.equal(
-      firstAccessibleSettingsChildHref(
+      firstAccessibleSettingsChildPage(
         capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION, 'settings.staff.manage']),
       ),
-      '/dashboard/settings/staff',
+      '/settings/staff',
     );
     assert.equal(
-      firstAccessibleSettingsChildHref(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION])),
+      firstAccessibleSettingsChildPage(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION])),
       null,
     );
     assert.equal(
@@ -379,7 +379,7 @@ describe('settings permission tree / cascade', () => {
           'floor.kitchen_screens.manage',
         ]),
       ),
-      { kind: 'redirect', href: '/dashboard/settings/kitchen-screens' },
+      { kind: 'redirect', page: '/settings/kitchen-screens' },
     );
     assert.equal(
       resolveSettingsHubDestination(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION])).kind,

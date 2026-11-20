@@ -551,7 +551,7 @@ function WaiterTableDetailInner({
     if (isDemo || !detailLoaded) return;
     if (!checkoutRequested) return;
     if (floorCaps.canAssistBillCheckout) {
-      router.replace(dashboardCheckoutTableHref(tableId));
+      router.replace(dashboardCheckoutTableHref(restaurant.slug, tableId));
       return;
     }
     router.replace(waiterBoardHref(restaurant.slug, routeOptions));

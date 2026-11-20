@@ -38,10 +38,10 @@ describe('resolveAllowedMenuManagerTab', () => {
 
 describe('menuManagerPath', () => {
   it('uses dashboard menu route with optional tab query', () => {
-    assert.equal(menuManagerPath(MENU_MANAGER_DEFAULT_TAB), '/dashboard/menu');
-    assert.equal(menuManagerPath('items'), '/dashboard/menu?tab=items');
-    assert.equal(menuManagerPath('note_presets'), '/dashboard/menu?tab=note_presets');
-    assert.equal(menuManagerPath('recommended'), '/dashboard/menu?tab=recommended');
+    assert.equal(menuManagerPath('demo', MENU_MANAGER_DEFAULT_TAB), '/dashboard/r/demo/menu');
+    assert.equal(menuManagerPath('demo', 'items'), '/dashboard/r/demo/menu?tab=items');
+    assert.equal(menuManagerPath('demo', 'note_presets'), '/dashboard/r/demo/menu?tab=note_presets');
+    assert.equal(menuManagerPath('demo', 'recommended'), '/dashboard/r/demo/menu?tab=recommended');
     assert.equal(menuManagerTabQuery('categories'), '?tab=categories');
   });
 });

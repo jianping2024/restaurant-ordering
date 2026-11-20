@@ -82,7 +82,7 @@ export function OrdersHistoryManager({
     setFilters,
     goToPage,
     changePageSize,
-  } = useOrderHistoryFeed({
+  } = useOrderHistoryFeed(restaurantSlug, {
     items: initialItems,
     total: initialTotal,
     itemCodeByMenuId: initialItemCodeByMenuId,

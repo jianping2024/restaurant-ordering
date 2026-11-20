@@ -15,8 +15,8 @@ import {
 
 describe('waiterBoardHref', () => {
   it('returns dashboard path for production', () => {
-    assert.equal(waiterBoardHref('cafe-lisboa'), '/dashboard/waiter');
-    assert.equal(waiterBoardHref('cafe-lisboa', { embeddedInDashboard: true }), '/dashboard/waiter');
+    assert.equal(waiterBoardHref('cafe-lisboa'), '/dashboard/r/cafe-lisboa/waiter');
+    assert.equal(waiterBoardHref('cafe-lisboa', { embeddedInDashboard: true }), '/dashboard/r/cafe-lisboa/waiter');
   });
 
   it('returns demo path', () => {
@@ -30,7 +30,7 @@ describe('waiterTableHref', () => {
   it('returns dashboard table path for production', () => {
     assert.equal(
       waiterTableHref('cafe-lisboa', tableId),
-      `/dashboard/waiter/${encodeURIComponent(tableId)}`,
+      `/dashboard/r/cafe-lisboa/waiter/${encodeURIComponent(tableId)}`,
     );
   });
 });
@@ -42,7 +42,7 @@ describe('waiterMenuHref', () => {
     const href = waiterMenuHref('cafe-lisboa', tableId);
     assert.equal(
       href,
-      `/cafe-lisboa/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(`/dashboard/waiter/${tableId}`)}`,
+      `/cafe-lisboa/menu?table_id=${encodeURIComponent(tableId)}&from=waiter&return=${encodeURIComponent(`/dashboard/r/cafe-lisboa/waiter/${tableId}`)}`,
     );
   });
 });
@@ -53,7 +53,7 @@ describe('waiterBillHref', () => {
   it('builds bill link with dashboard return path', () => {
     const href = waiterBillHref('cafe-lisboa', tableId);
     assert.ok(href.startsWith('/cafe-lisboa/bill?'));
-    assert.ok(href.includes('return=%2Fdashboard%2Fwaiter%2F'));
+    assert.ok(href.includes('return=%2Fdashboard%2Fr%2Fcafe-lisboa%2Fwaiter%2F'));
   });
 });
 
@@ -61,14 +61,15 @@ describe('isDashboardWaiterReturnPath', () => {
   const tableId = '550e8400-e29b-41d4-a716-446655440001';
 
   it('matches dashboard waiter board and table paths', () => {
-    assert.equal(isDashboardWaiterReturnPath('/dashboard/waiter'), true);
-    assert.equal(isDashboardWaiterReturnPath(waiterTableHref('cafe-lisboa', tableId)), true);
+    assert.equal(isDashboardWaiterReturnPath('/dashboard/r/cafe-lisboa/waiter', 'cafe-lisboa'), true);
+    assert.equal(isDashboardWaiterReturnPath(waiterTableHref('cafe-lisboa', tableId), 'cafe-lisboa'), true);
   });
 
   it('rejects slug waiter and demo paths', () => {
-    assert.equal(isDashboardWaiterReturnPath(slugWaiterTableHref('cafe-lisboa', tableId)), false);
-    assert.equal(isDashboardWaiterReturnPath('/demo/waiter'), false);
-    assert.equal(isDashboardWaiterReturnPath(null), false);
+    assert.equal(isDashboardWaiterReturnPath(slugWaiterTableHref('cafe-lisboa', tableId), 'cafe-lisboa'), false);
+    assert.equal(isDashboardWaiterReturnPath('/demo/waiter', 'cafe-lisboa'), false);
+    assert.equal(isDashboardWaiterReturnPath(null, 'cafe-lisboa'), false);
+    assert.equal(isDashboardWaiterReturnPath('/dashboard/r/other-store/waiter', 'cafe-lisboa'), false);
   });
 });
 
@@ -76,7 +77,7 @@ describe('normalizeWaiterReturnPath', () => {
   const tableId = '550e8400-e29b-41d4-a716-446655440001';
 
   it('maps legacy slug returns onto dashboard', () => {
-    assert.equal(normalizeWaiterReturnPath('/cafe-lisboa/waiter', 'cafe-lisboa'), '/dashboard/waiter');
+    assert.equal(normalizeWaiterReturnPath('/cafe-lisboa/waiter', 'cafe-lisboa'), '/dashboard/r/cafe-lisboa/waiter');
     assert.equal(
       normalizeWaiterReturnPath(slugWaiterTableHref('cafe-lisboa', tableId), 'cafe-lisboa'),
       waiterTableHref('cafe-lisboa', tableId),
@@ -88,7 +89,7 @@ describe('resolveWaiterMenuReturnHref', () => {
   const tableId = '550e8400-e29b-41d4-a716-446655440001';
 
   it('returns null when not from waiter', () => {
-    assert.equal(resolveWaiterMenuReturnHref(undefined, '/dashboard/waiter', 'cafe-lisboa'), null);
+    assert.equal(resolveWaiterMenuReturnHref(undefined, '/dashboard/r/cafe-lisboa/waiter', 'cafe-lisboa'), null);
   });
 
   it('accepts dashboard waiter table return path', () => {
@@ -107,7 +108,7 @@ describe('resolveWaiterMenuReturnHref', () => {
   it('falls back to dashboard board when return path is unknown', () => {
     assert.equal(
       resolveWaiterMenuReturnHref('waiter', 'https://evil.example/phish', 'cafe-lisboa'),
-      '/dashboard/waiter',
+      '/dashboard/r/cafe-lisboa/waiter',
     );
   });
 
@@ -128,7 +129,7 @@ describe('isWaiterTableDetailReturnPath', () => {
   });
 
   it('rejects waiter board list paths', () => {
-    assert.equal(isWaiterTableDetailReturnPath('/dashboard/waiter'), false);
+    assert.equal(isWaiterTableDetailReturnPath('/dashboard/r/cafe-lisboa/waiter'), false);
     assert.equal(isWaiterTableDetailReturnPath('/cafe-lisboa/waiter'), false);
     assert.equal(isWaiterTableDetailReturnPath(null), false);
   });

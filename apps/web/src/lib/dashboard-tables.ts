@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { loadRestaurantTableGroups } from '@/lib/dashboard-table-groups-server';
@@ -10,6 +11,8 @@ import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow } f
 export type DashboardTables =
   | {
       admin: SupabaseClient;
+      /** Auth-gate store id — the only id service-role writes may use. */
+      restaurantId: AuthorizedRestaurantId;
       restaurant: {
         id: string;
         name: string;
@@ -39,8 +42,8 @@ async function loadOccupiedTableIds(
   return (data || []).map((row) => row.table_id as string);
 }
 
-export async function loadDashboardTables(): Promise<DashboardTables> {
-  const ctx = await getDashboardOperationalContext('dashboard.tables.view');
+export async function loadDashboardTables(restaurantId: string): Promise<DashboardTables> {
+  const ctx = await getDashboardOperationalContext('dashboard.tables.view', restaurantId);
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }
@@ -90,6 +93,7 @@ export async function loadDashboardTables(): Promise<DashboardTables> {
 
   return {
     admin: ctx.admin,
+    restaurantId: ctx.restaurantId,
     restaurant: restaurant as {
       id: string;
       name: string;

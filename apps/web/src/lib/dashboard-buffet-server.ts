@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
@@ -10,7 +11,7 @@ import { parseBuffetUpdatePatch } from '@/lib/buffet-update-patch';
 
 /** Bump staff buffet_config_version after a successful buffet-settings write. */
 async function afterBuffetConfigWrite<T extends object>(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   result: T | MutationError,
 ): Promise<T | MutationError> {
   if (result && typeof result === 'object' && 'error' in result) return result;
@@ -37,7 +38,7 @@ const RULES_SELECT =
 
 async function loadBuffetsSlice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ buffets: Buffet[] } | MutationError> {
   const { data, error } = await admin
     .from('buffets')
@@ -50,7 +51,7 @@ async function loadBuffetsSlice(
 
 async function loadSlotsSlice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ slots: BuffetTimeSlot[] } | MutationError> {
   const { data, error } = await admin
     .from('buffet_time_slots')
@@ -64,7 +65,7 @@ async function loadSlotsSlice(
 
 async function loadRulesSlice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ rules: BuffetPriceRule[] } | MutationError> {
   const { data, error } = await admin
     .from('buffet_price_rules')
@@ -77,7 +78,7 @@ async function loadRulesSlice(
 
 async function loadCalendarSlice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ calendarRows: BuffetDashboardData['calendarRows'] } | MutationError> {
   const { data, error } = await admin
     .from('buffet_calendar_overrides')
@@ -92,7 +93,7 @@ async function loadCalendarSlice(
 
 async function loadRestaurantBuffetSettingsSlice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ buffet_friday_weekend_from: string | null } | MutationError> {
   const { data, error } = await admin
     .from('restaurants')
@@ -118,7 +119,7 @@ async function mergeSlices(
 
 export async function loadBuffetDashboard(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<BuffetDashboardData | MutationError> {
   const [buffetsRes, slotsRes, rulesRes, calendarRes, restaurantRes] = await Promise.all([
     loadBuffetsSlice(admin, restaurantId),
@@ -145,7 +146,7 @@ export async function loadBuffetDashboard(
 
 export async function createBuffet(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   name: string,
 ): Promise<BuffetMutationResult> {
   const trimmed = name.trim();
@@ -166,7 +167,7 @@ export async function createBuffet(
 
 export async function deleteBuffet(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   buffetId: string,
 ): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(buffetId);
@@ -186,7 +187,7 @@ export async function deleteBuffet(
 
 export async function updateBuffet(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   buffetId: string,
   rawPatch: unknown,
 ): Promise<BuffetMutationResult> {
@@ -210,7 +211,7 @@ export async function updateBuffet(
 
 export async function createBuffetTimeSlot(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: { name: string; sort_order: number },
 ): Promise<BuffetMutationResult> {
   const trimmed = input.name.trim();
@@ -234,7 +235,7 @@ export async function createBuffetTimeSlot(
 
 export async function deleteBuffetTimeSlot(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   slotId: string,
 ): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(slotId);
@@ -260,7 +261,7 @@ export async function deleteBuffetTimeSlot(
 
 export async function updateBuffetTimeSlot(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   slotId: string,
   patch: Partial<BuffetTimeSlot>,
 ): Promise<BuffetMutationResult> {
@@ -348,7 +349,7 @@ function parseRuleInput(raw: Record<string, unknown>): BuffetRuleInput | Mutatio
 
 async function loadRuleById(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   ruleId: string,
 ): Promise<BuffetPriceRule | null | MutationError> {
   const { data, error } = await admin
@@ -373,7 +374,7 @@ export type BuffetRuleMutationResult =
 
 export async function createBuffetPriceRule(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   raw: Record<string, unknown>,
 ): Promise<BuffetRuleMutationResult> {
   const parsed = parseRuleInput(raw);
@@ -403,7 +404,7 @@ export async function createBuffetPriceRule(
 
 export async function updateBuffetPriceRule(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   ruleId: string,
   raw: Record<string, unknown>,
 ): Promise<BuffetRuleMutationResult> {
@@ -438,7 +439,7 @@ export async function updateBuffetPriceRule(
 
 export async function deleteBuffetPriceRule(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   ruleId: string,
 ): Promise<BuffetRuleMutationResult> {
   const id = parseTableIdParam(ruleId);
@@ -468,7 +469,7 @@ export async function deleteBuffetPriceRule(
 
 export async function toggleBuffetPriceRuleActive(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   ruleId: string,
   isActive: boolean,
 ): Promise<BuffetRuleMutationResult> {
@@ -511,7 +512,7 @@ export type BuffetCalendarMutationResult =
 
 export async function upsertBuffetCalendarOverrides(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>,
 ): Promise<BuffetCalendarMutationResult> {
   const normalized = rows.map((r) => ({
@@ -538,7 +539,7 @@ export async function upsertBuffetCalendarOverrides(
 
 export async function deleteBuffetCalendarOverride(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   onDate: string,
 ): Promise<BuffetCalendarMutationResult> {
   const date = onDate.slice(0, 10);
@@ -579,7 +580,7 @@ export type BuffetFridayPolicyMutationResult =
 
 export async function updateBuffetFridayPolicy(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   buffetFridayWeekendFrom: string | null,
 ): Promise<BuffetFridayPolicyMutationResult> {
   const beforeRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);

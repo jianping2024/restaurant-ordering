@@ -1,3 +1,4 @@
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 export type TablesManagerTab = 'tables' | 'groups';
 
 const KEY_PREFIX = 'mesa-tables-manager-tab:';
@@ -36,6 +37,6 @@ export function saveTablesManagerTab(restaurantId: string, tab: TablesManagerTab
   }
 }
 
-export function tablesManagerPath(tab: TablesManagerTab): string {
-  return tab === TABLES_MANAGER_DEFAULT_TAB ? '/dashboard/tables' : `/dashboard/tables?tab=${tab}`;
+export function tablesManagerPath(slug: string, tab: TablesManagerTab): string {
+  return dashboardStoreHref(slug, tab === TABLES_MANAGER_DEFAULT_TAB ? '/tables' : `/tables?tab=${tab}`);
 }

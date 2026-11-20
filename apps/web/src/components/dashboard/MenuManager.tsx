@@ -1,6 +1,7 @@
 'use client';
 
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
@@ -322,6 +323,7 @@ export function MenuManager({
   initialMenuItemBuffetPrices,
   buffets,
 }: MenuManagerProps) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
   const hub = getMessages(lang).settingsHub;
@@ -338,18 +340,18 @@ export function MenuManager({
     const allowed = resolveAllowedMenuManagerTab(preferred, canManagePrintStations);
     setActiveTab(allowed);
     saveMenuManagerTab(restaurantId, allowed);
-    const path = menuManagerPath(allowed);
+    const path = menuManagerPath(storeSlug, allowed);
     const current = `${window.location.pathname}${window.location.search}`;
     if (current !== path) {
       router.replace(path, { scroll: false });
     }
-  }, [restaurantId, router, canManagePrintStations]);
+  }, [restaurantId, router, canManagePrintStations, storeSlug]);
 
   const switchTab = (tab: MenuManagerTab) => {
     const allowed = resolveAllowedMenuManagerTab(tab, canManagePrintStations);
     setActiveTab(allowed);
     saveMenuManagerTab(restaurantId, allowed);
-    router.replace(menuManagerPath(allowed), { scroll: false });
+    router.replace(menuManagerPath(storeSlug, allowed), { scroll: false });
   };
   const [dishSearch, setDishSearch] = useState('');
   const [dishListPage, setDishListPage] = useState(1);
@@ -770,7 +772,7 @@ export function MenuManager({
         if (!photoUrl) throw new Error('no_photo');
         const photo = await (await fetch(photoUrl)).blob();
         const encoded = await encodeDishVideos(photo, effect);
-        const result = await setMenuItemImageClient(item.id, {
+        const result = await setMenuItemImageClient(storeSlug, item.id, {
           video: { ...encoded, effect },
         });
         if (!result.ok) throw new Error(result.error);
@@ -895,8 +897,8 @@ export function MenuManager({
 
     try {
       const saved = editingItem
-        ? await updateMenuItemClient(editingItem.id, itemInput)
-        : await createMenuItemClient(itemInput);
+        ? await updateMenuItemClient(storeSlug, editingItem.id, itemInput)
+        : await createMenuItemClient(storeSlug, itemInput);
       if (!saved.ok) {
         setItemError(mapMenuItemApiError(saved.error, saved.message, t));
         return;
@@ -907,7 +909,7 @@ export function MenuManager({
       setBuffetPricesByItemId((prev) => ({ ...prev, [row.id]: savedBuffetPrices }));
       const { file, stripImage, video, stripVideo } = photoDraft;
       if (file || stripImage || video || stripVideo) {
-        const imageResult = await setMenuItemImageClient(row.id, { file, stripImage, video, stripVideo });
+        const imageResult = await setMenuItemImageClient(storeSlug, row.id, { file, stripImage, video, stripVideo });
         if (!imageResult.ok) {
           setItemError(mapMenuItemApiError(imageResult.error, imageResult.message, t));
           return;
@@ -928,7 +930,7 @@ export function MenuManager({
   const deleteItem = async (
     item: MenuItem,
   ): Promise<{ ok: true } | { ok: false; error: string; message?: string }> => {
-    const result = await deleteMenuItemClient(item.id);
+    const result = await deleteMenuItemClient(storeSlug, item.id);
     if (result.ok) {
       setItems((prev) => prev.filter((i) => i.id !== item.id));
       setRecommendedItemIds((prev) => prev.filter((id) => id !== item.id));
@@ -939,7 +941,7 @@ export function MenuManager({
 
   const setItemsAvailable = async (ids: string[], available: boolean) => {
     if (ids.length === 0) return;
-    const result = await batchSetMenuItemsAvailableClient(ids, available);
+    const result = await batchSetMenuItemsAvailableClient(storeSlug, ids, available);
     if (result.ok) {
       setItems((prev) => prev.map((i) => (ids.includes(i.id) ? { ...i, available } : i)));
     }
@@ -980,7 +982,7 @@ export function MenuManager({
     setDishListError('');
     setItems((prev) => applyOrderedSortOrders(prev, orderedIds));
     setDishReorderBusy(true);
-    const result = await reorderMenuItemsClient(orderedIds);
+    const result = await reorderMenuItemsClient(storeSlug, orderedIds);
     setDishReorderBusy(false);
     if (!result.ok) {
       setItems(previous);
@@ -1012,7 +1014,7 @@ export function MenuManager({
     setCategoryError('');
     setCategories((prev) => applyOrderedSortOrders(prev, orderedIds));
     setCategoryReorderBusy(true);
-    const result = await reorderMenuCategoriesClient(parentId, orderedIds);
+    const result = await reorderMenuCategoriesClient(storeSlug, parentId, orderedIds);
     setCategoryReorderBusy(false);
     if (!result.ok) {
       setCategories(previous);
@@ -1046,7 +1048,7 @@ export function MenuManager({
 
     setCategorySaving(true);
     setCategoryError('');
-    const result = await createMenuCategoryClient({
+    const result = await createMenuCategoryClient(storeSlug, {
       parent_id: parentId,
       name_pt: categoryDraft.name_pt.trim(),
       name_en: categoryDraft.name_en.trim() || null,
@@ -1090,7 +1092,7 @@ export function MenuManager({
 
     setCategorySaving(true);
     setCategoryError('');
-    const result = await updateMenuCategoryClient({
+    const result = await updateMenuCategoryClient(storeSlug, {
       category_id: selectedCategory.id,
       name_pt: categoryDraft.name_pt.trim(),
       name_en: categoryDraft.name_en.trim() || null,
@@ -1171,7 +1173,7 @@ export function MenuManager({
     }
 
     const apiMode = linkedInSubtree.length === 0 ? 'empty' : mode;
-    const result = await deleteMenuCategoryClient({
+    const result = await deleteMenuCategoryClient(storeSlug, {
       category_id: categoryId,
       mode: apiMode,
       migrate_target_id: apiMode === 'migrate' ? deleteMigrateTargetId : null,

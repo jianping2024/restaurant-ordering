@@ -1,9 +1,10 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { RestaurantPrintSettingsSection } from '@/components/dashboard/print-assistant/RestaurantPrintSettingsSection';
 import { loadPrintSettingsPageData } from '@/lib/settings-page-data';
 import type { Restaurant } from '@/types';
 
 type Props = {
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   featureFlags: Restaurant['feature_flags'];
   printLocale: Restaurant['print_locale'];
 };

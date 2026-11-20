@@ -4,6 +4,7 @@ import {
   buttonPressReliefStrongClass,
 } from '@/components/ui/button-press-relief';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
+import { dashboardStoreHref, dashboardStorePage } from '@/lib/dashboard-store-routes';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
@@ -69,7 +70,7 @@ export function isLogoHrefActive(
   capabilities: CapabilitiesPayload,
 ): boolean {
   const href = dashboardLogoHref(restaurantSlug, capabilities);
-  return isTopBarLogoHrefActive(pathname, href, href === '/dashboard');
+  return isTopBarLogoHrefActive(pathname, href, href === dashboardStoreHref(restaurantSlug));
 }
 
 /** Icon trigger aligned to the staff top-bar row — no pill chrome. */
@@ -226,13 +227,14 @@ export function buildDashboardTopNavItems(input: {
     // Pro lock = upgrade href only; no top-nav Pro chrome (upgrade page owns Pro copy).
     items.push({
       id: item.id,
-      href: proLocked
-        ? `/dashboard/upgrade?feature=${encodeURIComponent(premiumKey!)}`
-        : item.href,
+      href: dashboardStoreHref(
+        restaurantSlug,
+        proLocked ? `/upgrade?feature=${encodeURIComponent(premiumKey!)}` : item.page,
+      ),
       labelKey: item.key,
       icon: item.icon,
       exact: item.exact,
-      matchPrefix: item.matchPrefix,
+      matchPrefix: item.matchPage ? dashboardStoreHref(restaurantSlug, item.matchPage) : undefined,
       checkoutBadge: item.checkoutBadge,
     });
   }
@@ -241,16 +243,16 @@ export function buildDashboardTopNavItems(input: {
 }
 
 export function isDashboardWaiterBoardListPath(pathname: string): boolean {
-  return pathname === '/dashboard/waiter';
+  return dashboardStorePage(pathname) === '/waiter';
 }
 
 export function isDashboardWaiterTableDetailPath(pathname: string): boolean {
-  return /^\/dashboard\/waiter\/[^/]+$/.test(pathname);
+  return /^\/waiter\/[^/]+$/.test(dashboardStorePage(pathname) ?? '');
 }
 
-/** Table UUID from `/dashboard/waiter/[tableId]` — null when path or id is invalid. */
+/** Table UUID from store page `/waiter/[tableId]` — null when path or id is invalid. */
 export function dashboardWaiterTableIdFromPath(pathname: string): string | null {
-  const match = pathname.match(/^\/dashboard\/waiter\/([^/]+)$/);
+  const match = (dashboardStorePage(pathname) ?? '').match(/^\/waiter\/([^/]+)$/);
   if (!match?.[1]) return null;
   try {
     return parseTableIdParam(decodeURIComponent(match[1]));

@@ -5,7 +5,7 @@ import { can, type Capabilities } from '@/lib/permissions/can';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import {
   loadPrincipalForRestaurant,
-  type RestaurantPrincipal,
+  type AuthorizedRestaurantPrincipal,
 } from '@/lib/permissions/restaurant-access';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import type { Principal } from '@/lib/permissions/types';
@@ -39,13 +39,23 @@ async function loadGatePrincipal(
 }
 
 /**
+ * Session principal for one store without a single-permission check (route decides by
+ * principal kind / several capabilities). 401 no session; 403 no access to the store.
+ */
+export async function requireRestaurantPrincipal(
+  restaurantId: string,
+): Promise<AuthorizedRestaurantPrincipal | NextResponse> {
+  return (await loadGatePrincipal(restaurantId)) as AuthorizedRestaurantPrincipal | NextResponse;
+}
+
+/**
  * Cookie-session API gate for one store (store id from the URL slug).
  * 401 unauthenticated; 403 no access to the store or missing the permission.
  */
 export function requirePermission(
   key: PermissionKey,
   restaurantId: string,
-): Promise<RestaurantPrincipal | NextResponse>;
+): Promise<AuthorizedRestaurantPrincipal | NextResponse>;
 /** @deprecated Store derived from the user — pass the URL store id. Removed in phase C. */
 export function requirePermission(key: PermissionKey): Promise<PermissionOk | NextResponse>;
 export async function requirePermission(
@@ -64,7 +74,7 @@ export async function requirePermission(
 export function requireAnyPermission(
   keys: readonly PermissionKey[],
   restaurantId: string,
-): Promise<RestaurantPrincipal | NextResponse>;
+): Promise<AuthorizedRestaurantPrincipal | NextResponse>;
 /** @deprecated Store derived from the user — pass the URL store id. Removed in phase C. */
 export function requireAnyPermission(
   keys: readonly PermissionKey[],

@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -65,10 +67,11 @@ type TablesApiResponse = {
 };
 
 async function requestDashboardTables(
+  storeSlug: string,
   method: 'POST' | 'PATCH',
   body: Record<string, unknown>,
 ): Promise<RestaurantTableRow[] | null> {
-  const res = await fetch('/api/dashboard/tables', {
+  const res = await fetch(restaurantApiPath(storeSlug, '/tables'), {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -80,13 +83,14 @@ async function requestDashboardTables(
 }
 
 async function requestDeleteTables(
+  storeSlug: string,
   tableIds: string[],
   password: string,
 ): Promise<
   | { ok: true; tables: RestaurantTableRow[] }
   | { ok: false; error: string; displayNames?: string[] }
 > {
-  const res = await fetch('/api/dashboard/tables', {
+  const res = await fetch(restaurantApiPath(storeSlug, '/tables'), {
     method: 'DELETE',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -129,6 +133,7 @@ export function TablesManager({
   initialTab = TABLES_MANAGER_DEFAULT_TAB,
   webOrigin,
 }: TablesManagerProps) {
+  const { slug: storeSlug } = useDashboardStore();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
@@ -170,9 +175,9 @@ export function TablesManager({
     (tab: TablesManagerTab) => {
       setActiveTab(tab);
       saveTablesManagerTab(restaurant.id, tab);
-      router.replace(tablesManagerPath(tab), { scroll: false });
+      router.replace(tablesManagerPath(storeSlug, tab), { scroll: false });
     },
-    [restaurant.id, router],
+    [restaurant.id, router, storeSlug],
   );
 
   const handleGroupsChange = useCallback(
@@ -284,7 +289,7 @@ export function TablesManager({
 
     setSaving(true);
     try {
-      const next = await requestDashboardTables('PATCH', { tables: prepared.patches });
+      const next = await requestDashboardTables(storeSlug, 'PATCH', { tables: prepared.patches });
       if (!next) {
         showToast(t.saveFailed, 'error');
         return;
@@ -310,7 +315,7 @@ export function TablesManager({
     }
     setAdding(true);
     try {
-      const next = await requestDashboardTables('POST', { count });
+      const next = await requestDashboardTables(storeSlug, 'POST', { count });
       if (!next) {
         showToast(t.saveFailed, 'error');
         return;
@@ -351,6 +356,7 @@ export function TablesManager({
     setDeleteError(null);
     try {
       const result = await requestDeleteTables(
+        storeSlug,
         pendingDelete.map((row) => row.id),
         password,
       );

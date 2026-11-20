@@ -14,6 +14,7 @@ export type WaiterTableCheckoutCloseResult =
  * Optional checkout_bill print is requested on the same close API; print failure never blocks close.
  */
 export async function runWaiterTableCheckoutClose(
+  slug: string,
   params: {
     tableId: string;
     printBill: boolean;
@@ -25,7 +26,7 @@ export async function runWaiterTableCheckoutClose(
   const { tableId, printBill } = params;
   const postClose = options?.postClose ?? postCheckoutCloseTableSessionClient;
 
-  const { status, body } = await postClose({
+  const { status, body } = await postClose(slug, {
     table_id: tableId,
     print_bill: printBill,
   });

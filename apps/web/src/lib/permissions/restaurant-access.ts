@@ -6,23 +6,23 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 import { loadAuthUserWithAdmin } from '@/lib/staff-access';
-import { loadOwnerRestaurantForUser, loadStaffMembershipsForUser } from '@/lib/staff-gate-db';
 import {
-  STAFF_MEMBERSHIP_SELECT,
+  loadOwnerRestaurantForUser,
+  loadStaffMembershipsForUser,
+  resolvePrincipalForRestaurantWith,
+} from '@/lib/staff-gate-db';
+import {
   authorizedRestaurantsFromLoads,
   deriveStaffLoginTarget,
-  normalizeStaffMembershipRow,
-  principalAdmittedWhileSuspended,
-  resolveRestaurantMembershipPrincipal,
   type AuthorizedRestaurant,
-  type RestaurantPrincipal,
+  type AuthorizedRestaurantPrincipal,
   type RestaurantRef,
   type StaffLoginTargetResult,
-  type StaffMembershipRow,
 } from '@/lib/permissions/restaurant-access-rules';
 
 export type {
   AuthorizedRestaurant,
+  AuthorizedRestaurantPrincipal,
   RestaurantPrincipal,
   RestaurantRef,
   StaffLoginTargetResult,
@@ -64,22 +64,6 @@ const loadOwnedRestaurant = cache(async (userId: string): Promise<RestaurantRef 
   });
 });
 
-/** One membership row for (store, user) with store + role embedded. */
-export async function loadStaffMembership(
-  admin: Admin,
-  userId: string,
-  restaurantId: string,
-): Promise<StaffMembershipRow | null> {
-  const { data, error } = await admin
-    .from('restaurant_staff_accounts')
-    .select(STAFF_MEMBERSHIP_SELECT)
-    .eq('user_id', userId)
-    .eq('restaurant_id', restaurantId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return normalizeStaffMembershipRow(data);
-}
-
 /**
  * Stores this account may open: admin → its one store; staff → enabled, non-print_agent
  * memberships with a live role. Suspended stores are listed (flagged) and sorted last.
@@ -96,24 +80,15 @@ export async function listAuthorizedRestaurantsForUser(
 /**
  * Principal for exactly this store. Admin of this store → `*`; else this store's
  * membership (enabled, role live) → role capabilities; else null.
- * Suspended store: admin admitted (read-only notice), staff refused.
+ * Suspended store: admitted (dashboard shows the suspension banner; writes have their own gate).
  */
 export const loadPrincipalForRestaurant = cache(
-  async (userId: string, restaurantId: string): Promise<RestaurantPrincipal | null> => {
-    const admin = createAdminClient();
-    const [owned, membership] = await Promise.all([
-      loadOwnedRestaurant(userId),
-      loadStaffMembership(admin, userId, restaurantId),
-    ]);
-    const access = resolveRestaurantMembershipPrincipal({
+  async (userId: string, restaurantId: string): Promise<AuthorizedRestaurantPrincipal | null> =>
+    resolvePrincipalForRestaurantWith(createAdminClient(), {
       userId,
       restaurantId,
-      owned,
-      membership,
-    });
-    if (!access || !principalAdmittedWhileSuspended(access)) return null;
-    return access;
-  },
+      owned: await loadOwnedRestaurant(userId),
+    }),
 );
 
 /**

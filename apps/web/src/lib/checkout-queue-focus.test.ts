@@ -65,13 +65,16 @@ describe('resolveFocusedRequestId', () => {
 
 describe('dashboardCheckoutFocusHref', () => {
   it('includes request_id when provided', () => {
-    const href = dashboardCheckoutFocusHref({ tableId, requestId });
+    const href = dashboardCheckoutFocusHref({ slug: 'demo', tableId, requestId });
     assert.ok(href.includes(`table_id=${encodeURIComponent(tableId)}`));
     assert.ok(href.includes(`request_id=${encodeURIComponent(requestId)}`));
   });
 
   it('table-only href matches dashboardCheckoutTableHref', () => {
-    assert.equal(dashboardCheckoutTableHref(tableId), dashboardCheckoutFocusHref({ tableId }));
+    assert.equal(
+      dashboardCheckoutTableHref('demo', tableId),
+      dashboardCheckoutFocusHref({ slug: 'demo', tableId }),
+    );
   });
 });
 

@@ -7,9 +7,9 @@ import { normalizeChoiceBindings } from '@/lib/menu-choice-options';
 import { normalizeToppingBinding } from '@/lib/menu-topping-binding';
 import type { MenuTimeSlot } from '@/lib/menu-time-slot';
 import { loadMenuTimeSlots } from '@/lib/menu-time-slot-server';
-import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
+import { getDashboardAccess, getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
+import { dashboardAccessPrincipal } from '@/lib/dashboard-access';
 import { can } from '@/lib/permissions/can';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { DISH_VIDEO_GATE_RESTAURANT_COLUMNS } from '@/lib/menu-dish-video';
 import { resolveDishVideoAccess } from '@/lib/menu-dish-video-access';
@@ -45,13 +45,13 @@ export type DashboardMenu =
     }
   | { error: string; status: number };
 
-export async function loadDashboardMenu(): Promise<DashboardMenu> {
-  const ctx = await getDashboardOperationalContext('dashboard.menu.view');
+export async function loadDashboardMenu(restaurantId: string): Promise<DashboardMenu> {
+  const ctx = await getDashboardOperationalContext('dashboard.menu.view', restaurantId);
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }
 
-  const principal = await loadPrincipalWithCapabilities();
+  const principal = dashboardAccessPrincipal(await getDashboardAccess(restaurantId));
   const canManagePrintStations = can(
     principal?.capabilities ?? new Set(),
     'dashboard.menu.print_stations.manage',

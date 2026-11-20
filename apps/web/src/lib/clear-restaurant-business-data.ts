@@ -1,4 +1,5 @@
 import 'server-only';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -10,7 +11,7 @@ export const FISCAL_CLEAR_POLL_MS = 1_000;
 export type ClearRestaurantBusinessDataResult =
   | {
       ok: true;
-      restaurantId: string;
+      restaurantId: AuthorizedRestaurantId;
       fiscal: 'cleared' | 'skipped_no_agent';
     }
   | {
@@ -25,7 +26,7 @@ export type ClearRestaurantBusinessDataResult =
 
 async function restaurantHasActiveAgent(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<boolean> {
   const { data, error } = await admin
     .from('print_agent_devices')
@@ -39,7 +40,7 @@ async function restaurantHasActiveAgent(
 
 async function waitFiscalClearJob(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   jobId: string,
 ): Promise<{ ok: true } | { ok: false; error: 'fiscal_clear_timeout' | 'fiscal_clear_failed'; detail?: string }> {
   const deadline = Date.now() + FISCAL_CLEAR_WAIT_MS;
@@ -73,7 +74,7 @@ async function waitFiscalClearJob(
  */
 export async function clearRestaurantBusinessData(params: {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   actorUserId: string;
 }): Promise<ClearRestaurantBusinessDataResult> {
   const { admin, restaurantId, actorUserId } = params;

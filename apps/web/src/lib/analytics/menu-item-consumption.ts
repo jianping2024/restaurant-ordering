@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { MenuItemAgg } from '@/lib/analytics/aggregate-items';
 import { auditMoney } from '@/lib/audit/money';
@@ -128,7 +129,7 @@ function toRankedRows(map: Map<string, MenuItemAgg>): MenuItemConsumptionRankRow
 /** Earliest Lisbon business day with restaurant daily stats (sole “有数据起” anchor). */
 export async function fetchEarliestRestaurantBusinessDate(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ ok: true; earliest: string | null } | { ok: false; code: 'query_failed'; message: string }> {
   const { data, error } = await admin
     .from('analytics_daily_restaurant_stats')
@@ -151,7 +152,7 @@ export async function fetchEarliestRestaurantBusinessDate(
  */
 export async function getMenuItemConsumptionForPeriod(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   grain: MenuItemConsumptionGrain,
   periodRaw: string | null,
   sort: MenuItemConsumptionSort,

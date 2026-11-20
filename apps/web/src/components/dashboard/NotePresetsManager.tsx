@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
@@ -52,6 +53,7 @@ function emptyDraft(mode: EditorDraft['mode'], groupId: string | null = null): E
 }
 
 export function NotePresetsManager({ groups, presets, onChange }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
   const [editor, setEditor] = useState<EditorDraft | null>(null);
@@ -87,7 +89,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     try {
       if (editor.mode === 'group') {
         if (editor.id) {
-          const res = await updateNotePresetGroupClient(editor.id, payload);
+          const res = await updateNotePresetGroupClient(storeSlug, editor.id, payload);
           if (!res.ok) {
             showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
             return;
@@ -97,7 +99,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
             presets,
           });
         } else {
-          const res = await createNotePresetGroupClient(payload);
+          const res = await createNotePresetGroupClient(storeSlug, payload);
           if (!res.ok) {
             showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
             return;
@@ -110,7 +112,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
           return;
         }
         if (editor.id) {
-          const res = await updateNotePresetClient(editor.id, {
+          const res = await updateNotePresetClient(storeSlug, editor.id, {
             ...payload,
             group_id: editor.groupId,
           });
@@ -123,7 +125,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
             presets: presets.map((p) => (p.id === editor.id ? res.data.preset : p)),
           });
         } else {
-          const res = await createNotePresetClient(editor.groupId, payload);
+          const res = await createNotePresetClient(storeSlug, editor.groupId, payload);
           if (!res.ok) {
             showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
             return;
@@ -142,7 +144,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      const res = await deleteNotePresetGroupClient(group.id);
+      const res = await deleteNotePresetGroupClient(storeSlug, group.id);
       if (!res.ok) {
         if (res.error === 'note_preset_group_not_empty') {
           showToast(
@@ -171,7 +173,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      const res = await deleteNotePresetClient(preset.id);
+      const res = await deleteNotePresetClient(storeSlug, preset.id);
       if (res.ok) {
         onChange({
           groups,
@@ -190,7 +192,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     if (!pendingDeletePreset || busy) return;
     setBusy(true);
     try {
-      const res = await deleteNotePresetClient(pendingDeletePreset.id);
+      const res = await deleteNotePresetClient(storeSlug, pendingDeletePreset.id);
       if (!res.ok) {
         showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
         return;
@@ -225,7 +227,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
         })
         .filter((row): row is MenuNotePresetGroup => !!row);
       onChange({ groups: optimistic, presets });
-      const res = await reorderNotePresetGroupsClient(nextIds);
+      const res = await reorderNotePresetGroupsClient(storeSlug, nextIds);
       if (!res.ok) {
         onChange({ groups, presets });
         showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
@@ -254,7 +256,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
         .filter((row): row is MenuNotePreset => !!row);
       const others = presets.filter((p) => p.group_id !== groupId);
       onChange({ groups, presets: [...others, ...reordered] });
-      const res = await reorderNotePresetsClient(groupId, nextIds);
+      const res = await reorderNotePresetsClient(storeSlug, groupId, nextIds);
       if (!res.ok) {
         onChange({ groups, presets });
         showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
@@ -338,6 +340,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
                               setBusy(true);
                               try {
                                 const res = await setNotePresetGroupActiveClient(
+                                  storeSlug,
                                   group.id,
                                   !group.active,
                                 );
@@ -448,6 +451,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
                                             setBusy(true);
                                             try {
                                               const res = await setNotePresetActiveClient(
+                                                storeSlug,
                                                 preset.id,
                                                 !preset.active,
                                               );

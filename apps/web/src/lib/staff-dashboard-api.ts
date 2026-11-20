@@ -7,8 +7,11 @@ import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { RestaurantStaffAccount } from '@/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: boolean }) {
-  const auth = await requireSettingsRestaurantAuth('settings.staff.manage', options);
+export async function loadOwnerRestaurantWithSlug(
+  restaurantId: string,
+  options?: { requireWritable?: boolean },
+) {
+  const auth = await requireSettingsRestaurantAuth('settings.staff.manage', restaurantId, options);
   if (auth instanceof NextResponse) {
     const body = (await auth.json().catch(() => ({}))) as { error?: string };
     return { error: (body.error ?? 'forbidden') as string, status: auth.status };
@@ -31,7 +34,11 @@ export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: 
     return { error: 'restaurant_not_found' as const, status: 404 };
   }
 
-  return { admin, restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string } };
+  return {
+    admin,
+    restaurantId: auth.restaurantId,
+    restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string },
+  };
 }
 
 function roleNameFromRow(row: Record<string, unknown>): string {

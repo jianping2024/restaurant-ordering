@@ -4,7 +4,7 @@ import { cache } from 'react';
 import type { Principal } from '@/lib/permissions/types';
 import type { Capabilities } from '@/lib/permissions/can';
 import { loadAuthOwnershipGate } from '@/lib/staff-access';
-import { loadStaffMembership } from '@/lib/permissions/restaurant-access';
+import { loadStaffMembership } from '@/lib/staff-gate-db';
 import { resolveRestaurantMembershipPrincipal } from '@/lib/permissions/restaurant-access-rules';
 
 export type PrincipalWithCapabilities = {

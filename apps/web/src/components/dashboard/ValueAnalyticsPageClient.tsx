@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type {
@@ -123,6 +125,7 @@ export function ValueAnalyticsPageClient({
   initialOverview,
   initialLoadFailed = false,
 }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).valueAnalytics;
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
@@ -172,7 +175,7 @@ export function ValueAnalyticsPageClient({
       pageSize: ListPageSize;
       signal: AbortSignal;
     }) => {
-      const url = new URL('/api/analytics/menu-item-consumption', window.location.origin);
+      const url = new URL(restaurantApiPath(storeSlug, '/analytics/menu-item-consumption'), window.location.origin);
       url.searchParams.set('grain', filters.grain);
       url.searchParams.set('period', filters.period);
       url.searchParams.set('sort', filters.sort);
@@ -200,7 +203,7 @@ export function ValueAnalyticsPageClient({
         return { ok: false as const, error: 'network_error' };
       }
     },
-    [],
+    [storeSlug],
   );
 
   const {
@@ -256,7 +259,7 @@ export function ValueAnalyticsPageClient({
       try {
         const refreshQs = options?.bypassCache ? '&refresh=1' : '';
         const res = await fetch(
-          `/api/analytics/value-overview?range=${targetRange}${refreshQs}`,
+          restaurantApiPath(storeSlug, `/analytics/value-overview?range=${targetRange}${refreshQs}`),
         );
         if (res.status === 403) {
           setViewState('forbidden');
@@ -287,7 +290,7 @@ export function ValueAnalyticsPageClient({
         setIsRefreshing(false);
       }
     },
-    [],
+    [storeSlug],
   );
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   orderedIdsMatchSiblingSet,
@@ -25,7 +26,7 @@ export type MenuNotePresetMutationError = MenuNotePresetQueryError & {
 
 export async function seedDefaultMenuNotePresets(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {
   const { error } = await admin.rpc('seed_default_menu_note_presets', {
     p_restaurant_id: restaurantId,
@@ -38,7 +39,7 @@ export async function seedDefaultMenuNotePresets(
 
 async function nextGroupSortOrder(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<number> {
   const { data } = await admin
     .from('menu_note_preset_groups')
@@ -52,7 +53,7 @@ async function nextGroupSortOrder(
 
 async function nextPresetSortOrder(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<number> {
   const { data } = await admin
@@ -68,7 +69,7 @@ async function nextPresetSortOrder(
 
 export async function createMenuNotePresetGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   fields: MenuNotePresetNameFields,
 ): Promise<{ group: MenuNotePresetGroup } | MenuNotePresetMutationError> {
   const sort_order = await nextGroupSortOrder(admin, restaurantId);
@@ -93,7 +94,7 @@ export async function createMenuNotePresetGroup(
 
 export async function updateMenuNotePresetGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
   patch: Partial<MenuNotePresetNameFields> & { active?: boolean },
 ): Promise<{ group: MenuNotePresetGroup } | MenuNotePresetMutationError> {
@@ -129,7 +130,7 @@ export async function updateMenuNotePresetGroup(
 
 export async function deleteMenuNotePresetGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {
   const id = parseTableIdParam(groupId);
@@ -169,7 +170,7 @@ export async function deleteMenuNotePresetGroup(
 
 export async function reorderMenuNotePresetGroups(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {
   const orderedIds = parseOrderedIds(orderedIdsRaw);
@@ -206,7 +207,7 @@ export async function reorderMenuNotePresetGroups(
 
 export async function createMenuNotePreset(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupIdRaw: unknown,
   fields: MenuNotePresetNameFields,
 ): Promise<{ preset: MenuNotePreset } | MenuNotePresetMutationError> {
@@ -247,7 +248,7 @@ export async function createMenuNotePreset(
 
 export async function updateMenuNotePreset(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   presetId: string,
   patch: Partial<MenuNotePresetNameFields> & { active?: boolean; group_id?: string },
 ): Promise<{ preset: MenuNotePreset } | MenuNotePresetMutationError> {
@@ -298,7 +299,7 @@ export async function updateMenuNotePreset(
 
 async function unbindGroupFromMenuItems(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {
   const { data, error } = await admin
@@ -327,7 +328,7 @@ async function unbindGroupFromMenuItems(
 
 export async function deleteMenuNotePreset(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   presetId: string,
 ): Promise<{ ok: true; referenced_item_count: number } | MenuNotePresetMutationError> {
   const id = parseTableIdParam(presetId);
@@ -348,7 +349,7 @@ export async function deleteMenuNotePreset(
 
 export async function reorderMenuNotePresets(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupIdRaw: unknown,
   orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {

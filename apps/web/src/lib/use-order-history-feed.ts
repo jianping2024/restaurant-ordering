@@ -1,4 +1,5 @@
 'use client';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { orderHistoryFiltersToSearchParams } from '@/lib/order-history/parse-query';
@@ -23,17 +24,18 @@ type FeedState = {
 const FILTER_DEBOUNCE_MS = 300;
 
 export async function fetchOrderHistoryPage(
+  slug: string,
   offset: number,
   limit: number,
   filters: OrderHistoryFilters,
 ): Promise<OrderHistoryPageResult | null> {
   const params = orderHistoryFiltersToSearchParams(offset, limit, filters);
-  const response = await fetch(`/api/dashboard/order-history?${params.toString()}`);
+  const response = await fetch(restaurantApiPath(slug, `/order-history?${params.toString()}`));
   if (!response.ok) return null;
   return (await response.json()) as OrderHistoryPageResult;
 }
 
-export function useOrderHistoryFeed(initial: FeedState) {
+export function useOrderHistoryFeed(slug: string, initial: FeedState) {
   const [entries, setEntries] = useState<OrderHistoryEntry[]>(initial.items);
   const [total, setTotal] = useState(initial.total);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState(initial.itemCodeByMenuId);
@@ -53,7 +55,7 @@ export function useOrderHistoryFeed(initial: FeedState) {
       const requestId = ++requestIdRef.current;
       setLoading(true);
       const offset = (next.page - 1) * next.pageSize;
-      const result = await fetchOrderHistoryPage(offset, next.pageSize, next.filters);
+      const result = await fetchOrderHistoryPage(slug, offset, next.pageSize, next.filters);
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
       if (!result) return;
@@ -64,7 +66,7 @@ export function useOrderHistoryFeed(initial: FeedState) {
       setPage(next.page);
       setPageSize(next.pageSize);
     },
-    [],
+    [slug],
   );
 
   const reloadFromFilters = useCallback(

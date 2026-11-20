@@ -5,7 +5,6 @@ import {
   authorizedRestaurantsFromLoads,
   deriveStaffLoginTarget,
   normalizeStaffMembershipRow,
-  principalAdmittedWhileSuspended,
   resolveRestaurantMembershipPrincipal,
   type RestaurantRef,
   type StaffMembershipRow,
@@ -128,35 +127,6 @@ describe('resolveRestaurantMembershipPrincipal', () => {
         null,
       );
     }
-  });
-});
-
-describe('principalAdmittedWhileSuspended (§6.2)', () => {
-  it('admin account may enter a suspended store; staff may not', () => {
-    const owner = resolveRestaurantMembershipPrincipal({
-      userId: USER,
-      restaurantId: 'A',
-      owned: store('A', SUSPENDED),
-      membership: null,
-    });
-    const staff = resolveRestaurantMembershipPrincipal({
-      userId: USER,
-      restaurantId: 'A',
-      owned: null,
-      membership: membership('A', { suspended: true }),
-    });
-    assert.ok(owner && principalAdmittedWhileSuspended(owner));
-    assert.ok(staff && !principalAdmittedWhileSuspended(staff));
-  });
-
-  it('active store admits staff', () => {
-    const staff = resolveRestaurantMembershipPrincipal({
-      userId: USER,
-      restaurantId: 'A',
-      owned: null,
-      membership: membership('A'),
-    });
-    assert.ok(staff && principalAdmittedWhileSuspended(staff));
   });
 });
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +42,7 @@ export function RestaurantPrintSettingsSection({
   initialStationSlipShowCategoryGroup,
   initialPrintLocale,
 }: RestaurantPrintSettingsSectionProps) {
+  const { slug: storeSlug } = useDashboardStore();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
@@ -58,7 +61,7 @@ export function RestaurantPrintSettingsSection({
     setError('');
     setSuccess(false);
     try {
-      const res = await fetch('/api/restaurant/features', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/features'), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

@@ -1,25 +1,28 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { dashboardAccessPrincipal } from '@/lib/dashboard-access';
+import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
 import { premiumLoaderCheck } from '@/lib/premium/access';
 import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
 export type OperationLogsAccessContext =
   | {
       admin: SupabaseClient;
-      restaurantId: string;
+      restaurantId: AuthorizedRestaurantId;
       restaurantSlug: string;
       userId: string;
       retentionDays: number;
     }
   | { error: string; status: number; premiumKey?: import('@mesa/shared').PremiumKey };
 
-export async function loadOperationLogsAccessContext(): Promise<OperationLogsAccessContext> {
-  const access = await loadDashboardAccess();
-  const loaded = await loadPrincipalWithCapabilities();
+export async function loadOperationLogsAccessContext(
+  restaurantId: string,
+): Promise<OperationLogsAccessContext> {
+  const access = await getDashboardAccess(restaurantId);
+  const loaded = dashboardAccessPrincipal(access);
   const gate = resolveDashboardCapabilityAccess(
     access,
     loaded?.capabilities ?? null,
@@ -31,7 +34,7 @@ export async function loadOperationLogsAccessContext(): Promise<OperationLogsAcc
   if (
     !loaded ||
     access.mode === 'unauthenticated' ||
-    access.mode === 'onboarding' ||
+    access.mode === 'forbidden' ||
     access.mode === 'access_error'
   ) {
     return { error: 'unauthorized', status: 401 };

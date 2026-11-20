@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH } from '@mesa/shared';
+import { DASHBOARD_ENTRY_PATH } from '@/lib/dashboard-store-routes';
 
 /** Matches apps/web/src/app/globals.css dark theme brand-bg (`#0F0E0C`). */
 export const PWA_THEME_COLOR = '#0F0E0C';
@@ -14,8 +15,11 @@ export const PWA_ICON_PATHS = {
   maskable512: '/icons/icon-512-maskable.png',
 } as const;
 
-/** Staff cold-start entry: dashboard so logged-in staff skip login→redirect hop. */
-export const PWA_START_URL = '/dashboard';
+/**
+ * Staff cold-start entry: the store-less dashboard entry (one global manifest, many stores).
+ * It lands on the account's store page `/dashboard/r/{slug}` (signed out → login).
+ */
+export const PWA_START_URL = DASHBOARD_ENTRY_PATH;
 
 /**
  * Install-only staff shell: keep full-origin scope so in-app staff navigation

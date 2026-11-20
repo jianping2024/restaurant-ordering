@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
 import { MAX_MENU_CATEGORY_DEPTH } from '@/lib/menu-admin';
@@ -206,24 +207,24 @@ export type PrintStationInput = {
   kitchen_enabled?: boolean;
 };
 
-export async function createMenuCategoryClient(input: CreateCategoryInput) {
-  return request<{ category: MenuCategory }>('/api/dashboard/menu/categories', {
+export async function createMenuCategoryClient(slug: string, input: CreateCategoryInput) {
+  return request<{ category: MenuCategory }>(restaurantApiPath(slug, '/menu/categories'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function updateMenuCategoryClient(input: UpdateCategoryInput) {
-  return request<{ category: MenuCategory }>('/api/dashboard/menu/categories', {
+export async function updateMenuCategoryClient(slug: string, input: UpdateCategoryInput) {
+  return request<{ category: MenuCategory }>(restaurantApiPath(slug, '/menu/categories'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function deleteMenuCategoryClient(input: DeleteCategoryInput) {
-  return request<{ ok: true }>('/api/dashboard/menu/categories', {
+export async function deleteMenuCategoryClient(slug: string, input: DeleteCategoryInput) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/categories'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -231,10 +232,11 @@ export async function deleteMenuCategoryClient(input: DeleteCategoryInput) {
 }
 
 export async function reorderMenuCategoriesClient(
+  slug: string,
   parentId: string | null,
   orderedIds: string[],
 ) {
-  return request<{ ok: true }>('/api/dashboard/menu/categories', {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/categories'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -245,40 +247,40 @@ export async function reorderMenuCategoriesClient(
   });
 }
 
-export async function createMenuItemClient(input: MenuItemMutationInput) {
-  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>('/api/dashboard/menu/items', {
+export async function createMenuItemClient(slug: string, input: MenuItemMutationInput) {
+  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>(restaurantApiPath(slug, '/menu/items'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function updateMenuItemClient(itemId: string, input: MenuItemMutationInput) {
-  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>('/api/dashboard/menu/items', {
+export async function updateMenuItemClient(slug: string, itemId: string, input: MenuItemMutationInput) {
+  return request<{ item: MenuItem; buffet_prices: Record<string, number> }>(restaurantApiPath(slug, '/menu/items'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ item_id: itemId, ...input }),
   });
 }
 
-export async function deleteMenuItemClient(itemId: string) {
-  return request<{ ok: true }>('/api/dashboard/menu/items', {
+export async function deleteMenuItemClient(slug: string, itemId: string) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/items'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ item_id: itemId }),
   });
 }
 
-export async function batchSetMenuItemsAvailableClient(itemIds: string[], available: boolean) {
-  return request<{ ok: true }>('/api/dashboard/menu/items', {
+export async function batchSetMenuItemsAvailableClient(slug: string, itemIds: string[], available: boolean) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/items'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'batch_available', item_ids: itemIds, available }),
   });
 }
 
-export async function reorderMenuItemsClient(orderedIds: string[]) {
-  return request<{ ok: true }>('/api/dashboard/menu/items', {
+export async function reorderMenuItemsClient(slug: string, orderedIds: string[]) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/items'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
@@ -286,6 +288,7 @@ export async function reorderMenuItemsClient(orderedIds: string[]) {
 }
 
 export async function setMenuItemImageClient(
+  slug: string,
   itemId: string,
   options: {
     file?: File | null;
@@ -304,38 +307,38 @@ export async function setMenuItemImageClient(
     form.set('rail_video', new File([options.video.rail], 'rail.mp4', { type: DISH_VIDEO_MIME }));
     form.set('video_effect', options.video.effect);
   }
-  return request<{ item: MenuItem }>(`/api/dashboard/menu/items/${encodeURIComponent(itemId)}/image`, {
+  return request<{ item: MenuItem }>(restaurantApiPath(slug, `/menu/items/${encodeURIComponent(itemId)}/image`), {
     method: 'POST',
     body: form,
   });
 }
 
-export async function createPrintStationClient(input: PrintStationInput) {
-  return request<{ station: PrintStation }>('/api/dashboard/menu/print-stations', {
+export async function createPrintStationClient(slug: string, input: PrintStationInput) {
+  return request<{ station: PrintStation }>(restaurantApiPath(slug, '/menu/print-stations'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function updatePrintStationClient(stationId: string, input: PrintStationInput) {
-  return request<{ station: PrintStation }>('/api/dashboard/menu/print-stations', {
+export async function updatePrintStationClient(slug: string, stationId: string, input: PrintStationInput) {
+  return request<{ station: PrintStation }>(restaurantApiPath(slug, '/menu/print-stations'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ station_id: stationId, ...input }),
   });
 }
 
-export async function reorderPrintStationsClient(orderedIds: string[]) {
-  return request<{ ok: true }>('/api/dashboard/menu/print-stations', {
+export async function reorderPrintStationsClient(slug: string, orderedIds: string[]) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/print-stations'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 
-export async function deletePrintStationClient(stationId: string) {
-  return request<{ ok: true }>('/api/dashboard/menu/print-stations', {
+export async function deletePrintStationClient(slug: string, stationId: string) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/print-stations'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ station_id: stationId }),
@@ -396,24 +399,24 @@ export function mapNotePresetApiError(
   }
 }
 
-export async function addRecommendedMenuItemsClient(menuItemIds: string[]) {
-  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+export async function addRecommendedMenuItemsClient(slug: string, menuItemIds: string[]) {
+  return request<{ recommended_item_ids: string[] }>(restaurantApiPath(slug, '/menu/recommended'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ menu_item_ids: menuItemIds }),
   });
 }
 
-export async function removeRecommendedMenuItemClient(menuItemId: string) {
-  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+export async function removeRecommendedMenuItemClient(slug: string, menuItemId: string) {
+  return request<{ recommended_item_ids: string[] }>(restaurantApiPath(slug, '/menu/recommended'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ menu_item_id: menuItemId }),
   });
 }
 
-export async function reorderRecommendedMenuItemsClient(orderedIds: string[]) {
-  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+export async function reorderRecommendedMenuItemsClient(slug: string, orderedIds: string[]) {
+  return request<{ recommended_item_ids: string[] }>(restaurantApiPath(slug, '/menu/recommended'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
@@ -426,8 +429,8 @@ export type NotePresetNameInput = {
   name_zh?: string;
 };
 
-export async function createNotePresetGroupClient(input: NotePresetNameInput) {
-  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+export async function createNotePresetGroupClient(slug: string, input: NotePresetNameInput) {
+  return request<{ group: MenuNotePresetGroup }>(restaurantApiPath(slug, '/menu/note-preset-groups'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
@@ -435,42 +438,43 @@ export async function createNotePresetGroupClient(input: NotePresetNameInput) {
 }
 
 export async function updateNotePresetGroupClient(
+  slug: string,
   groupId: string,
   patch: NotePresetNameInput & { active?: boolean },
 ) {
-  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+  return request<{ group: MenuNotePresetGroup }>(restaurantApiPath(slug, '/menu/note-preset-groups'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ group_id: groupId, ...patch }),
   });
 }
 
-export async function setNotePresetGroupActiveClient(groupId: string, active: boolean) {
-  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+export async function setNotePresetGroupActiveClient(slug: string, groupId: string, active: boolean) {
+  return request<{ group: MenuNotePresetGroup }>(restaurantApiPath(slug, '/menu/note-preset-groups'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ group_id: groupId, active }),
   });
 }
 
-export async function deleteNotePresetGroupClient(groupId: string) {
-  return request<{ ok: true }>('/api/dashboard/menu/note-preset-groups', {
+export async function deleteNotePresetGroupClient(slug: string, groupId: string) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/note-preset-groups'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ group_id: groupId }),
   });
 }
 
-export async function reorderNotePresetGroupsClient(orderedIds: string[]) {
-  return request<{ ok: true }>('/api/dashboard/menu/note-preset-groups', {
+export async function reorderNotePresetGroupsClient(slug: string, orderedIds: string[]) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/note-preset-groups'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 
-export async function createNotePresetClient(groupId: string, input: NotePresetNameInput) {
-  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+export async function createNotePresetClient(slug: string, groupId: string, input: NotePresetNameInput) {
+  return request<{ preset: MenuNotePreset }>(restaurantApiPath(slug, '/menu/note-presets'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ group_id: groupId, ...input }),
@@ -478,34 +482,35 @@ export async function createNotePresetClient(groupId: string, input: NotePresetN
 }
 
 export async function updateNotePresetClient(
+  slug: string,
   presetId: string,
   patch: NotePresetNameInput & { active?: boolean; group_id?: string },
 ) {
-  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+  return request<{ preset: MenuNotePreset }>(restaurantApiPath(slug, '/menu/note-presets'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ preset_id: presetId, ...patch }),
   });
 }
 
-export async function setNotePresetActiveClient(presetId: string, active: boolean) {
-  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+export async function setNotePresetActiveClient(slug: string, presetId: string, active: boolean) {
+  return request<{ preset: MenuNotePreset }>(restaurantApiPath(slug, '/menu/note-presets'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ preset_id: presetId, active }),
   });
 }
 
-export async function deleteNotePresetClient(presetId: string, confirmUnbind = false) {
-  return request<{ ok: true; referenced_item_count: number }>('/api/dashboard/menu/note-presets', {
+export async function deleteNotePresetClient(slug: string, presetId: string, confirmUnbind = false) {
+  return request<{ ok: true; referenced_item_count: number }>(restaurantApiPath(slug, '/menu/note-presets'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ preset_id: presetId, confirm_unbind: confirmUnbind }),
   });
 }
 
-export async function reorderNotePresetsClient(groupId: string, orderedIds: string[]) {
-  return request<{ ok: true }>('/api/dashboard/menu/note-presets', {
+export async function reorderNotePresetsClient(slug: string, groupId: string, orderedIds: string[]) {
+  return request<{ ok: true }>(restaurantApiPath(slug, '/menu/note-presets'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', group_id: groupId, ordered_ids: orderedIds }),

@@ -21,47 +21,47 @@ import { ROLE_TEMPLATES } from './permissions/role-templates';
 
 describe('isDashboardSettingsPath', () => {
   it('matches settings root and nested routes', () => {
-    assert.equal(isDashboardSettingsPath('/dashboard/settings'), true);
-    assert.equal(isDashboardSettingsPath('/dashboard/settings/staff'), true);
-    assert.equal(isDashboardSettingsPath('/dashboard/checkout'), false);
+    assert.equal(isDashboardSettingsPath('/dashboard/r/demo/settings'), true);
+    assert.equal(isDashboardSettingsPath('/dashboard/r/demo/settings/staff'), true);
+    assert.equal(isDashboardSettingsPath('/dashboard/r/demo/checkout'), false);
   });
 });
 
 describe('isCashierCheckoutPath', () => {
   it('matches checkout routes only', () => {
-    assert.equal(isCashierCheckoutPath('/dashboard/checkout'), true);
-    assert.equal(isCashierCheckoutPath('/dashboard/checkout/foo'), true);
-    assert.equal(isCashierCheckoutPath('/dashboard/orders'), false);
+    assert.equal(isCashierCheckoutPath('/dashboard/r/demo/checkout'), true);
+    assert.equal(isCashierCheckoutPath('/dashboard/r/demo/checkout/foo'), true);
+    assert.equal(isCashierCheckoutPath('/dashboard/r/demo/orders'), false);
   });
 });
 
 describe('isCashierOperationalPath', () => {
   it('matches waiter board and checkout routes only', () => {
-    assert.equal(isCashierOperationalPath('/dashboard/waiter'), true);
-    assert.equal(isCashierOperationalPath('/dashboard/waiter/table-1'), true);
-    assert.equal(isCashierOperationalPath('/dashboard/checkout'), true);
-    assert.equal(isCashierOperationalPath('/dashboard/orders'), false);
-    assert.equal(isDashboardWaiterBoardPath('/dashboard/waiter/foo'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/r/demo/waiter'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/r/demo/waiter/table-1'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/r/demo/checkout'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/r/demo/orders'), false);
+    assert.equal(isDashboardWaiterBoardPath('/dashboard/r/demo/waiter/foo'), true);
   });
 });
 
 describe('isFrontdeskOperationalPath', () => {
   it('allows operational dashboard routes except settings', () => {
-    assert.equal(isFrontdeskOperationalPath('/dashboard'), true);
-    assert.equal(isFrontdeskOperationalPath('/dashboard/tables'), true);
-    assert.equal(isFrontdeskOperationalPath('/dashboard/menu'), true);
-    assert.equal(isFrontdeskOperationalPath('/dashboard/waiter'), true);
-    assert.equal(isFrontdeskOperationalPath('/dashboard/settings'), false);
-    assert.equal(isFrontdeskOperationalPath('/dashboard/settings/menu'), false);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo/tables'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo/menu'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo/waiter'), true);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo/settings'), false);
+    assert.equal(isFrontdeskOperationalPath('/dashboard/r/demo/settings/menu'), false);
     assert.equal(isFrontdeskOperationalPath('/auth/login'), false);
   });
 });
 
 describe('isWaiterOperationalPath', () => {
   it('matches waiter board only', () => {
-    assert.equal(isWaiterOperationalPath('/dashboard/waiter'), true);
-    assert.equal(isWaiterOperationalPath('/dashboard/waiter/t1'), true);
-    assert.equal(isWaiterOperationalPath('/dashboard/checkout'), false);
+    assert.equal(isWaiterOperationalPath('/dashboard/r/demo/waiter'), true);
+    assert.equal(isWaiterOperationalPath('/dashboard/r/demo/waiter/t1'), true);
+    assert.equal(isWaiterOperationalPath('/dashboard/r/demo/checkout'), false);
   });
 });
 
@@ -79,13 +79,13 @@ describe('isStaffRole', () => {
 
 describe('shouldPrefetchDashboardNav', () => {
   it('allows light settings tabs and denies heavy settings tabs', () => {
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings'), true);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/staff'), true);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/features'), true);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/buffet'), false);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/print-assistant'), false);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/value-analytics'), false);
-    assert.equal(shouldPrefetchDashboardNav('/dashboard/tables'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/settings'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/settings/staff'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/settings/features'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/settings/buffet'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/settings/print-assistant'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/value-analytics'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/r/demo/tables'), true);
   });
 });
 
@@ -105,7 +105,7 @@ describe('resolveDashboardOperationalContext', () => {
   it('allows access when capability matches', () => {
     assert.deepEqual(
       resolveDashboardOperationalContext(
-        { mode: 'owner', restaurant: restaurant as never },
+        { mode: 'owner', restaurant: restaurant as never, loaded: { restaurantId: restaurant.id } as never },
         resolveCapabilitiesForOwner(),
         'dashboard.overview.view',
       ),
@@ -113,7 +113,7 @@ describe('resolveDashboardOperationalContext', () => {
     );
     assert.deepEqual(
       resolveDashboardOperationalContext(
-        { mode: 'staff', restaurant },
+        { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
         overviewCaps,
         'dashboard.overview.view',
       ),
@@ -124,7 +124,7 @@ describe('resolveDashboardOperationalContext', () => {
   it('rejects missing capability', () => {
     assert.deepEqual(
       resolveDashboardOperationalContext(
-        { mode: 'staff', restaurant },
+        { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
         capabilitiesFromKeys(['dashboard.waiter_board.view']),
         'dashboard.overview.view',
       ),
@@ -149,7 +149,11 @@ describe('resolveDashboardOperationalContext', () => {
   it('blocks writable context when restaurant is suspended', () => {
     assert.deepEqual(
       resolveDashboardOperationalContext(
-        { mode: 'staff', restaurant: { ...restaurant, suspended_at: '2026-01-01T00:00:00Z' } },
+        {
+          mode: 'staff',
+          restaurant: { ...restaurant, suspended_at: '2026-01-01T00:00:00Z' },
+          loaded: { restaurantId: restaurant.id } as never,
+        },
         overviewCaps,
         'dashboard.overview.view',
         { requireWritable: true },
@@ -163,23 +167,23 @@ describe('middlewareAllowsPathForCapabilities', () => {
   it('uses dashboard route permissions from capability set', () => {
     const frontdeskCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]);
     // Pirata frontdesk has no overview — landing is not /dashboard.
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard'), false);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/guest-notice'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/menu'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/dashboard/settings'), false);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, ''), false);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/guest-notice'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/menu'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(frontdeskCaps, '/settings'), false);
 
     const cashierCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]);
-    assert.equal(middlewareAllowsPathForCapabilities(cashierCaps, '/dashboard/checkout'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(cashierCaps, '/dashboard/menu'), false);
+    assert.equal(middlewareAllowsPathForCapabilities(cashierCaps, '/checkout'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(cashierCaps, '/menu'), false);
   });
 
   it('owner star shares the same middleware path gate', () => {
     const ownerCaps = resolveCapabilitiesForOwner();
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/settings'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/checkout'), true);
-    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/tables'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/settings'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/checkout'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/tables'), true);
     assert.equal(
-      dashboardCapabilityMiddlewareRedirectPath(ownerCaps, '/dashboard/tables', 'demo'),
+      dashboardCapabilityMiddlewareRedirectPath(ownerCaps, '/tables', 'demo'),
       null,
     );
   });

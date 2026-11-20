@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import Link from 'next/link';
 import { LandingContactChannels } from '@/components/landing/LandingContactChannels';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -21,6 +22,7 @@ const FEATURE_LABEL_KEY: Record<PremiumKey, keyof ReturnType<typeof getMessages>
 
 /** Pro upgrade gate — contact channels reuse landing sole source (`LandingContactChannels`). */
 export function PremiumUpgradePanel({ feature }: Props) {
+  const { href: storeHref } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).premiumUpgrade;
   const contact = getLandingCopy(lang).contact;
@@ -44,7 +46,7 @@ export function PremiumUpgradePanel({ feature }: Props) {
         />
       </div>
       <Link
-        href="/dashboard"
+        href={storeHref()}
         className="mt-10 inline-block text-sm text-brand-text-muted hover:text-brand-text underline-offset-4 hover:underline"
       >
         {t.backToDashboard}

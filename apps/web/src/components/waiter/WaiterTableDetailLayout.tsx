@@ -1,5 +1,6 @@
 'use client';
 
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 import { useState } from 'react';
 import type { Buffet } from '@/types';
 import {
@@ -265,6 +266,7 @@ function ContinueOrderingControl({
 }
 
 function ToolbarCloseTableControl({
+  restaurantSlug,
   tableId,
   isCheckoutPending,
   showForceClose,
@@ -277,6 +279,7 @@ function ToolbarCloseTableControl({
   onBeginForceCloseBusy,
   onEndSessionBusy,
 }: {
+  restaurantSlug: string;
   tableId: string;
   isCheckoutPending: boolean;
   showForceClose: boolean;
@@ -311,6 +314,7 @@ function ToolbarCloseTableControl({
 
   return (
     <CloseTableSessionAction
+      restaurantSlug={restaurantSlug}
       tableId={tableId}
       isCheckoutPending={isCheckoutPending}
       showSuccessToast={false}
@@ -330,6 +334,7 @@ function ToolbarCloseTableControl({
 function WaiterTableSettledCloseControl({
   lang,
   t,
+  restaurantSlug,
   tableId,
   sessionId,
   label,
@@ -343,6 +348,7 @@ function WaiterTableSettledCloseControl({
   endSessionBusy,
 }: {
   lang: UILanguage;
+  restaurantSlug: string;
   t: WaiterCopy;
   tableId: string;
   sessionId: string | null;
@@ -383,7 +389,7 @@ function WaiterTableSettledCloseControl({
     if (!tryBeginSessionBusy('settled_close')) return;
     let keepBusy = false;
     try {
-      const outcome = await runWaiterTableCheckoutClose({
+      const outcome = await runWaiterTableCheckoutClose(restaurantSlug, {
         tableId,
         printBill: printBillOnClose,
       });
@@ -503,7 +509,10 @@ function WaiterTableCallCheckoutControl({
       }
       keepBusy = true;
       router.push(
-        `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}&request_id=${encodeURIComponent(outcome.bill_split_id)}`,
+        dashboardStoreHref(
+          restaurantSlug,
+          `/checkout?table_id=${encodeURIComponent(tableId)}&request_id=${encodeURIComponent(outcome.bill_split_id)}`,
+        ),
       );
     } catch {
       showToast(checkout.callCheckoutFailed, 'error');
@@ -621,6 +630,7 @@ export function WaiterTableOccupiedToolbar({
             <WaiterTableSettledCloseControl
               lang={lang}
               t={t}
+              restaurantSlug={restaurantSlug}
               tableId={tableId}
               sessionId={sessionId}
               label={t.goToBill}
@@ -650,6 +660,7 @@ export function WaiterTableOccupiedToolbar({
             />
           ) : null}
           <ToolbarCloseTableControl
+            restaurantSlug={restaurantSlug}
             tableId={tableId}
             isCheckoutPending={isCheckoutPending}
             showForceClose={showForceClose}

@@ -43,6 +43,17 @@ sql_exec_file_tx() {
     psql -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -1 -q <"$host_file" >/dev/null
 }
 
+# Read-only report: rows as `col|col|…` lines on stdout (for showing to the operator).
+sql_report_file() {
+  local host_file="$1"
+  if [[ ! -f "$host_file" ]]; then
+    echo "ERROR: SQL file not found: ${host_file}" >&2
+    return 1
+  fi
+  docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" "$MESA_DB_CONTAINER" \
+    psql -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -q -tA -F '|' <"$host_file"
+}
+
 sql_scalar() {
   local query="$1"
   # No -i: attached empty stdin breaks -tAc batches on some Docker setups.

@@ -180,3 +180,4 @@
 20261108140000_buffet_min_guest_and_side_toggle.sql
 20261119120000_drop_switch_table_buffet.sql
 20261120120000_staff_identities_multi_store_step1.sql
+20261120130000_multi_store_release0_favorites_and_sync.sql

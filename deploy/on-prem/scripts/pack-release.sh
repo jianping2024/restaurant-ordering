@@ -73,6 +73,9 @@ rsync -a --delete --exclude node_modules --exclude '.next' --exclude '.next-*' \
 rsync -a --delete --exclude node_modules "$ROOT/packages/shared/" "$STAGE/packages/shared/"
 rsync -a --delete --exclude node_modules "$ROOT/packages/ui/" "$STAGE/packages/ui/"
 rsync -a --delete "$ROOT/supabase/migrations/" "$STAGE/supabase/migrations/"
+# Read-only data precheck apply-migrations.sh runs before the multi-store migration.
+# Into deploy/on-prem/schema: a store's installed upgrade.sh syncs that tree, not scripts/.
+cp "$ROOT/scripts/db/multi-store-precheck.sql" "$STAGE/deploy/on-prem/schema/"
 cp "$ROOT/package.json" "$ROOT/package-lock.json" "$STAGE/"
 
 # Build context is pack root (MESA_REPO_ROOT) — dockerignore must live here.
@@ -125,6 +128,11 @@ if [[ ! -f "$ENSURE_SQL" ]]; then
 fi
 if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
+  exit 1
+fi
+if ! grep -q 'precheck_multi_store_if_pending' "$APPLY_SH" \
+  || [[ ! -f "$STAGE/deploy/on-prem/schema/multi-store-precheck.sql" ]]; then
+  echo "ERROR: pack must ship schema/multi-store-precheck.sql and apply-migrations must run it" >&2
   exit 1
 fi
 if ! grep -qE "ARRAY\[.*'print_jobs'" "$ENSURE_SQL"; then

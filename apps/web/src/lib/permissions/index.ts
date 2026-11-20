@@ -69,6 +69,14 @@ export {
   resolveStaffLandingPath,
 } from '@/lib/permissions/staff-landing';
 export { loadPrincipal, loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
+export {
+  listAuthorizedRestaurantsForUser,
+  loadPrincipalForRestaurant,
+  resolveStaffLoginTarget,
+  type AuthorizedRestaurant,
+  type RestaurantPrincipal,
+  type StaffLoginTargetResult,
+} from '@/lib/permissions/restaurant-access';
 export type { PrincipalWithCapabilities } from '@/lib/permissions/principal';
 
 export {

@@ -3,19 +3,12 @@ import 'server-only';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { can, type Capabilities } from '@/lib/permissions/can';
-import {
-  staffRoleLabelForRestaurantRole,
-} from '@/lib/permissions/restaurant-roles';
-import { isRolePresetKey } from '@/lib/permissions/role-templates';
-import {
-  normalizeStoredPermissions,
-  resolveCapabilitiesForOwner,
-  resolveCapabilitiesFromRolePermissions,
-} from '@/lib/permissions/resolve';
 import type { PermissionKey } from '@/lib/permissions/registry';
+import {
+  loadPrincipalForRestaurant,
+  type RestaurantPrincipal,
+} from '@/lib/permissions/restaurant-access';
 import { loadAuthUserWithAdmin } from '@/lib/staff-access';
-import { loadOwnerRestaurantForUser } from '@/lib/staff-gate-db';
-import { ownerRestaurantMatchesTarget } from '@/lib/staff-identity-gate';
 import { isRestaurantSuspended } from '@mesa/shared';
 
 export type StaffAuthContext = {
@@ -68,110 +61,40 @@ export async function loadRestaurantBySlug(slug: string) {
   return { admin, restaurant: restaurant as { id: string; slug: string } };
 }
 
-async function loadStaffCapabilities(
-  admin: ReturnType<typeof createAdminClient>,
-  restaurantId: string,
-  roleId: string | null,
-): Promise<{
-  role_id: string;
-  role_name: string;
-  staff_role_label: string;
-  capabilities: Capabilities;
-} | null> {
-  if (!roleId) return null;
-
-  const { data: role } = await admin
-    .from('restaurant_roles')
-    .select('id, name, preset_key, permissions, disabled_at')
-    .eq('id', roleId)
-    .eq('restaurant_id', restaurantId)
-    .maybeSingle();
-
-  if (!role || role.disabled_at) return null;
-
-  const permissions = normalizeStoredPermissions(role.permissions);
-  const presetKey = isRolePresetKey(String(role.preset_key ?? ''))
-    ? (role.preset_key as 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner')
-    : null;
-  return {
-    role_id: role.id as string,
-    role_name: String(role.name),
-    staff_role_label: staffRoleLabelForRestaurantRole({ preset_key: presetKey }),
-    capabilities: resolveCapabilitiesFromRolePermissions(permissions),
-  };
-}
-
-function ownerStaffAuthContext(
-  userId: string,
+function staffAuthContextFromPrincipal(
+  access: RestaurantPrincipal,
   slug: string,
-  restaurantId: string,
 ): StaffAuthContext {
+  const { principal } = access;
+  const isOwner = principal.kind === 'owner';
   return {
-    restaurant_id: restaurantId,
+    restaurant_id: principal.restaurantId,
     slug,
-    user_id: userId,
-    as_owner: true,
-    role_id: null,
-    role_name: 'owner',
-    role: 'owner',
-    capabilities: resolveCapabilitiesForOwner(),
+    user_id: principal.userId,
+    as_owner: isOwner,
+    role_id: isOwner ? null : principal.roleId,
+    role_name: isOwner ? 'owner' : principal.roleName,
+    role: isOwner ? 'owner' : principal.staffRoleLabel,
+    capabilities: access.capabilities,
   };
 }
 
 /**
- * Owner (including on-prem shadow) or active staff for slug.
- * Disabled restaurant_roles → null. Callers must check `can(ctx.capabilities, permission)`.
+ * Slug-route adapter (phase C: callers move to `requirePermission(key, restaurantId)`).
+ * Owner (including on-prem shadow) or active staff for slug — via the sole
+ * `loadPrincipalForRestaurant`. Floor/kitchen surfaces keep their suspended gate:
+ * a suspended store refuses the admin account here too.
+ * Callers must check `can(ctx.capabilities, permission)`.
  */
 export async function staffSessionForSlug(slug: string): Promise<StaffAuthContext | null> {
   const auth = await loadAuthUserWithAdmin();
   if (!auth) return null;
-  const { user, admin } = auth;
+  const loaded = await loadRestaurantBySlug(slug);
+  if ('error' in loaded) return null;
 
-  const [owned, staffRes] = await Promise.all([
-    loadOwnerRestaurantForUser(admin, {
-      userId: user.id,
-      email: user.email,
-      userMetadata: user.user_metadata,
-    }),
-    admin
-      .from('restaurant_staff_accounts')
-      .select('id, restaurant_id, role, role_id, disabled_at, restaurants(id, slug, suspended_at)')
-      .eq('user_id', user.id)
-      .maybeSingle(),
-  ]);
-  const staffRaw = staffRes.data;
-
-  if (ownerRestaurantMatchesTarget(owned, { slug })) {
-    if (isRestaurantSuspended(owned.suspended_at)) return null;
-    return ownerStaffAuthContext(user.id, slug, owned.id);
-  }
-
-  if (!staffRaw || staffRaw.disabled_at || staffRaw.role === 'print_agent') return null;
-  const embedded = staffRaw.restaurants as
-    | { id: string; slug: string; suspended_at: string | null }
-    | { id: string; slug: string; suspended_at: string | null }[]
-    | null;
-  const restaurant = Array.isArray(embedded) ? embedded[0] : embedded;
-  if (!restaurant || restaurant.slug !== slug) return null;
-  if (isRestaurantSuspended(restaurant.suspended_at)) return null;
-
-  const caps = await loadStaffCapabilities(
-    admin,
-    staffRaw.restaurant_id as string,
-    (staffRaw.role_id as string | null) ?? null,
-  );
-  if (!caps) return null;
-
-  return {
-    restaurant_id: staffRaw.restaurant_id as string,
-    slug,
-    user_id: user.id,
-    as_owner: false,
-    role_id: caps.role_id,
-    role_name: caps.role_name,
-    role: caps.staff_role_label,
-    capabilities: caps.capabilities,
-  };
+  const access = await loadPrincipalForRestaurant(auth.user.id, loaded.restaurant.id);
+  if (!access || isRestaurantSuspended(access.restaurant.suspended_at)) return null;
+  return staffAuthContextFromPrincipal(access, loaded.restaurant.slug);
 }
 
 export async function staffSessionForRestaurant(target: {

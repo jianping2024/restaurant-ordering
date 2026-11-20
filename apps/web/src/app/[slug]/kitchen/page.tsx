@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KitchenScreensHome } from '@/components/kitchen/KitchenScreensHome';
 import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listKitchenScreens } from '@/lib/kitchen-screens-server';
@@ -47,8 +46,7 @@ export default async function KitchenPage({ params }: Props) {
     screens = [];
   }
 
-  const principalCaps = await loadPrincipalWithCapabilities();
-  const capabilities = toCapabilitiesPayload(principalCaps?.capabilities ?? new Set());
+  const capabilities = toCapabilitiesPayload(access.capabilities);
 
   return (
     <KitchenScreensHome

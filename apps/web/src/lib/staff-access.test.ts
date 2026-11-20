@@ -3,7 +3,6 @@ import { describe, it } from 'node:test';
 import {
   deriveStaffLoginContext,
   deriveStaffLoginPreflight,
-  ownerRestaurantMatchesTarget,
   resolveOwnerRestaurantFromLoads,
   type OwnerGateRestaurant,
   type StaffGateAccount,
@@ -227,26 +226,5 @@ describe('resolveOwnerRestaurantFromLoads', () => {
       }),
       null,
     );
-  });
-});
-
-describe('ownerRestaurantMatchesTarget', () => {
-  it('matches slug', () => {
-    assert.equal(ownerRestaurantMatchesTarget(OWNED, { slug: 'slug-owned' }), true);
-  });
-
-  it('rejects other slug', () => {
-    assert.equal(ownerRestaurantMatchesTarget(OWNED, { slug: 'other' }), false);
-  });
-
-  it('rejects restaurantId mismatch', () => {
-    assert.equal(
-      ownerRestaurantMatchesTarget(OWNED, { slug: 'slug-owned', restaurantId: 'other-id' }),
-      false,
-    );
-  });
-
-  it('rejects null owned', () => {
-    assert.equal(ownerRestaurantMatchesTarget(null, { slug: 'slug-owned' }), false);
   });
 });

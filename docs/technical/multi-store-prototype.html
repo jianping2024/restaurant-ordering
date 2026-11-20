@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多店账号原型</title>
+<style>
+:root{--bg:#1b1a16;--card:#232019;--border:#3a362e;--text:#f2efe7;--muted:#b5afa3;--dim:#948e82;--gold:#d4b078;--ink:#9bc0d8;--ink2:#afd2e6;--hover:#2c2820}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Jost,"PingFang SC","Noto Sans SC",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+.demo{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:#0f0e0c;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)}
+.demo button{cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px}
+.demo button.on{background:#33291a;border-color:var(--gold);color:var(--gold)}
+.url{display:flex;gap:8px;align-items:center;padding:8px 16px;background:#141310;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)}
+.url span{flex:1;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.url b{color:var(--text);font-weight:500}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px}
+header.top{background:var(--card);border-bottom:1px solid var(--border);position:relative;z-index:10}
+.row{max-width:1920px;margin:0 auto;height:56px;padding:0 24px;display:flex;align-items:center;gap:8px}
+.logo{color:var(--ink);font-weight:600;font-size:22px;letter-spacing:.08em;flex-shrink:0}
+.switch{cursor:pointer;background:transparent;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 8px;border-radius:10px;font-size:18px;font-weight:500;min-width:0;max-width:380px}
+.switch:hover{border-color:var(--border);background:var(--bg)}
+.switch .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbd{font-size:11px;color:var(--dim);border:1px solid var(--border);border-radius:4px;padding:0 5px}
+.nav{flex:1;min-width:0;overflow-x:auto;display:flex;gap:8px;padding:8px 2px}
+.chip{cursor:pointer;white-space:nowrap;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:#d4cec2;padding:6px 12px;font-size:13px;font-weight:500}
+.chip:hover{border-color:rgba(155,192,216,.4);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:transparent;color:var(--bg)}
+.ghost{cursor:pointer;background:transparent;border:0;color:#d4cec2;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 8px;border-radius:10px;font-size:14px}
+.ghost:hover{background:var(--hover)}
+.menu{position:absolute;top:52px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 44px rgba(0,0,0,.55);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:20;max-width:calc(100vw - 32px)}
+.item{cursor:pointer;width:100%;text-align:left;background:transparent;border:0;min-height:44px;padding:6px 10px;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:14px}
+.item:hover,.item.hi{background:var(--hover)}
+.item:disabled{cursor:not-allowed;opacity:.5}
+.item small{display:block;color:var(--muted);font-size:12px}
+.sep{height:1px;background:var(--border);margin:6px 4px}
+.group{font-size:12px;color:var(--dim);padding:10px 10px 4px}
+.search{width:100%;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg);padding:0 12px 0 36px;font-size:15px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23948e82' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center}
+.search:focus{outline:2px solid var(--ink);outline-offset:1px}
+.star{cursor:pointer;background:transparent;border:0;width:32px;height:32px;border-radius:8px;color:var(--dim);font-size:16px;flex-shrink:0}
+.star:hover{background:#33291a;color:var(--gold)}
+.star.on{color:var(--gold)}
+main{max-width:1920px;margin:0 auto;padding:32px 24px}
+h1{margin:0;font-size:26px;font-weight:500}
+.sub{margin:8px 0 0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.store{cursor:pointer;text-align:left;width:100%;padding:20px;display:flex;flex-direction:column;gap:14px;min-height:150px}
+.store:hover{border-color:var(--ink)}
+.store:disabled{cursor:not-allowed;opacity:.6}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:3px 9px;font-size:12px;color:#d4cec2;white-space:nowrap}
+.pill.warn{border:0;background:#3a2a22;color:#f0b9a0}
+.pill.last{border:0;background:#1f2c35;color:var(--ink2)}
+.btn{cursor:pointer;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);font-size:14px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:transparent;font-weight:600}
+.btn.primary:disabled{opacity:.5;cursor:not-allowed}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:24px 0}
+.kpi{padding:24px}
+.kpi p{margin:0}
+.lab{color:var(--muted);font-size:13px;margin-bottom:8px!important}
+.money{font-size:34px;color:var(--gold);font-variant-numeric:tabular-nums}
+.big{font-size:28px}
+.big span{font-size:15px;color:var(--muted);margin-left:4px}
+.tablebox{max-height:62vh;overflow:auto;border-radius:16px}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}
+th{position:sticky;top:0;background:var(--card);z-index:2;font-weight:500;color:var(--muted);font-size:13px;text-align:right;padding:0;border-bottom:1px solid var(--border)}
+th button{cursor:pointer;background:transparent;border:0;width:100%;text-align:inherit;padding:12px 16px;color:inherit;font-size:13px}
+th button:hover{color:var(--text)}
+th.on button{color:var(--ink)}
+td{padding:12px 16px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+tfoot td{position:sticky;bottom:0;background:#2a261e;font-weight:600;border-top:1px solid var(--border);border-bottom:0}
+.link{cursor:pointer;background:transparent;border:0;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-size:15px;text-align:left}
+.link:disabled{cursor:default;color:#d4cec2;text-decoration:none}
+.check{display:flex;align-items:center;gap:10px;min-height:40px;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.check:hover{background:var(--hover)}
+.check input{width:18px;height:18px;accent-color:var(--ink)}
+.listbox{max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:6px}
+.mob{display:none}
+@media (max-width:1023px){.nav{display:none}.mob{display:block}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ---------- 示例数据：30 家店 ---------- */
+const CITIES = ['里斯本','波尔图','卡斯凯什','法鲁','科英布拉','布拉加','塞图巴尔','阿威罗'];
+const BRANDS = ['Sakura 寿司','Mesa 火锅','Bao 点心'];
+const AREAS = ['中心店','老城店','海滨店','车站店','北区店','商场店'];
+function rnd(i, k){ const x = Math.sin(i * 97.3 + k * 13.1) * 10000; return x - Math.floor(x); }
+const ALL_STORES = [];
+for (let i = 0; i < 30; i++) {
+  const city = CITIES[i % CITIES.length];
+  const brand = BRANDS[i % 3];
+  const area = AREAS[Math.floor(i / CITIES.length) % AREAS.length];
+  const role = (i % 7 === 3) ? '收银' : '店长';
+  const suspended = i === 11 || i === 22;
+  const st = 8 + Math.floor(rnd(i,1) * 22), sg = st * 3 + Math.floor(rnd(i,2) * 10);
+  const dt = Math.floor(rnd(i,3) * 8), dg = dt * 3 + Math.floor(rnd(i,4) * 4);
+  ALL_STORES.push({
+    id: 's' + i, slug: (['sakura','mesa','bao'][i % 3]) + '-' + (i + 1),
+    name: brand + ' · ' + city + area, city, role, suspended,
+    overview: role !== '收银',
+    hasManagerRole: !(i === 5 || i === 17),
+    c: Math.round((600 + rnd(i,5) * 1800) * 10) / 10, u: rnd(i,6) > .45 ? Math.round(rnd(i,7) * 420 * 10) / 10 : 0,
+    st, sg, dt, dg, pending: Math.floor(rnd(i,8) * 4)
+  });
+}
+const PAGES = {
+  waiter:['楼面看板','/waiter'], kitchen:['厨房看板',null], checkout:['结账请求','/checkout'], orders:['历史订单','/orders'],
+  dishHistory:['当日菜品','/dish-history'], guestNotice:['顾客通知','/guest-notice'], tables:['桌位配置','/tables'],
+  menu:['菜单管理','/menu'], settings:['餐厅设置','/settings'], overview:['数据概览',''], valueAnalytics:['增值分析','/value-analytics'],
+  abnormalOps:['异常操作','/abnormal-operations'], operationLogs:['操作记录','/operation-logs']
+};
+const NAV_MANAGER = Object.keys(PAGES);
+const NAV_CASHIER = ['waiter','checkout','orders','dishHistory'];
+
+/* ---------- 状态 ---------- */
+const S = {
+  count: 30, screen:'picker', store:'s0', page:'overview', open:null,
+  recent:['s9','s2','s14'], fav:['s0','s8'],
+  q:'', hi:0,                         // 选店页 / 切店下拉搜索
+  ovScope:'all', ovCities:[], ovPick:[], ovQ:'', ovScopeQ:'', sortKey:'c', sortDir:-1, page2:1, refreshed:false,
+  opsQ:'', opsSel:[], opsRole:'店长', opsDone:false,
+  focus:null
+};
+const stores = () => ALL_STORES.slice(0, S.count);
+const byId = id => ALL_STORES.find(s => s.id === id);
+const eur = n => '€' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cur = () => byId(S.store);
+const navFor = s => s.role === '收银' ? NAV_CASHIER : NAV_MANAGER;
+const landing = s => s.role === '收银' ? 'checkout' : 'overview';
+const chev = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b5afa3" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>';
+const match = (s, q) => !q || (s.name + s.city + s.slug).toLowerCase().includes(q.trim().toLowerCase());
+
+function set(p){ Object.assign(S, p); render(); }
+function enter(id, page){
+  const s = byId(id);
+  const recent = [id].concat(S.recent.filter(x => x !== id)).slice(0, 5);
+  set({ screen:'store', store:id, page: page || landing(s), open:null, q:'', hi:0, recent });
+}
+
+/* ---------- 共用：可搜索店铺列表（选店页 + 切店下拉同一份） ---------- */
+function storeGroups(q){
+  const list = stores().filter(s => match(s, q));
+  if (q) return [{ title: '搜索结果（' + list.length + '）', items: list }];
+  const fav = S.fav.map(byId).filter(s => s && list.includes(s));
+  const rec = S.recent.map(byId).filter(s => s && list.includes(s) && !S.fav.includes(s.id));
+  const rest = list.slice().sort((a, b) => a.city.localeCompare(b.city, 'zh') || a.name.localeCompare(b.name, 'zh'));
+  const g = [];
+  if (fav.length) g.push({ title:'★ 收藏', items: fav });
+  if (rec.length) g.push({ title:'最近进过', items: rec });
+  g.push({ title:'全部 ' + list.length + ' 家（按城市）', items: rest, byCity: true });
+  return g;
+}
+function flatEnterable(q){ const out = []; storeGroups(q).forEach(g => g.items.forEach(s => { if (!s.suspended) out.push(s.id); })); return out; }
+function storeListHtml(q, inMenu){
+  const groups = storeGroups(q);
+  const flat = flatEnterable(q);
+  const hiId = flat[S.hi];
+  let h = '', lastCity = null, any = false;
+  groups.forEach(g => {
+    h += '<div class="group">' + g.title + '</div>';
+    lastCity = null;
+    g.items.forEach(s => {
+      any = true;
+      if (g.byCity && s.city !== lastCity) { h += '<div class="group" style="padding-top:6px;color:#7d776c">' + s.city + '</div>'; lastCity = s.city; }
+      const isCur = S.screen === 'store' && s.id === S.store;
+      h += '<div style="display:flex;align-items:center;gap:4px">' +
+        '<button class="item' + (s.id === hiId ? ' hi' : '') + '" data-enter="' + s.id + '" ' + (s.suspended ? 'disabled' : '') + '>' +
+        '<span style="width:14px;color:var(--ink)">' + (isCur ? '✓' : '') + '</span>' +
+        '<span style="min-width:0;flex:1">' + esc(s.name) + '<small>' + s.role + ' · ' + s.city + (s.suspended ? ' · 已暂停' : '') + '</small></span></button>' +
+        '<button class="star' + (S.fav.includes(s.id) ? ' on' : '') + '" data-fav="' + s.id + '" aria-label="收藏">' + (S.fav.includes(s.id) ? '★' : '☆') + '</button></div>';
+    });
+  });
+  if (!any) h += '<div class="hint" style="padding:16px 10px;color:var(--dim)">没有匹配的店</div>';
+  return h;
+}
+
+/* ---------- 页面 ---------- */
+function url(){
+  if (S.screen === 'login') return '/auth/login';
+  if (S.screen === 'picker') return '/dashboard';
+  if (S.screen === 'overview') return '/dashboard/multi-store';
+  if (S.screen === 'ops') return '（ops 平台）/restaurants/staff/link';
+  const s = cur();
+  if (S.page === 'kitchen') return '/' + s.slug + '/kitchen';
+  return '/dashboard/r/' + s.slug + PAGES[S.page][1];
+}
+
+function demoBar(){
+  const tabs = [['picker','① 登录后：选店'],['store','② 进店 + 顶栏切店'],['overview','③ 多店概览'],['ops','④ ops 批量关联']];
+  return '<div class="demo">快速跳转：' + tabs.map(([k,l]) =>
+    '<button data-demo="'+k+'" class="'+(S.screen===k?'on':'')+'">'+l+'</button>').join('') +
+    '<span style="margin-left:12px">账号关联店数：</span>' +
+    [3, 30].map(n => '<button data-count="'+n+'" class="'+(S.count===n?'on':'')+'">'+n+' 家</button>').join('') +
+    '<span style="margin-left:auto">示例账号 zhang.manager · 数字为示例</span></div>';
+}
+
+function topBar(){
+  const inStore = S.screen === 'store';
+  const s = cur();
+  let h = '<header class="top"><div class="row"><span class="logo">FARVOO</span>';
+  h += '<div style="position:relative;min-width:0"><button class="switch" data-act="toggle:switch" aria-haspopup="menu" aria-expanded="'+(S.open==='switch')+'" title="切换店铺（快捷键 /）"><span class="t">'+esc(inStore ? s.name : '多店概览')+'</span>'+chev+'<span class="kbd">/</span></button>';
+  if (S.open === 'switch') {
+    h += '<div class="menu" style="left:0;width:380px"><input id="sw-q" class="search" placeholder="搜索店名或城市（↑↓ 选择，回车进入）" value="'+esc(S.q)+'" data-input="q" autocomplete="off">';
+    h += '<div style="max-height:60vh;overflow:auto;margin-top:6px">' + storeListHtml(S.q, true) + '</div>';
+    h += '<div class="sep"></div><button class="item" data-act="overview"><span style="width:14px;color:var(--ink)">▤</span>多店概览</button></div>';
+  }
+  h += '</div>';
+  if (inStore) {
+    h += '<nav class="nav" aria-label="主导航">' + navFor(s).map(k => '<button class="chip '+(k===S.page?'on':'')+'" data-page="'+k+'">'+PAGES[k][0]+'</button>').join('') + '</nav>';
+    h += '<div class="mob" style="margin-left:auto;position:relative"><button class="ghost" data-act="toggle:nav" aria-label="主导航">☰</button>';
+    if (S.open === 'nav') h += '<div class="menu" style="right:0;width:220px">' + navFor(s).map(k => '<button class="item" data-page="'+k+'">'+PAGES[k][0]+'</button>').join('') + '</div>';
+    h += '</div>';
+  } else {
+    h += '<span style="flex:1;color:var(--dim);font-size:13px;padding-left:8px">只读汇总页，不属于任何一家店</span>';
+  }
+  h += '<div style="position:relative;flex-shrink:0"><button class="ghost" data-act="toggle:acct">👤 '+(inStore ? s.role : '多店账号')+' '+chev+'</button>';
+  if (S.open === 'acct') {
+    h += '<div class="menu" style="right:0;width:240px"><div style="padding:8px 12px">zhang.manager<small style="display:block;color:var(--muted);font-size:12px">'+(inStore ? '在本店的角色：'+s.role : '已关联 '+S.count+' 家店')+'</small></div><div class="sep"></div><button class="item">修改密码</button><button class="item" data-act="logout">退出登录</button></div>';
+  }
+  h += '</div></div></header>';
+  return h;
+}
+
+function pickerPage(){
+  const list = stores();
+  let h = '<header class="top"><div class="row"><span class="logo">FARVOO</span><span style="flex:1"></span><button class="ghost" data-act="logout">退出登录</button></div></header>';
+  h += '<main style="max-width:920px"><h1>选择要进入的店铺</h1><p class="sub">你的账号关联了 '+list.length+' 家店。每家店的权限由那家店设置；进店后点顶栏店名（或按 / 键）可以随时切换。</p>';
+  if (list.length <= 6) {
+    h += '<p class="sub" style="font-size:12px;color:var(--dim)">店数 ≤ 6 时用卡片</p><div class="grid" style="margin:16px 0 24px">';
+    list.forEach(s => {
+      h += '<button class="card store" data-enter="'+s.id+'" '+(s.suspended?'disabled':'')+'><span style="font-size:18px;font-weight:500">'+esc(s.name)+'</span><span style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill">我的角色：'+s.role+'</span>'+
+        (s.suspended?'<span class="pill warn">已暂停</span>':'')+(S.recent[0]===s.id?'<span class="pill last">上次所在</span>':'')+'</span><span style="font-size:12px;color:var(--dim)">/dashboard/r/'+s.slug+'</span></button>';
+    });
+    h += '</div>';
+  } else {
+    h += '<p class="sub" style="font-size:12px;color:var(--dim)">店数 > 6 时用搜索列表：收藏 → 最近 → 全部（按城市）。和顶栏切店下拉是同一个列表。</p>';
+    h += '<div class="card" style="padding:12px;margin:16px 0 24px"><input id="pk-q" class="search" placeholder="搜索店名或城市，回车进入第一家" value="'+esc(S.q)+'" data-input="q" autocomplete="off">';
+    h += '<div style="max-height:56vh;overflow:auto;margin-top:6px">' + storeListHtml(S.q, false) + '</div></div>';
+  }
+  h += '<div class="card" style="padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap"><span><b style="font-weight:500">多店概览</b><br><span style="font-size:13px;color:var(--muted)">只读：按店看今天的营收、桌数和人数</span></span><button class="btn" data-act="overview">打开多店概览</button></div></main>';
+  return h;
+}
+
+function storePage(){
+  const s = cur();
+  let h = '<main>';
+  if (S.page === 'overview') {
+    h += '<p class="sub" style="margin:0">2026年11月20日 星期五 · '+esc(s.name)+'</p><div class="kpis">';
+    h += '<div class="card kpi" style="box-shadow:0 0 0 1px rgba(212,176,120,.25)"><p class="lab">今日营业额</p><div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap"><div><p class="money">'+eur(s.c)+'</p><p style="font-size:12px;color:var(--muted);margin-top:6px">已收</p></div>'+
+      (s.u>0?'<span class="money" style="color:rgba(212,176,120,.35);padding-bottom:22px">+</span><div><p class="money" style="color:rgba(212,176,120,.45)">'+eur(s.u)+'</p><p style="font-size:12px;color:var(--muted);margin-top:6px">未收</p></div>':'')+'</div></div>';
+    h += '<div class="card kpi" style="display:flex;gap:20px"><div style="flex:1"><p class="lab">今日桌数</p><p class="big">'+s.st+'<span>桌</span></p></div><div style="flex:1"><p class="lab">今日用餐人数</p><p class="big">'+s.sg+'<span>人</span></p></div></div>';
+    h += '<div class="card kpi" style="display:flex;gap:20px"><div style="flex:1"><p class="lab">当前用餐桌数</p><p class="big">'+s.dt+'<span>桌</span></p></div><div style="flex:1"><p class="lab">当前用餐人数</p><p class="big">'+s.dg+'<span>人</span></p></div></div></div>';
+    h += '<div class="card" style="padding:18px 20px"><h2 style="margin:0 0 12px;font-size:18px;font-weight:500">待处理</h2><button class="btn" data-page="checkout"><span style="color:var(--muted)">结账请求</span><b>'+s.pending+'</b></button></div>';
+  } else if (S.page === 'checkout') {
+    const rows = [['A3','2 分钟前',86.4,'整桌结账'],['B1','6 分钟前',142,'按菜分单 · 3 人'],['C2','9 分钟前',58.9,'均摊 · 2 人']].slice(0, Math.max(1, s.pending));
+    h += '<h1 style="margin-bottom:20px">结账请求</h1><div class="grid">' + rows.map(r =>
+      '<div class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px"><span style="display:flex;justify-content:space-between"><b style="font-weight:500;font-size:17px">'+r[0]+'</b><span style="color:var(--muted);font-size:13px">'+r[1]+'</span></span><span class="money" style="font-size:24px">'+eur(r[2])+'</span><span style="font-size:13px;color:var(--muted)">'+r[3]+'</span></div>').join('') + '</div>';
+    h += '<p class="sub" style="font-size:13px;color:var(--dim)">这里只列「'+esc(s.name)+'」的结账请求。另一个标签页开着别的店，各算各的。</p>';
+  } else {
+    h += '<div class="card" style="padding:32px;max-width:720px"><h1>'+PAGES[S.page][0]+'</h1><p class="sub" style="line-height:1.7">页面内容与现有后台完全一样，只操作「'+esc(s.name)+'」这一家店。唯一的变化是网址前面多了店铺名：<br><b style="color:var(--text);font-weight:500">'+url()+'</b></p></div>';
+  }
+  return h + '</main>';
+}
+
+function overviewScope(){
+  const ov = stores().filter(s => s.overview);
+  if (S.ovScope === 'city') return ov.filter(s => S.ovCities.includes(s.city));
+  if (S.ovScope === 'pick') return ov.filter(s => S.ovPick.includes(s.id));
+  return ov;
+}
+function overviewPage(){
+  const ov = stores().filter(s => s.overview);
+  const inScope = overviewScope();
+  const shown = inScope.filter(s => match(s, S.ovQ));
+  const key = S.sortKey, dir = S.sortDir;
+  const val = (s, k) => s.suspended ? -1 : (k === 'name' ? s.name : s[k]);
+  shown.sort((a, b) => key === 'name' ? dir * a.name.localeCompare(b.name, 'zh') : dir * (val(a, key) - val(b, key)));
+  const PER = 50, pages = Math.max(1, Math.ceil(shown.length / PER)), pg = Math.min(S.page2, pages);
+  const pageRows = shown.slice((pg - 1) * PER, pg * PER);
+  const live = shown.filter(s => !s.suspended);
+  const sum = k => live.reduce((a, s) => a + s[k], 0);
+  const scopeLabel = S.ovScope === 'all' ? '全部店（' + ov.length + '）' : S.ovScope === 'city' ? (S.ovCities.length ? S.ovCities.join('、') : '按城市：未选') : '自选 ' + S.ovPick.length + ' 家';
+  let h = '<main style="display:flex;flex-direction:column;gap:16px"><div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap"><div><h1>多店概览</h1><p class="sub">2026年11月20日 · 只列出你有「数据概览」权限的店（'+ov.length+'/'+S.count+'），数字与各店首页一致</p></div><button class="btn" data-act="refresh">⟳ 刷新</button></div>';
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  h += '<div style="position:relative"><button class="btn" data-act="toggle:scope">店铺范围：'+esc(scopeLabel)+' '+chev+'</button>';
+  if (S.open === 'scope') {
+    const cities = Array.from(new Set(ov.map(s => s.city)));
+    h += '<div class="menu" style="left:0;top:46px;width:360px">';
+    h += '<div style="display:flex;gap:6px;padding:4px">' + [['all','全部'],['city','按城市'],['pick','自选']].map(([k,l]) => '<button class="chip '+(S.ovScope===k?'on':'')+'" data-scope="'+k+'">'+l+'</button>').join('') + '</div>';
+    if (S.ovScope === 'city') {
+      h += '<div class="listbox" style="margin-top:6px">' + cities.map(c => { const n = ov.filter(s => s.city === c).length; return '<label class="check"><input type="checkbox" data-city="'+c+'" '+(S.ovCities.includes(c)?'checked':'')+'>'+c+'<span style="margin-left:auto;color:var(--dim);font-size:12px">'+n+' 家</span></label>'; }).join('') + '</div>';
+    } else if (S.ovScope === 'pick') {
+      h += '<input id="sc-q" class="search" style="margin-top:6px" placeholder="搜索店名或城市" value="'+esc(S.ovScopeQ)+'" data-input="ovScopeQ" autocomplete="off">';
+      h += '<div class="listbox" style="margin-top:6px">' + ov.filter(s => match(s, S.ovScopeQ)).map(s => '<label class="check"><input type="checkbox" data-pick="'+s.id+'" '+(S.ovPick.includes(s.id)?'checked':'')+'>'+esc(s.name)+'</label>').join('') + '</div>';
+    } else {
+      h += '<p class="hint" style="padding:8px 10px;margin:0;color:var(--muted);font-size:13px">统计你有概览权限的全部 '+ov.length+' 家店。</p>';
+    }
+    h += '</div>';
+  }
+  h += '</div><input id="ov-q" class="search" style="width:260px" placeholder="在结果里搜店名" value="'+esc(S.ovQ)+'" data-input="ovQ" autocomplete="off"><span style="color:var(--dim);font-size:13px">显示 '+shown.length+' 家</span></div>';
+  const cols = [['name','店铺'],['c','已收'],['u','未收'],['st','今日 桌/人'],['dt','当前用餐 桌/人']];
+  h += '<div class="card tablebox"><table><thead><tr>' + cols.map(([k,l]) => '<th class="'+(S.sortKey===k?'on':'')+'"><button data-sort="'+k+'">'+l+(S.sortKey===k?(S.sortDir<0?' ↓':' ↑'):'')+'</button></th>').join('') + '</tr></thead><tbody>';
+  pageRows.forEach(s => {
+    const d = s.suspended;
+    h += '<tr><td><button class="link" data-enter-ov="'+s.id+'" '+(d?'disabled':'')+'>'+esc(s.name)+'</button>'+(d?' <span class="pill warn">已暂停</span>':'')+'</td><td style="color:var(--gold)">'+(d?'—':eur(s.c))+'</td><td style="color:rgba(212,176,120,.6)">'+(d?'—':eur(s.u))+'</td><td>'+(d?'—':s.st+' / '+s.sg)+'</td><td>'+(d?'—':s.dt+' / '+s.dg)+'</td></tr>';
+  });
+  if (!pageRows.length) h += '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:32px">当前范围没有店</td></tr>';
+  h += '</tbody><tfoot><tr><td>合计（'+live.length+' 家，不含暂停）</td><td style="color:var(--gold)">'+eur(sum('c'))+'</td><td style="color:rgba(212,176,120,.6)">'+eur(sum('u'))+'</td><td>'+sum('st')+' / '+sum('sg')+'</td><td>'+sum('dt')+' / '+sum('dg')+'</td></tr></tfoot></table></div>';
+  if (pages > 1) h += '<div style="display:flex;gap:8px;align-items:center">第 '+pg+' / '+pages+' 页 <button class="btn" data-pg="'+(pg-1)+'" '+(pg<=1?'disabled':'')+'>上一页</button><button class="btn" data-pg="'+(pg+1)+'" '+(pg>=pages?'disabled':'')+'>下一页</button></div>';
+  h += '<p class="sub" style="font-size:13px;color:var(--dim);margin:0">点列名排序；点店名进入那家店的数据概览。合计只算当前筛选结果。超过 50 家分页。服务端一次批量算出所有店，打开时加载一次，点「刷新」再取，不自动轮询。'+(S.refreshed?'已刷新。':'')+'</p></main>';
+  return h;
+}
+
+function opsPage(){
+  const list = ALL_STORES.filter(s => match(s, S.opsQ));
+  const cities = Array.from(new Set(list.map(s => s.city)));
+  const sel = S.opsSel.map(byId);
+  const missing = sel.filter(s => S.opsRole === '店长' && !s.hasManagerRole);
+  let h = '<header class="top"><div class="row"><span class="logo" style="color:var(--gold)">FARVOO ops</span><span style="flex:1;color:var(--dim);font-size:13px;padding-left:8px">平台后台 · 只有 ops 能把账号关联到多家店</span></div></header>';
+  h += '<main style="max-width:1100px"><h1>关联已有账号到多家店</h1><p class="sub">一次勾选多家店，统一指定角色名；系统按名字匹配每家店已有的角色。</p>';
+  if (S.opsDone) {
+    h += '<div class="card" style="padding:24px;margin-top:24px"><h2 style="margin:0 0 8px;font-size:20px;font-weight:500">已关联 '+(sel.length - missing.length)+' 家店</h2><p class="sub">账号 zhang.manager 现在可以进入这些店；每家店写了一条平台审计。'+(missing.length?missing.length+' 家店因没有「店长」角色被跳过，需要该店先建角色或单独选。':'')+'</p><button class="btn" style="margin-top:16px" data-act="opsReset">再关联一批</button></div></main>';
+    return h;
+  }
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:24px">';
+  h += '<div class="card" style="padding:20px;display:flex;flex-direction:column;gap:12px"><label style="font-size:14px;font-weight:600">登录名<input class="search" style="margin-top:8px;padding-left:12px;background-image:none" value="zhang.manager" readonly></label>';
+  h += '<label style="font-size:14px;font-weight:600">在这些店的角色<select data-role style="display:block;margin-top:8px;width:100%;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--bg);padding:0 10px">' + ['店长','收银','服务员'].map(r => '<option '+(S.opsRole===r?'selected':'')+'>'+r+'</option>').join('') + '</select></label>';
+  h += '<div style="font-size:14px;font-weight:600">提交前预览</div><div style="font-size:14px;color:var(--muted);line-height:1.7">已选 <b style="color:var(--text)">'+sel.length+'</b> 家店，其中 <b style="color:var(--text)">'+(sel.length - missing.length)+'</b> 家能匹配到「'+S.opsRole+'」。';
+  if (missing.length) h += '<br><span style="color:#f0b9a0">以下 '+missing.length+' 家没有同名角色，将跳过：</span><br>' + missing.map(s => esc(s.name)).join('<br>');
+  h += '</div><button class="btn primary" data-act="opsSubmit" '+(sel.length?'':'disabled')+'>关联 '+(sel.length - missing.length)+' 家店</button></div>';
+  h += '<div class="card" style="padding:20px"><input id="ops-q" class="search" placeholder="搜索店名或城市" value="'+esc(S.opsQ)+'" data-input="opsQ" autocomplete="off"><div class="listbox" style="margin-top:8px;max-height:52vh">';
+  cities.forEach(c => {
+    const inCity = list.filter(s => s.city === c);
+    const all = inCity.every(s => S.opsSel.includes(s.id));
+    h += '<label class="check" style="font-weight:600"><input type="checkbox" data-ops-city="'+c+'" '+(all?'checked':'')+'>'+c+'（全选 '+inCity.length+' 家）</label>';
+    inCity.forEach(s => { h += '<label class="check" style="padding-left:34px"><input type="checkbox" data-ops="'+s.id+'" '+(S.opsSel.includes(s.id)?'checked':'')+'>'+esc(s.name)+(s.hasManagerRole?'':'<span class="pill warn" style="margin-left:auto">无「店长」角色</span>')+'</label>'; });
+  });
+  h += '</div></div></div></main>';
+  return h;
+}
+
+function loginPage(){
+  return '<main style="max-width:420px;padding-top:64px"><h1>已退出登录</h1><p class="sub">登录页与现在完全相同，这里不再重画。</p><button class="btn" style="margin-top:20px" data-act="login">重新登录（演示）</button></main>';
+}
+
+function render(){
+  let h = demoBar() + '<div class="url">地址栏<span>farvoo.pt<b>'+url()+'</b></span></div>';
+  if (S.screen === 'login') h += loginPage();
+  else if (S.screen === 'picker') h += pickerPage();
+  else if (S.screen === 'ops') h += opsPage();
+  else h += topBar() + (S.screen === 'store' ? storePage() : overviewPage());
+  document.getElementById('app').innerHTML = h;
+  if (S.focus) { const el = document.getElementById(S.focus); if (el) { el.focus(); const n = el.value.length; el.setSelectionRange(n, n); } }
+}
+
+/* ---------- 交互 ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (e.target.closest('label.check')) return;
+  if (!b || b.disabled) { if (S.open && !e.target.closest('.menu')) set({ open:null, focus:null }); return; }
+  const d = b.dataset;
+  if (d.demo) {
+    if (d.demo === 'store') return enter(S.store || 's0');
+    return set({ screen:d.demo, open:null, q:'', focus: d.demo === 'picker' && S.count > 6 ? 'pk-q' : null });
+  }
+  if (d.count) { const n = +d.count; return set({ count:n, store:'s0', q:'', hi:0, ovPick:[], ovCities:[], ovScope:'all' }); }
+  if (d.fav) { const id = d.fav; return set({ fav: S.fav.includes(id) ? S.fav.filter(x => x !== id) : S.fav.concat(id) }); }
+  if (d.enter) return enter(d.enter);
+  if (d.enterOv) return enter(d.enterOv, 'overview');
+  if (d.page) return set({ page:d.page, open:null });
+  if (d.sort) return set({ sortKey:d.sort, sortDir: S.sortKey === d.sort ? -S.sortDir : (d.sort === 'name' ? 1 : -1), page2:1 });
+  if (d.scope) return set({ ovScope:d.scope, page2:1, focus: d.scope === 'pick' ? 'sc-q' : null });
+  if (d.pg) return set({ page2:+d.pg });
+  const a = d.act || '';
+  if (a.startsWith('toggle:')) { const k = a.slice(7); const opening = S.open !== k; return set({ open: opening ? k : null, q:'', hi:0, focus: opening && k === 'switch' ? 'sw-q' : null }); }
+  if (a === 'overview') return set({ screen:'overview', open:null, refreshed:false });
+  if (a === 'refresh') return set({ refreshed:true });
+  if (a === 'logout') return set({ screen:'login', open:null });
+  if (a === 'login') return set({ screen:'picker' });
+  if (a === 'opsSubmit') return set({ opsDone:true });
+  if (a === 'opsReset') return set({ opsDone:false, opsSel:[] });
+});
+document.addEventListener('change', e => {
+  const t = e.target, d = t.dataset;
+  if (d.city) return set({ ovCities: t.checked ? S.ovCities.concat(d.city) : S.ovCities.filter(x => x !== d.city), page2:1, focus:null });
+  if (d.pick) return set({ ovPick: t.checked ? S.ovPick.concat(d.pick) : S.ovPick.filter(x => x !== d.pick), page2:1, focus:'sc-q' });
+  if (d.ops) return set({ opsSel: t.checked ? S.opsSel.concat(d.ops) : S.opsSel.filter(x => x !== d.ops), focus:null });
+  if (d.opsCity) { const ids = ALL_STORES.filter(s => s.city === d.opsCity && match(s, S.opsQ)).map(s => s.id); return set({ opsSel: t.checked ? Array.from(new Set(S.opsSel.concat(ids))) : S.opsSel.filter(x => !ids.includes(x)), focus:null }); }
+  if (t.hasAttribute('data-role')) return set({ opsRole: t.value });
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset.input;
+  if (!k) return;
+  const p = { focus: e.target.id }; p[k] = e.target.value;
+  if (k === 'q') p.hi = 0;
+  if (k === 'ovQ') p.page2 = 1;
+  set(p);
+});
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.input === 'q') {
+    const flat = flatEnterable(S.q);
+    if (e.key === 'ArrowDown') { e.preventDefault(); return set({ hi: Math.min(S.hi + 1, flat.length - 1), focus:t.id }); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); return set({ hi: Math.max(S.hi - 1, 0), focus:t.id }); }
+    if (e.key === 'Enter' && flat[S.hi]) { e.preventDefault(); return enter(flat[S.hi]); }
+    if (e.key === 'Escape') return set({ open:null, focus:null });
+    return;
+  }
+  if (e.key === '/' && (S.screen === 'store' || S.screen === 'overview') && !/INPUT|SELECT|TEXTAREA/.test(t.tagName)) {
+    e.preventDefault(); set({ open:'switch', q:'', hi:0, focus:'sw-q' });
+  }
+  if (e.key === 'Escape' && S.open) set({ open:null, focus:null });
+});
+S.focus = 'pk-q';
+render();
+</script>
+</body>
+</html>

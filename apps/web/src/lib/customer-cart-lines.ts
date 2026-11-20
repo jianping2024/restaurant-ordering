@@ -65,23 +65,34 @@ export function cartLineUnitPrice(
 }
 
 /**
- * Re-derive cart line prices from the table-priced catalog (buffet switched / menu edited).
+ * Sole cart follow of the table catalog: re-derive line prices (menu edited / buffet set) and
+ * drop lines whose dish the guest buffet narrowing hides (`CustomerMenuCatalogView.buffetHiddenItemIds`).
  * Returns the same array when nothing changed; dishes missing from the catalog keep their price.
  */
 export function repriceCartLines(
   cart: CartItem[],
   allItems: readonly PricedMenuItem[],
+  hiddenItemIds: ReadonlySet<string>,
 ): CartItem[] {
   let changed = false;
-  const next = cart.map((line) => {
-    const item = allItems.find((d) => d.id === line.menuItemId);
-    if (!item) return line;
-    const price = cartLineUnitPrice(item, line.toppingPicks, allItems);
-    if (price === line.price) return line;
-    changed = true;
-    return { ...line, price };
-  });
+  const next: CartItem[] = [];
+  for (const line of cart) {
+    if (hiddenItemIds.has(line.menuItemId)) {
+      changed = true;
+      continue;
+    }
+    const repriced = repriceCartLine(line, allItems);
+    if (repriced !== line) changed = true;
+    next.push(repriced);
+  }
   return changed ? next : cart;
+}
+
+function repriceCartLine(line: CartItem, allItems: readonly PricedMenuItem[]): CartItem {
+  const item = allItems.find((d) => d.id === line.menuItemId);
+  if (!item) return line;
+  const price = cartLineUnitPrice(item, line.toppingPicks, allItems);
+  return price === line.price ? line : { ...line, price };
 }
 
 function buildCartLine(

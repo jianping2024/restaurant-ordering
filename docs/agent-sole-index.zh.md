@@ -277,6 +277,10 @@ identity separate from actions (mobile stack / desktop identity-left + compact a
 
 sole CSS on `.mesa-menu-item-card` (lit top sheen + layered shadow, per-theme `--mesa-menu-card-hl/shade`; thumb has no inset hairline/`::after` well; list/rail wells use `clip-path` round + white `mesa-dish-motion-video` so Safari scroll does not fringe motion mp4 black); press-sink skips `.mesa-menu-item-card-action`; mouse hover lift + tilt via sole `menuItemCardTiltFromPointer` → `--mesa-menu-card-tilt-x/y` (no React state); reduced-motion off. Gold `+` / qty pill keep their own look — never add depth chrome to the action.
 
+### 客人菜单按套餐收窄
+
+sole 判定 `narrowMenuItemsToTableBuffet`（`instore-takeaway.ts`，与取价共用 `menuItemBuffetConfiguredPrice`；入参只收已过渠道+时段的菜：有 ≥1 道已上架菜配了本桌套餐价（含 0 元）→ 只留配价菜，否则全显；外卖/无套餐不收窄）；sole 挂载 `resolveCustomerMenuCatalogView` `tableBuffet`（渠道+时段之后、寿司 `dietaryPrefs` 之前，列表/推荐/分类/搜索跟 `servedItems`）；购物车 sole `repriceCartLines(…, view.buffetHiddenItemIds)` 移除被藏的菜；配料仍用全量菜品。仅客人 QR（经典+寿司）：员工代点 `staffAssisted: true`、店面预览 `tableBuffet: null` 不收窄；服务端不门禁（提交照常按价）。不要在页面另写 filter、不要在开台存收窄标记。
+
 ### Guest menu catalog categories
 
 sole `resolveCustomerMenuCatalogView` — nav shows a category only when it still has ≥1 dish in `servedItems` after channel + time-slot filters; never keep empty shells or a second UI hide for takeaway-only.
@@ -432,7 +436,7 @@ sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的�
 
 ### 套餐固定 + 菜价按套餐 + 并发核对
 
-开台确认后禁止换套餐（楼面 `packageLocked` + pipeline 409 `buffet_switch_locked`）；人数 −/+ 不改 `buffet_id`。`switchTableBuffet` / RPC `switch_table_buffet` 不再走 waiter 保存路径（保留库函数供历史/工具）。sole「是否进入结账」`hasEnteredCheckout` 仍供结账门禁（signals sole `loadCheckoutEntrySignals`）；line predicate sole `isBuffetPricedDishLine` ≡ SQL `order_item_is_buffet_priced`; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
+开台确认后禁止换套餐（楼面 `packageLocked` + pipeline 409 `buffet_switch_locked`）；人数 −/+ 不改 `buffet_id`。`switchTableBuffet` / RPC `switch_table_buffet` 已删除（`20261119120000`，无换套餐改价路径）。sole「是否进入结账」`hasEnteredCheckout` 仍供结账门禁（signals sole `loadCheckoutEntrySignals`）；line predicate sole SQL `order_item_is_buffet_priced`（`append_order_items` 用，无 TS twin）; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
 
 ### 楼面跨端
 

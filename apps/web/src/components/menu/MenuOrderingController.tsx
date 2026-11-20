@@ -365,11 +365,6 @@ export function MenuOrderingController({
       ),
     [catalogMenuItems, menuItemBuffetPrices, orderingChannel, tableBuffetId],
   );
-  // Buffet switched / menu edited: cart lines follow the table's current prices.
-  useEffect(() => {
-    setCartState((prev) => repriceCartLines(prev, menuItems));
-  }, [menuItems, setCartState]);
-
   const catalogView = useMemo(
     () =>
       resolveCustomerMenuCatalogView({
@@ -380,6 +375,11 @@ export function MenuOrderingController({
         activeTopId: activeTopCategory,
         activeSubpath,
         orderingChannel,
+        tableBuffet: {
+          buffetId: tableBuffetId,
+          buffetPrices: menuItemBuffetPrices,
+          staffAssisted: !!staffAssisted,
+        },
       }),
     [
       menuCategories,
@@ -389,8 +389,16 @@ export function MenuOrderingController({
       activeTopCategory,
       activeSubpath,
       orderingChannel,
+      tableBuffetId,
+      menuItemBuffetPrices,
+      staffAssisted,
     ],
   );
+  const buffetHiddenItemIds = catalogView.buffetHiddenItemIds;
+  // Menu edited / buffet set: cart lines follow the table's prices; narrowing-hidden dishes leave.
+  useEffect(() => {
+    setCartState((prev) => repriceCartLines(prev, menuItems, buffetHiddenItemIds));
+  }, [buffetHiddenItemIds, menuItems, setCartState]);
   const currentTop = catalogView.currentTopId;
   const subCategories = catalogView.subCategories;
   const currentSubpath = catalogView.currentSubpath;

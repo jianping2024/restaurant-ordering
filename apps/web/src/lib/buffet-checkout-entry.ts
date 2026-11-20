@@ -1,6 +1,6 @@
 /**
  * 409: the table's buffet changed between pricing and the locked write
- * (`append_order_items` / `switch_table_buffet`) — re-read, re-price, resubmit.
+ * (`append_order_items`) — re-read, re-price, resubmit.
  */
 export const BUFFET_CHANGED = 'buffet_changed' as const;
 

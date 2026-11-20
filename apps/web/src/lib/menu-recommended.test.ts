@@ -9,7 +9,13 @@ import {
   visibleRecommendedMenuItems,
 } from './menu-recommended.ts';
 import { filterRecommendedPickerItems } from './menu-admin.ts';
-import { menuItemWithChannelDisplayPrice } from '@/lib/instore-takeaway';
+import {
+  menuItemWithChannelDisplayPrice,
+  narrowMenuItemsToTableBuffet,
+  type MenuItemBuffetPriceMap,
+} from '@/lib/instore-takeaway';
+import { repriceCartLines } from '@/lib/customer-cart-lines';
+import type { CartItem } from '@/types';
 
 /** Views take table-priced rows (sole `menuItemWithChannelDisplayPrice`); no buffet here. */
 function priced(rows: MenuItem[], channel: 'dine_in' | 'takeaway' = 'dine_in') {
@@ -70,6 +76,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -84,6 +91,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced([frango, vinho, soldOut]),
       recommendedItemIds: ['i-sold', 'i-vinho'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: 'Pratos',
       activeSubpath: '',
     });
@@ -99,6 +107,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced([soldOut, frango]),
       recommendedItemIds: ['i-sold'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: 'recommended',
       activeSubpath: '',
     });
@@ -112,6 +121,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: ['i-vinho'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: 'c-mains',
       activeSubpath: 'c-fish',
     });
@@ -131,6 +141,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       recommendedItemIds: ['i-dinner', 'i-lunch', 'i-vinho'],
       activeTopId: 'c-mains',
       activeSubpath: '',
+      tableBuffet: null,
     };
 
     const atLunch = resolveCustomerMenuCatalogView({ ...args, menuTimeSlotId: 'lunch' });
@@ -152,6 +163,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       ...args,
       activeTopId: 'c-dinner',
       menuTimeSlotId: null,
+      tableBuffet: null,
     });
     assert.equal(allDayOnly.currentTopId, 'c-mains');
     assert.ok(!allDayOnly.realTopCategories.some((c) => c.id === 'c-empty'));
@@ -196,6 +208,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced(items, 'takeaway'),
       recommendedItemIds: ['i-sell', 'i-dine', 'i-tw-only'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: 'c-dine-only',
       activeSubpath: '',
       orderingChannel: 'takeaway',
@@ -213,6 +226,7 @@ describe('resolveCustomerMenuCatalogView', () => {
       menuItems: priced(items, 'dine_in'),
       recommendedItemIds: ['i-tw-only'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: '',
       activeSubpath: '',
       orderingChannel: 'dine_in',
@@ -232,6 +246,7 @@ describe('customerMenuNavTopCategories', () => {
       menuItems: priced([vinho]),
       recommendedItemIds: ['i-vinho'],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -246,6 +261,7 @@ describe('customerMenuNavTopCategories', () => {
       menuItems: priced([frango]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -261,6 +277,7 @@ describe('customerMenuNavTopCategories', () => {
       menuItems: priced([bacalhau, frango, vinho]),
       recommendedItemIds: [],
       menuTimeSlotId: null,
+      tableBuffet: null,
       activeTopId: '',
       activeSubpath: '',
     });
@@ -326,5 +343,140 @@ describe('filterRecommendedPickerItems', () => {
       'vinho',
     );
     assert.deepEqual(hit.map((row) => row.id), ['i-vinho']);
+  });
+});
+
+describe('narrowMenuItemsToTableBuffet', () => {
+  const dineIn = (buffetPrices: MenuItemBuffetPriceMap, buffetId: string | null = 'b1') => ({
+    channel: 'dine_in' as const,
+    buffetId,
+    buffetPrices,
+  });
+  const all = [bacalhau, frango, vinho, soldOut];
+  const ids = (rows: readonly MenuItem[]) => rows.map((r) => r.id);
+
+  it('no dish configured for the buffet → every dish stays', () => {
+    assert.deepEqual(ids(narrowMenuItemsToTableBuffet(all, dineIn({}))), ids(all));
+    assert.deepEqual(
+      ids(narrowMenuItemsToTableBuffet(all, dineIn({ 'i-frango': { b2: 3 } }))),
+      ids(all),
+    );
+  });
+
+  it('configured dishes only (0 € counts; unavailable configured dish stays as sold out)', () => {
+    assert.deepEqual(
+      ids(
+        narrowMenuItemsToTableBuffet(
+          all,
+          dineIn({ 'i-bacalhau': { b1: 0 }, 'i-frango': { b1: 5 }, 'i-sold': { b1: 2 } }),
+        ),
+      ),
+      ['i-bacalhau', 'i-frango', 'i-sold'],
+    );
+  });
+
+  it('only unavailable dishes configured → every dish stays', () => {
+    assert.deepEqual(
+      ids(narrowMenuItemsToTableBuffet(all, dineIn({ 'i-sold': { b1: 0 } }))),
+      ids(all),
+    );
+  });
+
+  it('takeaway / no buffet → unchanged', () => {
+    const prices = { 'i-frango': { b1: 5 } };
+    assert.deepEqual(
+      ids(narrowMenuItemsToTableBuffet(all, { channel: 'takeaway', buffetId: 'b1', buffetPrices: prices })),
+      ids(all),
+    );
+    assert.deepEqual(ids(narrowMenuItemsToTableBuffet(all, dineIn(prices, null))), ids(all));
+  });
+});
+
+describe('resolveCustomerMenuCatalogView buffet narrowing', () => {
+  const buffetPrices: MenuItemBuffetPriceMap = { 'i-bacalhau': { b1: 0 }, 'i-frango': { b1: 5 } };
+  const base = {
+    menuCategories: [mains, drinks, fish],
+    menuItems: priced([bacalhau, frango, vinho, soldOut]),
+    recommendedItemIds: ['i-vinho', 'i-frango'],
+    menuTimeSlotId: null,
+    activeTopId: 'c-drinks',
+    activeSubpath: '',
+  };
+
+  it('guest: list / nav / recommended / search follow the configured dishes', () => {
+    const view = resolveCustomerMenuCatalogView({
+      ...base,
+      tableBuffet: { buffetId: 'b1', buffetPrices, staffAssisted: false },
+    });
+    assert.deepEqual(view.realTopCategories.map((c) => c.id), ['c-mains']);
+    assert.equal(view.currentTopId, 'c-mains');
+    assert.deepEqual(view.subCategories.map((c) => c.id), ['c-fish']);
+    assert.deepEqual(view.recommendedItems.map((r) => r.id), ['i-frango']);
+    assert.deepEqual(view.servedItems.map((r) => r.id).sort(), ['i-bacalhau', 'i-frango']);
+    assert.deepEqual([...view.buffetHiddenItemIds].sort(), ['i-sold', 'i-vinho']);
+  });
+
+  it('staff-assisted / no table buffet → never narrowed', () => {
+    for (const tableBuffet of [
+      { buffetId: 'b1', buffetPrices, staffAssisted: true },
+      null,
+    ]) {
+      const view = resolveCustomerMenuCatalogView({ ...base, tableBuffet });
+      assert.equal(view.servedItems.length, 4);
+      assert.equal(view.buffetHiddenItemIds.size, 0);
+      assert.deepEqual(view.realTopCategories.map((c) => c.id), ['c-mains', 'c-drinks']);
+    }
+  });
+
+  it('configured dishes outside the table time slot → every served dish stays', () => {
+    const lunchBacalhau = { ...bacalhau, time_slot_id: 'lunch' };
+    const lunchFrango = { ...frango, time_slot_id: 'lunch' };
+    const view = resolveCustomerMenuCatalogView({
+      ...base,
+      menuItems: priced([lunchBacalhau, lunchFrango, vinho]),
+      menuTimeSlotId: 'dinner',
+      tableBuffet: { buffetId: 'b1', buffetPrices, staffAssisted: false },
+    });
+    assert.deepEqual(view.servedItems.map((r) => r.id), ['i-vinho']);
+    assert.equal(view.buffetHiddenItemIds.size, 0);
+  });
+
+  it('dietary prefs filter after narrowing and never flip it', () => {
+    const vegVinho = { ...vinho, is_vegetarian: true };
+    const view = resolveCustomerMenuCatalogView({
+      ...base,
+      menuItems: priced([bacalhau, frango, vegVinho]),
+      tableBuffet: { buffetId: 'b1', buffetPrices, staffAssisted: false },
+      dietaryPrefs: { vegetarianOnly: true, excludeAllergenCodes: [] },
+    });
+    assert.deepEqual(view.servedItems, []);
+    assert.deepEqual([...view.buffetHiddenItemIds], ['i-vinho']);
+  });
+});
+
+describe('repriceCartLines', () => {
+  const line = (menuItemId: string, price: number): CartItem => ({
+    lineId: `l-${menuItemId}`,
+    menuItemId,
+    name_pt: menuItemId,
+    price,
+    emoji: '',
+    qty: 1,
+  });
+  const rows = priced([frango, vinho]);
+
+  it('drops narrowing-hidden dishes and keeps the rest', () => {
+    const cart = [line('i-frango', 1), line('i-vinho', 1)];
+    assert.deepEqual(
+      repriceCartLines(cart, rows, new Set(['i-vinho'])).map((l) => l.menuItemId),
+      ['i-frango'],
+    );
+  });
+
+  it('returns the same array when nothing changes; reprices from the catalog', () => {
+    const cart = [line('i-frango', 1), line('i-gone', 9)];
+    assert.equal(repriceCartLines(cart, rows, new Set()), cart);
+    const repriced = repriceCartLines([line('i-frango', 4)], rows, new Set());
+    assert.equal(repriced[0].price, 1);
   });
 });

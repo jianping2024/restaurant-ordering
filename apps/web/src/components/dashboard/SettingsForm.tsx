@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RESTAURANT_COUNTRY_OPTIONS, readGeoOrderRestrictionEnabled, type RestaurantCountryCode } from '@mesa/shared';
@@ -31,6 +33,7 @@ export function SettingsForm({
   /** Backend owner (`restaurants.owner_id`) only — clear business data gate. */
   isOwner?: boolean;
 }) {
+  const { slug: storeSlug } = useDashboardStore();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).settings;
@@ -108,7 +111,7 @@ export function SettingsForm({
         business_hours: hours,
         storefront_intro: intro,
       };
-      const res = await fetch('/api/restaurant/settings', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/settings'), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

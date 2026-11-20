@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { resolveTakeawayVatRate } from '@/lib/checkout-takeaway';
 import 'server-only';
 
@@ -21,6 +22,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { requirePermission } from '@/lib/permissions/require';
+import { DASHBOARD_ENTRY_PATH } from '@/lib/dashboard-store-routes';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
@@ -34,7 +36,7 @@ async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Rest
   try {
     admin = createAdminClient();
   } catch {
-    redirect('/dashboard');
+    redirect(DASHBOARD_ENTRY_PATH);
   }
 
   const { data, error } = await admin
@@ -45,9 +47,12 @@ async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Rest
     .eq('id', restaurantId)
     .maybeSingle();
 
-  if (error || !data) redirect('/dashboard');
+  if (error || !data) redirect(DASHBOARD_ENTRY_PATH);
   return data as Restaurant;
 }
+
+/** Settings store row whose `id` is the auth gate's branded store id. */
+export type AuthorizedSettingsRestaurant = Restaurant & { id: AuthorizedRestaurantId };
 
 /**
  * Settings pages permission-based entry for both owner_id (backend admin) and staff roles.
@@ -55,14 +60,16 @@ async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Rest
  */
 export async function requireRestaurantForSettingsPermission(
   permission: PermissionKey,
+  restaurantId: string,
   options?: { requireWritable?: boolean },
-): Promise<Restaurant> {
-  const auth = await requirePermission(permission);
-  if (auth instanceof NextResponse) redirect('/dashboard');
+): Promise<AuthorizedSettingsRestaurant> {
+  const auth = await requirePermission(permission, restaurantId);
+  if (auth instanceof NextResponse) redirect(DASHBOARD_ENTRY_PATH);
 
-  const restaurant = await loadRestaurantByIdForSettings(auth.principal.restaurantId);
+  const row = await loadRestaurantByIdForSettings(auth.restaurantId);
+  const restaurant: AuthorizedSettingsRestaurant = { ...row, id: auth.restaurantId };
   if (options?.requireWritable && isRestaurantSuspended(restaurant.suspended_at)) {
-    redirect('/dashboard');
+    redirect(DASHBOARD_ENTRY_PATH);
   }
   return restaurant;
 }
@@ -91,7 +98,7 @@ export function toSettingsProfile(restaurant: Restaurant): RestaurantSettingsPro
  * Same listHumanStaffAccountsForRestaurant path as GET /api/dashboard/staff.
  */
 export async function loadStaffSettingsPageData(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<RestaurantStaffAccount[]> {
   let admin;
   try {
@@ -127,7 +134,7 @@ export type PrintSettingsPageData = {
 
 /** Paper / billing-print options for「打印设置」page. */
 export async function loadPrintSettingsPageData(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   featureFlags: Restaurant['feature_flags'],
   printLocale: Restaurant['print_locale'],
 ): Promise<PrintSettingsPageData> {
@@ -149,7 +156,7 @@ export async function loadPrintSettingsPageData(
 
 /** Feature-management page load (kitchen/flavor/cooldown/sushi/logs — not billing/print paper). */
 export async function loadFeatureSettingsPageData(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   featureFlags: Restaurant['feature_flags'],
 ): Promise<FeatureSettingsPageData> {
   const supabase = await createClient();
@@ -190,16 +197,16 @@ export async function loadFeatureSettingsPageData(
 
 /** Buffet settings — same admin-backed loader as dashboard buffet API. */
 export async function loadBuffetSettingsPageData(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<BuffetDashboardData> {
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    redirect('/dashboard');
+    redirect(DASHBOARD_ENTRY_PATH);
   }
 
   const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) redirect('/dashboard');
+  if ('error' in data) redirect(DASHBOARD_ENTRY_PATH);
   return data;
 }

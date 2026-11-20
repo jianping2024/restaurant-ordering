@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -144,6 +146,7 @@ function StaffRoleSelect({
 }
 
 export function StaffAccountsManager({ initialStaff, embedded }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).staffSettings;
 
@@ -187,7 +190,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const reloadRoles = useCallback(async () => {
     setRolesLoadState('loading');
     try {
-      const res = await fetch('/api/dashboard/roles');
+      const res = await fetch(restaurantApiPath(storeSlug, '/roles'));
       const json = (await res.json().catch(() => ({}))) as { roles?: RoleOption[] };
       if (!res.ok || !Array.isArray(json.roles)) {
         setRoles([]);
@@ -200,7 +203,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       setRoles([]);
       setRolesLoadState('error');
     }
-  }, []);
+  }, [storeSlug]);
 
   useEffect(() => {
     void reloadRoles();
@@ -247,7 +250,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setCreateSaving(true);
     setCreateError('');
     try {
-      const res = await fetch('/api/dashboard/staff', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/staff-accounts'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(createForm),
@@ -273,7 +276,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     if (!editTarget) return;
     setEditSaving(true);
     try {
-      const res = await fetch(`/api/dashboard/staff/${editTarget.id}`, {
+      const res = await fetch(restaurantApiPath(storeSlug, `/staff-accounts/${editTarget.id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +303,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     if (!resetTarget) return;
     setResetSaving(true);
     try {
-      const res = await fetch(`/api/dashboard/staff/${resetTarget.id}/reset-password`, {
+      const res = await fetch(restaurantApiPath(storeSlug, `/staff-accounts/${resetTarget.id}/reset-password`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: resetPassword }),
@@ -325,7 +328,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setToggleSaving(true);
     const enabling = !!toggleTarget.disabled_at;
     try {
-      const res = await fetch(`/api/dashboard/staff/${toggleTarget.id}`, {
+      const res = await fetch(restaurantApiPath(storeSlug, `/staff-accounts/${toggleTarget.id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: enabling ? 'enable' : 'disable' }),
@@ -349,7 +352,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     if (!deleteTarget) return;
     setDeleteSaving(true);
     try {
-      const res = await fetch(`/api/dashboard/staff/${deleteTarget.id}`, { method: 'DELETE' });
+      const res = await fetch(restaurantApiPath(storeSlug, `/staff-accounts/${deleteTarget.id}`), { method: 'DELETE' });
       if (!res.ok) {
         showToast(t.saveFail, 'error');
         return;

@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import {
@@ -23,7 +24,7 @@ export function parseChoiceNameBody(
   return fields;
 }
 
-async function nextGroupSortOrder(admin: SupabaseClient, restaurantId: string): Promise<number> {
+async function nextGroupSortOrder(admin: SupabaseClient, restaurantId: AuthorizedRestaurantId): Promise<number> {
   const { data } = await admin
     .from('menu_choice_groups')
     .select('sort_order')
@@ -36,7 +37,7 @@ async function nextGroupSortOrder(admin: SupabaseClient, restaurantId: string): 
 
 async function nextOptionSortOrder(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<number> {
   const { data } = await admin
@@ -85,7 +86,7 @@ export async function listMenuChoiceDictionary(
 
 export async function createMenuChoiceGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   fields: MenuChoiceNameFields,
 ): Promise<{ group: MenuChoiceGroup } | MenuChoiceMutationError> {
   const sort_order = await nextGroupSortOrder(admin, restaurantId);
@@ -109,7 +110,7 @@ export async function createMenuChoiceGroup(
 
 export async function updateMenuChoiceGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
   patch: Partial<MenuChoiceNameFields> & { active?: boolean },
 ): Promise<{ group: MenuChoiceGroup } | MenuChoiceMutationError> {
@@ -131,7 +132,7 @@ export async function updateMenuChoiceGroup(
 
 export async function deleteMenuChoiceGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<{ ok: true } | MenuChoiceMutationError> {
   const id = parseTableIdParam(groupId);
@@ -162,7 +163,7 @@ export async function deleteMenuChoiceGroup(
 
 export async function createMenuChoiceOption(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
   fields: MenuChoiceNameFields,
 ): Promise<{ option: MenuChoiceOption } | MenuChoiceMutationError> {
@@ -190,7 +191,7 @@ export async function createMenuChoiceOption(
 
 export async function updateMenuChoiceOption(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   optionId: string,
   patch: Partial<MenuChoiceNameFields> & { active?: boolean },
 ): Promise<{ option: MenuChoiceOption } | MenuChoiceMutationError> {
@@ -212,7 +213,7 @@ export async function updateMenuChoiceOption(
 
 export async function deleteMenuChoiceOption(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   optionId: string,
 ): Promise<{ ok: true } | MenuChoiceMutationError> {
   const id = parseTableIdParam(optionId);

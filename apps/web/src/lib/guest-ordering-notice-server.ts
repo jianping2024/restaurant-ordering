@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   emptyGuestOrderingNotice,
@@ -29,7 +30,7 @@ export async function loadGuestOrderingNotice(
 
 export async function saveGuestOrderingNotice(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   body: Record<string, unknown>,
 ): Promise<GuestOrderingNotice | GuestNoticeMutationError> {
   const draft = parseGuestOrderingNoticeDraft(body);

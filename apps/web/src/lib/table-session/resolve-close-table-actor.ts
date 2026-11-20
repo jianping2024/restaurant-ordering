@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { DashboardAccessResult } from '@/lib/dashboard-access';
 import { can, type Capabilities } from '@/lib/permissions/can';
@@ -11,7 +12,7 @@ export type CloseTableSessionActorGate = 'checkout_close' | 'manual';
 export type CloseTableSessionDeskActorDecision =
   | {
       ok: true;
-      restaurantId: string;
+      restaurantId: AuthorizedRestaurantId;
       userId: string;
       staffRole: string;
       closedReason: SettledCloseActorReason;
@@ -44,7 +45,7 @@ export function resolveCloseTableSessionDeskActor(
   if (access.mode === 'unauthenticated') {
     return { ok: false, error: 'unauthorized', status: 401 };
   }
-  if (access.mode === 'access_error' || access.mode === 'onboarding') {
+  if (access.mode === 'access_error' || access.mode === 'forbidden') {
     return { ok: false, error: 'forbidden', status: 403 };
   }
   if (!loaded || loaded.principal.kind !== 'staff') {
@@ -71,7 +72,7 @@ export function resolveCloseTableSessionDeskActor(
 
   return {
     ok: true,
-    restaurantId: access.restaurant.id,
+    restaurantId: access.loaded.restaurantId,
     userId: loaded.principal.userId,
     staffRole,
     closedReason: settledCloseReasonForStaffPreset(loaded.principal.presetKey),

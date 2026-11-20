@@ -1,5 +1,7 @@
 'use client';
 
+import { dashboardStoreHref, restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DatePicker, DATE_PICKER_COMPACT_TRIGGER_CLASS } from '@mesa/ui';
@@ -62,7 +64,6 @@ function RevenueChannelTabs({
 }
 
 /** Sole overview entry into the abnormal-ops list (same path as nav / route permission). */
-const ABNORMAL_OPERATIONS_HREF = '/dashboard/abnormal-operations';
 
 function startMinFromEndDate(endDate: string, maxMonths: number): string {
   const [yearStr, monthStr] = endDate.split('-');
@@ -149,6 +150,7 @@ export function DashboardOverviewPrimaryClient({
 }: {
   primary: DashboardOverviewPrimaryView;
 }) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const i18n = messages.dashboard;
@@ -173,7 +175,7 @@ export function DashboardOverviewPrimaryClient({
             label: i18n.pendingAbnormal,
             count: pendingActions.pendingAbnormal,
             alert: true,
-            href: ABNORMAL_OPERATIONS_HREF,
+            href: dashboardStoreHref(storeSlug, '/abnormal-operations'),
           },
         ]
       : []),
@@ -264,7 +266,7 @@ export function DashboardOverviewPrimaryClient({
 
     try {
       const qs = new URLSearchParams({ startDate: draftStartDate, endDate: draftEndDate });
-      const res = await fetch(`/api/dashboard/revenue-interval?${qs}`, { signal: ac.signal });
+      const res = await fetch(restaurantApiPath(storeSlug, `/revenue-interval?${qs}`), { signal: ac.signal });
       if (!res.ok) {
         if (res.status === 400) {
           throw new Error(i18n.revenueIntervalRangeHint);
@@ -297,7 +299,7 @@ export function DashboardOverviewPrimaryClient({
     } finally {
       if (!ac.signal.aborted) setIntervalLoading(false);
     }
-  }, [appliedEndDate, appliedStartDate, draftEndDate, draftStartDate, i18n]);
+  }, [appliedEndDate, appliedStartDate, draftEndDate, draftStartDate, i18n, storeSlug]);
 
   return (
     <>

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import type { PremiumKey } from '@mesa/shared';
 import type { PremiumGateResult, PremiumLoaderError } from '@/lib/premium/access';
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 
 export type LoaderError = {
   error: string;
@@ -10,17 +11,21 @@ export type LoaderError = {
   message?: string;
 };
 
-export function redirectIfPremiumRequired(gate: PremiumGateResult): void {
-  if (gate.ok) return;
-  redirect(`/dashboard/upgrade?feature=${encodeURIComponent(gate.premiumKey)}`);
+function upgradeHref(slug: string, premiumKey: PremiumKey): string {
+  return dashboardStoreHref(slug, `/upgrade?feature=${encodeURIComponent(premiumKey)}`);
 }
 
-export function redirectForLoaderError(ctx: LoaderError): never {
+export function redirectIfPremiumRequired(gate: PremiumGateResult, slug: string): void {
+  if (gate.ok) return;
+  redirect(upgradeHref(slug, gate.premiumKey));
+}
+
+export function redirectForLoaderError(ctx: LoaderError, slug: string): never {
   if (ctx.status === 401) redirect('/auth/login');
   if (ctx.error === 'pro_required' && ctx.premiumKey) {
-    redirect(`/dashboard/upgrade?feature=${encodeURIComponent(ctx.premiumKey)}`);
+    redirect(upgradeHref(slug, ctx.premiumKey));
   }
-  redirect('/dashboard');
+  redirect(dashboardStoreHref(slug));
 }
 
 export function premiumApiError(gate: PremiumGateResult) {

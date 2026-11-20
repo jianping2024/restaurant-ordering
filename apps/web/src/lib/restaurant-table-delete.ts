@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { parseTableIdParam, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
@@ -39,7 +40,7 @@ export function resolveDeleteTableTargets(
 
 export async function deleteRestaurantTables(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   targets: RestaurantTableRow[],
 ): Promise<{ ok: true } | { ok: false; error: DeleteRestaurantTablesError; displayNames?: string[] }> {
   if (targets.length === 0) {

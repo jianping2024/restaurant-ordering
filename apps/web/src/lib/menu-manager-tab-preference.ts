@@ -1,3 +1,4 @@
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 export type MenuManagerTab =
   | 'stations'
   | 'categories'
@@ -62,6 +63,6 @@ export function menuManagerTabQuery(tab: MenuManagerTab): string {
   return tab === MENU_MANAGER_DEFAULT_TAB ? '' : `?tab=${tab}`;
 }
 
-export function menuManagerPath(tab: MenuManagerTab): string {
-  return `/dashboard/menu${menuManagerTabQuery(tab)}`;
+export function menuManagerPath(slug: string, tab: MenuManagerTab): string {
+  return dashboardStoreHref(slug, `/menu${menuManagerTabQuery(tab)}`);
 }

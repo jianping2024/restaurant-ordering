@@ -11,8 +11,10 @@ export type OrderHistoryDashboardContext =
     }
   | { error: string; status: number };
 
-export async function loadOrderHistoryDashboardContext(): Promise<OrderHistoryDashboardContext> {
-  const ctx = await getDashboardOperationalContext('dashboard.orders.view');
+export async function loadOrderHistoryDashboardContext(
+  restaurantId: string,
+): Promise<OrderHistoryDashboardContext> {
+  const ctx = await getDashboardOperationalContext('dashboard.orders.view', restaurantId);
   if ('error' in ctx) return ctx;
 
   const { data: restaurant, error: restaurantError } = await ctx.admin

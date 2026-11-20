@@ -1,4 +1,5 @@
 import 'server-only';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -52,7 +53,7 @@ async function removeStorefrontImageObject(
 /** Sole write path: cover_url / logo_url via menu-images storefront objects. */
 export async function setRestaurantStorefrontImage(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   kind: StorefrontImageKind,
   file: File | null,
   stripImage: boolean,

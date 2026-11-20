@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import imageCompression from 'browser-image-compression';
 import {
   extensionForImageMime,
@@ -24,7 +25,7 @@ const LOGO_MAX_DIMENSION = 512;
 export type StorefrontImageKind = 'cover' | 'logo';
 
 export function storefrontImageObjectPath(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   kind: StorefrontImageKind,
   mime: string,
   objectKey: string,

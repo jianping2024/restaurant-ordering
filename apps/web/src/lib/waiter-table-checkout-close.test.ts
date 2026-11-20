@@ -5,6 +5,7 @@ import { runWaiterTableCheckoutClose } from './waiter-table-checkout-close';
 describe('runWaiterTableCheckoutClose', () => {
   it('returns ok when close API succeeds', async () => {
     const outcome = await runWaiterTableCheckoutClose(
+      'demo',
       { tableId: 't1', printBill: false },
       {
         postClose: async () => ({ status: 200, body: { ok: true, session_id: 's1' } }),
@@ -15,6 +16,7 @@ describe('runWaiterTableCheckoutClose', () => {
 
   it('marks printFailed when print was requested and print_ok is false', async () => {
     const outcome = await runWaiterTableCheckoutClose(
+      'demo',
       { tableId: 't1', printBill: true },
       {
         postClose: async () => ({
@@ -28,6 +30,7 @@ describe('runWaiterTableCheckoutClose', () => {
 
   it('maps no_session errors', async () => {
     const outcome = await runWaiterTableCheckoutClose(
+      'demo',
       { tableId: 't1', printBill: false },
       {
         postClose: async () => ({ status: 404, body: { error: 'no_session' } }),

@@ -1,3 +1,4 @@
+import { dashboardStoreHref, parseDashboardStorePath } from '@/lib/dashboard-store-routes';
 
 export { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 
@@ -7,11 +8,9 @@ type WaiterRouteOptions = {
   isDemo?: boolean;
 };
 
-const DASHBOARD_WAITER_BOARD_PREFIX = '/dashboard/waiter';
-
-export function waiterBoardHref(_slug: string, options: WaiterRouteOptions = {}): string {
+export function waiterBoardHref(slug: string, options: WaiterRouteOptions = {}): string {
   if (options.isDemo) return '/demo/waiter';
-  return DASHBOARD_WAITER_BOARD_PREFIX;
+  return dashboardStoreHref(slug, '/waiter');
 }
 
 export function waiterTableHref(
@@ -21,7 +20,7 @@ export function waiterTableHref(
 ): string {
   const encoded = encodeURIComponent(tableId);
   if (options.isDemo) return `/demo/waiter/${encoded}`;
-  return `${DASHBOARD_WAITER_BOARD_PREFIX}/${encoded}`;
+  return dashboardStoreHref(slug, `/waiter/${encoded}`);
 }
 
 /** Legacy slug board paths — still accepted as assisted `return`, then normalized to Dashboard. */
@@ -33,12 +32,12 @@ export function slugWaiterTableHref(slug: string, tableId: string): string {
   return `/${slug}/waiter/${encodeURIComponent(tableId)}`;
 }
 
-/** Map legacy `/{slug}/waiter…` return paths onto `/dashboard/waiter…`. */
+/** Map legacy `/{slug}/waiter…` return paths onto the store board `/dashboard/r/{slug}/waiter…`. */
 export function normalizeWaiterReturnPath(path: string, slug: string): string {
   const slugBoard = slugWaiterBoardHref(slug);
-  if (path === slugBoard) return DASHBOARD_WAITER_BOARD_PREFIX;
+  if (path === slugBoard) return dashboardStoreHref(slug, '/waiter');
   if (path.startsWith(`${slugBoard}/`)) {
-    return `${DASHBOARD_WAITER_BOARD_PREFIX}/${path.slice(slugBoard.length + 1)}`;
+    return dashboardStoreHref(slug, `/waiter/${path.slice(slugBoard.length + 1)}`);
   }
   return path;
 }
@@ -72,13 +71,15 @@ export function waiterBillHref(
   return `/${slug}/bill?${params.toString()}`;
 }
 
-/** Frontdesk embedded waiter flow (`return=/dashboard/waiter/...`). */
-export function isDashboardWaiterReturnPath(returnPath: string | null | undefined): boolean {
+/** Frontdesk embedded waiter flow (`return=/dashboard/r/{slug}/waiter/...`) of this store only. */
+export function isDashboardWaiterReturnPath(
+  returnPath: string | null | undefined,
+  slug: string,
+): boolean {
   if (!returnPath) return false;
-  return (
-    returnPath === DASHBOARD_WAITER_BOARD_PREFIX ||
-    returnPath.startsWith(`${DASHBOARD_WAITER_BOARD_PREFIX}/`)
-  );
+  const parts = parseDashboardStorePath(returnPath.split('?')[0] ?? '');
+  if (!parts || parts.slug !== slug) return false;
+  return parts.page === '/waiter' || parts.page.startsWith('/waiter/');
 }
 
 function isSlugWaiterReturnPath(returnPath: string, slug: string): boolean {
@@ -153,7 +154,7 @@ export function resolveWaiterMenuReturnHref(
     return defaultHref;
   }
 
-  if (isDashboardWaiterReturnPath(returnPath)) {
+  if (isDashboardWaiterReturnPath(returnPath, slug)) {
     return returnPath;
   }
 

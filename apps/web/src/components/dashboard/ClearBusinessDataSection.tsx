@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -32,6 +34,7 @@ export function ClearBusinessDataSection({
   isOwner: boolean;
   copy: ClearBusinessDataCopy;
 }) {
+  const { slug: storeSlug } = useDashboardStore();
   const [confirmSlug, setConfirmSlug] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,7 +49,7 @@ export function ClearBusinessDataSection({
     setLoading(true);
     try {
       const trimmed = confirmSlug.trim();
-      const res = await fetch('/api/restaurant/clear-business-data', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/clear-business-data'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

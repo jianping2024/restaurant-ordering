@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { PromptModal } from '@/components/ui/PromptModal';
@@ -27,6 +29,7 @@ type Props = {
  * Dashboard 口味分组字典（最短路径：增删改名 + 启停；不做拖拽排序）。
  */
 export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const [prompt, setPrompt] = useState<PromptState>(null);
   const [busy, setBusy] = useState(false);
@@ -35,7 +38,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
   async function createGroup(name: string) {
     setBusy(true);
     try {
-      const res = await fetch('/api/dashboard/menu/choice-groups', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/menu/choice-groups'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,7 +62,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
   async function createOption(groupId: string, name: string) {
     setBusy(true);
     try {
-      const res = await fetch('/api/dashboard/menu/choice-options', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/menu/choice-options'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -84,7 +87,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
   async function removeGroup(group: MenuChoiceGroup) {
     setBusy(true);
     try {
-      const res = await fetch('/api/dashboard/menu/choice-groups', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/menu/choice-groups'), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ group_id: group.id }),
@@ -110,7 +113,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
   }
 
   async function toggleOptionActive(option: MenuChoiceOption) {
-    const res = await fetch('/api/dashboard/menu/choice-options', {
+    const res = await fetch(restaurantApiPath(storeSlug, '/menu/choice-options'), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ option_id: option.id, active: !option.active }),

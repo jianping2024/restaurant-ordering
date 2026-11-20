@@ -1,4 +1,15 @@
 import { can, type Capabilities } from '@/lib/permissions/can';
+import {
+  dashboardPageMatches,
+  dashboardStorePage,
+  type DashboardPagePath,
+} from '@/lib/dashboard-store-routes';
+
+/** Full store pathname under a store-relative settings page. */
+function storePageUnder(pathname: string, page: DashboardPagePath): boolean {
+  const current = dashboardStorePage(pathname);
+  return current != null && dashboardPageMatches(current, page);
+}
 import type { PermissionKey } from '@/lib/permissions/registry';
 
 export type SettingsNavId =
@@ -31,7 +42,8 @@ export type SettingsHubHintKey =
 
 export type SettingsNavItem = {
   id: SettingsNavId;
-  href: string;
+  /** Store-relative page (`dashboardStoreHref(slug, page)`). */
+  page: DashboardPagePath;
   labelKey: SettingsHubLabelKey;
   hintKey?: SettingsHubHintKey;
   icon: string;
@@ -48,74 +60,73 @@ export type SettingsNavItem = {
 export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
   {
     id: 'profile',
-    href: '/dashboard/settings',
+    page: '/settings',
     labelKey: 'tabProfile',
     hintKey: 'hintProfile',
     icon: '🏪',
     permission: 'settings.profile.manage',
-    isActive: (pathname) =>
-      pathname === '/dashboard/settings' || pathname === '/dashboard/settings/',
+    isActive: (pathname) => dashboardStorePage(pathname) === '/settings',
   },
   {
     id: 'staff',
-    href: '/dashboard/settings/staff',
+    page: '/settings/staff',
     labelKey: 'tabStaff',
     icon: '👥',
     permission: 'settings.staff.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/staff'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/staff'),
   },
   {
     id: 'roles',
-    href: '/dashboard/settings/roles',
+    page: '/settings/roles',
     labelKey: 'tabRoles',
     icon: '🔐',
     permission: 'settings.roles.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/roles'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/roles'),
   },
   {
     id: 'features',
-    href: '/dashboard/settings/features',
+    page: '/settings/features',
     labelKey: 'tabFeatures',
     hintKey: 'hintFeatures',
     icon: '🧩',
     permission: 'settings.features.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/features'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/features'),
   },
   {
     id: 'buffet',
-    href: '/dashboard/settings/buffet',
+    page: '/settings/buffet',
     labelKey: 'tabBuffet',
     hintKey: 'hintBuffet',
     icon: '🍽️',
     permission: 'settings.buffet.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/buffet'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/buffet'),
   },
   {
     id: 'print-assistant',
-    href: '/dashboard/settings/print-assistant',
+    page: '/settings/print-assistant',
     labelKey: 'tabPrintAssistant',
     hintKey: 'hintPrintAssistant',
     icon: '🖨️',
     permission: 'settings.print_assistant.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/print-assistant'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/print-assistant'),
   },
   {
     id: 'kitchen-screens',
-    href: '/dashboard/settings/kitchen-screens',
+    page: '/settings/kitchen-screens',
     labelKey: 'tabKitchenScreens',
     hintKey: 'hintKitchenScreens',
     icon: '📺',
     permission: 'floor.kitchen_screens.manage',
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/kitchen-screens'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/kitchen-screens'),
   },
   {
     id: 'system-logs',
-    href: '/dashboard/settings/system-logs',
+    page: '/settings/system-logs',
     labelKey: 'tabSystemLogs',
     hintKey: 'hintSystemLogs',
     icon: '📜',
     backendAdminOnPremOnly: true,
-    isActive: (pathname) => pathname.startsWith('/dashboard/settings/system-logs'),
+    isActive: (pathname) => storePageUnder(pathname, '/settings/system-logs'),
   },
 ];
 
@@ -124,35 +135,35 @@ export function getActiveSettingsNavItem(pathname: string): SettingsNavItem | nu
 }
 
 export function isSettingsWideLayout(pathname: string): boolean {
-  return pathname.startsWith('/dashboard/settings/buffet');
+  return storePageUnder(pathname, '/settings/buffet');
 }
 
 /**
  * First settings sub-route the principal can open (SETTINGS_NAV_TABS order).
- * Omits profile hub `/dashboard/settings` itself — caller handles profile vs empty.
+ * Omits profile hub `/settings` itself — caller handles profile vs empty.
  */
-export function firstAccessibleSettingsChildHref(capabilities: Capabilities): string | null {
+export function firstAccessibleSettingsChildPage(capabilities: Capabilities): DashboardPagePath | null {
   for (const item of SETTINGS_NAV_TABS) {
     if (item.id === 'profile') continue;
     if (item.backendAdminOnPremOnly) continue;
     if (item.permission && can(capabilities, item.permission)) {
-      return item.href;
+      return item.page;
     }
   }
   return null;
 }
 
-/** Sole settings-hub landing decision (used by `/dashboard/settings` page). */
+/** Sole settings-hub landing decision (used by the store `/settings` page). */
 export type SettingsHubDestination =
   | { kind: 'profile' }
-  | { kind: 'redirect'; href: string }
+  | { kind: 'redirect'; page: DashboardPagePath }
   | { kind: 'empty' };
 
 export function resolveSettingsHubDestination(
   capabilities: Capabilities,
 ): SettingsHubDestination {
   if (can(capabilities, 'settings.profile.manage')) return { kind: 'profile' };
-  const childHref = firstAccessibleSettingsChildHref(capabilities);
-  if (childHref) return { kind: 'redirect', href: childHref };
+  const childPage = firstAccessibleSettingsChildPage(capabilities);
+  if (childPage) return { kind: 'redirect', page: childPage };
   return { kind: 'empty' };
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function PrintAgentCredentialExpiryAlert({ devices, variant = 'bar' }: Props) {
+  const { href: storeHref } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
   const dateLocale = UI_LOCALE[lang] ?? 'en-GB';
@@ -58,8 +60,8 @@ export function PrintAgentCredentialExpiryAlert({ devices, variant = 'bar' }: Pr
       </ul>
       <p className="mt-2">
         <Link
-          href="/dashboard/settings/print-assistant"
-          prefetch={shouldPrefetchDashboardNav('/dashboard/settings/print-assistant')}
+          href={storeHref('/settings/print-assistant')}
+          prefetch={shouldPrefetchDashboardNav(storeHref('/settings/print-assistant'))}
           className="font-medium text-amber-950 underline underline-offset-2"
         >
           {t.credentialExpiryLink}

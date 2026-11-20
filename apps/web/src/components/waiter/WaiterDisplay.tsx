@@ -495,7 +495,7 @@ function WaiterBoardInner({
       isDemo,
       embeddedInDashboard,
     });
-    const checkoutHref = dashboardCheckoutTableHref(card.tableId);
+    const checkoutHref = dashboardCheckoutTableHref(restaurant.slug, card.tableId);
     const action = resolveWaiterBoardCardAction({
       boardState,
       canOpenCheckoutPendingTables: floorCaps.canOpenCheckoutPendingTables,

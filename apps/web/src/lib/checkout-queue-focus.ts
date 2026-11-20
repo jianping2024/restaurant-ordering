@@ -1,7 +1,8 @@
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type { BillSplit } from '@/types';
 
-/** URL intent: which checkout queue row to open on `/dashboard/checkout`. */
+/** URL intent: which checkout queue row to open on the store `/checkout` page. */
 export type CheckoutQueueFocus = {
   tableId?: string;
   requestId?: string;
@@ -53,16 +54,17 @@ export function resolveFocusedRequestId(
 }
 
 export function dashboardCheckoutFocusHref(input: {
+  slug: string;
   tableId: string;
   requestId?: string | null;
 }): string {
   const params = new URLSearchParams();
   params.set('table_id', input.tableId);
   if (input.requestId) params.set('request_id', input.requestId);
-  return `/dashboard/checkout?${params.toString()}`;
+  return dashboardStoreHref(input.slug, `/checkout?${params.toString()}`);
 }
 
 /** Dashboard checkout deep link by table (waiter redirect, legacy entry). */
-export function dashboardCheckoutTableHref(tableId: string): string {
-  return dashboardCheckoutFocusHref({ tableId });
+export function dashboardCheckoutTableHref(slug: string, tableId: string): string {
+  return dashboardCheckoutFocusHref({ slug, tableId });
 }

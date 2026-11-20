@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type {
   AbnormalOperationRow,
   AbnormalOperationStatus,
@@ -34,6 +35,7 @@ function toQuery(params: AbnormalOperationsListParams): string {
 }
 
 export async function fetchAbnormalOperations(
+  slug: string,
   params: AbnormalOperationsListParams,
   init?: { signal?: AbortSignal },
 ): Promise<
@@ -41,7 +43,7 @@ export async function fetchAbnormalOperations(
   | { ok: false; error: string }
 > {
   try {
-    const res = await fetch(`/api/dashboard/abnormal-operations${toQuery(params)}`, {
+    const res = await fetch(restaurantApiPath(slug, `/abnormal-operations${toQuery(params)}`), {
       credentials: 'include',
       signal: init?.signal,
     });
@@ -61,6 +63,7 @@ export async function fetchAbnormalOperations(
 }
 
 export async function patchAbnormalOperationClient(
+  slug: string,
   id: string,
   body: { status?: AbnormalOperationStatus; owner_note?: string | null },
 ): Promise<
@@ -68,7 +71,7 @@ export async function patchAbnormalOperationClient(
   | { ok: false; error: string }
 > {
   try {
-    const res = await fetch(`/api/dashboard/abnormal-operations/${encodeURIComponent(id)}`, {
+    const res = await fetch(restaurantApiPath(slug, `/abnormal-operations/${encodeURIComponent(id)}`), {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,5 @@
 import { can, type Capabilities } from '@/lib/permissions/can';
+import { dashboardStoreHref } from '@/lib/dashboard-store-routes';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isPermissionKey } from '@/lib/permissions/registry';
 import type { PermissionDef } from '@/lib/permissions/registry';
@@ -108,18 +109,18 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
   };
 }
 
-/** First dashboard/floor landing path for a staff capability set. */
+/** First store dashboard/floor landing path for a capability set (full href for `slug`). */
 export function staffLandingPathFromCapabilities(
   slug: string,
   capabilities: Capabilities,
 ): string {
-  if (can(capabilities, 'dashboard.waiter_board.view')) return '/dashboard/waiter';
-  if (can(capabilities, 'dashboard.checkout.view')) return '/dashboard/checkout';
-  if (can(capabilities, 'dashboard.overview.view')) return '/dashboard';
-  if (can(capabilities, 'dashboard.orders.view')) return '/dashboard/orders';
-  if (can(capabilities, 'dashboard.tables.view')) return '/dashboard/tables';
-  if (can(capabilities, 'dashboard.menu.view')) return '/dashboard/menu';
-  if (can(capabilities, 'dashboard.settings.view')) return '/dashboard/settings';
+  if (can(capabilities, 'dashboard.waiter_board.view')) return dashboardStoreHref(slug, '/waiter');
+  if (can(capabilities, 'dashboard.checkout.view')) return dashboardStoreHref(slug, '/checkout');
+  if (can(capabilities, 'dashboard.overview.view')) return dashboardStoreHref(slug);
+  if (can(capabilities, 'dashboard.orders.view')) return dashboardStoreHref(slug, '/orders');
+  if (can(capabilities, 'dashboard.tables.view')) return dashboardStoreHref(slug, '/tables');
+  if (can(capabilities, 'dashboard.menu.view')) return dashboardStoreHref(slug, '/menu');
+  if (can(capabilities, 'dashboard.settings.view')) return dashboardStoreHref(slug, '/settings');
   if (can(capabilities, 'floor.kitchen_board.view')) return `/${slug}/kitchen`;
-  return '/dashboard/waiter';
+  return dashboardStoreHref(slug, '/waiter');
 }

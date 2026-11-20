@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import {
   isOperationLogActionType,
   type OperationLogActionType,
@@ -8,7 +9,7 @@ import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 
 export function parseOperationLogsListQuery(
   searchParams: URLSearchParams,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): OperationLogsListQueryParams {
   const actionRaw = searchParams.get('action_type')?.trim();
   const pageRaw = searchParams.get('page');

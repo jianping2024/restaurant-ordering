@@ -199,12 +199,12 @@ describe('dashboardLogoHref', () => {
     const frontdeskCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(
       dashboardLogoHref('demo', frontdeskCaps),
-      '/dashboard/waiter',
+      '/dashboard/r/demo/waiter',
     );
     const overviewCaps = toCapabilitiesPayload(
       capabilitiesFromKeys(['dashboard.overview.view', 'floor.kitchen_board.view']),
     );
-    assert.equal(dashboardLogoHref('demo', overviewCaps), '/dashboard');
+    assert.equal(dashboardLogoHref('demo', overviewCaps), '/dashboard/r/demo');
   });
 });
 
@@ -212,16 +212,16 @@ describe('isLogoHrefActive', () => {
   const overviewCaps = toCapabilitiesPayload(capabilitiesFromKeys(['dashboard.overview.view']));
 
   it('matches overview landing for capability set', () => {
-    assert.equal(isLogoHrefActive('/dashboard', 'demo', overviewCaps), true);
-    assert.equal(isLogoHrefActive('/dashboard/settings', 'demo', overviewCaps), false);
+    assert.equal(isLogoHrefActive('/dashboard/r/demo', 'demo', overviewCaps), true);
+    assert.equal(isLogoHrefActive('/dashboard/r/demo/settings', 'demo', overviewCaps), false);
   });
 
   it('matches waiter board list and detail paths', () => {
     const waiterCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
-    assert.equal(isLogoHrefActive('/dashboard/waiter', 'demo', waiterCaps), true);
-    assert.equal(isLogoHrefActive('/dashboard/waiter/table-1', 'demo', waiterCaps), true);
+    assert.equal(isLogoHrefActive('/dashboard/r/demo/waiter', 'demo', waiterCaps), true);
+    assert.equal(isLogoHrefActive('/dashboard/r/demo/waiter/table-1', 'demo', waiterCaps), true);
     const cashierCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
-    assert.equal(isLogoHrefActive('/dashboard/checkout', 'demo', cashierCaps), false);
+    assert.equal(isLogoHrefActive('/dashboard/r/demo/checkout', 'demo', cashierCaps), false);
   });
 });
 
@@ -236,9 +236,9 @@ describe('isTopBarLogoHrefActive', () => {
 describe('isNavItemActive', () => {
   it('matches waiter board detail under matchPrefix', () => {
     assert.equal(
-      isNavItemActive('/dashboard/waiter/table-1', {
-        href: '/dashboard/waiter',
-        matchPrefix: '/dashboard/waiter',
+      isNavItemActive('/dashboard/r/demo/waiter/table-1', {
+        href: '/dashboard/r/demo/waiter',
+        matchPrefix: '/dashboard/r/demo/waiter',
       }),
       true,
     );
@@ -249,12 +249,12 @@ describe('dashboardWaiterTableIdFromPath', () => {
   const tableId = '2db46804-d02a-4227-8193-1e061768938d';
 
   it('parses uuid from detail path', () => {
-    assert.equal(dashboardWaiterTableIdFromPath(`/dashboard/waiter/${tableId}`), tableId);
+    assert.equal(dashboardWaiterTableIdFromPath(`/dashboard/r/demo/waiter/${tableId}`), tableId);
   });
 
   it('returns null for board list and invalid ids', () => {
-    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/waiter'), null);
-    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/waiter/not-a-uuid'), null);
-    assert.equal(isDashboardWaiterTableDetailPath(`/dashboard/waiter/${tableId}`), true);
+    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/r/demo/waiter'), null);
+    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/r/demo/waiter/not-a-uuid'), null);
+    assert.equal(isDashboardWaiterTableDetailPath(`/dashboard/r/demo/waiter/${tableId}`), true);
   });
 });

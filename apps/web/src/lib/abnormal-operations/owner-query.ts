@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrderItemStatus } from '@/types';
 import {
@@ -29,7 +30,7 @@ export type ParsedAbnormalDateRange =
   | { ok: false; code: 'invalid_date_range' };
 
 export type AbnormalOperationsListFilters = {
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   startDate?: string;
   endDate?: string;
   type?: AbnormalOperationType;
@@ -192,7 +193,7 @@ export async function listAbnormalOperations(
 
 export async function getAbnormalOperationById(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   id: string,
 ): Promise<AbnormalOperationRow | null> {
   const { data, error } = await admin
@@ -217,7 +218,7 @@ export function canTransitionAbnormalStatus(
 export async function patchAbnormalOperation(
   admin: SupabaseClient,
   params: {
-    restaurantId: string;
+    restaurantId: AuthorizedRestaurantId;
     id: string;
     ownerId: string;
     status?: AbnormalOperationStatus;

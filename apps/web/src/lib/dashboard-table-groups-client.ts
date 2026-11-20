@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type { RestaurantTableGroup, RestaurantTableGroupMember } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
@@ -29,43 +30,43 @@ export type TableGroupsResponse = {
   tables?: RestaurantTableRow[];
 };
 
-export async function createTableGroupClient(input: {
+export async function createTableGroupClient(slug: string, input: {
   name: string;
   remarks?: string | null;
   table_ids?: string[];
   is_takeaway?: boolean;
 }) {
-  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
+  return request<TableGroupsResponse>(restaurantApiPath(slug, '/table-groups'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function updateTableGroupClient(input: {
+export async function updateTableGroupClient(slug: string, input: {
   group_id: string;
   name: string;
   remarks?: string | null;
   table_ids?: string[];
   is_takeaway?: boolean;
 }) {
-  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
+  return request<TableGroupsResponse>(restaurantApiPath(slug, '/table-groups'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 }
 
-export async function reorderTableGroupsClient(orderedIds: string[]) {
-  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
+export async function reorderTableGroupsClient(slug: string, orderedIds: string[]) {
+  return request<TableGroupsResponse>(restaurantApiPath(slug, '/table-groups'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 
-export async function deleteTableGroupClient(groupId: string) {
-  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
+export async function deleteTableGroupClient(slug: string, groupId: string) {
+  return request<TableGroupsResponse>(restaurantApiPath(slug, '/table-groups'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ group_id: groupId }),

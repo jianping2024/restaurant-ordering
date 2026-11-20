@@ -1,5 +1,7 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import { useState } from 'react';
 import type { RestaurantSettingsProfile } from '@/types';
 import { resolveMenuImageDisplayUrl } from '@/lib/menu-image';
@@ -68,6 +70,7 @@ type Props = {
 };
 
 async function postStorefrontImage(
+  storeSlug: string,
   kind: StorefrontImageKind,
   file: File | null,
   strip: boolean,
@@ -76,7 +79,7 @@ async function postStorefrontImage(
   form.set('kind', kind);
   if (strip) form.set('strip_image', '1');
   if (file) form.set('file', file);
-  const res = await fetch('/api/restaurant/storefront-image', {
+  const res = await fetch(restaurantApiPath(storeSlug, '/storefront-image'), {
     method: 'POST',
     credentials: 'include',
     body: form,
@@ -118,6 +121,7 @@ export function RestaurantStorefrontSettingsSection({
   logoUrl,
   coverUrl,
 }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const [uploading, setUploading] = useState<StorefrontImageKind | null>(null);
   const [imageError, setImageError] = useState('');
 
@@ -135,7 +139,7 @@ export function RestaurantStorefrontSettingsSection({
           return;
         }
       }
-      const result = await postStorefrontImage(kind, prepared, strip);
+      const result = await postStorefrontImage(storeSlug, kind, prepared, strip);
       if ('error' in result) {
         setImageError(
           result.error === 'invalid_image' || result.error === 'image_too_large'

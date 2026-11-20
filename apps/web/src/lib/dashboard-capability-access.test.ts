@@ -19,7 +19,7 @@ const restaurant = {
 describe('resolveDashboardCapabilityAccess', () => {
   it('allows store_owner with value analytics capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
       NAV_PERMISSION.valueAnalytics,
     );
@@ -29,7 +29,7 @@ describe('resolveDashboardCapabilityAccess', () => {
 
   it('allows restaurant owner with backend-admin capabilities for abnormal ops', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'owner', restaurant: restaurant as never },
+      { mode: 'owner', restaurant: restaurant as never, loaded: { restaurantId: restaurant.id } as never },
       resolveCapabilitiesForOwner(),
       NAV_PERMISSION.abnormalOps,
     );
@@ -38,7 +38,7 @@ describe('resolveDashboardCapabilityAccess', () => {
 
   it('allows frontdesk with guest notice capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys([NAV_PERMISSION.guestNotice]),
       NAV_PERMISSION.guestNotice,
     );
@@ -47,7 +47,7 @@ describe('resolveDashboardCapabilityAccess', () => {
 
   it('rejects store_owner without guest notice capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'staff', restaurant },
+      { mode: 'staff', restaurant, loaded: { restaurantId: restaurant.id } as never },
       capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
       NAV_PERMISSION.guestNotice,
     );

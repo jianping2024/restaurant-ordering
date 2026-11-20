@@ -154,6 +154,7 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
       signal: AbortSignal;
     }) => {
       const result = await fetchAbnormalOperations(
+        restaurantSlug,
         {
           startDate: filters.startDate,
           endDate: filters.endDate,
@@ -168,7 +169,7 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
       if (!result.ok) return result;
       return { ok: true as const, data: result.data };
     },
-    [],
+    [restaurantSlug],
   );
 
   const {
@@ -266,7 +267,7 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
       const sessionId = row.session_id?.trim();
       if (!sessionId) return;
       setHistoryLoadingSessionId(sessionId);
-      const result = await fetchOrderHistoryPage(0, 1, { tableIds: [], sessionId });
+      const result = await fetchOrderHistoryPage(restaurantSlug, 0, 1, { tableIds: [], sessionId });
       setHistoryLoadingSessionId(null);
       const entry = result?.items[0];
       if (!entry || !result) {
@@ -277,7 +278,7 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
       setHistoryEntries([entry]);
       setHistoryEntry(entry);
     },
-    [t.actionFailed],
+    [t.actionFailed, restaurantSlug],
   );
 
   const closeSessionHistory = useCallback(() => {
@@ -298,7 +299,7 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
     if (!selected) return;
     const previous = selected;
     setPatching(true);
-    const result = await patchAbnormalOperationClient(selected.id, patch);
+    const result = await patchAbnormalOperationClient(restaurantSlug, selected.id, patch);
     setPatching(false);
     if (!result.ok) {
       showToast(t.actionFailed, 'error');

@@ -1,5 +1,7 @@
 'use client';
 
+import { dashboardStoreHref, restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import Link from 'next/link';
 import { ProFeatureBadge } from '@/components/dashboard/ProFeatureBadge';
 import { useState } from 'react';
@@ -73,6 +75,7 @@ export function FeatureFlagsManager({
   initialSushiMenuVegetarianFilterEnabled,
   initialSushiMenuAllergenFilterEnabled,
 }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
@@ -115,7 +118,7 @@ export function FeatureFlagsManager({
     setError('');
     setSuccess(false);
     try {
-      const res = await fetch('/api/restaurant/features', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/features'), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -277,7 +280,7 @@ export function FeatureFlagsManager({
                     </span>
                     {proLocked && def.premiumKey ? (
                       <Link
-                        href={`/dashboard/upgrade?feature=${def.premiumKey}`}
+                        href={dashboardStoreHref(storeSlug, `/upgrade?feature=${def.premiumKey}`)}
                         className="mt-1 inline-block text-[13px] text-brand-gold underline-offset-4 hover:underline"
                       >
                         {t.proLockedHint}

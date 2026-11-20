@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -32,7 +33,7 @@ function uniqueViolation(error: { code?: string } | null): boolean {
 
 async function validateKitchenEnabledStationIds(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   stationIds: string[],
 ): Promise<true | KitchenScreenMutationError> {
   if (stationIds.length === 0) {
@@ -188,7 +189,7 @@ export async function listKitchenScreens(
 
 export async function createKitchenScreen(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: { name: string; station_ids: unknown; shared_prep_tray?: unknown },
 ): Promise<{ screen: KitchenScreenRow } | KitchenScreenMutationError> {
   const name = typeof input.name === 'string' ? input.name.trim() : '';
@@ -249,7 +250,7 @@ export async function createKitchenScreen(
 
 export async function updateKitchenScreen(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   screenIdRaw: string,
   input: { name?: string; station_ids?: unknown; shared_prep_tray?: unknown },
 ): Promise<{ screen: KitchenScreenRow } | KitchenScreenMutationError> {
@@ -327,7 +328,7 @@ export async function updateKitchenScreen(
 
 export async function deleteKitchenScreen(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   screenIdRaw: string,
 ): Promise<{ ok: true } | KitchenScreenMutationError> {
   const screenId = parseTableIdParam(screenIdRaw);

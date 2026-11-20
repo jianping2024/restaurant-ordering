@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   isValidTableGroupName,
@@ -25,7 +26,7 @@ export type TableGroupsPayload = {
 
 async function loadActiveRestaurantTableRows(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<RestaurantTableRow[] | MutationError> {
   const { data, error } = await admin
     .from('restaurant_tables')
@@ -50,7 +51,7 @@ async function loadActiveRestaurantTableRows(
 
 export async function loadRestaurantTableGroups(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<TableGroupsPayload | MutationError> {
   const [{ data: groups, error: groupsError }, { data: members, error: membersError }] =
     await Promise.all([
@@ -86,7 +87,7 @@ export async function loadRestaurantTableGroups(
 
 async function takeawayGroupHasOpenSessions(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   tableIds: string[],
 ): Promise<boolean | MutationError> {
   if (tableIds.length === 0) return false;
@@ -105,7 +106,7 @@ async function takeawayGroupHasOpenSessions(
 
 async function validateTableIds(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   tableIds: string[],
 ): Promise<MutationError | null> {
   if (tableIds.length === 0) return null;
@@ -126,7 +127,7 @@ async function validateTableIds(
 
 async function replaceTableGroupMembersAdmin(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
   tableIds: string[],
 ): Promise<MutationError | null> {
@@ -173,7 +174,7 @@ async function replaceTableGroupMembersAdmin(
  */
 async function applyMemberTableOrderAdmin(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIds: string[],
 ): Promise<{ tables: RestaurantTableRow[] } | MutationError> {
   if (orderedIds.length < 2) {
@@ -223,7 +224,7 @@ async function applyMemberTableOrderAdmin(
 
 async function loadGroupsPayloadWithTables(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedMemberIds: string[],
 ): Promise<TableGroupsPayload | MutationError> {
   const orderResult = await applyMemberTableOrderAdmin(admin, restaurantId, orderedMemberIds);
@@ -262,7 +263,7 @@ function parseGroupFields(input: {
 
 export async function createTableGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   input: { name: string; remarks?: string | null; table_ids?: string[]; is_takeaway?: boolean },
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   const fields = parseGroupFields(input);
@@ -321,7 +322,7 @@ export async function createTableGroup(
 
 export async function updateTableGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
   input: { name: string; remarks?: string | null; table_ids?: string[]; is_takeaway?: boolean },
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
@@ -399,7 +400,7 @@ export async function updateTableGroup(
 
 export async function reorderTableGroups(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   orderedIdsRaw: unknown,
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
@@ -448,7 +449,7 @@ export async function reorderTableGroups(
 
 export async function reorderTableGroupMembers(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupIdRaw: unknown,
   orderedIdsRaw: unknown,
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
@@ -502,7 +503,7 @@ export async function reorderTableGroupMembers(
 
 export async function deleteTableGroup(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   groupId: string,
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
   const id = parseTableIdParam(groupId);

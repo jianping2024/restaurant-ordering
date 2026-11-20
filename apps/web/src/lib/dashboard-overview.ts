@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import {
@@ -322,7 +323,7 @@ const DINING_REQUESTED_SPLIT_SELECT =
 
 async function loadDiningFloorKpis(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<
   Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'>
 > {
@@ -483,7 +484,7 @@ export function pendingActionsTotal(actions: DashboardPendingActions): number {
 
 async function loadTodayRevenueKpis(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   startUtc: string,
   endExclusiveUtc: string,
   todayDateKey: string,
@@ -539,7 +540,7 @@ async function loadTodayRevenueKpis(
 
 export async function loadDashboardOverviewPrimary(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   now = new Date(),
   options?: { includePendingAbnormal?: boolean },
 ): Promise<DashboardOverviewPrimaryView> {
@@ -598,7 +599,7 @@ export async function loadDashboardOverviewPrimary(
 
 export async function loadDashboardOverviewSecondary(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   now = new Date(),
 ): Promise<DashboardOverviewSecondaryView> {
   const sinceIso = feedbackLookbackIso(now);

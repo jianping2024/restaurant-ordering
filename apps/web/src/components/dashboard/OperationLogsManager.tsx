@@ -1,5 +1,6 @@
 'use client';
 
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DatePicker, DATE_PICKER_COMPACT_TRIGGER_CLASS } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -49,6 +50,7 @@ type Props = {
 };
 
 export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const t = messages.operationLogs;
@@ -68,6 +70,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
       signal: AbortSignal;
     }) => {
       const result = await fetchOperationLogs(
+        storeSlug,
         {
           date: filters.date,
           actionType: filters.actionType || undefined,
@@ -80,7 +83,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
       if (!result.ok) return result;
       return { ok: true as const, data: result.data };
     },
-    [],
+    [storeSlug],
   );
 
   const {

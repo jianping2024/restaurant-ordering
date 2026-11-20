@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -68,6 +70,7 @@ function LocaleFieldsEditor({
 }
 
 export function GuestNoticeManager({ initialNotice }: Props) {
+  const { slug: storeSlug } = useDashboardStore();
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).guestNoticeSettings;
@@ -86,7 +89,7 @@ export function GuestNoticeManager({ initialNotice }: Props) {
     setError('');
     setSuccess(false);
     try {
-      const res = await fetch('/api/dashboard/guest-notice', {
+      const res = await fetch(restaurantApiPath(storeSlug, '/guest-notice'), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

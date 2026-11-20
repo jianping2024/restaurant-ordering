@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type {
   AbnormalOperationStatus,
   AbnormalOperationType,
@@ -16,7 +17,7 @@ const STATUSES = new Set<AbnormalOperationStatus>(['PENDING', 'CONFIRMED', 'IGNO
 
 export function parseAbnormalOperationsListQuery(
   searchParams: URLSearchParams,
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): AbnormalOperationsListFilters {
   const typeRaw = searchParams.get('type')?.trim();
   const riskRaw = searchParams.get('risk_level')?.trim();

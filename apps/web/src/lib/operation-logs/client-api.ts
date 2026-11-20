@@ -1,3 +1,4 @@
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type { OperationLogActionType } from '@/lib/audit/types';
 import type { OperationLogsListResult } from '@/lib/operation-logs/query';
 
@@ -21,11 +22,12 @@ function toQuery(params: OperationLogsListParams): string {
 }
 
 export async function fetchOperationLogs(
+  slug: string,
   params: OperationLogsListParams,
   init?: { signal?: AbortSignal },
 ): Promise<{ ok: true; data: OperationLogsListResult } | { ok: false; error: string }> {
   try {
-    const res = await fetch(`/api/dashboard/operation-logs${toQuery(params)}`, {
+    const res = await fetch(restaurantApiPath(slug, `/operation-logs${toQuery(params)}`), {
       credentials: 'include',
       cache: 'no-store',
       signal: init?.signal,

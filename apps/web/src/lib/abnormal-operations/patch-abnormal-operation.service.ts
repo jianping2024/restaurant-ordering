@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AUDIT_EVENT, recordAudit } from '@/lib/audit';
 import type { AbnormalOwnerActionContext } from '@/lib/audit/builders/abnormal-owner-action';
@@ -10,7 +11,7 @@ import type { AbnormalOperationRow, AbnormalOperationStatus } from '@/lib/abnorm
 
 export type PatchAbnormalOperationInput = {
   admin: SupabaseClient;
-  restaurantId: string;
+  restaurantId: AuthorizedRestaurantId;
   ownerId: string;
   actor: AuditActor;
   id: string;

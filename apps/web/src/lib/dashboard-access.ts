@@ -1,7 +1,9 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadStaffIdentity } from '@mesa/shared';
-import { loadAuthOwnershipGate } from '@/lib/staff-access';
+import type { AuthorizedRestaurantPrincipal } from '@/lib/permissions/restaurant-access-rules';
+import { loadPrincipalForRestaurant } from '@/lib/permissions/restaurant-access';
+import { loadAuthUserWithAdmin } from '@/lib/staff-access';
 import type { Restaurant } from '@/types';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
@@ -43,17 +45,18 @@ export type StaffDashboardRestaurant = Pick<
 export type DashboardShellMode = 'owner' | 'staff';
 
 export type DashboardAccess =
-  | { mode: 'owner'; restaurant: Restaurant }
-  | { mode: 'staff'; restaurant: StaffDashboardRestaurant };
+  | { mode: 'owner'; restaurant: Restaurant; loaded: AuthorizedRestaurantPrincipal }
+  | { mode: 'staff'; restaurant: StaffDashboardRestaurant; loaded: AuthorizedRestaurantPrincipal };
 
+/** One store's dashboard access. `forbidden` = signed in but no access to this store. */
 export type DashboardAccessResult =
   | DashboardAccess
   | { mode: 'unauthenticated' }
-  | { mode: 'onboarding' }
+  | { mode: 'forbidden' }
   | { mode: 'access_error'; message: string };
 
 export type DashboardOperationalContext =
-  | { admin: SupabaseClient; restaurantId: string }
+  | { admin: SupabaseClient; restaurantId: AuthorizedRestaurantId }
   | { error: string; status: number };
 
 const OWNER_RESTAURANT_SELECT =
@@ -113,47 +116,46 @@ async function reconcileLicenseForDashboard(
   }
 }
 
-export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
-  const gate = await loadAuthOwnershipGate();
-  if (!gate) return { mode: 'unauthenticated' };
+/**
+ * Dashboard access for **this store** (store id from the URL slug). Principal comes
+ * only from `loadPrincipalForRestaurant`; the store row is loaded by that same id.
+ */
+export async function loadDashboardAccess(restaurantId: string): Promise<DashboardAccessResult> {
+  const auth = await loadAuthUserWithAdmin();
+  if (!auth) return { mode: 'unauthenticated' };
 
-  const { auth, ownedRestaurantId, staff } = gate;
-  const { admin, user } = auth;
+  const loaded = await loadPrincipalForRestaurant(auth.user.id, restaurantId);
+  if (!loaded) return { mode: 'forbidden' };
+  const { admin } = auth;
 
-  if (ownedRestaurantId) {
-    const ownedRestaurant = await loadOwnerRestaurant(admin, ownedRestaurantId);
+  if (loaded.principal.kind === 'owner') {
+    const ownedRestaurant = await loadOwnerRestaurant(admin, loaded.restaurantId);
     if ('error' in ownedRestaurant) {
       return { mode: 'access_error', message: ownedRestaurant.error };
     }
     const suspension = await reconcileLicenseForDashboard(admin, ownedRestaurant.id);
     return {
       mode: 'owner',
-      restaurant: {
-        ...ownedRestaurant,
-        ...(suspension || {}),
-      },
+      restaurant: { ...ownedRestaurant, ...(suspension || {}) },
+      loaded,
     };
   }
 
-  if (staff && !staff.disabled_at) {
-    if (!staff.role_id || staff.role === 'print_agent') {
-      return { mode: 'unauthenticated' };
-    }
-    const staffRestaurant = await loadStaffRestaurant(admin, staff.restaurant_id);
-    if ('error' in staffRestaurant) {
-      return { mode: 'access_error', message: staffRestaurant.error };
-    }
-    const suspension = await reconcileLicenseForDashboard(admin, staffRestaurant.id);
-    return {
-      mode: 'staff',
-      restaurant: { ...staffRestaurant, ...(suspension || {}) },
-    };
+  const staffRestaurant = await loadStaffRestaurant(admin, loaded.restaurantId);
+  if ('error' in staffRestaurant) {
+    return { mode: 'access_error', message: staffRestaurant.error };
   }
+  const suspension = await reconcileLicenseForDashboard(admin, staffRestaurant.id);
+  return {
+    mode: 'staff',
+    restaurant: { ...staffRestaurant, ...(suspension || {}) },
+    loaded,
+  };
+}
 
-  // Staff account (any membership state) never falls through to owner onboarding.
-  if (staff || (await loadStaffIdentity(admin, user.id))) {
-    return { mode: 'unauthenticated' };
-  }
-
-  return { mode: 'onboarding' };
+/** Principal + capabilities of a resolved store access (null when not admitted). */
+export function dashboardAccessPrincipal(
+  access: DashboardAccessResult,
+): AuthorizedRestaurantPrincipal | null {
+  return access.mode === 'owner' || access.mode === 'staff' ? access.loaded : null;
 }

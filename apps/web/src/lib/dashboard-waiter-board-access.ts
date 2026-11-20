@@ -1,3 +1,4 @@
+import { DASHBOARD_ENTRY_PATH } from '@/lib/dashboard-store-routes';
 import type {
   DashboardAccessResult,
   StaffDashboardRestaurant,
@@ -58,8 +59,8 @@ export function resolveWaiterBoardDashboardAccess(
   if (access.mode === 'unauthenticated') {
     return { ok: false, redirectTo: '/auth/login' };
   }
-  if (access.mode === 'onboarding' || access.mode === 'access_error') {
-    return { ok: false, redirectTo: '/dashboard' };
+  if (access.mode === 'forbidden' || access.mode === 'access_error') {
+    return { ok: false, redirectTo: DASHBOARD_ENTRY_PATH };
   }
   if (!capabilities || !can(capabilities, 'dashboard.waiter_board.view')) {
     return {

@@ -1,5 +1,7 @@
 'use client';
 
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { FormEvent, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -19,6 +21,7 @@ function defaultRange(): { from: string; to: string } {
 
 /** Sole client for system log query — state is SystemLogQuery fields only. */
 export function SystemLogsViewer() {
+  const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).settingsSystemLogs;
   const initial = defaultRange();
@@ -49,7 +52,7 @@ export function SystemLogsViewer() {
         to: to.toISOString(),
       });
       if (q.trim()) params.set('q', q.trim());
-      const res = await fetch(`/api/dashboard/system-logs?${params}`, {
+      const res = await fetch(restaurantApiPath(storeSlug, `/system-logs?${params}`), {
         credentials: 'include',
       });
       const json = (await res.json()) as {

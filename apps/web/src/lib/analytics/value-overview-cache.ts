@@ -1,4 +1,5 @@
 import 'server-only';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 
 import { unstable_cache } from 'next/cache';
 import {
@@ -39,7 +40,7 @@ function throwOverviewQueryError(code: OverviewQueryCode, message?: string): nev
  * Failures throw so `unstable_cache` does not store error payloads.
  */
 async function loadValueOverviewUncached(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   range: AnalyticsRange,
 ): Promise<ValueOverviewResponse> {
   const admin = createAdminClient();
@@ -51,7 +52,7 @@ async function loadValueOverviewUncached(
 }
 
 function readCachedValueOverview(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   range: AnalyticsRange,
   businessDay: string,
 ): Promise<ValueOverviewResponse> {
@@ -73,12 +74,12 @@ function readCachedValueOverview(
 const overviewFailureCooldownUntil = new Map<string, number>();
 const OVERVIEW_FAILURE_COOLDOWN_MS = 60_000;
 
-function overviewFailureKey(restaurantId: string, range: AnalyticsRange, businessDay: string) {
+function overviewFailureKey(restaurantId: AuthorizedRestaurantId, range: AnalyticsRange, businessDay: string) {
   return `${restaurantId}:${range}:${businessDay}`;
 }
 
 export async function getCachedValueOverview(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
   range: AnalyticsRange,
   options?: { bypassCache?: boolean; now?: Date },
 ): Promise<GetValueOverviewResult> {

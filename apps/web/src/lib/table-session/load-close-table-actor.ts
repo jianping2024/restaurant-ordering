@@ -1,11 +1,11 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
+import { dashboardAccessPrincipal, loadDashboardAccess } from '@/lib/dashboard-access';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
 import {
   resolveCloseTableSessionDeskActor,
@@ -15,7 +15,7 @@ import {
 export type CloseTableSessionActorContext =
   | {
       admin: SupabaseClient;
-      restaurantId: string;
+      restaurantId: AuthorizedRestaurantId;
       userId: string;
       actor: AuditActor;
       closedReason: SettledCloseActorReason;
@@ -24,11 +24,14 @@ export type CloseTableSessionActorContext =
 
 export type { CloseTableSessionActorGate };
 
-export async function loadCloseTableSessionActor(options?: {
-  requireWritable?: boolean;
-  gate?: CloseTableSessionActorGate;
-}): Promise<CloseTableSessionActorContext> {
-  const access = await loadDashboardAccess();
+export async function loadCloseTableSessionActor(
+  restaurantId: string,
+  options?: {
+    requireWritable?: boolean;
+    gate?: CloseTableSessionActorGate;
+  },
+): Promise<CloseTableSessionActorContext> {
+  const access = await loadDashboardAccess(restaurantId);
   if (access.mode === 'owner') {
     if (
       options?.requireWritable &&
@@ -51,14 +54,14 @@ export async function loadCloseTableSessionActor(options?: {
 
     return {
       admin,
-      restaurantId: access.restaurant.id,
+      restaurantId: access.loaded.restaurantId,
       userId: ownerActor.userId,
       actor: ownerActor.actor,
       closedReason: 'owner_closed',
     };
   }
 
-  const loaded = await loadPrincipalWithCapabilities();
+  const loaded = dashboardAccessPrincipal(access);
   const desk = resolveCloseTableSessionDeskActor(access, loaded, options);
   if (!desk.ok) {
     return { error: desk.error, status: desk.status };

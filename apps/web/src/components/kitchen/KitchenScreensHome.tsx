@@ -10,6 +10,7 @@ import {
   buildDashboardTopNavItems,
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
@@ -71,6 +72,7 @@ function KitchenScreensHomeInner({
             confirmSignOut={confirmBeforeSignOut}
             compact
             allowChangePassword
+            printAgentDevicesUrl={restaurantApiPath(restaurant.slug, '/print-agent/devices')}
           />
         }
       />

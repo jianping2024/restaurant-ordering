@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { PrintJobSummary, PrintJobStatus, PrintJobType } from '@/types';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +26,7 @@ function isPrintJobStatus(v: string): v is PrintJobStatus {
 
 export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSummary[] }) {
   const { lang } = useLanguage();
+  const store = useDashboardStore();
   const t = getMessages(lang).printAssistant;
   const locale = UI_LOCALE_BY_LANG[lang];
   const [jobs, setJobs] = useState<PrintJobSummary[]>(() =>
@@ -57,7 +59,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
       setLoadError(false);
     }
     try {
-      const res = await fetch('/api/print-agent/print-jobs/recent', { credentials: 'include' });
+      const res = await fetch(store.api('/print-agent/print-jobs/recent'), { credentials: 'include' });
       if (!res.ok) {
         if (!silent) setLoadError(true);
         return;
@@ -69,7 +71,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     const onVisible = () => {
@@ -83,7 +85,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
     async (jobId: string) => {
       setRetryingId(jobId);
       try {
-        const res = await fetch(`/api/print-agent/print-jobs/${jobId}/retry`, {
+        const res = await fetch(store.api(`/print-agent/print-jobs/${jobId}/retry`), {
           method: 'POST',
           credentials: 'include',
         });
@@ -93,7 +95,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
         setRetryingId(null);
       }
     },
-    [loadQueue],
+    [loadQueue, store],
   );
 
   const failedCount = jobs.filter((j) => j.status === 'failed').length;

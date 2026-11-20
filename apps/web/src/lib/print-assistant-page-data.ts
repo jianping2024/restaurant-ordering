@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import {
   cloudConfigToForm,
   defaultPrintAgentCloudConfig,
@@ -92,12 +93,12 @@ async function loadPrintAgentConfig(
 
 /** Devices + pairings + recent jobs for print-assistant upper panels. */
 export async function loadPrintAssistantUpperData(
-  restaurantId: string,
+  restaurantId: AuthorizedRestaurantId,
 ): Promise<PrintAssistantUpperData> {
   const admin = createAdminClient();
   const [bundle, pairings, recent] = await Promise.all([
     getPrintAgentDevicesBundle(restaurantId),
-    loadPrintAgentPairings(),
+    loadPrintAgentPairings(restaurantId),
     queryRecentPrintJobs(admin, restaurantId),
   ]);
 

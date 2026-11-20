@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
   formToCloudConfig,
@@ -27,6 +28,7 @@ export function PrintAgentSchedulePanel({
   initialForm: PrintAgentSettingsForm;
 }) {
   const { lang } = useLanguage();
+  const store = useDashboardStore();
   const t = getMessages(lang).printAssistant;
   const ba = getMessages(lang).buffetAdmin;
   const [form, setForm] = useState<PrintAgentSettingsForm>(initialForm);
@@ -51,7 +53,7 @@ export function PrintAgentSchedulePanel({
         setError(e instanceof Error ? e.message : 'invalid_time');
         return;
       }
-      const res = await fetch('/api/print-agent/settings', {
+      const res = await fetch(store.api('/print-agent/settings'), {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -71,7 +73,7 @@ export function PrintAgentSchedulePanel({
     } finally {
       setSaving(false);
     }
-  }, [form]);
+  }, [form, store]);
 
   useEffect(() => {
     setForm(initialForm);

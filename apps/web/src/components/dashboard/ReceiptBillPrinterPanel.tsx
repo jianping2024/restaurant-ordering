@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useDashboardStore } from '@/components/dashboard/DashboardStoreProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
@@ -19,6 +20,7 @@ export function ReceiptBillPrinterPanel({
   initialPrinters = [],
 }: Props) {
   const { lang } = useLanguage();
+  const store = useDashboardStore();
   const t = getMessages(lang).printAssistant.billReceipt;
   const [printerId, setPrinterId] = useState(initialDefaultReceiptStationId);
   const [saving, setSaving] = useState(false);
@@ -34,7 +36,7 @@ export function ReceiptBillPrinterPanel({
     setError(null);
     setSaved(false);
     try {
-      const res = await fetch('/api/print-agent/bill-receipt-printer', {
+      const res = await fetch(store.api('/print-agent/bill-receipt-printer'), {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -57,7 +59,7 @@ export function ReceiptBillPrinterPanel({
     } finally {
       setSaving(false);
     }
-  }, [printerId]);
+  }, [printerId, store]);
 
   return (
     <section className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">

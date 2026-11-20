@@ -14,6 +14,7 @@ import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 import { normalizeOrderingChannel } from '@/lib/instore-takeaway';
 import { currentTableBuffet } from '@/lib/buffet-order';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
+import type { PublicRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import type {
   WaiterTableDetailData,
   WaiterTablePageModel,
@@ -22,7 +23,7 @@ import type {
 type AdminClient = SupabaseClient;
 
 export type CustomerRestaurantRow = {
-  id: string;
+  id: PublicRestaurantId;
   name: string;
   slug: string;
   logo_url?: string | null;

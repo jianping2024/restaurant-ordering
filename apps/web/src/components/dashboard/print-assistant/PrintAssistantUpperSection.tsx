@@ -1,3 +1,4 @@
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
@@ -6,7 +7,7 @@ import { devicesNeedingRenewal } from '@/lib/print-agent-credential-expiry';
 import { resolveRecommendedAgentVersion } from '@/lib/print-agent-download';
 import { loadPrintAssistantUpperData } from '@/lib/print-assistant-page-data';
 
-export async function PrintAssistantUpperSection({ restaurantId }: { restaurantId: string }) {
+export async function PrintAssistantUpperSection({ restaurantId }: { restaurantId: AuthorizedRestaurantId }) {
   const upper = await loadPrintAssistantUpperData(restaurantId);
   const expiringDevices = devicesNeedingRenewal(upper.devices);
   const recommendedVersion = await resolveRecommendedAgentVersion();

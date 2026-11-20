@@ -8,6 +8,7 @@ import type { KitchenScreen, Order, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
+import { restaurantApiPath } from '@/lib/dashboard-store-routes';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { classifyStaffBoardFetchFailure } from '@/lib/staff-board-fetch-failure';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
@@ -430,6 +431,7 @@ function KitchenScreenBoardInner({
       confirmSignOut={confirmBeforeSignOut}
       compact
       allowChangePassword={!isDemo}
+      printAgentDevicesUrl={restaurantApiPath(restaurant.slug, '/print-agent/devices')}
     />
   );
 

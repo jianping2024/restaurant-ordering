@@ -213,7 +213,15 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     page: '/settings/print-assistant',
     pageLoader: 'requireSettingsRestaurantAuth (settings.print_assistant.manage)',
     writePattern: 'server-api',
-    aliases: ['/api/print-agent/pairings', '/api/print-agent/settings', '/api/print-agent/devices'],
+    aliases: [
+      '/api/restaurants/[slug]/print-agent/pairings',
+      '/api/restaurants/[slug]/print-agent/settings',
+      '/api/restaurants/[slug]/print-agent/devices',
+      // one-release rollback aliases (plan §5.4)
+      '/api/print-agent/pairings',
+      '/api/print-agent/settings',
+      '/api/print-agent/devices',
+    ],
   },
   {
     id: 'checkout',

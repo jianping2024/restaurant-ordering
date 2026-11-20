@@ -111,11 +111,11 @@ staff_identities                         -- 新表：员工账号级
   user_id              uuid PK  FK auth.users ON DELETE CASCADE
   login_name           text UNIQUE
   must_change_password boolean not null default false
-  favorite_restaurant_ids uuid[] not null default '{}'   -- 选店 / 切店的收藏，仅 UX；读取时与可进入店求交集
   created_at, updated_at
 
 restaurant_staff_accounts                -- 店籍
   去掉 user_id 全局唯一 → UNIQUE (restaurant_id, user_id)
+  新增 favorited_at timestamptz null      -- 选店 / 切店的收藏（收藏是「我在这家店的店籍」的属性；解除关联即消失）
   删除 login_name 列（第二步，见 5.3）
   其余列不变：role / role_id / display_name / disabled_at …
 
@@ -140,9 +140,23 @@ restaurants
 1. **违约预查**（有结果先人工清理）：同一 user 是两家店的 `owner_id`；管理员账号在某店有店籍；`print_agent` 账号多行。
 2. **第一步迁移**：建 `staff_identities`，从店籍行回填 `login_name`，从 `user_metadata` 回填 `must_change_password`；放开 `user_id` 唯一、加 `UNIQUE(restaurant_id, user_id)`；加 trigger 和 `owner_id` 唯一。旧 `login_name` 列暂留，代码改为只读新表。
 3. **第二步迁移**（第一批代码稳定后）：`rg login_name` 中对店籍行的读取清零后，删店籍行 `login_name` 列。
-4. 存量 `user_metadata` 里的 `restaurant_id` / `restaurant_slug` / `staff_role` / `staff_account_id` 读路径一律忽略，新写路径不再写；不批量清理（避免踢掉所有人会话）。
+4. 存量 `user_metadata` 里的 `restaurant_id` / `restaurant_slug` / `staff_role` / `staff_account_id` 读路径一律忽略；第一批写路径**继续写**（§5.4 回滚兼容），收尾才停写；不批量清理（避免踢掉所有人会话）。
 
 迁移顺序按 `docs/db-migration-runbook.zh.md`：先本地 Docker，再云端。
+
+### 5.4 回滚兼容（先扩后缩，expand → contract）
+
+迁移只能前进，回滚只回滚程序，所以**任一版本上线后，数据库必须仍能被上一版程序正确使用**。
+
+| 阶段 | 数据库 | 程序 |
+|---|---|---|
+| **扩（第一批）** | 新表 / 新列只增不删；旧 `login_name` 列、`user_metadata` 字段保留 | **新旧两边都写**（`staff_identities` + 店籍行 `login_name` + `user_metadata` 的 `must_change_password` / 店字段），**只从新的读** |
+| **迁移与新程序上线之间的空档** | 过渡同步 trigger：店籍行 `login_name` 写入 → 同步 `staff_identities`；`auth.users` 的 `must_change_password` 元数据写入 → 同步 `staff_identities`。保证空档里旧程序建的员工，新程序也认 | 旧程序照常跑 |
+| **缩（收尾，第二批稳定、确认不再回滚到第一批之前）** | 删同步 trigger、删店籍行 `login_name` 列 | 停写旧字段 |
+
+**网址回滚兼容：**
+- **发布 0（第一批之前单独上线）**：只加一条反向跳转 `/dashboard/r/:slug/:path*` → `/dashboard/:path*`。之后若第一批回滚，回到发布 0，新网址的书签和 PWA 图标仍能打开。第一批上线时由真实路由取代这条跳转。
+- 第一批里旧接口地址 `/api/dashboard/**`、`/api/restaurant/**` **保留一个版本周期**（调用同一实现，不复制逻辑），供部署瞬间仍在运行的旧页面使用；第二批删除。云端另在 Vercel 项目设置开启 Skew Protection（需人工确认是否已开）；on-prem 只靠保留旧接口。
 
 **on-prem 门店：** 店内服务器升级时 `deploy/on-prem/scripts/apply-migrations.sh` 会执行同一批迁移（约束、trigger、`staff_identities` 回填都会在店里跑），虽然 on-prem 本期仍单店，也必须：
 - 违约预查在 on-prem 升级脚本里先跑，有违约则中止升级并提示，不留半迁移状态；
@@ -180,7 +194,7 @@ resolveStaffLoginTarget(loginName)     -- 登录预检
   → 「可进入」为空才拒绝（错误码按全部禁用 / 全部暂停区分）
 ```
 
-**service role 路径的店 id 来源（唯一）：** 使用 `createAdminClient` 的代码绕过 RLS（现有 `apps/web/src` 下 110 个文件、其中 67 个 API route），串店只靠应用层拦。端态：凡用 admin client 读写店数据，`restaurantId` 只能取自 `loadPrincipalForRestaurant` / `requirePermission(key, restaurantId)` 的返回值（principal.restaurantId），不得在鉴权之后再从 body、query、查询结果里另取店 id。第一批用一次性审计清单 + ESLint 规则（或等效脚本检查）强制，进 `gate.sh check`。
+**service role 路径的店 id 来源（唯一）：** 使用 `createAdminClient` 的代码绕过 RLS（现有 `apps/web/src` 下 110 个文件、其中 67 个 API route），串店只靠应用层拦。端态：凡用 admin client 读写店数据，`restaurantId` 只能取自 `loadPrincipalForRestaurant` / `requirePermission(key, restaurantId)` 的返回值，不得在鉴权之后再从 body、query、查询结果里另取店 id。**用类型系统强制，不靠 lint：** 定义品牌类型 `AuthorizedRestaurantId`（`string & { __brand }`），只有 `loadPrincipalForRestaurant` 能产生；所有以 admin client 读写店数据的 loader / service 的店参数改为该类型，传普通字符串编译即报错。lint 规则（或检查脚本）只作补充，兜住直接在 route 里写 `.eq('restaurant_id', …)` 的情况，接入 `gate.sh check`。
 
 **删除，不留转发壳：** 无参 `loadPrincipalWithCapabilities()` / `loadPrincipal()` / `requirePermission(key)`；`staff-api-auth.ts` 的 `staffSessionForSlug` / `loadStaffCapabilities`；`staff-gate-db.ts` 两个重复的单行查询；`staff-access.ts#preflightStaffLogin` 的单行逻辑；`parseStaffUserMetadata`。删掉无参入口后，漏改的调用点会在 TypeScript 编译时报错。
 
@@ -233,7 +247,7 @@ cookie `mesa_last_restaurant_id`：持久（约 90 天）、HttpOnly、SameSite=
 
 **选店页（N 家）：** 店数 ≤ 6 用卡片；> 6 用带搜索框的列表（按店名 / 城市即时筛选），分组顺序：收藏 → 最近进过（最多 5 家）→ 全部（按城市、店名排序）。暂停店灰显、不可进。底部固定「多店概览」入口。
 
-**收藏与最近：** 收藏存账号级（`staff_identities` 上的店 id 列表，跨设备一致）；最近进过存浏览器本地（与 last cookie 同源，仅 UX，不参与鉴权）。
+**收藏与最近：** 收藏存店籍行 `favorited_at`（跨设备一致，按收藏时间排序；不用数组列）；最近进过存浏览器本地（与 last cookie 同源，仅 UX，不参与鉴权）。
 
 A 店禁用或暂停只让 A 从可进入列表里消失，不影响登录 B。
 
@@ -269,7 +283,9 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 | **第一批：纯重构** | §5.3 第一步迁移（含 on-prem 升级路径）；鉴权合并为 §6.2；service role 店 id 来源审计 + lint 规则；后台页面与接口迁入店作用域网址；旧 `/dashboard/*` 与 PWA 启动页跳转；`login_name`、`must_change_password` 读新表；浏览器直查补店条件 | **所有人行为与现在一致**（还没有多店账号） | 单店全流程回归；编译无无店入口；admin client 店 id 规则零违例；on-prem 全新安装 + 增量升级回归 |
 | **第二批：开放多店** | 登录选店 / 切店（含搜索、收藏、最近）；§7 全部规则（禁用不封号、删除即解除关联、改权限不踢会话、规则 4、ops 删店）；ops 批量关联界面 | ops 没关联第二家店前仍与单店一样 | 先给测试账号关联两家店跑 §11 全部场景，再关联 30 家店跑规模场景 |
 | **第三批：概览页** | §8.4（批量计算、范围筛选、排序、分页）；单店首页切到批量实现须先过比对门槛 | 多店账号多一个页面；单店首页数字不变 | 数字与各店首页一致（比对脚本全量一致）；30 家店打开时间可接受 |
-| **收尾** | §5.3 第二步：删店籍行 `login_name` 列 | — | `rg` 清零 |
+| **收尾（缩）** | §5.4：停写旧字段、删同步 trigger、删旧接口地址；§5.3 第二步：删店籍行 `login_name` 列 | — | `rg` 清零；确认不再回滚到第一批之前 |
+
+**发布 0**（第一批之前单独上线）：§5.4 的反向跳转 + 同步 trigger + `favorited_at` 迁移，行为与现在完全一致；之后第一批的回滚目标就是发布 0。
 
 **第一批和第二批必须先后上线、不能拆反：** 放开 `user_id` 唯一（第一批迁移）之后，ops 还没法关联第二家店，所以不会出现多店账号；等第二批的账号级 / 店级规则上线后，ops 才开始关联。
 

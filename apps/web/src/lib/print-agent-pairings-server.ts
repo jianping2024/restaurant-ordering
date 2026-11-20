@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createClient } from '@/lib/supabase/server';
+import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restaurant-id';
 import { pairingListCode } from '@/lib/print-agent-pairing-code';
 import { isPendingPairing } from '@/lib/print-agent-pairing-slots';
 
@@ -13,13 +14,16 @@ export type PrintAgentPairingListItem = {
   pending: boolean;
 };
 
-/** Active pairing rows for dashboard (pending codes are plaintext). */
-export async function loadPrintAgentPairings(): Promise<PrintAgentPairingListItem[]> {
+/** Active pairing rows for one store's dashboard (pending codes are plaintext). */
+export async function loadPrintAgentPairings(
+  restaurantId: AuthorizedRestaurantId,
+): Promise<PrintAgentPairingListItem[]> {
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
   const { data: rows, error } = await supabase
     .from('print_agent_pairings')
     .select('id, expires_at, consumed_at, revoked_at, code')
+    .eq('restaurant_id', restaurantId)
     .is('revoked_at', null)
     .gt('expires_at', nowIso)
     .order('created_at', { ascending: false })

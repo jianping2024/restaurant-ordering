@@ -144,6 +144,11 @@ restaurants
 
 迁移顺序按 `docs/db-migration-runbook.zh.md`：先本地 Docker，再云端。
 
+**on-prem 门店：** 店内服务器升级时 `deploy/on-prem/scripts/apply-migrations.sh` 会执行同一批迁移（约束、trigger、`staff_identities` 回填都会在店里跑），虽然 on-prem 本期仍单店，也必须：
+- 违约预查在 on-prem 升级脚本里先跑，有违约则中止升级并提示，不留半迁移状态；
+- 按 `.cursor/rules/on-prem-pack.mdc` 打包前刷新 baseline（covered = 全部迁移）；
+- 升级包验收两条路径：全新安装、从上一版增量升级（`MESA_MIGRATE_INCREMENTAL_ONLY=1`），两条都要登录、开台、点单、结账、打印回归通过。
+
 ---
 
 ## 6. 当前店与鉴权
@@ -174,6 +179,8 @@ resolveStaffLoginTarget(loginName)     -- 登录预检
   → staff_identities.login_name → user_id → listAuthorizedRestaurantsForUser
   → 「可进入」为空才拒绝（错误码按全部禁用 / 全部暂停区分）
 ```
+
+**service role 路径的店 id 来源（唯一）：** 使用 `createAdminClient` 的代码绕过 RLS（现有 `apps/web/src` 下 110 个文件、其中 67 个 API route），串店只靠应用层拦。端态：凡用 admin client 读写店数据，`restaurantId` 只能取自 `loadPrincipalForRestaurant` / `requirePermission(key, restaurantId)` 的返回值（principal.restaurantId），不得在鉴权之后再从 body、query、查询结果里另取店 id。第一批用一次性审计清单 + ESLint 规则（或等效脚本检查）强制，进 `gate.sh check`。
 
 **删除，不留转发壳：** 无参 `loadPrincipalWithCapabilities()` / `loadPrincipal()` / `requirePermission(key)`；`staff-api-auth.ts` 的 `staffSessionForSlug` / `loadStaffCapabilities`；`staff-gate-db.ts` 两个重复的单行查询；`staff-access.ts#preflightStaffLogin` 的单行逻辑；`parseStaffUserMetadata`。删掉无参入口后，漏改的调用点会在 TypeScript 编译时报错。
 
@@ -249,6 +256,7 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 - 每家店一行：已收、未收、今日桌/人、当前用餐桌/人（同单店首页 `todayRevenue`、`diningUncollectedAmount`、`todayTableCount`/`todayGuests`、`diningTableCount`/`diningGuests`）；营收取不到显示「—」；暂停店标「已暂停」，不计入合计。
 - 表格：每列可排序（默认按已收降序）；表头固定、内容滚动；合计行固定在表格底部，合计只算当前筛选结果。超过 50 家分页。
 - 数据：服务端**一次批量计算**所有入选店（与单店首页同一口径函数，批量版以 `restaurantIds[]` 为参数；单店首页改调同一实现传一个 id，不留两份口径），不逐店串行调用；结果短时缓存（如 30 秒）。不在浏览器端直查。
+- **首页数字不许变（切换门槛）：** 批量版先上线只给多店概览用，单店首页暂不切；用比对脚本对全部门店、多个时点（营业中 / 打烊后 / 有未收账单时）比较批量版与现有单店计算的每个字段（已收、未收、今日桌/人、当前用餐桌/人），**全部完全一致**后，单店首页才切到同一实现并删除旧实现。比对结果写进本批 UAT 证据。
 - 打开时加载一次 + 手动刷新，不轮询。
 - 不新增全局权限 key。
 
@@ -258,9 +266,9 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 
 | 批次 | 内容 | 上线后行为 | 验收重点 |
 |------|------|-----------|----------|
-| **第一批：纯重构** | §5.3 第一步迁移；鉴权合并为 §6.2；后台页面与接口迁入店作用域网址；旧 `/dashboard/*` 与 PWA 启动页跳转；`login_name`、`must_change_password` 读新表；浏览器直查补店条件 | **所有人行为与现在一致**（还没有多店账号） | 单店全流程回归；编译无无店入口 |
+| **第一批：纯重构** | §5.3 第一步迁移（含 on-prem 升级路径）；鉴权合并为 §6.2；service role 店 id 来源审计 + lint 规则；后台页面与接口迁入店作用域网址；旧 `/dashboard/*` 与 PWA 启动页跳转；`login_name`、`must_change_password` 读新表；浏览器直查补店条件 | **所有人行为与现在一致**（还没有多店账号） | 单店全流程回归；编译无无店入口；admin client 店 id 规则零违例；on-prem 全新安装 + 增量升级回归 |
 | **第二批：开放多店** | 登录选店 / 切店（含搜索、收藏、最近）；§7 全部规则（禁用不封号、删除即解除关联、改权限不踢会话、规则 4、ops 删店）；ops 批量关联界面 | ops 没关联第二家店前仍与单店一样 | 先给测试账号关联两家店跑 §11 全部场景，再关联 30 家店跑规模场景 |
-| **第三批：概览页** | §8.4（批量计算、范围筛选、排序、分页） | 多店账号多一个页面 | 数字与各店首页一致；30 家店打开时间可接受 |
+| **第三批：概览页** | §8.4（批量计算、范围筛选、排序、分页）；单店首页切到批量实现须先过比对门槛 | 多店账号多一个页面；单店首页数字不变 | 数字与各店首页一致（比对脚本全量一致）；30 家店打开时间可接受 |
 | **收尾** | §5.3 第二步：删店籍行 `login_name` 列 | — | `rg` 清零 |
 
 **第一批和第二批必须先后上线、不能拆反：** 放开 `user_id` 唯一（第一批迁移）之后，ops 还没法关联第二家店，所以不会出现多店账号；等第二批的账号级 / 店级规则上线后，ops 才开始关联。
@@ -286,6 +294,9 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 | `login_name` 读取方（§4 第 15 条） | 改读 `staff_identities` |
 | 旁路管理员判定：`checkout-confirm-payment-auth.ts`、`print-agent/receipt-printers/route.ts` | 并入 `loadPrincipalForRestaurant` |
 | 浏览器直查（§4 第 13 条） | 确认都带当前店条件 |
+| 使用 `createAdminClient` 的 110 个文件（67 个 API route） | 审计店 id 来源；新增 lint 规则（或检查脚本）并接入 `gate.sh check` |
+| `deploy/on-prem/scripts/apply-migrations.sh`、baseline | 升级前违约预查；刷新 baseline；全新安装 + 增量升级验收 |
+| 首页 KPI 比对脚本 | 批量版 vs 现有单店计算逐字段比对（第三批切换门槛） |
 | 多店概览页 | 新增 |
 | `lib/dashboard-overview.ts` | 今日 KPI 计算改为批量版（`restaurantIds[]`），单店首页传一个 id 调同一实现 |
 | 选店页 + 顶栏切店下拉 | 共用一个可搜索店铺列表组件（收藏 / 最近 / 全部） |
@@ -303,6 +314,9 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 | 风险 | 控制 |
 |------|------|
 | **串店**：改完后读写到错误的店 | 删除所有无店鉴权入口，漏改即编译报错；一人两店、两标签页交叉写验收 |
+| **service role 绕过 RLS 后串店**（RLS 拦不住） | admin client 店 id 只能取自 principal（§6.2）；审计 + lint 规则进门禁 |
+| **on-prem 升级跑新迁移出错** | 升级前违约预查、失败即中止；刷新 baseline；全新安装 + 增量升级两条路径回归 |
+| **首页数字被批量化改变**（所有门店每天看） | 批量版先只给概览用；全量比对完全一致才切单店首页 |
 | 单店用户回归 | 一家店直接进、不出现选店；旧链接和 PWA 跳转；第一批纯重构单独上线回归 |
 | 迁移失败或数据不一致 | 违约预查；两步迁移，旧列晚删 |
 | 禁用不再封号后被禁用的人还能登录 | 登录预检「可进入为空即拒绝」+ 逐请求读店籍 |
@@ -333,6 +347,9 @@ ops → 「关联已有账号」：输入登录名 → 勾选多家店（搜索 
 17. 测试账号关联 30 家店：选店页是搜索列表；输入城市名能筛出该城市的店；收藏和最近排在前面；切店下拉同样可搜索。
 18. 30 家店的多店概览：按城市筛选、按已收排序、合计只算筛选结果；打开时间可接受（实现时记录实测）。
 19. ops 批量关联：一次给 10 家店关联同一账号并指定「店长」；缺同名角色的店在提交前列出。
+20. 多店账号在 A 店标签页调用任一使用 admin client 的写接口，请求体里塞 B 店的 id：数据只写进 A（或被拒），不写进 B。
+21. on-prem：全新安装与从上一版增量升级各跑一遍，登录、开台、点单、结账、打印正常；人为制造一条违约数据时升级中止并提示。
+22. 首页 KPI 比对脚本：全部门店、营业中 / 打烊后 / 有未收账单三个时点，批量版与旧实现逐字段完全一致。
 
 ---
 

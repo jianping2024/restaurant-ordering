@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 import { loadAuthUserWithAdmin } from '@/lib/staff-access';
-import { loadOwnerRestaurantForUser } from '@/lib/staff-gate-db';
+import { loadOwnerRestaurantForUser, loadStaffMembershipsForUser } from '@/lib/staff-gate-db';
 import {
   STAFF_MEMBERSHIP_SELECT,
   authorizedRestaurantsFromLoads,
@@ -80,18 +80,6 @@ export async function loadStaffMembership(
   return normalizeStaffMembershipRow(data);
 }
 
-/** Every membership row of one account — one query regardless of store count. */
-async function loadStaffMemberships(admin: Admin, userId: string): Promise<StaffMembershipRow[]> {
-  const { data, error } = await admin
-    .from('restaurant_staff_accounts')
-    .select(STAFF_MEMBERSHIP_SELECT)
-    .eq('user_id', userId);
-  if (error) throw new Error(error.message);
-  return (data ?? [])
-    .map(normalizeStaffMembershipRow)
-    .filter((row): row is StaffMembershipRow => row != null);
-}
-
 /**
  * Stores this account may open: admin → its one store; staff → enabled, non-print_agent
  * memberships with a live role. Suspended stores are listed (flagged) and sorted last.
@@ -101,7 +89,7 @@ export async function listAuthorizedRestaurantsForUser(
 ): Promise<AuthorizedRestaurant[]> {
   const owned = await loadOwnedRestaurant(userId);
   if (owned) return authorizedRestaurantsFromLoads({ owned, memberships: [] });
-  const memberships = await loadStaffMemberships(createAdminClient(), userId);
+  const memberships = await loadStaffMembershipsForUser(createAdminClient(), userId);
   return authorizedRestaurantsFromLoads({ owned: null, memberships });
 }
 
@@ -149,7 +137,7 @@ export async function resolveStaffLoginTarget(loginName: string): Promise<StaffL
   const userId = (identity?.user_id as string | undefined) ?? null;
   if (!userId) return deriveStaffLoginTarget({ userId: null, restaurants: [] });
 
-  const memberships = await loadStaffMemberships(admin, userId);
+  const memberships = await loadStaffMembershipsForUser(admin, userId);
   const authorized = authorizedRestaurantsFromLoads({ owned: null, memberships });
   const reconciled = await Promise.all(
     authorized.map(async (r) => {

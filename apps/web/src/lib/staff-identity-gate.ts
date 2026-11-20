@@ -1,14 +1,10 @@
 import { isRestaurantSuspended } from '@mesa/shared';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
-
-export type StaffLoginPreflightResult =
-  | { ok: true }
-  | { ok: false; code: 'invalid_credentials' }
-  | {
-      ok: false;
-      code: 'restaurant_suspended';
-      suspension_reason: string | null;
-    };
+import type { Capabilities } from '@/lib/permissions/can';
+import {
+  authorizedRestaurantsFromLoads,
+  resolveStaffRoleCapabilities,
+  type StaffMembershipRow,
+} from '@/lib/permissions/restaurant-access-rules';
 
 /** Staff row + restaurant gate fields loaded in one round (embed). */
 export type StaffGateAccount = {
@@ -44,18 +40,19 @@ export function resolveOwnerRestaurantFromLoads(input: {
   return null;
 }
 
-export type StaffLoginContext = {
+type StaffLoginContext = {
   /** RLS / display label (preset key or `custom`) — not used for authorization. */
   roleLabel: string;
   slug: string;
   mustChangePassword: boolean;
+  /** Role capabilities in the landing store — drives the landing path. */
+  capabilities: Capabilities;
 };
 
 export type StaffLoginContextResult =
   | { kind: 'staff'; context: StaffLoginContext }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' }
-  | { kind: 'onboarding' }
-  | { kind: 'incomplete_staff_meta' };
+  | { kind: 'onboarding' };
 
 export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -86,78 +83,47 @@ export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
   };
 }
 
-export function deriveStaffLoginPreflight(input: {
-  account: {
-    disabled_at: string | null;
-    role: string;
-    role_id: string | null;
-    restaurant_suspended_at: string | null | undefined;
-    suspension_reason?: string | null;
-    role_disabled_at?: string | null;
-  } | null;
-}): StaffLoginPreflightResult {
-  const { account } = input;
-  if (
-    !account ||
-    account.disabled_at ||
-    account.role_disabled_at ||
-    !account.role_id ||
-    account.role === 'print_agent'
-  ) {
-    return { ok: false, code: 'invalid_credentials' };
-  }
-  if (isRestaurantSuspended(account.restaurant_suspended_at)) {
-    return {
-      ok: false,
-      code: 'restaurant_suspended',
-      suspension_reason: account.suspension_reason ?? null,
-    };
-  }
-  return { ok: true };
-}
-
-/** Derive post-login staff landing from gate rows + metadata. */
+/**
+ * Post-login staff landing from the account's enterable stores (multi-store plan §8.1).
+ * Identity = `staff_identities` row (account-level `must_change_password`); memberships =
+ * every 店籍 row. Batch 1: everyone has one store, so the first enterable store is it
+ * (suspended stores sort last).
+ */
 export function deriveStaffLoginContext(input: {
-  userMetadata: Record<string, unknown> | undefined;
-  staff: StaffGateAccount | null;
+  identity: { must_change_password: boolean } | null;
+  memberships: readonly StaffMembershipRow[];
   options?: { skipSuspendCheck?: boolean };
 }): StaffLoginContextResult {
-  const meta = parseStaffUserMetadata(input.userMetadata);
-  const account = input.staff;
+  const { identity, memberships } = input;
 
-  if (!account) {
-    return meta?.account_type === 'staff'
-      ? { kind: 'incomplete_staff_meta' }
-      : { kind: 'onboarding' };
+  if (memberships.length === 0) {
+    return identity ? { kind: 'staff_error', code: 'incomplete' } : { kind: 'onboarding' };
   }
 
-  if (account.disabled_at) {
-    return { kind: 'staff_error', code: 'disabled' };
+  const restaurants = authorizedRestaurantsFromLoads({ owned: null, memberships });
+  const target = restaurants[0];
+  if (!target) {
+    const anyDisabled = memberships.some((m) => m.disabled_at);
+    return { kind: 'staff_error', code: anyDisabled ? 'disabled' : 'incomplete' };
   }
 
-  if (!account.role_id || account.role === 'print_agent') {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
-  const restaurantRow = account.restaurant;
-  if (
-    !input.options?.skipSuspendCheck &&
-    isRestaurantSuspended(restaurantRow?.suspended_at)
-  ) {
+  if (!input.options?.skipSuspendCheck && isRestaurantSuspended(target.suspended_at)) {
     return { kind: 'staff_error', code: 'restaurant_suspended' };
   }
 
-  const slug = meta?.restaurant_slug ?? restaurantRow?.slug;
-  if (!slug) {
+  const membership = memberships.find((m) => m.restaurant_id === target.id);
+  const role = membership ? resolveStaffRoleCapabilities(membership.role_row, target.id) : null;
+  if (!membership || !role) {
     return { kind: 'staff_error', code: 'incomplete' };
   }
 
   return {
     kind: 'staff',
     context: {
-      roleLabel: String(account.role || 'custom'),
-      slug,
-      mustChangePassword: meta?.must_change_password === true,
+      roleLabel: String(membership.role || 'custom'),
+      slug: target.slug,
+      mustChangePassword: identity?.must_change_password === true,
+      capabilities: role.capabilities,
     },
   };
 }

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadStaffLoginNames } from '@mesa/shared';
 import type { AuditActor } from '@/lib/audit/types';
 
 export function staffAuditActor(
@@ -39,13 +40,17 @@ export async function loadStaffAuditActor(
 ): Promise<AuditActor> {
   const { data: account } = await admin
     .from('restaurant_staff_accounts')
-    .select('login_name, display_name')
+    .select('display_name')
     .eq('restaurant_id', params.restaurantId)
     .eq('user_id', params.userId)
     .maybeSingle();
+  // Login name is account-level (staff_identities); only shown for this store's members.
+  const loginNames = account
+    ? await loadStaffLoginNames(admin, [params.userId]).catch(() => new Map<string, string>())
+    : new Map<string, string>();
 
   let displayName = resolveStaffOperatorDisplayName({
-    login_name: account?.login_name as string | null | undefined,
+    login_name: loginNames.get(params.userId),
     display_name: account?.display_name as string | null | undefined,
   });
   if (!displayName) {

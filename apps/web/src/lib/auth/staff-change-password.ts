@@ -1,15 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { loadStaffIdentity, setStaffMustChangePassword } from '@mesa/shared';
 import { verifyStaffPassword } from '@/lib/verify-staff-password';
 import {
   validateStaffPasswordChangeInput,
   type StaffChangePasswordValidationError,
 } from '@/lib/auth/staff-change-password-validation';
-import { resolveStaffPasswordChangeSuccess } from '@/lib/auth/staff-change-password-outcome';
 import { staffLoginNameFromAuthEmail } from '@/lib/auth/resolve-auth-identifier';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadStaffGateAccountForUser } from '@/lib/staff-gate-db';
-import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
+import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 
 export type StaffChangePasswordError =
   | 'unauthorized'
@@ -38,7 +36,6 @@ export async function changeStaffPasswordWithSession(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown> | undefined);
   const loginName = staffLoginNameFromAuthEmail(user.email ?? '');
 
   const validationError = validateStaffPasswordChangeInput({
@@ -59,25 +56,30 @@ export async function changeStaffPasswordWithSession(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const { updateData } = resolveStaffPasswordChangeSuccess(user, meta);
-  const { error } = await supabase.auth.updateUser(
-    updateData ? { password: newPassword, data: updateData } : { password: newPassword },
-  );
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) {
     return { ok: false, error: 'update_failed' };
   }
 
+  // Account-level flag lives in staff_identities (no browser grant → admin client).
   let path: string | null = null;
-  if (meta) {
-    try {
-      const admin = createAdminClient();
-      const staff = await loadStaffGateAccountForUser(admin, user.id);
-      if (staff) {
-        path = await resolveStaffLandingPath(admin, staff, meta.restaurant_slug);
+  try {
+    const admin = createAdminClient();
+    const identity = await loadStaffIdentity(admin, user.id);
+    if (identity) {
+      if (identity.must_change_password) {
+        await setStaffMustChangePassword(admin, user.id, false);
       }
-    } catch {
-      path = null;
+      const landing = await resolvePostLoginRedirect(
+        supabase,
+        user.id,
+        user.user_metadata as Record<string, unknown> | undefined,
+        { email: user.email ?? null },
+      );
+      if (landing.kind === 'staff') path = landing.path;
     }
+  } catch {
+    return { ok: false, error: 'update_failed' };
   }
 
   return { ok: true, path };

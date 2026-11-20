@@ -78,6 +78,12 @@ export {
   printAgentStaffEmail,
   type EnsurePrintAgentStaffResult,
 } from './print-agent-staff';
+export {
+  insertStaffIdentity,
+  loadStaffIdentity,
+  loadStaffLoginNames,
+  setStaffMustChangePassword,
+} from './staff-identities';
 export { STAFF_EMAIL_DOMAIN } from './staff-email-domain';
 export { defaultRestaurantSlug, restaurantNameToSlug } from './slug';
 export {

@@ -1,24 +1,22 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadStaffIdentity } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isPremBuiltinAdminActor } from '@/lib/auth/prem-builtin-admin-identity';
 import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 import {
   loadOwnerRestaurantForUser,
-  loadStaffGateAccountForUser,
+  loadStaffMembershipsForUser,
 } from '@/lib/staff-gate-db';
 import {
   resolveCapabilitiesForOwner,
   staffLandingPathFromCapabilities,
 } from '@/lib/permissions/resolve';
-import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
 
 export type PostLoginRedirect =
   | { kind: 'owner'; path: string }
   | { kind: 'onboarding'; path: '/dashboard' }
   | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; roleLabel: string }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' | 'prem_admin_inactive' };
-
-export { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 
 /** Resolve landing path after server-side sign-in (owner before staff). */
 export async function resolvePostLoginRedirect(
@@ -38,13 +36,14 @@ export async function resolvePostLoginRedirect(
     throw new Error('server_misconfigured');
   }
 
-  const [ownedRestaurant, staff] = await Promise.all([
+  const [ownedRestaurant, identity, memberships] = await Promise.all([
     loadOwnerRestaurantForUser(admin, {
       userId,
       email: options?.email,
       userMetadata,
     }),
-    loadStaffGateAccountForUser(admin, userId),
+    loadStaffIdentity(admin, userId),
+    loadStaffMembershipsForUser(admin, userId),
   ]);
 
   if (ownedRestaurant) {
@@ -69,31 +68,23 @@ export async function resolvePostLoginRedirect(
   }
 
   const staffResult = deriveStaffLoginContext({
-    userMetadata,
-    staff,
+    identity,
+    memberships,
     options: { skipSuspendCheck: options?.staffPreflightPassed === true },
   });
 
   if (staffResult.kind === 'onboarding') {
     return { kind: 'onboarding', path: '/dashboard' };
   }
-  if (staffResult.kind === 'incomplete_staff_meta') {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
   if (staffResult.kind === 'staff_error') {
     return staffResult;
   }
 
-  const { roleLabel, slug, mustChangePassword } = staffResult.context;
-
-  const path =
-    staff != null
-      ? await resolveStaffLandingPath(admin, staff, slug)
-      : '/auth/login';
+  const { roleLabel, slug, mustChangePassword, capabilities } = staffResult.context;
 
   return {
     kind: 'staff',
-    path,
+    path: staffLandingPathFromCapabilities(slug, capabilities),
     mustChangePassword,
     slug,
     roleLabel,

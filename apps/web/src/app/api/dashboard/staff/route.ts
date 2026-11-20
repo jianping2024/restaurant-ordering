@@ -4,7 +4,6 @@ import { buildStaffEmail } from '@/lib/staff-account';
 import {
   listHumanStaffAccountsForRestaurant,
   mapStaffRow,
-  staffMetadataPayload,
   validateStaffCreateBody,
 } from '@/lib/staff-dashboard-api';
 import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
@@ -12,7 +11,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requirePermission } from '@/lib/permissions/require';
 import type { PermissionKey } from '@/lib/permissions/registry';
-import { isRestaurantSuspended } from '@mesa/shared';
+import { insertStaffIdentity, isRestaurantSuspended } from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
@@ -80,13 +79,6 @@ export async function POST(req: Request) {
     email,
     password: parsed.password,
     email_confirm: true,
-    user_metadata: {
-      account_type: 'staff',
-      must_change_password: true,
-      staff_role: staffRoleLabel,
-      restaurant_id: restaurant.id,
-      restaurant_slug: restaurant.slug,
-    },
   });
 
   if (createError) {
@@ -98,6 +90,20 @@ export async function POST(req: Request) {
   }
 
   const userId = createdUser.user.id;
+
+  // Account-level identity first (login name globally unique, forced change on first login).
+  const identity = await insertStaffIdentity(admin, {
+    userId,
+    loginName: parsed.login_name,
+    mustChangePassword: true,
+  });
+  if (identity.error) {
+    await admin.auth.admin.deleteUser(userId);
+    if (identity.error.code === '23505') {
+      return NextResponse.json({ error: 'login_name_taken' }, { status: 409 });
+    }
+    return NextResponse.json({ error: 'insert_failed', message: identity.error.message }, { status: 500 });
+  }
 
   const { data: row, error: insertError } = await admin
     .from('restaurant_staff_accounts')
@@ -124,16 +130,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'insert_failed', message: insertError.message }, { status: 500 });
   }
 
-  const account = mapStaffRow(row as Record<string, unknown>);
-  await admin.auth.admin.updateUserById(userId, {
-    user_metadata: staffMetadataPayload(
-      account.id,
-      restaurant.id,
-      restaurant.slug,
-      staffRoleLabel,
-      true,
-    ),
-  });
-
-  return NextResponse.json({ staff: account }, { status: 201 });
+  return NextResponse.json(
+    { staff: mapStaffRow(row as Record<string, unknown>, parsed.login_name) },
+    { status: 201 },
+  );
 }

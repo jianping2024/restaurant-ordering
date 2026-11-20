@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
-import { isPrintAgentStaffRole } from '@mesa/shared';
-import {
-  validateLoginName,
-  type StaffUserMetadata,
-} from '@/lib/staff-account';
+import { isPrintAgentStaffRole, loadStaffLoginNames } from '@mesa/shared';
+import { validateLoginName } from '@/lib/staff-account';
 import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { RestaurantStaffAccount } from '@/types';
-import type { StaffRole } from '@/lib/staff-account';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: boolean }) {
@@ -47,7 +43,8 @@ function roleNameFromRow(row: Record<string, unknown>): string {
   return String(row.role ?? '');
 }
 
-export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccount {
+/** Membership row (店籍) + account login name (`staff_identities`) → staff list item. */
+export function mapStaffRow(row: Record<string, unknown>, loginName: string): RestaurantStaffAccount {
   return {
     id: row.id as string,
     restaurant_id: row.restaurant_id as string,
@@ -56,20 +53,27 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
     role_name: roleNameFromRow(row),
     role: String(row.role ?? ''),
     display_name: row.display_name as string,
-    login_name: row.login_name as string,
+    login_name: loginName,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
     disabled_at: (row.disabled_at as string | null) ?? null,
   };
 }
 
-/** Human staff only — system print_agent never appears in owner staff lists. */
-export function mapHumanStaffRows(rows: Record<string, unknown>[]): RestaurantStaffAccount[] {
-  return rows.filter((row) => !isPrintAgentStaffRole(String(row.role ?? ''))).map(mapStaffRow);
+/** Membership rows → staff list items; login names come from `staff_identities` in one query. */
+export async function loadStaffAccountViews(
+  admin: SupabaseClient,
+  rows: Record<string, unknown>[],
+): Promise<RestaurantStaffAccount[]> {
+  const loginNames = await loadStaffLoginNames(
+    admin,
+    rows.map((row) => String(row.user_id ?? '')),
+  );
+  return rows.map((row) => mapStaffRow(row, loginNames.get(String(row.user_id ?? '')) ?? ''));
 }
 
 const STAFF_LIST_SELECT =
-  'id, restaurant_id, user_id, role, role_id, display_name, login_name, created_at, updated_at, disabled_at, restaurant_roles(name)';
+  'id, restaurant_id, user_id, role, role_id, display_name, created_at, updated_at, disabled_at, restaurant_roles(name)';
 
 /**
  * Full restaurant human staff roster for settings.staff.manage (admin client; bypasses staff self-select RLS).
@@ -91,27 +95,15 @@ export async function listHumanStaffAccountsForRestaurant(
       error: { code: error.code, message: error.message },
     };
   }
-  return {
-    staff: mapHumanStaffRows((data || []) as Record<string, unknown>[]),
-    error: null,
-  };
-}
-
-export function staffMetadataPayload(
-  accountId: string,
-  restaurantId: string,
-  slug: string,
-  roleLabel: string,
-  mustChangePassword: boolean,
-): StaffUserMetadata {
-  return {
-    account_type: 'staff',
-    must_change_password: mustChangePassword,
-    staff_role: roleLabel as StaffRole,
-    restaurant_id: restaurantId,
-    staff_account_id: accountId,
-    restaurant_slug: slug,
-  };
+  // Human staff only — system print_agent never appears in owner staff lists.
+  const human = ((data || []) as Record<string, unknown>[]).filter(
+    (row) => !isPrintAgentStaffRole(String(row.role ?? '')),
+  );
+  try {
+    return { staff: await loadStaffAccountViews(admin, human), error: null };
+  } catch (e) {
+    return { staff: [], error: { message: e instanceof Error ? e.message : String(e) } };
+  }
 }
 
 export function validateStaffCreateBody(body: Record<string, unknown>) {

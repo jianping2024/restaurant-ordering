@@ -9,8 +9,7 @@ import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import {
   loadOwnerRestaurantWithSlug,
-  mapStaffRow,
-  staffMetadataPayload,
+  loadStaffAccountViews,
   validateStaffRoleChange,
 } from '@/lib/staff-dashboard-api';
 
@@ -65,7 +64,9 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
     }
     await setStaffUserBanned(loaded.admin, existing.user_id as string, true);
     await kickStaffUserSessions(loaded.admin, existing.user_id as string);
-    return NextResponse.json({ staff: mapStaffRow(data as Record<string, unknown>) });
+    return NextResponse.json({
+      staff: (await loadStaffAccountViews(loaded.admin, [data as Record<string, unknown>]))[0],
+    });
   }
 
   if (action === 'enable') {
@@ -79,7 +80,9 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 });
     }
     await setStaffUserBanned(loaded.admin, existing.user_id as string, false);
-    return NextResponse.json({ staff: mapStaffRow(data as Record<string, unknown>) });
+    return NextResponse.json({
+      staff: (await loadStaffAccountViews(loaded.admin, [data as Record<string, unknown>]))[0],
+    });
   }
 
   const display_name = typeof body.display_name === 'string' ? body.display_name.trim() : '';
@@ -116,20 +119,12 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
   }
 
   if (roleChange && !('error' in roleChange)) {
-    const staffRoleLabel = String(data.role);
-    await loaded.admin.auth.admin.updateUserById(existing.user_id as string, {
-      user_metadata: staffMetadataPayload(
-        data.id as string,
-        loaded.restaurant.id,
-        loaded.restaurant.slug,
-        staffRoleLabel,
-        false,
-      ),
-    });
     await kickStaffUserSessions(loaded.admin, existing.user_id as string);
   }
 
-  return NextResponse.json({ staff: mapStaffRow(data as Record<string, unknown>) });
+  return NextResponse.json({
+      staff: (await loadStaffAccountViews(loaded.admin, [data as Record<string, unknown>]))[0],
+    });
 }
 
 export async function DELETE(_req: Request, { params }: RouteCtx) {

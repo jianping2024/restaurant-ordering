@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { STAFF_EMAIL_DOMAIN } from './staff-email-domain';
+import { insertStaffIdentity } from './staff-identities';
 
 export const PRINT_AGENT_STAFF_ROLE = 'print_agent' as const;
 
@@ -43,7 +44,6 @@ export type EnsurePrintAgentStaffResult = EnsurePrintAgentStaffSuccess | EnsureP
 type StaffRow = {
   id: string;
   user_id: string;
-  login_name: string;
   disabled_at: string | null;
 };
 
@@ -53,7 +53,7 @@ async function loadExisting(
 ): Promise<StaffRow | null> {
   const { data, error } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, user_id, login_name, disabled_at')
+    .select('id, user_id, disabled_at')
     .eq('restaurant_id', restaurantId)
     .eq('role', PRINT_AGENT_STAFF_ROLE)
     .maybeSingle();
@@ -94,7 +94,7 @@ export async function ensurePrintAgentStaff(
         ok: true,
         userId: existing.user_id,
         accountId: existing.id,
-        loginName: existing.login_name || loginName,
+        loginName,
         email,
       };
     }
@@ -105,7 +105,6 @@ export async function ensurePrintAgentStaff(
       email_confirm: true,
       user_metadata: {
         account_type: 'staff',
-        must_change_password: false,
         staff_role: PRINT_AGENT_STAFF_ROLE,
         restaurant_id: restaurantId,
         restaurant_slug: restaurantSlug,
@@ -120,7 +119,7 @@ export async function ensurePrintAgentStaff(
           ok: true,
           userId: raced.user_id,
           accountId: raced.id,
-          loginName: raced.login_name || loginName,
+          loginName,
           email,
         };
       }
@@ -133,6 +132,16 @@ export async function ensurePrintAgentStaff(
 
     const userId = createdUser.user.id;
 
+    const identity = await insertStaffIdentity(admin, {
+      userId,
+      loginName,
+      mustChangePassword: false,
+    });
+    if (identity.error) {
+      await admin.auth.admin.deleteUser(userId);
+      return { ok: false, error: 'insert_failed', detail: identity.error.message };
+    }
+
     const { data: row, error: insertError } = await admin
       .from('restaurant_staff_accounts')
       .insert({
@@ -143,7 +152,7 @@ export async function ensurePrintAgentStaff(
         login_name: loginName,
         created_by: null,
       })
-      .select('id, user_id, login_name')
+      .select('id, user_id')
       .single();
 
     if (insertError || !row) {
@@ -154,7 +163,7 @@ export async function ensurePrintAgentStaff(
           ok: true,
           userId: raced.user_id,
           accountId: raced.id,
-          loginName: raced.login_name || loginName,
+          loginName,
           email,
         };
       }
@@ -168,7 +177,6 @@ export async function ensurePrintAgentStaff(
     await admin.auth.admin.updateUserById(userId, {
       user_metadata: {
         account_type: 'staff',
-        must_change_password: false,
         staff_role: PRINT_AGENT_STAFF_ROLE,
         restaurant_id: restaurantId,
         staff_account_id: row.id,
@@ -180,7 +188,7 @@ export async function ensurePrintAgentStaff(
       ok: true,
       userId,
       accountId: row.id as string,
-      loginName: (row.login_name as string) || loginName,
+      loginName,
       email,
     };
   } catch (e) {

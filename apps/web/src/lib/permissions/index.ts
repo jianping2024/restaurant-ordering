@@ -66,7 +66,6 @@ export {
 
 export {
   loadStaffCapabilitiesForGateAccount,
-  resolveStaffLandingPath,
 } from '@/lib/permissions/staff-landing';
 export { loadPrincipal, loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 export {

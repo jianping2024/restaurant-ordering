@@ -1,5 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 import {
   STAFF_ROLE_COLUMNS,
   normalizeStaffRoleRow,
@@ -30,14 +29,4 @@ export async function loadStaffCapabilitiesForGateAccount(
     resolveStaffRoleCapabilities(normalizeStaffRoleRow(role), account.restaurant_id)
       ?.capabilities ?? new Set()
   );
-}
-
-/** Staff post-login / change-password landing — capabilities only. */
-export async function resolveStaffLandingPath(
-  admin: SupabaseClient,
-  account: StaffGateCapabilitiesInput,
-  slug: string,
-): Promise<string> {
-  const capabilities = await loadStaffCapabilitiesForGateAccount(admin, account);
-  return staffLandingPathFromCapabilities(slug, capabilities);
 }

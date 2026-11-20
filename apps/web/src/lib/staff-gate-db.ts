@@ -9,6 +9,11 @@ import {
   type OwnerGateRestaurant,
   type StaffGateAccount,
 } from '@/lib/staff-identity-gate';
+import {
+  STAFF_MEMBERSHIP_SELECT,
+  normalizeStaffMembershipRow,
+  type StaffMembershipRow,
+} from '@/lib/permissions/restaurant-access-rules';
 
 export const STAFF_GATE_SELECT =
   'id, restaurant_id, role, role_id, disabled_at, restaurants(id, slug, suspended_at)';
@@ -27,6 +32,21 @@ export async function loadStaffGateAccountForUser(
     throw new Error(error.message);
   }
   return normalizeStaffGateRow(data);
+}
+
+/** Every membership row (店籍) of one account, store + role embedded — one query regardless of store count. */
+export async function loadStaffMembershipsForUser(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+): Promise<StaffMembershipRow[]> {
+  const { data, error } = await admin
+    .from('restaurant_staff_accounts')
+    .select(STAFF_MEMBERSHIP_SELECT)
+    .eq('user_id', userId);
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map(normalizeStaffMembershipRow)
+    .filter((row): row is StaffMembershipRow => row != null);
 }
 
 function asOwnerGateRestaurant(row: {

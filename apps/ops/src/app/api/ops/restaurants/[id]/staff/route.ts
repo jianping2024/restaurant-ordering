@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isPrintAgentStaffRole } from '@mesa/shared';
+import { isPrintAgentStaffRole, loadStaffLoginNames } from '@mesa/shared';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -28,7 +28,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
   const { data: rows, error: listError } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, role, display_name, login_name, created_at, updated_at, disabled_at')
+    .select('id, user_id, role, display_name, created_at, updated_at, disabled_at')
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: true });
 
@@ -36,14 +36,21 @@ export async function GET(_req: Request, context: RouteContext) {
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
   }
 
+  const human = (rows || []).filter((row) => !isPrintAgentStaffRole(String(row.role ?? '')));
+  let loginNames: Map<string, string>;
+  try {
+    loginNames = await loadStaffLoginNames(admin, human.map((row) => row.user_id as string));
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: 'list_failed', detail }, { status: 500 });
+  }
+
   return NextResponse.json({
-    items: (rows || [])
-      .filter((row) => !isPrintAgentStaffRole(String(row.role ?? '')))
-      .map((row) => ({
+    items: human.map((row) => ({
         id: row.id,
         role: row.role,
         displayName: row.display_name,
-        loginName: row.login_name,
+        loginName: loginNames.get(row.user_id as string) ?? '',
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         disabledAt: row.disabled_at,

@@ -5,7 +5,8 @@ import {
   resolveAuthIdentifier,
   staffLoginNameFromAuthEmail,
 } from '@/lib/auth/resolve-auth-identifier';
-import { staffSignInPreflight } from '@/lib/auth/staff-sign-in-preflight';
+import { setStaffMustChangePassword } from '@mesa/shared';
+import { resolveStaffLoginTarget } from '@/lib/permissions/restaurant-access';
 import {
   authLoginRateLimitCheck,
   authLoginRecordFailure,
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
       resolved.loginName ?? staffLoginNameFromAuthEmail(email);
     if (loginName) {
       try {
-        const preflight = await staffSignInPreflight(loginName);
+        const preflight = await resolveStaffLoginTarget(loginName);
         if (!preflight.ok) {
           authLoginRecordFailure(email, ip);
           const status = preflight.code === 'restaurant_suspended' ? 403 : 401;
@@ -156,6 +157,8 @@ export async function POST(req: Request) {
       if (mustChangePassword && !redirect.mustChangePassword) {
         try {
           const admin = createAdminClient();
+          await setStaffMustChangePassword(admin, data.user.id, true);
+          // Legacy mirror (rollback compatibility §5.4); never read.
           await admin.auth.admin.updateUserById(data.user.id, {
             user_metadata: {
               ...(data.user.user_metadata as Record<string, unknown>),
@@ -163,7 +166,7 @@ export async function POST(req: Request) {
             },
           });
         } catch {
-          // Still send them to change-password; gate may need metadata refresh.
+          // Still send them to change-password; the page gate re-reads the flag.
         }
       }
       const response = NextResponse.json({

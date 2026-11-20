@@ -1,32 +1,31 @@
 import 'server-only';
 
 import { redirect } from 'next/navigation';
+import { loadStaffIdentity } from '@mesa/shared';
 import { createClient } from '@/lib/supabase/server';
-import { parseStaffUserMetadata, type StaffUserMetadata } from '@/lib/staff-account';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadStaffGateAccountForUser } from '@/lib/staff-gate-db';
-import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
+import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 
-/** Server gate for /auth/staff/change-password — session must exist and must_change_password. */
-export async function requireStaffChangePasswordPage(): Promise<StaffUserMetadata> {
+/**
+ * Server gate for /auth/staff/change-password — staff session whose
+ * `staff_identities.must_change_password` is set; otherwise back to the landing.
+ */
+export async function requireStaffChangePasswordPage(): Promise<void> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const meta = parseStaffUserMetadata(user?.user_metadata as Record<string, unknown> | undefined);
+  if (!user) redirect('/auth/login');
 
-  if (!user || !meta) {
-    redirect('/auth/login');
-  }
+  const identity = await loadStaffIdentity(createAdminClient(), user.id);
+  if (!identity) redirect('/auth/login');
+  if (identity.must_change_password) return;
 
-  if (meta.must_change_password !== true) {
-    const admin = createAdminClient();
-    const staff = await loadStaffGateAccountForUser(admin, user.id);
-    if (staff) {
-      redirect(await resolveStaffLandingPath(admin, staff, meta.restaurant_slug));
-    }
-    redirect('/auth/login');
-  }
-
-  return meta;
+  const landing = await resolvePostLoginRedirect(
+    supabase,
+    user.id,
+    user.user_metadata as Record<string, unknown> | undefined,
+    { email: user.email ?? null },
+  );
+  redirect(landing.kind === 'staff' ? landing.path : '/auth/login');
 }

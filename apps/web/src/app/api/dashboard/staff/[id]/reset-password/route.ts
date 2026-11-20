@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
-import { isPrintAgentStaffRole, kickStaffUserSessions } from '@mesa/shared';
+import {
+  isPrintAgentStaffRole,
+  kickStaffUserSessions,
+  loadStaffIdentity,
+  setStaffMustChangePassword,
+} from '@mesa/shared';
 import {
   loadOwnerRestaurantWithSlug,
   mapStaffRow,
   staffMetadataPayload,
 } from '@/lib/staff-dashboard-api';
 import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
-import type { StaffRole } from '@/lib/staff-account';
 
 export const runtime = 'nodejs';
 
@@ -39,22 +43,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
-  const loginName =
-    typeof account.login_name === 'string' ? account.login_name : null;
+  const userId = account.user_id as string;
+  const identity = await loadStaffIdentity(loaded.admin, userId);
+  const loginName = identity?.login_name ?? '';
   const passwordError = accountPasswordPolicyError(password, { loginName });
   if (passwordError) {
     return NextResponse.json({ error: passwordError }, { status: 400 });
   }
 
-  const role = account.role as StaffRole;
-
-  const { error: updateError } = await loaded.admin.auth.admin.updateUserById(account.user_id as string, {
+  const { error: updateError } = await loaded.admin.auth.admin.updateUserById(userId, {
     password,
+    // Legacy mirror (rollback compatibility §5.4); the flag is read from staff_identities.
     user_metadata: staffMetadataPayload(
       account.id as string,
       loaded.restaurant.id,
       loaded.restaurant.slug,
-      role,
+      String(account.role ?? ''),
       true,
     ),
   });
@@ -63,12 +67,19 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: 'reset_failed', message: updateError.message }, { status: 500 });
   }
 
-  await kickStaffUserSessions(loaded.admin, account.user_id as string);
+  try {
+    await setStaffMustChangePassword(loaded.admin, userId, true);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: 'reset_failed', message }, { status: 500 });
+  }
+
+  await kickStaffUserSessions(loaded.admin, userId);
 
   await loaded.admin
     .from('restaurant_staff_accounts')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', params.id);
 
-  return NextResponse.json({ staff: mapStaffRow(account as Record<string, unknown>) });
+  return NextResponse.json({ staff: mapStaffRow(account as Record<string, unknown>, loginName) });
 }

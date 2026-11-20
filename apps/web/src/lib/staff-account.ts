@@ -129,6 +129,11 @@ export function buildStaffEmail(loginName: string): string {
   return `${ln}@${STAFF_EMAIL_DOMAIN}`;
 }
 
+/**
+ * Legacy single-store auth metadata. **Write-only** in batch 1 (rollback compatibility,
+ * multi-store plan §5.4): every staff write mirrors it, nothing reads it — reads go to
+ * `staff_identities` / membership rows. Stop writing at contract stage.
+ */
 export type StaffUserMetadata = {
   account_type: 'staff';
   must_change_password?: boolean;
@@ -137,21 +142,3 @@ export type StaffUserMetadata = {
   staff_account_id: string;
   restaurant_slug: string;
 };
-
-export function parseStaffUserMetadata(meta: Record<string, unknown> | undefined): StaffUserMetadata | null {
-  if (!meta || meta.account_type !== 'staff') return null;
-  const staff_role = meta.staff_role;
-  if (typeof staff_role !== 'string' || !isStaffRole(staff_role)) {
-    return null;
-  }
-  if (typeof meta.restaurant_id !== 'string' || typeof meta.staff_account_id !== 'string') return null;
-  if (typeof meta.restaurant_slug !== 'string') return null;
-  return {
-    account_type: 'staff',
-    must_change_password: meta.must_change_password === true,
-    staff_role,
-    restaurant_id: meta.restaurant_id,
-    staff_account_id: meta.staff_account_id,
-    restaurant_slug: meta.restaurant_slug,
-  };
-}

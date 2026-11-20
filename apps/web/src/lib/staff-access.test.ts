@@ -2,170 +2,105 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   deriveStaffLoginContext,
-  deriveStaffLoginPreflight,
   resolveOwnerRestaurantFromLoads,
   type OwnerGateRestaurant,
-  type StaffGateAccount,
 } from './staff-identity-gate';
+import { can } from './permissions/can';
+import type { StaffMembershipRow } from './permissions/restaurant-access-rules';
 
 const SLUG = 'restaurant-mohnrib5';
 const RESTAURANT_ID = 'rest-1';
 const ROLE_ID = 'role-kitchen-1';
+const SUSPENDED = '2026-01-01T00:00:00Z';
 
-function staffRow(overrides: Partial<StaffGateAccount> = {}): StaffGateAccount {
+function membership(overrides: Partial<StaffMembershipRow> = {}): StaffMembershipRow {
   return {
     id: 'staff-1',
     restaurant_id: RESTAURANT_ID,
     role: 'kitchen',
     role_id: ROLE_ID,
     disabled_at: null,
-    restaurant: {
-      id: RESTAURANT_ID,
-      slug: SLUG,
-      suspended_at: null,
+    restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: null },
+    role_row: {
+      id: ROLE_ID,
+      restaurant_id: RESTAURANT_ID,
+      name: 'Kitchen',
+      preset_key: 'kitchen',
+      permissions: ['floor.kitchen_board.view'],
+      disabled_at: null,
     },
     ...overrides,
   };
 }
 
-describe('deriveStaffLoginPreflight', () => {
-  it('rejects missing or disabled accounts as invalid_credentials', () => {
-    assert.deepEqual(deriveStaffLoginPreflight({ account: null }), {
-      ok: false,
-      code: 'invalid_credentials',
-    });
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: '2026-01-01T00:00:00Z',
-          role: 'kitchen',
-          role_id: ROLE_ID,
-          restaurant_suspended_at: null,
-        },
-      }),
-      { ok: false, code: 'invalid_credentials' },
-    );
-  });
-
-  it('rejects staff without role_id', () => {
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: null,
-          role: 'kitchen',
-          role_id: null,
-          restaurant_suspended_at: null,
-        },
-      }),
-      { ok: false, code: 'invalid_credentials' },
-    );
-  });
-
-  it('rejects suspended restaurant', () => {
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: null,
-          role: 'kitchen',
-          role_id: ROLE_ID,
-          restaurant_suspended_at: '2026-01-01T00:00:00Z',
-          suspension_reason: 'license_expired',
-        },
-      }),
-      {
-        ok: false,
-        code: 'restaurant_suspended',
-        suspension_reason: 'license_expired',
-      },
-    );
-  });
-
-  it('rejects staff whose restaurant role is disabled', () => {
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: null,
-          role: 'kitchen',
-          role_id: ROLE_ID,
-          restaurant_suspended_at: null,
-          role_disabled_at: '2026-01-01T00:00:00Z',
-        },
-      }),
-      { ok: false, code: 'invalid_credentials' },
-    );
-  });
-
-  it('accepts enabled staff with role_id', () => {
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: null,
-          role: 'kitchen',
-          role_id: ROLE_ID,
-          restaurant_suspended_at: null,
-        },
-      }),
-      { ok: true },
-    );
-  });
-
-  it('accepts custom role label when role_id is set', () => {
-    assert.deepEqual(
-      deriveStaffLoginPreflight({
-        account: {
-          disabled_at: null,
-          role: 'custom',
-          role_id: ROLE_ID,
-          restaurant_suspended_at: null,
-        },
-      }),
-      { ok: true },
-    );
-  });
-});
+const IDENTITY = { must_change_password: false };
 
 describe('deriveStaffLoginContext', () => {
-  it('returns onboarding when no staff and no staff meta', () => {
-    assert.deepEqual(
-      deriveStaffLoginContext({ userMetadata: {}, staff: null }),
-      { kind: 'onboarding' },
-    );
+  it('returns onboarding for an account with no staff identity and no membership', () => {
+    assert.deepEqual(deriveStaffLoginContext({ identity: null, memberships: [] }), {
+      kind: 'onboarding',
+    });
   });
 
-  it('returns staff landing from gate restaurant slug', () => {
+  it('staff identity without any membership is incomplete', () => {
+    assert.deepEqual(deriveStaffLoginContext({ identity: IDENTITY, memberships: [] }), {
+      kind: 'staff_error',
+      code: 'incomplete',
+    });
+  });
+
+  it('lands in the enterable store with role label and capabilities', () => {
     const result = deriveStaffLoginContext({
-      userMetadata: {},
-      staff: staffRow({ role: 'custom' }),
+      identity: IDENTITY,
+      memberships: [membership({ role: 'custom' })],
     });
     assert.equal(result.kind, 'staff');
     if (result.kind === 'staff') {
       assert.equal(result.context.roleLabel, 'custom');
       assert.equal(result.context.slug, SLUG);
       assert.equal(result.context.mustChangePassword, false);
+      assert.equal(can(result.context.capabilities, 'floor.kitchen_board.view'), true);
     }
   });
 
-  it('rejects staff without role_id', () => {
-    assert.equal(
+  it('reads must_change_password from the identity row', () => {
+    const result = deriveStaffLoginContext({
+      identity: { must_change_password: true },
+      memberships: [membership()],
+    });
+    assert.equal(result.kind === 'staff' && result.context.mustChangePassword, true);
+  });
+
+  it('every membership disabled → disabled', () => {
+    assert.deepEqual(
       deriveStaffLoginContext({
-        userMetadata: {},
-        staff: staffRow({ role_id: null }),
-      }).kind,
-      'staff_error',
+        identity: IDENTITY,
+        memberships: [membership({ disabled_at: SUSPENDED })],
+      }),
+      { kind: 'staff_error', code: 'disabled' },
     );
   });
 
+  it('rejects staff without role_id or with print_agent role', () => {
+    for (const over of [{ role_id: null }, { role: 'print_agent' }]) {
+      assert.deepEqual(
+        deriveStaffLoginContext({ identity: IDENTITY, memberships: [membership(over)] }),
+        { kind: 'staff_error', code: 'incomplete' },
+      );
+    }
+  });
+
   it('can skip suspend check after preflight', () => {
-    const suspended = staffRow({
-      restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: '2026-01-01T00:00:00Z' },
+    const suspended = membership({
+      restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: SUSPENDED },
     });
-    assert.equal(
-      deriveStaffLoginContext({ userMetadata: {}, staff: suspended }).kind,
-      'staff_error',
+    assert.deepEqual(
+      deriveStaffLoginContext({ identity: IDENTITY, memberships: [suspended] }),
+      { kind: 'staff_error', code: 'restaurant_suspended' },
     );
     const skipped = deriveStaffLoginContext({
-      userMetadata: {},
-      staff: suspended,
+      identity: IDENTITY,
+      memberships: [suspended],
       options: { skipSuspendCheck: true },
     });
     assert.equal(skipped.kind, 'staff');

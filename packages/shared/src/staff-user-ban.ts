@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { STAFF_EMAIL_DOMAIN } from './staff-email-domain';
+import { deleteStaffIdentity } from './staff-identities';
 
 export async function kickStaffUserSessions(admin: SupabaseClient, userId: string) {
   try {
@@ -45,6 +46,8 @@ export async function retireStaffAuthUser(
     if (freeError) {
       // already banned before row delete; email free is best-effort
     }
+    // Free the login name too (account-level identity); hard-delete above cascades it.
+    await deleteStaffIdentity(admin, userId);
     return 'retained';
   } catch {
     return 'retained';

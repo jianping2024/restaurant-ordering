@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { isPrintAgentStaffRole, kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
+import {
+  isPrintAgentStaffRole,
+  kickStaffUserSessions,
+  loadStaffIdentity,
+  setStaffUserBanned,
+} from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -20,7 +25,7 @@ export async function PATCH(req: Request, context: RouteContext) {
 
   const { data: staff, error: fetchError } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, user_id, restaurant_id, role, display_name, login_name, disabled_at')
+    .select('id, user_id, restaurant_id, role, display_name, disabled_at')
     .eq('id', staffId)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
@@ -35,6 +40,7 @@ export async function PATCH(req: Request, context: RouteContext) {
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
+  const loginName = (await loadStaffIdentity(admin, staff.user_id))?.login_name ?? null;
   const action = body.action;
 
   if (action === 'disable') {
@@ -60,7 +66,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       targetType: 'restaurant_staff_account',
       targetId: staff.id,
       restaurantId,
-      metadata: { loginName: staff.login_name, role: staff.role },
+      metadata: { loginName, role: staff.role },
     });
 
     return NextResponse.json({ ok: true });
@@ -88,7 +94,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       targetType: 'restaurant_staff_account',
       targetId: staff.id,
       restaurantId,
-      metadata: { loginName: staff.login_name, role: staff.role },
+      metadata: { loginName, role: staff.role },
     });
 
     return NextResponse.json({ ok: true });

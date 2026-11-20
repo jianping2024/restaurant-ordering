@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadStaffLoginNames } from '@mesa/shared';
 import {
   resolveOperatorUsernameFromAuthUser,
   resolveOwnerOperatorName,
@@ -25,15 +26,20 @@ export async function resolveStaffOperatorNames(
 
   const { data: staffRows } = await admin
     .from('restaurant_staff_accounts')
-    .select('user_id, display_name, login_name')
+    .select('user_id, display_name')
     .eq('restaurant_id', params.restaurantId)
     .in('user_id', uniqueIds);
+  // Login names are account-level (staff_identities); only for this store's members.
+  const loginNames = await loadStaffLoginNames(
+    admin,
+    (staffRows || []).map((row) => row.user_id as string),
+  ).catch(() => new Map<string, string>());
 
   for (const row of staffRows || []) {
     const userId = row.user_id as string;
     const label = resolveStaffOperatorDisplayName({
       display_name: row.display_name as string | null | undefined,
-      login_name: row.login_name as string | null | undefined,
+      login_name: loginNames.get(userId),
     });
     if (label) names.set(userId, label);
   }

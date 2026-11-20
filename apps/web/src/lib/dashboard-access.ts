@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { loadStaffIdentity } from '@mesa/shared';
 import { loadAuthOwnershipGate } from '@/lib/staff-access';
 import type { Restaurant } from '@/types';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
@@ -150,8 +150,8 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     };
   }
 
-  const meta = parseStaffUserMetadata(user.user_metadata);
-  if (meta?.account_type === 'staff') {
+  // Staff account (any membership state) never falls through to owner onboarding.
+  if (staff || (await loadStaffIdentity(admin, user.id))) {
     return { mode: 'unauthenticated' };
   }
 

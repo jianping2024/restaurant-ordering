@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { loadStaffIdentity } from '@mesa/shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
@@ -93,21 +94,18 @@ async function resolvePartyCreatorLoginName(
   restaurantId: string,
   userId: string,
 ): Promise<string> {
-  const { data, error } = await admin
-    .from('restaurant_staff_accounts')
-    .select('login_name')
-    .eq('restaurant_id', restaurantId)
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) {
+  // Account-level login name (staff_identities); owner accounts have none → fallback.
+  let login = '';
+  try {
+    login = (await loadStaffIdentity(admin, userId))?.login_name.trim() ?? '';
+  } catch (e) {
     console.error('[resolvePartyCreatorLoginName]', {
       restaurantId,
       userId,
-      message: error.message,
+      message: e instanceof Error ? e.message : String(e),
     });
     return PARTY_DEFAULT_LOGIN_FALLBACK;
   }
-  const login = typeof data?.login_name === 'string' ? data.login_name.trim() : '';
   return login.length > 0 ? login : PARTY_DEFAULT_LOGIN_FALLBACK;
 }
 

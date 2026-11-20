@@ -6,7 +6,6 @@ import {
   loadOwnerRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
-import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import {
@@ -94,11 +93,7 @@ export async function updateSession(request: NextRequest) {
     } else {
       const staff = await loadStaffGateAccountForUser(admin, sessionUser.id);
       if (staff && !staff.disabled_at) {
-        const meta = parseStaffUserMetadata(
-          sessionUser.user_metadata as Record<string, unknown>,
-        );
-        const slug =
-          staff.restaurant?.slug ?? meta?.restaurant_slug ?? '';
+        const slug = staff.restaurant?.slug ?? '';
         if (slug) {
           const capabilities = await loadStaffCapabilitiesForGateAccount(admin, staff);
           const redirectPath = dashboardCapabilityMiddlewareRedirectPath(

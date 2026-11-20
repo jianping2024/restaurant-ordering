@@ -33,11 +33,19 @@ type WaiterBuffetFailureLog = {
   parse_table_id?: boolean;
   parse_intent?: boolean;
   parse_buffet?: boolean;
+  /** Top-level JSON keys on invalid_body (e.g. `buffet` vs `buffets`), comma-joined. */
+  body_keys?: string;
   status: number;
   error: string;
   code?: string;
   message?: string;
 };
+
+function topLevelBodyKeysCsv(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const keys = Object.keys(raw as Record<string, unknown>).sort();
+  return keys.length > 0 ? keys.join(',') : undefined;
+}
 
 /**
  * Sole failure exit for POST …/staff/waiter/buffet.
@@ -177,6 +185,7 @@ export async function POST(
         parse_table_id: Boolean(tableId),
         parse_intent: Boolean(intent),
         parse_buffet: parsedBuffet.ok,
+        body_keys: topLevelBodyKeysCsv(body),
         status: 400,
         error: 'invalid_body',
       });

@@ -61,12 +61,16 @@ export async function postWaiterBuffetOpenAndCommit(input: {
   buffet: TableBuffetSelection;
   intent: BuffetWaiterOpenIntent;
 }): Promise<WaiterBuffetOpenPostResult> {
+  const buffetId = input.buffet.buffetId?.trim() ?? '';
+  if (!buffetId) {
+    return { ok: false, status: 400, code: 'invalid_body' };
+  }
   try {
     const nextModel = await postWaiterBuffetOpenClient(input.restaurantSlug, {
       table_id: input.tableId,
       intent: input.intent,
       buffet: {
-        buffet_id: input.buffet.buffetId,
+        buffet_id: buffetId,
         adult_count: input.buffet.adults,
         child_count: input.buffet.children,
       },

@@ -626,7 +626,7 @@ sole `clientIpFromRequest` — prefer `CF-Connecting-IP`, else rightmost `X-Forw
 
 ### PWA shell SW
 
-sole script `buildPwaShellServiceWorkerScript` + route `/mesa-pwa-shell-sw.js` + `PwaShellSwRegister`; cache version only via `getWebAppBuildInfo()` (never a parallel MESA_PWA_* version); never cache `/api/*`; not offline POS.
+sole script `buildPwaShellServiceWorkerScript` + route `/mesa-pwa-shell-sw.js` + `PwaShellSwRegister`; cache version only via `getWebAppBuildInfo()` (never a parallel MESA_PWA_* version); never cache `/api/*`; not offline POS. Page build ↔ `/api/health/live.version` sole gate `WebAppBuildReconcile` + `web-app-build-reconcile` (mismatch → one reload; SW `controllerchange` / tab visible / mount 同门闩；空 version 或 health 失败不刷).
 
 账号边界（登录成功 / 登出）sole `clearPwaShellCaches` —— `useAuthLogin` 跳转前与 `signOutAndRedirect` 各调一次；否则导航先画上个账号的缓存页（旧 slug → 401 → auto-exit 把新登录踢掉，2026-10-31 luckytee 登录两次）。
 

@@ -65,6 +65,7 @@ describe('pwa shell sw — one representation', () => {
     assert.match(registerSource, /pwaShellSwRegisterUrl/);
     assert.match(registerSource, /serviceWorker\.register/);
     assert.match(layoutSource, /PwaShellSwRegister/);
+    assert.match(layoutSource, /WebAppBuildReconcile/);
     assert.match(layoutSource, /getWebAppBuildInfo/);
     assert.equal(layoutSource.includes('navigator.serviceWorker'), false);
     assert.equal(routeSource.includes('public/'), false);

@@ -32,7 +32,7 @@
   - 客人窗口标题唯一文案 → `formatGuestTableWindowTitle`（`店名 · 桌号` / 无桌仅店名）；菜单页 `document.title` 与 guest manifest `name` 共用；**不要**再拼「— 菜单」。Chrome 已装窗标题是 `manifest.name - document.title`，故 `GuestTableStandaloneTitle` 在 standalone 下清空 `document.title`，栏上只留一截 `店名 · 桌号`
   - standalone 检测 → `lib/pwa/install-display.ts`（`STANDALONE_DISPLAY_MEDIA_QUERIES`）
   - 冷启动品牌层 → `lib/pwa/launch-shell.ts`（`off→in→hold→out`；`PWA_LAUNCH_FADE_MS` / `HOLD` / `MARK_PX` 各一份）+ `app/layout.tsx` 唯一 DOM
-  - **壳 SW（防二次冷启纯白）** → `lib/pwa/shell-sw.ts` 唯一生成脚本；`app/mesa-pwa-shell-sw.js/route.ts` 唯一 HTTP；`PwaShellSwRegister` 唯一注册。缓存名版本 = **`getWebAppBuildInfo().version`**（与 health / 设置页脚同一条；空则 `dev`）。导航 cache-then-network；`/_next/static` + `PWA_ICON_PATHS` cache-first；**永不**缓存 `/api/*`。发版换版本即废旧 `mesa-pwa-shell:*` cache。
+  - **壳 SW（防二次冷启纯白）** → `lib/pwa/shell-sw.ts` 唯一生成脚本；`app/mesa-pwa-shell-sw.js/route.ts` 唯一 HTTP；`PwaShellSwRegister` 唯一注册。缓存名版本 = **`getWebAppBuildInfo().version`**（与 health / 设置页脚同一条；空则 `dev`）。导航 cache-then-network；`/_next/static` + `PWA_ICON_PATHS` cache-first；**永不**缓存 `/api/*`。发版换版本即废旧 `mesa-pwa-shell:*` cache。页面 build ↔ `/api/health/live.version` 唯一门闩 `WebAppBuildReconcile`（不一致整页 reload 一次；SW `controllerchange` / 回前台同门闩）。
   - App 内打开顾客/扫码 URL → `open-prefer-browser.ts` + `PreferBrowserHttpLink.tsx`
 - **冷启动入口：**
   - **店员壳：** `start_url` 为 `/dashboard`（未登录 middleware 进登录；已登录少一次 login→工作台跳转）。在后台页「添加到主屏幕」用这份。

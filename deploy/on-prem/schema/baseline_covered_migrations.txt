@@ -178,3 +178,4 @@
 20261107160000_buffet_switch_and_price_guard.sql
 20261108120000_buffet_config_version.sql
 20261108140000_buffet_min_guest_and_side_toggle.sql
+20261119120000_drop_switch_table_buffet.sql

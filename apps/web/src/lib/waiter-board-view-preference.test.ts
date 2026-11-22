@@ -8,6 +8,7 @@ import {
   parseWaiterBoardLaneKey,
   parseWaiterBoardViewPreference,
   partyLaneKey,
+  isMissingPartyLaneKey,
   resolveWaiterBoardSelectedLaneKey,
   saveWaiterBoardViewPreference,
   waiterBoardViewPreferenceStorageKey,
@@ -58,6 +59,14 @@ describe('lane key helpers', () => {
       partyLaneKey('p1'),
     );
     assert.equal(resolveWaiterBoardSelectedLaneKey(null, [], []), null);
+  });
+
+  it('detects a remembered party lane that is no longer visible', () => {
+    const parties = [partyLaneKey('p1')];
+    assert.equal(isMissingPartyLaneKey(partyLaneKey('gone'), parties), true);
+    assert.equal(isMissingPartyLaneKey(partyLaneKey('p1'), parties), false);
+    assert.equal(isMissingPartyLaneKey(floorLaneKey('a'), parties), false);
+    assert.equal(isMissingPartyLaneKey(null, parties), false);
   });
 });
 

@@ -153,3 +153,16 @@ export function resolveWaiterBoardSelectedLaneKey(
   }
   return floorKeys[0] ?? partyKeys[0] ?? null;
 }
+
+/**
+ * Remembered lane was a together-group that is no longer on the board
+ * (dissolved or filtered out of visible party lanes).
+ */
+export function isMissingPartyLaneKey(
+  preferred: WaiterBoardLaneKey | null,
+  partyKeys: readonly WaiterBoardLaneKey[],
+): boolean {
+  if (!preferred) return false;
+  const parsed = parseWaiterBoardLaneKey(preferred);
+  return parsed?.kind === 'party' && !partyKeys.includes(preferred);
+}

@@ -69,6 +69,7 @@ import { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
   floorLaneKey,
+  isMissingPartyLaneKey,
   loadWaiterBoardViewPreference,
   parseWaiterBoardLaneKey,
   partyLaneKey,
@@ -652,12 +653,9 @@ function WaiterBoardInner({
     [selectedLaneKey, floorLaneKeys, partyLaneKeys],
   );
 
-  useEffect(() => {
-    if (!viewPrefsHydrated) return;
-    if (resolvedLaneKey !== selectedLaneKey) {
-      setSelectedLaneKey(resolvedLaneKey);
-    }
-  }, [viewPrefsHydrated, resolvedLaneKey, selectedLaneKey]);
+  /** Dissolved / filtered-out party: show list immediately (same landing as ‹ 同行组). */
+  const selectedPartyLaneMissing = isMissingPartyLaneKey(selectedLaneKey, partyLaneKeys);
+  const partyListSurfaceOpen = partyListOpen || selectedPartyLaneMissing;
 
   const selectedFloorSection = useMemo(() => {
     const parsed = resolvedLaneKey ? parseWaiterBoardLaneKey(resolvedLaneKey) : null;
@@ -666,9 +664,10 @@ function WaiterBoardInner({
   }, [resolvedLaneKey, visibleFloorSections]);
 
   const selectedPartyId = useMemo(() => {
+    if (selectedPartyLaneMissing) return null;
     const parsed = resolvedLaneKey ? parseWaiterBoardLaneKey(resolvedLaneKey) : null;
     return parsed?.kind === 'party' ? parsed.id : null;
-  }, [resolvedLaneKey]);
+  }, [resolvedLaneKey, selectedPartyLaneMissing]);
 
   const selectFloorLane = useCallback((key: WaiterBoardLaneKey) => {
     setPartyListOpen(false);
@@ -695,6 +694,24 @@ function WaiterBoardInner({
     setPartyListOpen(true);
     setSelectedLaneKey(floorLaneKeys[0] ?? null);
   }, [floorLaneKeys]);
+
+  useEffect(() => {
+    if (!viewPrefsHydrated) return;
+    if (selectedPartyLaneMissing) {
+      setPartyListOpen(true);
+      setSelectedLaneKey(floorLaneKeys[0] ?? null);
+      return;
+    }
+    if (resolvedLaneKey !== selectedLaneKey) {
+      setSelectedLaneKey(resolvedLaneKey);
+    }
+  }, [
+    viewPrefsHydrated,
+    selectedPartyLaneMissing,
+    floorLaneKeys,
+    resolvedLaneKey,
+    selectedLaneKey,
+  ]);
 
   const handlePartyCreated = useCallback((partyId: string) => {
     setPartyListOpen(false);
@@ -734,11 +751,12 @@ function WaiterBoardInner({
     showCreatePartyControl || visiblePartyLanes.length > 0;
   const showLaneChrome =
     visibleFloorSections.length > 0 || showPartyMenuControl;
-  const partyLaneActive = partyListOpen || selectedPartyId != null;
-  const showPartyList = partyListOpen && selectedPartyId == null;
-  const showFloorCards = !partyListOpen && selectedPartyId == null && selectedFloorSection != null;
+  const partyLaneActive = partyListSurfaceOpen || selectedPartyId != null;
+  const showPartyList = partyListSurfaceOpen && selectedPartyId == null;
+  const showFloorCards =
+    !partyListSurfaceOpen && selectedPartyId == null && selectedFloorSection != null;
   const showCheckoutPinned =
-    checkoutPinnedCardsVisible && !partyListOpen && selectedPartyId == null;
+    checkoutPinnedCardsVisible && !partyListSurfaceOpen && selectedPartyId == null;
 
   const hasVisibleBoardContent = useMemo(() => {
     if (showCheckoutPinned) return true;

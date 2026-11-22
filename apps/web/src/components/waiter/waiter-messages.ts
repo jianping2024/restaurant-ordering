@@ -112,8 +112,11 @@ export const WAITER_TEXT = {
     partyDissolve: '解散',
     partyDissolveConfirm: '解散该同行组？桌位会回到原来位置。',
     partyAddTitle: '添加桌到同行组',
-    partyAddHint: '仅开台用餐中的桌可加入；已在其他同行组的桌需确认后移入。',
+    partyAddHint:
+      '仅开台用餐中的桌可加入；同一同行组只能同一种套餐（勾选后不同套餐会灰显）；已在其他同行组的桌需确认后移入。',
     partyAddOpenTableFirst: '没有可加入的用餐中桌位，请先开台。',
+    partyAddBuffetLocked: '须与已选同一套餐',
+    partyAddBuffetMismatch: '套餐不同（或一桌没有套餐），不能加入同一同行组。',
     partyAddConfirm: '加入本组',
     partyMoveConfirmTitle: '桌位已在其他同行组',
     partyMoveConfirmMessage: '确认将 {tables} 移入本组？',
@@ -271,8 +274,12 @@ export const WAITER_TEXT = {
     partyDissolve: 'Dissolve',
     partyDissolveConfirm: 'Dissolve this together-group? Tables return to their original place.',
     partyAddTitle: 'Add tables to together-group',
-    partyAddHint: 'Only open (dining) tables can join; tables already in another group need confirmation.',
+    partyAddHint:
+      'Only open (dining) tables can join; one together-group = one buffet (other buffets grey out after you select); tables already in another group need confirmation.',
     partyAddOpenTableFirst: 'No dining tables available — open a table first.',
+    partyAddBuffetLocked: 'Must match the selected buffet',
+    partyAddBuffetMismatch:
+      'Different buffets (or one has none) cannot join the same together-group.',
     partyAddConfirm: 'Add to group',
     partyMoveConfirmTitle: 'Tables already in another together-group',
     partyMoveConfirmMessage: 'Move {tables} into this group?',
@@ -430,8 +437,12 @@ export const WAITER_TEXT = {
     partyDissolve: 'Dissolver',
     partyDissolveConfirm: 'Dissolver este grupo? As mesas voltam ao lugar original.',
     partyAddTitle: 'Adicionar mesas ao grupo',
-    partyAddHint: 'So mesas abertas (a comer) podem entrar; mesas noutro grupo pedem confirmacao.',
+    partyAddHint:
+      'So mesas abertas (a comer) podem entrar; um grupo = um buffet (outros ficam cinzentos apos selecionar); mesas noutro grupo pedem confirmacao.',
     partyAddOpenTableFirst: 'Sem mesas a comer disponiveis — abra uma mesa primeiro.',
+    partyAddBuffetLocked: 'Tem de ser o mesmo buffet',
+    partyAddBuffetMismatch:
+      'Buffets diferentes (ou uma mesa sem buffet) nao podem entrar no mesmo grupo.',
     partyAddConfirm: 'Adicionar ao grupo',
     partyMoveConfirmTitle: 'Mesas ja noutro grupo juntos',
     partyMoveConfirmMessage: 'Mover {tables} para este grupo?',
@@ -594,8 +605,11 @@ export const WAITER_TEXT = {
     partyDissolveConfirm: '¿Deshacer este grupo? Las mesas volverán a su sitio.',
     partyAddTitle: 'Añadir mesas al grupo',
     partyAddHint:
-      'Solo pueden entrar mesas abiertas (comiendo); las que ya están en otro grupo requieren confirmación.',
+      'Solo pueden entrar mesas abiertas (comiendo); un grupo = un buffet (otros se atenúan al seleccionar); las que ya están en otro grupo requieren confirmación.',
     partyAddOpenTableFirst: 'No hay mesas comiendo disponibles: abre una mesa primero.',
+    partyAddBuffetLocked: 'Debe ser el mismo buffet',
+    partyAddBuffetMismatch:
+      'Buffets distintos (o una mesa sin buffet) no pueden entrar en el mismo grupo.',
     partyAddConfirm: 'Añadir al grupo',
     partyMoveConfirmTitle: 'Hay mesas en otro grupo',
     partyMoveConfirmMessage: '¿Mover {tables} a este grupo?',
@@ -763,8 +777,11 @@ export const WAITER_TEXT = {
     partyDissolveConfirm: 'Dissoudre ce groupe ? Les tables reprennent leur place d’origine.',
     partyAddTitle: 'Ajouter des tables au groupe',
     partyAddHint:
-      'Seules les tables ouvertes (en salle) peuvent rejoindre ; celles déjà dans un autre groupe demandent une confirmation.',
+      'Seules les tables ouvertes (en salle) peuvent rejoindre ; un groupe = un buffet (les autres sont grisés après sélection) ; celles déjà dans un autre groupe demandent une confirmation.',
     partyAddOpenTableFirst: 'Aucune table en salle disponible — ouvrez d’abord une table.',
+    partyAddBuffetLocked: 'Doit correspondre au buffet sélectionné',
+    partyAddBuffetMismatch:
+      'Des buffets différents (ou une table sans buffet) ne peuvent pas rejoindre le même groupe.',
     partyAddConfirm: 'Ajouter au groupe',
     partyMoveConfirmTitle: 'Tables déjà dans un autre groupe',
     partyMoveConfirmMessage: 'Déplacer {tables} dans ce groupe ?',
@@ -931,8 +948,11 @@ export const WAITER_TEXT = {
     partyDissolveConfirm: 'Diese Gruppe auflösen? Die Tische kehren an ihren Platz zurück.',
     partyAddTitle: 'Tische zur Gruppe hinzufügen',
     partyAddHint:
-      'Nur geöffnete Tische (im Service) können beitreten; Tische aus einer anderen Gruppe erfordern eine Bestätigung.',
+      'Nur geöffnete Tische (im Service) können beitreten; eine Gruppe = ein Buffet (andere werden nach Auswahl ausgegraut); Tische aus einer anderen Gruppe erfordern eine Bestätigung.',
     partyAddOpenTableFirst: 'Keine Tische im Service verfügbar — bitte zuerst einen Tisch öffnen.',
+    partyAddBuffetLocked: 'Muss zum gewählten Buffet passen',
+    partyAddBuffetMismatch:
+      'Unterschiedliche Buffets (oder ein Tisch ohne Buffet) können nicht derselben Gruppe beitreten.',
     partyAddConfirm: 'Zur Gruppe hinzufügen',
     partyMoveConfirmTitle: 'Tische sind schon in einer anderen Gruppe',
     partyMoveConfirmMessage: '{tables} in diese Gruppe verschieben?',

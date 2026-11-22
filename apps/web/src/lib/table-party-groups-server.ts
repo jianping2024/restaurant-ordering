@@ -6,9 +6,11 @@ import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 import {
   conflictingPartyMembers,
   isTableEligibleForPartyAdd,
+  membersForParty,
   nextAvailableTablePartyName,
   nextAppendSortOrder,
   PARTY_DEFAULT_LOGIN_FALLBACK,
+  partyBuffetIdsAreCompatible,
   partyHasNameConflict,
   sortTablePartyGroups,
   type TablePartyGroup,
@@ -483,19 +485,28 @@ export async function addTablesToParty(
     return { ok: false, status: 400, error: 'invalid_table_ids' };
   }
 
+  const loaded = await loadTablePartyGroups(admin, restaurantId);
+  const existingMemberIds = membersForParty(loaded.partyMembers, partyId).map(
+    (m) => m.table_id,
+  );
+  const buffetScopeIds = Array.from(new Set([...existingMemberIds, ...tableIds]));
+
   const [{ data: sessionRows, error: sessionsError }, checkoutRequestedTableIds] =
     await Promise.all([
       admin
         .from('table_sessions')
-        .select('id, table_id, status, opened_at')
+        .select(
+          'id, table_id, status, opened_at, current_buffet_id:table_session_current_buffet_id',
+        )
         .eq('restaurant_id', restaurantId)
-        .in('table_id', tableIds)
+        .in('table_id', buffetScopeIds)
         .in('status', ['open', 'billing']),
       fetchCheckoutRequestedTableIds(admin, restaurantId),
     ]);
   if (sessionsError) return { ok: false, status: 400, error: sessionsError.message };
 
   const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
+  const buffetIdByTableId = new Map<string, string | null>();
   for (const row of sessionRows || []) {
     const tableId = typeof row.table_id === 'string' ? row.table_id : null;
     const status = row.status === 'open' || row.status === 'billing' ? row.status : null;
@@ -503,6 +514,11 @@ export async function addTablesToParty(
     const sessionId = typeof row.id === 'string' ? row.id : null;
     if (!tableId || !status || !openedAt || !sessionId) continue;
     sessionMetaByTableId[tableId] = { sessionId, openedAt, status };
+    const rawBuffet = (row as { current_buffet_id?: unknown }).current_buffet_id;
+    buffetIdByTableId.set(
+      tableId,
+      typeof rawBuffet === 'string' && rawBuffet.length > 0 ? rawBuffet : null,
+    );
   }
   const boardStateContext = buildWaiterBoardStateContext(
     sessionMetaByTableId,
@@ -513,7 +529,13 @@ export async function addTablesToParty(
     return { ok: false, status: 400, error: 'tables_not_dining' };
   }
 
-  const loaded = await loadTablePartyGroups(admin, restaurantId);
+  const buffetKeysForGate = [...existingMemberIds, ...tableIds].map(
+    (id) => buffetIdByTableId.get(id) ?? null,
+  );
+  if (!partyBuffetIdsAreCompatible(buffetKeysForGate)) {
+    return { ok: false, status: 409, error: 'buffet_mismatch' };
+  }
+
   const conflicts = conflictingPartyMembers(loaded.partyMembers, tableIds, partyId);
   if (conflicts.length > 0 && !confirmMove) {
     return {

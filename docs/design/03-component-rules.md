@@ -40,7 +40,7 @@
 - **按下浮雕唯一**：`components/ui/button-press-relief.ts` — `buttonPressReliefStrongClass`（仅 `gold`）/ `buttonPressReliefSoftClass`（`outline`·`ghost`·`danger`·`soft`·`close` + 按菜池子 CTA）/ `buttonPressReliefCompactClass`（人选 chip、垃圾桶等图标钮）。禁止在业务页再抄一份 shadow / `active:translate-y`
 - **全站文案不可选中**：唯一写在各自应用 `globals.css` 的 `@layer base`（`html` 禁选；`input` / `textarea` / `select` / `[contenteditable]` 恢复可选）。禁止在业务页再散写第二套禁选政策；局部 `select-none` 不替代全局规则
 - `mesa-badge-success` 只用于**状态徽章**（已付等），不是按钮
-- 下拉菜单内**主操作**（如同行组「创建」）用 `Button` `gold`/`sm`，固定在菜单顶区；选项列表保持普通 `menuitem` 行，二者不要画成同一种 list row
+- 列表页主操作（如同行组列表顶「创建」）用 `Button` `gold`/`sm`；列表行保持普通可点行，不要把主操作画成同一种 list row
 
 ---
 

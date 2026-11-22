@@ -37,6 +37,10 @@ import {
 } from '@/lib/table-party-one-click-merge';
 import { postWaiterTableActionClient } from '@/lib/staff-board-client';
 import { buildVisibleWaiterBoardPartyLanes } from '@/lib/waiter-board-party-lanes';
+import {
+  formatWaiterBoardLaneCountLabel,
+  waiterBoardLaneHeadcountLabel,
+} from '@/lib/waiter-board-lane-meta';
 import { WAITER_BOARD_TABLES_GRID_CLASS } from '@/lib/waiter-board-card-layout';
 import {
   WAITER_BOARD_PARTY_PANEL_CLASS,
@@ -54,6 +58,7 @@ import {
 } from '@/lib/waiter-board-snapshot';
 import { commitWaiterSessionRelocation } from '@/lib/waiter-staff-mutation-sync';
 import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-relocation-board';
+import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 
 type PartyTexts = (typeof WAITER_TEXT)[UILanguage];
 
@@ -77,6 +82,10 @@ type Props = {
   tableMatchesSearch: (displayName: string, q: string) => boolean;
   /** When set, only that together-group panel is shown (lane tab selection). */
   selectedPartyId: string | null;
+  /** Quiet control back to the together-groups list (not the floor). */
+  onBackToList: () => void;
+  showHeadcount: boolean;
+  headcountByTableId: ReadonlyMap<string, BuffetGuestHeadcount | null | undefined>;
   onPartyCreated: (partyId: string) => void;
   onBusyChange?: (busy: boolean) => void;
   onPartyStateChange: (next: {
@@ -105,6 +114,9 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
       tableSearchTrimmed,
       tableMatchesSearch,
       selectedPartyId,
+      onBackToList,
+      showHeadcount,
+      headcountByTableId,
       onPartyCreated,
       onBusyChange,
       onPartyStateChange,
@@ -457,8 +469,19 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
   const selectedCards = selectedLane?.cards ?? [];
   const selectedCheckoutCount = selectedLane?.checkoutCount ?? 0;
   const selectedMemberCount = selectedLane?.memberCount ?? 0;
+  const selectedMemberIds = selectedParty
+    ? membersForParty(partyMembers, selectedParty.id).map((m) => m.table_id)
+    : [];
   const isEditingSelected = selectedParty != null && editingPartyId === selectedParty.id;
-  const selectedCountLabel = t.partySectionCount.replace('{n}', String(selectedMemberCount));
+  const selectedCountLabel = formatWaiterBoardLaneCountLabel(
+    t.sectionTableCount.replace('{n}', String(selectedMemberCount)),
+    waiterBoardLaneHeadcountLabel(
+      selectedMemberIds,
+      boardStateContext,
+      headcountByTableId,
+      showHeadcount,
+    ),
+  );
   const selectedTitle = selectedParty
     ? `${isEditingSelected ? editingName : selectedParty.name} ${selectedCountLabel}`
     : '';
@@ -475,6 +498,22 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
             className={WAITER_BOARD_PARTY_PANEL_CLASS}
             aria-label={selectedTitle}
           >
+            <div className="mb-3">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onBackToList}
+                className="group inline-flex min-h-9 items-center gap-1 rounded-lg px-1.5 -ml-1.5 text-[13px] font-medium text-brand-text-muted transition-colors hover:text-brand-ink disabled:opacity-50"
+              >
+                <span
+                  aria-hidden
+                  className="text-base leading-none text-brand-text-muted/80 transition-transform group-hover:-translate-x-0.5"
+                >
+                  ‹
+                </span>
+                <span>{t.partyMenu}</span>
+              </button>
+            </div>
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
                 <div className="flex flex-wrap items-baseline gap-1.5">

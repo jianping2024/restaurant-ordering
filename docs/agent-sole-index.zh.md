@@ -438,6 +438,10 @@ sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的�
 
 开台确认后禁止换套餐（楼面 `packageLocked` + pipeline 409 `buffet_switch_locked`）；人数 −/+ 不改 `buffet_id`。`switchTableBuffet` / RPC `switch_table_buffet` 已删除（`20261119120000`，无换套餐改价路径）。sole「是否进入结账」`hasEnteredCheckout` 仍供结账门禁（signals sole `loadCheckoutEntrySignals`）；line predicate sole SQL `order_item_is_buffet_priced`（`append_order_items` 用，无 TS twin）; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
 
+### 楼面同行组入口
+
+sole tab「同行组」+ 整页 `WaiterBoardPartyListPage`（创建只在列表顶）+ 既有 `WaiterBoardPartySections` 详情；lane/list/详情 meta 唯一 `formatWaiterBoardLaneCountLabel`（`{n} 桌` ± ` · A… C…`，同源 `sumWaiterBoardDiningHeadcount`）；无下拉 / 无 `WaiterBoardPartyLaneMenu`；详情回列表 sole `‹ 同行组`（`onBackToList`），不要「返回看板」。
+
 ### 楼面跨端
 
 一直亮着的桌面只靠 Realtime；手机回前台有 visibility 兜底。只修 published bridge 不够——`useRestaurantStaffEntryReconcile` 必须含 window focus catch-up（与 visibility 同一 resume 路径，勿在 Realtime transport 再挂一份 focus）。

@@ -14,11 +14,13 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
+import { WaiterBoardBackControl } from '@/components/waiter/waiter-table-detail-ui';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { UILanguage } from '@/lib/i18n';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
   filterTablesEligibleForPartyAdd,
+  isTableBuffetAllowedForPartyAdd,
   membersForParty,
   partyIdForTable,
   type TablePartyGroup,
@@ -441,7 +443,11 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
           return;
         }
         showToast(
-          result.error === 'tables_not_dining' ? t.partyAddOpenTableFirst : t.partyAddFailed,
+          result.error === 'tables_not_dining'
+            ? t.partyAddOpenTableFirst
+            : result.error === 'buffet_mismatch'
+              ? t.partyAddBuffetMismatch
+              : t.partyAddFailed,
           'error',
         );
         return;
@@ -464,6 +470,24 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
       boardStateContext,
     );
   }, [addTarget, boardStateContext, partyMembers, tables]);
+
+  const partyMemberBuffetIds = useMemo(() => {
+    if (!addTarget) return [] as (string | null)[];
+    return membersForParty(partyMembers, addTarget.id).map(
+      (m) => summaryByTableId.get(m.table_id)?.currentBuffetId ?? null,
+    );
+  }, [addTarget, partyMembers, summaryByTableId]);
+
+  const selectedBuffetIds = useMemo(
+    () =>
+      selectedIds.map((id) => summaryByTableId.get(id)?.currentBuffetId ?? null),
+    [selectedIds, summaryByTableId],
+  );
+
+  const buffetLockSourceIds = useMemo(
+    () => [...partyMemberBuffetIds, ...selectedBuffetIds],
+    [partyMemberBuffetIds, selectedBuffetIds],
+  );
 
   const selectedParty = selectedLane?.party ?? null;
   const selectedCards = selectedLane?.cards ?? [];
@@ -499,20 +523,11 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
             aria-label={selectedTitle}
           >
             <div className="mb-3">
-              <button
-                type="button"
-                disabled={busy}
+              <WaiterBoardBackControl
+                label={t.partyMenu}
                 onClick={onBackToList}
-                className="group inline-flex min-h-9 items-center gap-1 rounded-lg px-1.5 -ml-1.5 text-[13px] font-medium text-brand-text-muted transition-colors hover:text-brand-ink disabled:opacity-50"
-              >
-                <span
-                  aria-hidden
-                  className="text-base leading-none text-brand-text-muted/80 transition-transform group-hover:-translate-x-0.5"
-                >
-                  ‹
-                </span>
-                <span>{t.partyMenu}</span>
-              </button>
+                disabled={busy}
+              />
             </div>
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -646,13 +661,27 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
                 ? parties.find((p) => p.id === otherPartyId)
                 : null;
               const checked = selectedIds.some((id) => tableIdsEqual(id, table.id));
+              const tableBuffetId =
+                summaryByTableId.get(table.id)?.currentBuffetId ?? null;
+              const buffetAllowed =
+                checked ||
+                isTableBuffetAllowedForPartyAdd(tableBuffetId, buffetLockSourceIds);
               return (
                 <li key={table.id}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm">
+                  <label
+                    className={[
+                      'flex items-center gap-2 rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm',
+                      buffetAllowed
+                        ? 'cursor-pointer'
+                        : 'cursor-not-allowed opacity-50',
+                    ].join(' ')}
+                  >
                     <input
                       type="checkbox"
                       checked={checked}
+                      disabled={!buffetAllowed}
                       onChange={() => {
+                        if (!buffetAllowed) return;
                         setSelectedIds((prev) =>
                           checked
                             ? prev.filter((id) => !tableIdsEqual(id, table.id))
@@ -664,6 +693,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
                     <span className="text-xs text-brand-text-muted">
                       {t.filterDining}
                       {otherParty ? ` · ${otherParty.name}` : ''}
+                      {!buffetAllowed ? ` · ${t.partyAddBuffetLocked}` : ''}
                     </span>
                   </label>
                 </li>

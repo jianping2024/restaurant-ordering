@@ -164,3 +164,46 @@ export function isTableEligibleForPartyAdd(
 ): boolean {
   return classifyWaiterTableBoardState(tableId, boardStateContext) === 'dining';
 }
+
+/** Party buffet identity: package uuid, or null when the table has no active buffet. */
+export type PartyBuffetKey = string | null;
+
+export function normalizePartyBuffetKey(
+  buffetId: string | null | undefined,
+): PartyBuffetKey {
+  return buffetId ?? null;
+}
+
+/**
+ * Sole buffet key among ids. Empty → unlocked. More than one distinct key → conflict
+ * (same rule as merge: null vs uuid counts as different).
+ */
+export function resolvePartyBuffetLock(
+  buffetIds: readonly (string | null | undefined)[],
+):
+  | { kind: 'unlocked' }
+  | { kind: 'locked'; key: PartyBuffetKey }
+  | { kind: 'conflict' } {
+  if (buffetIds.length === 0) return { kind: 'unlocked' };
+  const keys = new Set(buffetIds.map(normalizePartyBuffetKey));
+  if (keys.size > 1) return { kind: 'conflict' };
+  return { kind: 'locked', key: keys.values().next().value as PartyBuffetKey };
+}
+
+/** Whether this table may be checked given current members + already-checked buffets. */
+export function isTableBuffetAllowedForPartyAdd(
+  tableBuffetId: string | null | undefined,
+  lockSourceBuffetIds: readonly (string | null | undefined)[],
+): boolean {
+  const lock = resolvePartyBuffetLock(lockSourceBuffetIds);
+  if (lock.kind === 'unlocked') return true;
+  if (lock.kind === 'conflict') return false;
+  return normalizePartyBuffetKey(tableBuffetId) === lock.key;
+}
+
+/** True when every buffet id shares one key (empty list counts as ok). */
+export function partyBuffetIdsAreCompatible(
+  buffetIds: readonly (string | null | undefined)[],
+): boolean {
+  return resolvePartyBuffetLock(buffetIds).kind !== 'conflict';
+}

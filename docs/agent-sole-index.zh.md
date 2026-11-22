@@ -440,7 +440,7 @@ sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的�
 
 ### 楼面同行组入口
 
-sole tab「同行组」+ 整页 `WaiterBoardPartyListPage`（创建只在列表顶）+ 既有 `WaiterBoardPartySections` 详情；lane/list/详情 meta 唯一 `formatWaiterBoardLaneCountLabel`（`{n} 桌` ± ` · A… C…`，同源 `sumWaiterBoardDiningHeadcount`）；无下拉 / 无 `WaiterBoardPartyLaneMenu`；详情回列表 sole `‹ 同行组`（`onBackToList`），不要「返回看板」。
+sole tab「同行组」+ 整页 `WaiterBoardPartyListPage`（创建只在列表顶）+ 既有 `WaiterBoardPartySections` 详情；lane/list/详情 meta 唯一 `formatWaiterBoardLaneCountLabel`（`{n} 桌` ± ` · A… C…`，同源 `sumWaiterBoardDiningHeadcount`）；无下拉 / 无 `WaiterBoardPartyLaneMenu`；详情回列表 sole `WaiterBoardBackControl`（`←` + `partyMenu`，`onBackToList`；与桌台详情回看板同一 soft+action），不要手写小 `‹`、不要「返回看板」；组消失（解散/空组）sole 回列表（`isMissingPartyLaneKey` + `partyListSurfaceOpen`），不落到楼面；加人套餐 sole `resolvePartyBuffetLock` / `isTableBuffetAllowedForPartyAdd`（与并台同口径，`buffet_mismatch`），勾选后不同套餐灰显。
 
 ### 楼面跨端
 

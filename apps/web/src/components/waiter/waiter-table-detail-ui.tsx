@@ -236,26 +236,58 @@ export function WaiterTableSecondaryButton({
   );
 }
 
-type BackToBoardLinkProps = Omit<ComponentProps<typeof Link>, 'className' | 'children'> & {
+type WaiterBoardBackControlBase = {
   label: string;
   className?: string;
+  disabled?: boolean;
 };
 
-/** Leave table detail and return to the waiter board. */
-export function WaiterTableBackToBoardLink({
+type WaiterBoardBackControlProps =
+  | (WaiterBoardBackControlBase & {
+      href: string;
+      onClick?: never;
+    })
+  | (WaiterBoardBackControlBase & {
+      href?: never;
+      onClick: () => void;
+    });
+
+/**
+ * Sole waiter-board leave-surface back: soft + action + `← {label}`.
+ * Link (`href`) for table detail → board; button (`onClick`) for in-board surfaces
+ * (e.g. together-group detail → list).
+ */
+export function WaiterBoardBackControl({
   label,
   className = '',
+  disabled = false,
   ...props
-}: BackToBoardLinkProps) {
+}: WaiterBoardBackControlProps) {
+  const children = <>← {label}</>;
+  if ('href' in props && props.href) {
+    return (
+      <ButtonLink
+        href={props.href}
+        variant="soft"
+        size="action"
+        disabled={disabled}
+        className={className}
+      >
+        {children}
+      </ButtonLink>
+    );
+  }
   return (
-    <ButtonLink
+    <Button
+      type="button"
       variant="soft"
       size="action"
-      className={`${waiterDetailLayout.secondaryAction}${className ? ` ${className}` : ''}`}
-      {...props}
+      disabled={disabled}
+      onClick={props.onClick}
+      className={className}
     >
-      ← {label}
-    </ButtonLink>
+      {children}
+    </Button>
   );
 }
 
@@ -268,7 +300,11 @@ export function WaiterTableBackToBoardFooter({
 }) {
   return (
     <div className={waiterDetailLayout.pageFooter}>
-      <WaiterTableBackToBoardLink href={boardHref} label={label} />
+      <WaiterBoardBackControl
+        href={boardHref}
+        label={label}
+        className={waiterDetailLayout.secondaryAction}
+      />
     </div>
   );
 }

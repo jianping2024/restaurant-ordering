@@ -5,8 +5,11 @@ import {
   countCheckoutTablesInParties,
   filterTablesEligibleForPartyAdd,
   isPartyMemberCountAllowedForCheckout,
+  isTableBuffetAllowedForPartyAdd,
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
+  partyBuffetIdsAreCompatible,
+  resolvePartyBuffetLock,
   nextAppendSortOrder,
   partyDefaultNameLoginPrefix,
   partyHasNameConflict,
@@ -134,5 +137,25 @@ describe('table-party-groups', () => {
       filterTablesEligibleForPartyAdd(tables, members, P2, ctx).map((t) => t.id),
       [T1],
     );
+  });
+
+  it('locks party add to one buffet key (null vs uuid differ)', () => {
+    assert.deepEqual(resolvePartyBuffetLock([]), { kind: 'unlocked' });
+    assert.deepEqual(resolvePartyBuffetLock([null, null]), {
+      kind: 'locked',
+      key: null,
+    });
+    assert.deepEqual(resolvePartyBuffetLock(['b1', 'b1']), {
+      kind: 'locked',
+      key: 'b1',
+    });
+    assert.deepEqual(resolvePartyBuffetLock(['b1', null]), { kind: 'conflict' });
+    assert.deepEqual(resolvePartyBuffetLock(['b1', 'b2']), { kind: 'conflict' });
+    assert.equal(partyBuffetIdsAreCompatible(['b1', 'b1', 'b1']), true);
+    assert.equal(partyBuffetIdsAreCompatible(['b1', 'b2']), false);
+    assert.equal(isTableBuffetAllowedForPartyAdd('b1', []), true);
+    assert.equal(isTableBuffetAllowedForPartyAdd('b2', ['b1']), false);
+    assert.equal(isTableBuffetAllowedForPartyAdd(null, [null]), true);
+    assert.equal(isTableBuffetAllowedForPartyAdd('b1', [null]), false);
   });
 });

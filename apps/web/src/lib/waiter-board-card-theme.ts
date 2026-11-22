@@ -25,7 +25,8 @@ export const waiterBoardType = {
    */
   kpiCountRowWithWings: 'mt-2 flex items-center justify-center gap-x-1.5',
   kpiLabel: 'text-center text-sm font-medium',
-  laneLabel: 'max-w-[12rem] truncate text-sm',
+  /** No truncate — long names scroll the chip strip instead. */
+  laneLabel: 'shrink-0 text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   /**
    * Sole floor-card title row — table number + optional dish qty (`×N`).

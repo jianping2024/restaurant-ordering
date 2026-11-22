@@ -43,7 +43,7 @@
 | 页面 | `apps/web/src/app/dashboard/tables/page.tsx` |
 | UI | `apps/web/src/components/dashboard/TablesManager.tsx` |
 | 分组 UI | `apps/web/src/components/dashboard/TableGroupsManager.tsx` |
-| 同行组 UI | `apps/web/src/components/waiter/WaiterBoardPartySections.tsx`、`WaiterBoardPartyLaneMenu.tsx` |
+| 同行组 UI | `apps/web/src/components/waiter/WaiterBoardPartySections.tsx`、`WaiterBoardPartyListPage.tsx` |
 | Lib | `apps/web/src/lib/restaurant-tables.ts`、`restaurant-table-groups.ts`、`table-party-groups.ts`、`table-party-one-click-merge.ts` |
 | API | `apps/web/src/app/api/dashboard/tables/route.ts`、`table-groups/route.ts`、`.../staff/waiter/table-parties/route.ts` |
 

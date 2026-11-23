@@ -89,8 +89,10 @@ import {
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_KPI_SURFACE_CLASS,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
+  WAITER_BOARD_LANE_TABLIST_CLASS,
   waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
 import { waiterUi } from '@/components/waiter/waiter-ui';
@@ -918,10 +920,10 @@ function WaiterBoardInner({
 
       {showLaneChrome ? (
         <div className={WAITER_BOARD_LANE_STICKY_SHELL}>
-          <div className="mesa-chip-scroll flex min-w-0 gap-2 pb-1">
+          <div className={WAITER_BOARD_LANE_TABLIST_CLASS}>
             {visibleFloorSections.length > 0 ? (
               <div
-                className="flex shrink-0 gap-2"
+                className={WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS}
                 role="tablist"
                 aria-label={t.boardTitle}
               >

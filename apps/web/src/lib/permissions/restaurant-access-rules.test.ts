@@ -5,7 +5,10 @@ import {
   authorizedRestaurantsFromLoads,
   deriveStaffLoginTarget,
   normalizeStaffMembershipRow,
+  pickLandingRestaurant,
   resolveRestaurantMembershipPrincipal,
+  type AuthorizedRestaurant,
+  type MembershipRestaurantRef,
   type RestaurantRef,
   type StaffMembershipRow,
 } from '@/lib/permissions/restaurant-access-rules';
@@ -13,8 +16,25 @@ import {
 const SUSPENDED = '2026-01-01T00:00:00Z';
 const USER = 'u-1';
 
-function store(id: string, suspended_at: string | null = null): RestaurantRef {
-  return { id, slug: `slug-${id}`, suspended_at };
+function store(id: string, suspended_at: string | null = null): MembershipRestaurantRef {
+  return { id, slug: `slug-${id}`, suspended_at, name: `Store ${id}`, address: `Rua ${id}, 1000-001 Lisboa` };
+}
+
+function ownedRef(id: string): RestaurantRef {
+  return { id, slug: `slug-${id}`, suspended_at: null };
+}
+
+function listed(id: string, over: Partial<AuthorizedRestaurant> = {}): AuthorizedRestaurant {
+  return {
+    ...ownedRef(id),
+    access: 'staff',
+    name: `Store ${id}`,
+    city: 'Lisboa',
+    roleName: 'Cashier',
+    favoritedAt: null,
+    landingPath: `/dashboard/r/slug-${id}/checkout`,
+    ...over,
+  };
 }
 
 function membership(
@@ -28,6 +48,7 @@ function membership(
     role: 'cashier',
     role_id: `role-${restaurantId}`,
     disabled_at: null,
+    favorited_at: null,
     restaurant: store(restaurantId, suspended ? SUSPENDED : null),
     role_row: {
       id: `role-${restaurantId}`,
@@ -46,9 +67,10 @@ describe('resolveRestaurantMembershipPrincipal', () => {
     const access = resolveRestaurantMembershipPrincipal({
       userId: USER,
       restaurantId: 'A',
-      owned: store('A'),
+      owned: { ...ownedRef('A'), suspended_at: SUSPENDED },
       membership: null,
     });
+    // Admin of a suspended store is admitted (read-only banner).
     assert.equal(access?.principal.kind, 'owner');
     assert.equal(access?.capabilities, '*');
     assert.equal(access?.restaurant.id, 'A');
@@ -58,8 +80,18 @@ describe('resolveRestaurantMembershipPrincipal', () => {
     const access = resolveRestaurantMembershipPrincipal({
       userId: USER,
       restaurantId: 'B',
-      owned: store('A'),
+      owned: ownedRef('A'),
       membership: null,
+    });
+    assert.equal(access, null);
+  });
+
+  it('staff of a suspended store is refused (plan §6.2)', () => {
+    const access = resolveRestaurantMembershipPrincipal({
+      userId: USER,
+      restaurantId: 'A',
+      owned: null,
+      membership: membership('A', { suspended: true }),
     });
     assert.equal(access, null);
   });
@@ -133,12 +165,12 @@ describe('resolveRestaurantMembershipPrincipal', () => {
 describe('authorizedRestaurantsFromLoads', () => {
   it('admin account lists only its one store', () => {
     const list = authorizedRestaurantsFromLoads({
-      owned: store('A'),
+      owned: ownedRef('A'),
       memberships: [membership('B')],
     });
     assert.deepEqual(
-      list.map((r) => [r.id, r.access]),
-      [['A', 'owner']],
+      list.map((r) => [r.id, r.access, r.landingPath]),
+      [['A', 'owner', '/dashboard/r/slug-A/waiter']],
     );
   });
 
@@ -162,6 +194,49 @@ describe('authorizedRestaurantsFromLoads', () => {
     assert.ok(list.every((r) => r.access === 'staff'));
     assert.equal(list[2].suspended_at, SUSPENDED);
   });
+
+  it('carries name, city, role, favorite and per-store landing for the store list', () => {
+    const [a] = authorizedRestaurantsFromLoads({
+      owned: null,
+      memberships: [membership('A', { favorited_at: SUSPENDED })],
+    });
+    assert.equal(a.name, 'Store A');
+    assert.equal(a.city, 'Lisboa');
+    assert.equal(a.roleName, 'Cashier A');
+    assert.equal(a.favoritedAt, SUSPENDED);
+    assert.equal(a.landingPath, '/dashboard/r/slug-A/checkout');
+  });
+});
+
+describe('pickLandingRestaurant', () => {
+  it('nothing listed → none; one enterable → it', () => {
+    assert.deepEqual(pickLandingRestaurant([]), { kind: 'none' });
+    const one = pickLandingRestaurant([listed('A'), listed('S', { suspended_at: SUSPENDED })]);
+    assert.equal(one.kind === 'store' && one.restaurant.id, 'A');
+  });
+
+  it('several enterable: last store when still enterable, else picker', () => {
+    const stores = [listed('A'), listed('B'), listed('S', { suspended_at: SUSPENDED })];
+    const last = pickLandingRestaurant(stores, { lastRestaurantId: 'B' });
+    assert.equal(last.kind === 'store' && last.restaurant.id, 'B');
+    assert.deepEqual(pickLandingRestaurant(stores), { kind: 'select' });
+    assert.deepEqual(pickLandingRestaurant(stores, { lastRestaurantId: 'S' }), { kind: 'select' });
+    assert.deepEqual(pickLandingRestaurant(stores, { lastRestaurantId: 'gone' }), { kind: 'select' });
+  });
+
+  it("a store's own login page wins when enterable", () => {
+    const stores = [listed('A'), listed('B')];
+    const res = pickLandingRestaurant(stores, { lastRestaurantId: 'A', preferredSlug: 'slug-B' });
+    assert.equal(res.kind === 'store' && res.restaurant.id, 'B');
+  });
+
+  it('only suspended stores (staff) → picker shows them greyed; admin still enters', () => {
+    assert.deepEqual(pickLandingRestaurant([listed('S', { suspended_at: SUSPENDED })]), {
+      kind: 'select',
+    });
+    const owner = pickLandingRestaurant([listed('O', { access: 'owner', suspended_at: SUSPENDED })]);
+    assert.equal(owner.kind, 'store');
+  });
 });
 
 describe('deriveStaffLoginTarget', () => {
@@ -180,8 +255,8 @@ describe('deriveStaffLoginTarget', () => {
     const res = deriveStaffLoginTarget({
       userId: USER,
       restaurants: [
-        { ...store('A', SUSPENDED), access: 'staff', suspension_reason: 'license_expired' },
-        { ...store('B', SUSPENDED), access: 'staff', suspension_reason: null },
+        { ...listed('A', { suspended_at: SUSPENDED }), suspension_reason: 'license_expired' },
+        { ...listed('B', { suspended_at: SUSPENDED }), suspension_reason: null },
       ],
     });
     assert.deepEqual(res, {
@@ -195,8 +270,8 @@ describe('deriveStaffLoginTarget', () => {
     const res = deriveStaffLoginTarget({
       userId: USER,
       restaurants: [
-        { ...store('S', SUSPENDED), access: 'staff', suspension_reason: 'x' },
-        { ...store('A'), access: 'staff', suspension_reason: null },
+        { ...listed('S', { suspended_at: SUSPENDED }), suspension_reason: 'x' },
+        { ...listed('A'), suspension_reason: null },
       ],
     });
     assert.equal(res.ok, true);
@@ -219,7 +294,8 @@ describe('normalizeStaffMembershipRow', () => {
       role: 'custom',
       role_id: 'r1',
       disabled_at: null,
-      restaurants: [{ id: 'A', slug: 'a', suspended_at: null }],
+      favorited_at: '2026-11-01T00:00:00Z',
+      restaurants: [{ id: 'A', slug: 'a', suspended_at: null, name: 'Casa A', address: 'Av. X, 4000-001 Porto' }],
       restaurant_roles: {
         id: 'r1',
         restaurant_id: 'A',
@@ -230,6 +306,8 @@ describe('normalizeStaffMembershipRow', () => {
       },
     });
     assert.equal(row?.restaurant?.slug, 'a');
+    assert.equal(row?.restaurant?.name, 'Casa A');
+    assert.equal(row?.favorited_at, '2026-11-01T00:00:00Z');
     assert.equal(row?.role_row?.name, 'Gerente');
     const access = resolveRestaurantMembershipPrincipal({
       userId: USER,

@@ -123,9 +123,8 @@ export async function loadStaffMembership(
 /**
  * Sole principal-for-store loader body (multi-store plan §6.2), shared by the request-cached
  * `loadPrincipalForRestaurant` and Edge middleware. Caller hands in the account's owned store.
- * No suspension filter (batch 1 keeps current behavior): a suspended store still admits its
- * admin and staff to the dashboard (suspension banner); writes keep their own suspended gates,
- * floor/kitchen (`staffSessionForSlug`) and login preflight refuse suspended stores themselves.
+ * Suspended store (rule in `resolveRestaurantMembershipPrincipal`): its admin is admitted
+ * read-only (suspension banner; writes keep their own gates), staff are refused.
  */
 export async function resolvePrincipalForRestaurantWith(
   admin: ReturnType<typeof createAdminClient>,

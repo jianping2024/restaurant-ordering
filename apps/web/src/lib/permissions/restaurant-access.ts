@@ -65,22 +65,25 @@ const loadOwnedRestaurant = cache(async (userId: string): Promise<RestaurantRef 
 });
 
 /**
- * Stores this account may open: admin → its one store; staff → enabled, non-print_agent
- * memberships with a live role. Suspended stores are listed (flagged) and sorted last.
+ * Stores this account may open (request-cached; one query whatever the store count):
+ * admin → its one store; staff → enabled, non-print_agent memberships with a live role,
+ * with name / city / role / favorite for the store list. Suspended stores are listed
+ * (flagged) and sorted last; staff cannot enter them (`restaurantIsEnterable`).
  */
-export async function listAuthorizedRestaurantsForUser(
-  userId: string,
-): Promise<AuthorizedRestaurant[]> {
-  const owned = await loadOwnedRestaurant(userId);
-  if (owned) return authorizedRestaurantsFromLoads({ owned, memberships: [] });
-  const memberships = await loadStaffMembershipsForUser(createAdminClient(), userId);
-  return authorizedRestaurantsFromLoads({ owned: null, memberships });
-}
+export const listAuthorizedRestaurantsForUser = cache(
+  async (userId: string): Promise<AuthorizedRestaurant[]> => {
+    const owned = await loadOwnedRestaurant(userId);
+    if (owned) return authorizedRestaurantsFromLoads({ owned, memberships: [] });
+    const memberships = await loadStaffMembershipsForUser(createAdminClient(), userId);
+    return authorizedRestaurantsFromLoads({ owned: null, memberships });
+  },
+);
 
 /**
  * Principal for exactly this store. Admin of this store → `*`; else this store's
  * membership (enabled, role live) → role capabilities; else null.
- * Suspended store: admitted (dashboard shows the suspension banner; writes have their own gate).
+ * Suspended store: admin admitted read-only (suspension banner; writes have their own gate),
+ * staff refused (plan §6.2).
  */
 export const loadPrincipalForRestaurant = cache(
   async (userId: string, restaurantId: string): Promise<AuthorizedRestaurantPrincipal | null> =>

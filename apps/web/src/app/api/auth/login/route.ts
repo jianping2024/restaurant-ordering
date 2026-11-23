@@ -24,6 +24,7 @@ import {
   loadClaimedOnPremRestaurant,
 } from '@/lib/auth/prem-builtin-admin';
 import { cookies } from 'next/headers';
+import { LAST_RESTAURANT_COOKIE, parseLastRestaurantCookie } from '@/lib/last-restaurant-cookie';
 
 export const runtime = 'nodejs';
 
@@ -131,8 +132,12 @@ export async function POST(req: Request) {
       data.user.id,
       data.user.user_metadata as Record<string, unknown>,
       {
-        staffPreflightPassed: isStaffAuthEmail(email) && !!resolved.loginName,
         email: data.user.email ?? email,
+        lastRestaurantId: parseLastRestaurantCookie(
+          cookieStore.get(LAST_RESTAURANT_COOKIE)?.value,
+          data.user.id,
+        ),
+        preferredSlug: typeof body.store_slug === 'string' ? body.store_slug : null,
       },
     );
 

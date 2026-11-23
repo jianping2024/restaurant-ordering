@@ -25,6 +25,8 @@ type Props = {
   capabilities: CapabilitiesPayload;
   asOwner?: boolean;
   screens: KitchenScreen[];
+  /** ≥2 enterable stores → «切换店铺» in the account menu. */
+  showSwitchStore?: boolean;
 };
 
 export function KitchenScreensHome(props: Props) {
@@ -44,6 +46,7 @@ function KitchenScreensHomeInner({
   capabilities,
   asOwner = false,
   screens,
+  showSwitchStore = false,
   handleSignOut,
   exitLabel,
   confirmBeforeSignOut,
@@ -72,6 +75,7 @@ function KitchenScreensHomeInner({
             confirmSignOut={confirmBeforeSignOut}
             compact
             allowChangePassword
+            showSwitchStore={showSwitchStore}
             printAgentDevicesUrl={restaurantApiPath(restaurant.slug, '/print-agent/devices')}
           />
         }

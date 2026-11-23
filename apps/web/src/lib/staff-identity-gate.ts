@@ -1,8 +1,7 @@
-import { isRestaurantSuspended } from '@mesa/shared';
-import type { Capabilities } from '@/lib/permissions/can';
 import {
   authorizedRestaurantsFromLoads,
-  resolveStaffRoleCapabilities,
+  pickLandingRestaurant,
+  restaurantIsEnterable,
   type StaffMembershipRow,
 } from '@/lib/permissions/restaurant-access-rules';
 
@@ -41,12 +40,18 @@ export function resolveOwnerRestaurantFromLoads(input: {
 }
 
 type StaffLoginContext = {
-  /** RLS / display label (preset key or `custom`) — not used for authorization. */
-  roleLabel: string;
-  slug: string;
   mustChangePassword: boolean;
-  /** Role capabilities in the landing store — drives the landing path. */
-  capabilities: Capabilities;
+  landing:
+    | {
+        kind: 'store';
+        slug: string;
+        /** First page in that store for this role (same rule as the store list). */
+        path: string;
+        /** RLS / display label (preset key or `custom`) — not used for authorization. */
+        roleLabel: string;
+      }
+    /** Several enterable stores and no usable last store → store picker. */
+    | { kind: 'select' };
 };
 
 export type StaffLoginContextResult =
@@ -84,15 +89,16 @@ export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
 }
 
 /**
- * Post-login staff landing from the account's enterable stores (multi-store plan §8.1).
- * Identity = `staff_identities` row (account-level `must_change_password`); memberships =
- * every 店籍 row. Batch 1: everyone has one store, so the first enterable store is it
- * (suspended stores sort last).
+ * Post-login staff landing (multi-store plan §8.1). Identity = `staff_identities` row
+ * (account-level `must_change_password`); memberships = every 店籍 row. Which store:
+ * sole rule `pickLandingRestaurant` (preferred store page → single store → last store →
+ * store picker). Suspended stores never admit staff.
  */
 export function deriveStaffLoginContext(input: {
   identity: { must_change_password: boolean } | null;
   memberships: readonly StaffMembershipRow[];
-  options?: { skipSuspendCheck?: boolean };
+  lastRestaurantId?: string | null;
+  preferredSlug?: string | null;
 }): StaffLoginContextResult {
   const { identity, memberships } = input;
 
@@ -101,29 +107,35 @@ export function deriveStaffLoginContext(input: {
   }
 
   const restaurants = authorizedRestaurantsFromLoads({ owned: null, memberships });
-  const target = restaurants[0];
-  if (!target) {
+  if (restaurants.length === 0) {
     const anyDisabled = memberships.some((m) => m.disabled_at);
     return { kind: 'staff_error', code: anyDisabled ? 'disabled' : 'incomplete' };
   }
-
-  if (!input.options?.skipSuspendCheck && isRestaurantSuspended(target.suspended_at)) {
+  if (!restaurants.some(restaurantIsEnterable)) {
     return { kind: 'staff_error', code: 'restaurant_suspended' };
   }
 
-  const membership = memberships.find((m) => m.restaurant_id === target.id);
-  const role = membership ? resolveStaffRoleCapabilities(membership.role_row, target.id) : null;
-  if (!membership || !role) {
-    return { kind: 'staff_error', code: 'incomplete' };
+  const mustChangePassword = identity?.must_change_password === true;
+  const decision = pickLandingRestaurant(restaurants, {
+    lastRestaurantId: input.lastRestaurantId,
+    preferredSlug: input.preferredSlug,
+  });
+  if (decision.kind !== 'store') {
+    return { kind: 'staff', context: { mustChangePassword, landing: { kind: 'select' } } };
   }
 
+  const target = decision.restaurant;
+  const membership = memberships.find((m) => m.restaurant_id === target.id);
   return {
     kind: 'staff',
     context: {
-      roleLabel: String(membership.role || 'custom'),
-      slug: target.slug,
-      mustChangePassword: identity?.must_change_password === true,
-      capabilities: role.capabilities,
+      mustChangePassword,
+      landing: {
+        kind: 'store',
+        slug: target.slug,
+        path: target.landingPath,
+        roleLabel: String(membership?.role || 'custom'),
+      },
     },
   };
 }

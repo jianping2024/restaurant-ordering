@@ -6,6 +6,7 @@ import { loadKitchenBoardInitial } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listKitchenScreens } from '@/lib/kitchen-screens-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { loadStoreSwitchData } from '@/lib/store-switch-server';
 import type { KitchenScreen, PrintStation } from '@/types';
 
 interface Props {
@@ -34,7 +35,7 @@ export default async function KitchenScreenPage({ params }: Props) {
 
   try {
     const admin = createAdminClient();
-    const [{ data: flagsRow }, listed, { data: stationRows }, board] = await Promise.all([
+    const [{ data: flagsRow }, listed, { data: stationRows }, board, storeSwitch] = await Promise.all([
       admin
         .from('restaurants')
         .select('feature_flags')
@@ -47,6 +48,9 @@ export default async function KitchenScreenPage({ params }: Props) {
         .eq('restaurant_id', access.restaurant_id)
         .eq('kitchen_enabled', true),
       loadKitchenBoardInitial(access.restaurant_id).catch(() => null),
+      loadStoreSwitchData({ kind: access.as_owner ? 'owner' : 'staff', userId: access.user_id }).catch(
+        () => null,
+      ),
     ]);
 
     feature_flags = (flagsRow?.feature_flags as Record<string, unknown> | null) ?? null;
@@ -63,6 +67,7 @@ export default async function KitchenScreenPage({ params }: Props) {
       <KitchenScreenBoard
         restaurant={{ ...restaurant, feature_flags }}
         asOwner={access.as_owner}
+        showSwitchStore={storeSwitch != null}
         screen={screen}
         stations={stations}
         initialOrders={board?.orders}

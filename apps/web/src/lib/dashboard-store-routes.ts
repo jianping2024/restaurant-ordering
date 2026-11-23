@@ -12,6 +12,9 @@
 /** Store-independent dashboard entry: resolves the account's store, else onboarding. */
 export const DASHBOARD_ENTRY_PATH = '/dashboard';
 
+/** Store picker (multi-store plan §8.1): store-less, like the entry. */
+export const STORE_PICKER_PATH = '/dashboard/select-store';
+
 const STORE_ROOT = '/dashboard/r';
 
 /** Store-relative page path: `''` (overview) or `/segment[/…][?query]`. */

@@ -13,6 +13,12 @@ import {
   shouldBypassMiddlewareSession,
 } from '@/lib/supabase/middleware-session-policy';
 import { signOutThisDevice } from '@/lib/supabase/sign-out';
+import {
+  LAST_RESTAURANT_COOKIE,
+  LAST_RESTAURANT_COOKIE_OPTIONS,
+  formatLastRestaurantCookie,
+  parseLastRestaurantCookie,
+} from '@/lib/last-restaurant-cookie';
 import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 import { createServerClient } from '@supabase/ssr';
 
@@ -96,26 +102,40 @@ export async function updateSession(request: NextRequest) {
           access.restaurant.slug,
         )
       : DASHBOARD_ENTRY_PATH;
+    let response = supabaseResponse;
     if (redirectPath) {
       const url = request.nextUrl.clone();
       url.pathname = redirectPath;
-      return NextResponse.redirect(url);
+      response = NextResponse.redirect(url);
     }
+    if (access) {
+      // «上次所在店» (plan §6.3): UX default only, rewritten only when it changes.
+      const value = formatLastRestaurantCookie(sessionUser.id, access.restaurant.id);
+      if (request.cookies.get(LAST_RESTAURANT_COOKIE)?.value !== value) {
+        response.cookies.set(LAST_RESTAURANT_COOKIE, value, LAST_RESTAURANT_COOKIE_OPTIONS);
+      }
+    }
+    return response;
   }
 
   // Logged-in users accessing login pages → redirect to their workspace
   // Aligns with mainstream SaaS behavior (GitHub, Slack, etc.)
   // Reuses resolvePostLoginRedirect to handle must_change_password correctly
-  if (
-    sessionUser &&
-    (pathname === '/auth/login' || pathname.match(/^\/[^/]+\/staff\/login$/))
-  ) {
+  const storeLoginSlug = pathname.match(/^\/([^/]+)\/staff\/login$/)?.[1] ?? null;
+  if (sessionUser && (pathname === '/auth/login' || storeLoginSlug)) {
     try {
       const redirect = await resolvePostLoginRedirect(
         supabase,
         sessionUser.id,
         sessionUser.user_metadata as Record<string, unknown>,
-        { email: sessionUser.email },
+        {
+          email: sessionUser.email,
+          lastRestaurantId: parseLastRestaurantCookie(
+            request.cookies.get(LAST_RESTAURANT_COOKIE)?.value,
+            sessionUser.id,
+          ),
+          preferredSlug: storeLoginSlug ? decodeURIComponent(storeLoginSlug) : null,
+        },
       );
 
       if (redirect.kind === 'staff_error') {

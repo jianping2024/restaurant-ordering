@@ -7,16 +7,19 @@ import { ProductTopBarRestaurantName } from '@/components/ui/ProductTopBarRestau
 export function ProductTopBarBrand({
   href,
   restaurantName,
+  nameSlot,
 }: {
   href: string;
   restaurantName: string;
+  /** Replaces the plain name (multi-store: the store switcher). */
+  nameSlot?: ReactNode;
 }) {
   return (
     <div className="flex min-w-0 w-full flex-nowrap items-center gap-2 sm:gap-2.5 lg:w-auto">
       <Link href={href} className="shrink-0 leading-none">
         <ProductLogo size="sm" tone="ink" />
       </Link>
-      <ProductTopBarRestaurantName name={restaurantName} />
+      {nameSlot ?? <ProductTopBarRestaurantName name={restaurantName} />}
     </div>
   );
 }

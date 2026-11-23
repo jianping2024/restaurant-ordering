@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { KitchenScreensHome } from '@/components/kitchen/KitchenScreensHome';
 import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
+import { loadStoreSwitchData } from '@/lib/store-switch-server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listKitchenScreens } from '@/lib/kitchen-screens-server';
 import type { KitchenScreen } from '@/types';
@@ -47,6 +48,10 @@ export default async function KitchenPage({ params }: Props) {
   }
 
   const capabilities = toCapabilitiesPayload(access.capabilities);
+  const storeSwitch = await loadStoreSwitchData({
+    kind: access.as_owner ? 'owner' : 'staff',
+    userId: access.user_id,
+  });
 
   return (
     <KitchenScreensHome
@@ -54,6 +59,7 @@ export default async function KitchenPage({ params }: Props) {
       capabilities={capabilities}
       asOwner={access.as_owner}
       screens={screens}
+      showSwitchStore={storeSwitch != null}
     />
   );
 }

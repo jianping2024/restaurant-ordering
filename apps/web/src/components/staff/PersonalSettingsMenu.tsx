@@ -23,6 +23,8 @@ import {
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
 import type { DashboardLicenseMenuRow } from '@/components/dashboard/DashboardLicenseRenewalHost';
+import { STORE_PICKER_PATH } from '@/lib/dashboard-store-routes';
+import { STORE_PICKER_MESSAGES } from '@/lib/i18n/store-picker-messages';
 
 type Props = {
   roleLabel: string;
@@ -38,6 +40,8 @@ type Props = {
   licenseMenu?: DashboardLicenseMenuRow | null;
   /** Store-scoped devices API (`restaurantApiPath(slug, '/print-agent/devices')`). */
   printAgentDevicesUrl: string;
+  /** Multi-store workbench (≥2 enterable stores): one «切换店铺» row → store picker. */
+  showSwitchStore?: boolean;
 };
 
 export function PersonalSettingsMenu({
@@ -51,6 +55,7 @@ export function PersonalSettingsMenu({
   allowChangePassword = true,
   licenseMenu = null,
   printAgentDevicesUrl,
+  showSwitchStore = false,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
@@ -147,6 +152,16 @@ export function PersonalSettingsMenu({
             </button>
           ) : null}
           <PersonalSettingsPanel notifyMode={notifyMode} />
+          {showSwitchStore ? (
+            <a
+              role="menuitem"
+              href={STORE_PICKER_PATH}
+              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-border/50`}
+            >
+              <span aria-hidden>🏪</span>
+              <span>{STORE_PICKER_MESSAGES[lang].switchStore}</span>
+            </a>
+          ) : null}
           {allowChangePassword ? (
             <button
               type="button"

@@ -5,6 +5,7 @@ import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard
 import { DashboardTopBar } from '@/components/dashboard/DashboardTopBar';
 import { STAFF_SHELL_CONTENT_CLASS, STAFF_SHELL_MAIN_CLASS } from '@/lib/staff-shell-layout';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
+import type { StoreSwitchData } from '@/lib/store-list-model';
 
 type Props = {
   restaurant: DashboardNavRestaurant;
@@ -12,6 +13,7 @@ type Props = {
   roleLabel?: string;
   capabilities: CapabilitiesPayload;
   premiumLockedNavIds?: ReadonlySet<string>;
+  storeSwitch?: StoreSwitchData | null;
   children: ReactNode;
 };
 
@@ -21,6 +23,7 @@ export function DashboardShell({
   roleLabel,
   capabilities,
   premiumLockedNavIds,
+  storeSwitch,
   children,
 }: Props) {
   return (
@@ -31,6 +34,7 @@ export function DashboardShell({
         roleLabel={roleLabel}
         capabilities={capabilities}
         premiumLockedNavIds={premiumLockedNavIds}
+        storeSwitch={storeSwitch}
       />
       <main className={STAFF_SHELL_MAIN_CLASS}>
         <div className={STAFF_SHELL_CONTENT_CLASS}>{children}</div>

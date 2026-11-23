@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
-import { isPrintAgentStaffRole, loadStaffLoginNames } from '@mesa/shared';
+import {
+  countStaffMemberships,
+  isPrintAgentStaffRole,
+  loadStaffLoginNames,
+  type StaffCredentialActor,
+} from '@mesa/shared';
 import { validateLoginName, type StaffRole, type StaffUserMetadata } from '@/lib/staff-account';
 import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { RestaurantStaffAccount } from '@/types';
@@ -34,9 +39,13 @@ export async function loadOwnerRestaurantWithSlug(
     return { error: 'restaurant_not_found' as const, status: 404 };
   }
 
+  const actor: StaffCredentialActor =
+    auth.principal.kind === 'owner' ? 'store_admin' : 'store_staff';
+
   return {
     admin,
     restaurantId: auth.restaurantId,
+    actor,
     restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string },
   };
 }
@@ -51,7 +60,11 @@ function roleNameFromRow(row: Record<string, unknown>): string {
 }
 
 /** Membership row (店籍) + account login name (`staff_identities`) → staff list item. */
-export function mapStaffRow(row: Record<string, unknown>, loginName: string): RestaurantStaffAccount {
+export function mapStaffRow(
+  row: Record<string, unknown>,
+  loginName: string,
+  storeCount: number,
+): RestaurantStaffAccount {
   return {
     id: row.id as string,
     restaurant_id: row.restaurant_id as string,
@@ -61,22 +74,30 @@ export function mapStaffRow(row: Record<string, unknown>, loginName: string): Re
     role: String(row.role ?? ''),
     display_name: row.display_name as string,
     login_name: loginName,
+    store_count: storeCount,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
     disabled_at: (row.disabled_at as string | null) ?? null,
   };
 }
 
-/** Membership rows → staff list items; login names come from `staff_identities` in one query. */
+/**
+ * Membership rows → staff list items; login names (`staff_identities`) and store counts
+ * (account-level, for rule 4 / delete copy) come from one query each.
+ */
 export async function loadStaffAccountViews(
   admin: SupabaseClient,
   rows: Record<string, unknown>[],
 ): Promise<RestaurantStaffAccount[]> {
-  const loginNames = await loadStaffLoginNames(
-    admin,
-    rows.map((row) => String(row.user_id ?? '')),
-  );
-  return rows.map((row) => mapStaffRow(row, loginNames.get(String(row.user_id ?? '')) ?? ''));
+  const userIds = rows.map((row) => String(row.user_id ?? ''));
+  const [loginNames, storeCounts] = await Promise.all([
+    loadStaffLoginNames(admin, userIds),
+    countStaffMemberships(admin, userIds),
+  ]);
+  return rows.map((row) => {
+    const userId = String(row.user_id ?? '');
+    return mapStaffRow(row, loginNames.get(userId) ?? '', storeCounts.get(userId) ?? 1);
+  });
 }
 
 const STAFF_LIST_SELECT =

@@ -148,7 +148,7 @@ export function RestaurantStaffClient({
         title="停用员工账号"
         message={
           confirmDisable
-            ? `确认停用 ${confirmDisable.displayName}（${confirmDisable.loginName}）？该员工将无法登录。`
+            ? `确认停用 ${confirmDisable.displayName}（${confirmDisable.loginName}）？只停用本店，不影响该账号在其他店。`
             : ''
         }
         confirmLabel="确认停用"

@@ -1,8 +1,10 @@
 /**
- * Sole Ops hard-delete path for a restaurant: platform DB + Auth + menu-images.
+ * Sole Ops hard-delete path for a restaurant: platform DB + menu-images + Auth of accounts
+ * left with no store (`retireAccountsWithoutStoreLeft`).
  * Does not touch on-prem store local databases.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { retireAccountsWithoutStoreLeft } from '@mesa/shared';
 import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
 import {
   isOpsRestaurantDeletable,
@@ -167,16 +169,21 @@ export async function purgeRestaurantForOps(
     };
   }
 
-  let authUsersDeleted = 0;
-  let authUsersFailed = 0;
-  for (const userId of Array.from(authUserIds)) {
-    const { error: delUserError } = await admin.auth.admin.deleteUser(userId);
-    if (delUserError) {
-      authUsersFailed += 1;
-    } else {
-      authUsersDeleted += 1;
-    }
+  // Retire only accounts with no store left (no membership elsewhere, not another store's
+  // admin); multi-store accounts keep working in their other stores (plan §7).
+  let retired;
+  try {
+    retired = await retireAccountsWithoutStoreLeft(admin, Array.from(authUserIds));
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'auth_retire_failed',
+      status: 500,
+      detail: e instanceof Error ? e.message : String(e),
+    };
   }
+  const authUsersDeleted = retired.deleted;
+  const authUsersFailed = retired.retained;
 
   return {
     ok: true,

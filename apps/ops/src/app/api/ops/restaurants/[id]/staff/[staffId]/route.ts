@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  isPrintAgentStaffRole,
-  kickStaffUserSessions,
-  loadStaffIdentity,
-  setStaffUserBanned,
-} from '@mesa/shared';
+import { isPrintAgentStaffRole, loadStaffIdentity } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -57,8 +52,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       return NextResponse.json({ error: 'update_failed', detail: updateError.message }, { status: 500 });
     }
 
-    await setStaffUserBanned(admin, staff.user_id, true);
-    await kickStaffUserSessions(admin, staff.user_id);
+    // Store-level only, same rule as Web (plan §7): no Auth ban, no session kick.
 
     await writePlatformAudit(admin, {
       actorUserId: ctx.userId,
@@ -85,8 +79,6 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (updateError) {
       return NextResponse.json({ error: 'update_failed', detail: updateError.message }, { status: 500 });
     }
-
-    await setStaffUserBanned(admin, staff.user_id, false);
 
     await writePlatformAudit(admin, {
       actorUserId: ctx.userId,

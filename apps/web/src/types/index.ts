@@ -29,6 +29,8 @@ export interface RestaurantStaffAccount {
   role: string;
   display_name: string;
   login_name: string;
+  /** Stores this account belongs to (account-level; ≥2 = multi-store account). */
+  store_count: number;
   created_at: string;
   updated_at: string;
   disabled_at: string | null;

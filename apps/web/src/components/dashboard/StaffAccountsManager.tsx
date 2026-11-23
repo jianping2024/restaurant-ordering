@@ -9,6 +9,7 @@ import { PasswordInput } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
 import type { RestaurantStaffAccount } from '@/types';
+import { staffCredentialsEditableByStore } from '@mesa/shared';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
@@ -34,6 +35,8 @@ import type { RestaurantRoleRow } from '@/lib/permissions/types';
 
 interface Props {
   initialStaff: RestaurantStaffAccount[];
+  /** Viewer is this store's admin account (`owner_id`) — rule 4 for multi-store accounts. */
+  viewerIsStoreAdmin: boolean;
   embedded?: boolean;
 }
 
@@ -77,6 +80,7 @@ function errorMessage(code: string, t: StaffSettingsCopy): string {
     display_name_required: t.errDisplayName,
     migration_required: t.errMigration,
     invalid_role: t.saveFail,
+    multi_store_credentials_admin_only: t.resetPasswordAdminOnly,
   };
   return map[code] || t.saveFail;
 }
@@ -145,7 +149,7 @@ function StaffRoleSelect({
   );
 }
 
-export function StaffAccountsManager({ initialStaff, embedded }: Props) {
+export function StaffAccountsManager({ initialStaff, viewerIsStoreAdmin, embedded }: Props) {
   const { slug: storeSlug } = useDashboardStore();
   const { lang } = useLanguage();
   const t = getMessages(lang).staffSettings;
@@ -186,6 +190,13 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   );
 
   const activeRoles = useMemo(() => roles.filter((r) => !r.disabled_at), [roles]);
+  /** Sole single/multi-store split for delete copy (confirm + success toast). */
+  const belongsToOtherStores = (row: RestaurantStaffAccount) => row.store_count > 1;
+  const credentialsEditable = (row: RestaurantStaffAccount) =>
+    staffCredentialsEditableByStore({
+      storeCount: row.store_count,
+      actor: viewerIsStoreAdmin ? 'store_admin' : 'store_staff',
+    });
 
   const reloadRoles = useCallback(async () => {
     setRolesLoadState('loading');
@@ -359,7 +370,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       }
       setStaff((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setDeleteTarget(null);
-      showToast(t.deletedOk, 'success');
+      showToast(belongsToOtherStores(deleteTarget) ? t.removedFromStoreOk : t.deletedOk, 'success');
     } catch {
       showToast(t.saveFail, 'error');
     } finally {
@@ -482,6 +493,11 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     >
                       {row.login_name}
                     </button>
+                    {row.store_count > 1 ? (
+                      <span className="mt-0.5 inline-block rounded border border-brand-gold/40 px-1 text-[11px] text-brand-gold">
+                        {t.multiStoreTag}
+                      </span>
+                    ) : null}
                   </td>
                   <td className="max-w-0 px-4 py-3 text-brand-text-muted">
                     <span className="block truncate" title={roleLabel(row)}>
@@ -517,16 +533,25 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                       >
                         {t.edit}
                       </button>
-                      <button
-                        type="button"
-                        className="text-brand-text-muted hover:text-brand-text"
-                        onClick={() => {
-                          setResetTarget(row);
-                          setResetPassword('');
-                        }}
-                      >
-                        {t.resetPassword}
-                      </button>
+                      {credentialsEditable(row) ? (
+                        <button
+                          type="button"
+                          className="text-brand-text-muted hover:text-brand-text"
+                          onClick={() => {
+                            setResetTarget(row);
+                            setResetPassword('');
+                          }}
+                        >
+                          {t.resetPassword}
+                        </button>
+                      ) : (
+                        <span
+                          className="cursor-not-allowed text-brand-text-muted/50"
+                          title={t.resetPasswordAdminOnly}
+                        >
+                          {t.resetPassword}
+                        </span>
+                      )}
                       <button
                         type="button"
                         className="text-brand-text-muted hover:text-brand-text"
@@ -711,7 +736,9 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       </Modal>
 
       <Modal open={!!deleteTarget} onClose={() => !deleteSaving && setDeleteTarget(null)} title={t.delete}>
-        <p className="text-sm text-brand-text-muted mb-4">{t.deleteConfirm}</p>
+        <p className="text-sm text-brand-text-muted mb-4">
+          {deleteTarget && belongsToOtherStores(deleteTarget) ? t.deleteConfirmMultiStore : t.deleteConfirm}
+        </p>
         <Button variant="outline" className="w-full" onClick={() => void runDelete()} disabled={deleteSaving}>
           {t.deleteConfirmBtn}
         </Button>

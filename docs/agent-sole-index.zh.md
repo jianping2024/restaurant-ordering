@@ -408,6 +408,10 @@ sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound
 
 ## 厨房 / 楼面 / 权限
 
+### 多店账号：店籍删除 / 末店注销 / 改密（多店方案 §3、§7）
+
+sole `@mesa/shared` `staff-membership-removal`：店内删除 = `removeStaffMembership`（只删本店店籍；无剩余店籍且非任何店管理员才 `retireStaffAuthUser`）；ops 删店 / 2C 解除关联 = `retireAccountsWithoutStoreLeft`；改密规则 4 = `staffCredentialsEditableByStore`（API 与员工管理界面共用）。店内 / ops 的禁用、启用、改角色、改角色权限一律不封号、不踢会话（`setStaffUserBanned` 只剩 ops 平台管理员制裁）；不要在路由里再写 delete + `deleteUser` / ban 的并行路径。
+
 ### Kitchen ready-after minutes
 
 sole `FeatureFlagsManager` + `PATCH /api/restaurant/features`; sushi round card + sushi PATCH writes only when `isSushiBuffetMode(buffet_service_mode)`; do not keep a Hub card or `…/staff/kitchen/settings`.

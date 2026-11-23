@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict x01dmCxGDECxRmxC377WSO9bIyj2Sa55ttaOCj4fXm9gmY0KpbtdXtKVODmo7y4
+\restrict og2yiMG4U3CHCAD5YaPaQDpok12r8U9kOdb4fEPahTowQqpWCN5bbaHi9XIXsDP
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -3622,6 +3622,45 @@ $_$;
 
 
 --
+-- Name: mirror_membership_login_name(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.mirror_membership_login_name() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+DECLARE
+  account_login text;
+BEGIN
+  SELECT s.login_name INTO account_login
+    FROM public.staff_identities s
+   WHERE s.user_id = NEW.user_id;
+
+  IF account_login IS NULL THEN
+    -- Legacy create path (membership written first): create the account identity.
+    -- staff_identities_login_name_key keeps login names globally unique (23505 = taken).
+    INSERT INTO public.staff_identities (user_id, login_name, must_change_password)
+    SELECT
+      NEW.user_id,
+      NEW.login_name,
+      COALESCE(u.raw_user_meta_data -> 'must_change_password' = 'true'::jsonb, false)
+    FROM auth.users u
+    WHERE u.id = NEW.user_id;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'UPDATE' AND NEW.login_name IS DISTINCT FROM account_login THEN
+    RAISE EXCEPTION 'membership login_name must equal staff_identities.login_name'
+      USING ERRCODE = 'check_violation';
+  END IF;
+
+  NEW.login_name := account_login;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: order_history_feed_page(uuid, timestamp with time zone, timestamp with time zone, uuid[], uuid, boolean, integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -4643,24 +4682,18 @@ $$;
 
 
 --
--- Name: sync_staff_identity_from_membership(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: sync_membership_login_name_from_identity(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.sync_staff_identity_from_membership() RETURNS trigger
+CREATE FUNCTION public.sync_membership_login_name_from_identity() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO 'public', 'pg_temp'
     AS $$
 BEGIN
-  INSERT INTO public.staff_identities (user_id, login_name, must_change_password)
-  SELECT
-    NEW.user_id,
-    NEW.login_name,
-    COALESCE(u.raw_user_meta_data -> 'must_change_password' = 'true'::jsonb, false)
-  FROM auth.users u
-  WHERE u.id = NEW.user_id
-  ON CONFLICT (user_id) DO UPDATE
-    SET login_name = EXCLUDED.login_name
-    WHERE public.staff_identities.login_name IS DISTINCT FROM EXCLUDED.login_name;
+  UPDATE public.restaurant_staff_accounts
+     SET login_name = NEW.login_name
+   WHERE user_id = NEW.user_id
+     AND login_name IS DISTINCT FROM NEW.login_name;
   RETURN NEW;
 END;
 $$;
@@ -8916,13 +8949,6 @@ CREATE UNIQUE INDEX restaurant_roles_unique_name_per_restaurant ON public.restau
 
 
 --
--- Name: restaurant_staff_accounts_login_name_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX restaurant_staff_accounts_login_name_key ON public.restaurant_staff_accounts USING btree (login_name);
-
-
---
 -- Name: restaurant_staff_accounts_one_print_agent_per_restaurant; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9175,10 +9201,10 @@ CREATE TRIGGER restaurant_staff_accounts_enforce_membership_rules BEFORE INSERT 
 
 
 --
--- Name: restaurant_staff_accounts restaurant_staff_accounts_sync_staff_identity; Type: TRIGGER; Schema: public; Owner: -
+-- Name: restaurant_staff_accounts restaurant_staff_accounts_mirror_login_name; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER restaurant_staff_accounts_sync_staff_identity AFTER INSERT OR UPDATE OF login_name, user_id ON public.restaurant_staff_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_staff_identity_from_membership();
+CREATE TRIGGER restaurant_staff_accounts_mirror_login_name BEFORE INSERT OR UPDATE OF login_name, user_id ON public.restaurant_staff_accounts FOR EACH ROW EXECUTE FUNCTION public.mirror_membership_login_name();
 
 
 --
@@ -9228,6 +9254,13 @@ CREATE TRIGGER restaurants_enforce_owner_not_staff BEFORE INSERT OR UPDATE OF ow
 --
 
 CREATE TRIGGER staff_identities_set_updated_at BEFORE UPDATE ON public.staff_identities FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+
+--
+-- Name: staff_identities staff_identities_sync_membership_login_name; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER staff_identities_sync_membership_login_name AFTER UPDATE OF login_name ON public.staff_identities FOR EACH ROW EXECUTE FUNCTION public.sync_membership_login_name_from_identity();
 
 
 --
@@ -11495,7 +11528,7 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict x01dmCxGDECxRmxC377WSO9bIyj2Sa55ttaOCj4fXm9gmY0KpbtdXtKVODmo7y4
+\unrestrict og2yiMG4U3CHCAD5YaPaQDpok12r8U9kOdb4fEPahTowQqpWCN5bbaHi9XIXsDP
 
 
 -- Triggers on non-public tables calling public functions (not in --schema=public dump).

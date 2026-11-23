@@ -144,7 +144,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'insert_failed', message: insertError.message }, { status: 500 });
   }
 
-  const account = mapStaffRow(row as Record<string, unknown>, parsed.login_name);
+  const account = mapStaffRow(row as Record<string, unknown>, parsed.login_name, 1);
   await admin.auth.admin.updateUserById(userId, {
     user_metadata: staffMetadataPayload(
       account.id,

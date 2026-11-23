@@ -8,5 +8,11 @@ export default async function SettingsStaffPage({ params }: { params: { slug: st
   const permission: PermissionKey = 'settings.staff.manage';
   const restaurant = await requireRestaurantForSettingsPermission(permission, store.restaurant.id);
   const staff = await loadStaffSettingsPageData(restaurant.id);
-  return <StaffAccountsManager embedded initialStaff={staff} />;
+  return (
+    <StaffAccountsManager
+      embedded
+      initialStaff={staff}
+      viewerIsStoreAdmin={store.mode === 'owner'}
+    />
+  );
 }

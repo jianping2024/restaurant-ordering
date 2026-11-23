@@ -81,6 +81,7 @@ export {
 export {
   insertStaffIdentity,
   loadStaffIdentity,
+  loadStaffIdentityByLoginName,
   loadStaffLoginNames,
   setStaffMustChangePassword,
 } from './staff-identities';
@@ -252,3 +253,17 @@ export {
   toMenuImagePublicRef,
   type MenuImagePublicRefOptions,
 } from './menu-image-public-ref';
+export { restaurantCityFromAddress } from './restaurant-city';
+export {
+  linkPlanReady,
+  linkStaffMembership,
+  linkStaffMembershipErrorCode,
+  matchRoleByName,
+  planStaffMembershipLinks,
+  type LinkOverride,
+  type LinkPlanRow,
+  type LinkPlanStore,
+  type LinkStaffMembershipError,
+  type LinkStaffMembershipResult,
+  type LinkableRole,
+} from './staff-membership-link';

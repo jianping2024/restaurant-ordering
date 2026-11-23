@@ -412,6 +412,10 @@ sole `settleDueTableOrderRoundSubmit` (empty → collecting; else `finalizeRound
 
 sole `@mesa/shared` `staff-membership-removal`：店内删除 = `removeStaffMembership`（只删本店店籍；无剩余店籍且非任何店管理员才 `retireStaffAuthUser`）；ops 删店 / 2C 解除关联 = `retireAccountsWithoutStoreLeft`；改密规则 4 = `staffCredentialsEditableByStore`（API 与员工管理界面共用）。店内 / ops 的禁用、启用、改角色、改角色权限一律不封号、不踢会话（`setStaffUserBanned` 只剩 ops 平台管理员制裁）；不要在路由里再写 delete + `deleteUser` / ban 的并行路径。
 
+### 多店账号：ops 关联（多店方案 §8.3）
+
+sole 写入 `@mesa/shared` `staff-membership-link`：预览 `planStaffMembershipLinks`（按角色名不分大小写匹配本店启用角色；缺同名 → 逐店选或跳过，`linkPlanReady` 才能提交）+ 写入 `linkStaffMembership`（校验角色属本店、DB trigger 拒绝映射 `linkStaffMembershipErrorCode`）；唯一入口 ops `/ops/staff-links` + `/api/ops/staff-links`（GET 按登录名查、POST 关联、DELETE 批量解除走 `removeStaffMembership`），每店一条 `staff.link` / `staff.unlink` 平台审计。城市 sole `restaurantCityFromAddress`（`@mesa/shared` `restaurant-city`）。店内不能关联到别的店；不要另写店籍 insert 或按名字匹配角色的第二套逻辑。
+
 ### Kitchen ready-after minutes
 
 sole `FeatureFlagsManager` + `PATCH /api/restaurant/features`; sushi round card + sushi PATCH writes only when `isSushiBuffetMode(buffet_service_mode)`; do not keep a Hub card or `…/staff/kitchen/settings`.

@@ -37,6 +37,8 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'platform_admin.role_change': '变更运营角色',
   'staff.disable': '停用员工账号',
   'staff.enable': '启用员工账号',
+  'staff.link': '关联员工账号到本店',
+  'staff.unlink': '解除员工账号本店关联',
 };
 
 export function platformAuditActionLabel(action: string): string {

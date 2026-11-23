@@ -38,6 +38,22 @@ export async function loadStaffIdentity(
   return normalizeStaffIdentity(data);
 }
 
+/** Exact login-name lookup (ops link screen). Login names are stored lower-case. */
+export async function loadStaffIdentityByLoginName(
+  admin: SupabaseClient,
+  loginName: string,
+): Promise<StaffIdentity | null> {
+  const name = loginName.trim().toLowerCase();
+  if (!name) return null;
+  const { data, error } = await admin
+    .from('staff_identities')
+    .select(STAFF_IDENTITY_COLUMNS)
+    .eq('login_name', name)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return normalizeStaffIdentity(data);
+}
+
 /** user_id → login_name for display (one query for any number of accounts). */
 export async function loadStaffLoginNames(
   admin: SupabaseClient,

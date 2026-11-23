@@ -438,9 +438,9 @@ sole SQL `buffet_openable_ids`（当前时段 = 全店当天离现在最近的�
 
 开台确认后禁止换套餐（楼面 `packageLocked` + pipeline 409 `buffet_switch_locked`）；人数 −/+ 不改 `buffet_id`。`switchTableBuffet` / RPC `switch_table_buffet` 已删除（`20261119120000`，无换套餐改价路径）。sole「是否进入结账」`hasEnteredCheckout` 仍供结账门禁（signals sole `loadCheckoutEntrySignals`）；line predicate sole SQL `order_item_is_buffet_priced`（`append_order_items` 用，无 TS twin）; every priced dish write declares `pricedBuffetId` (`writeAppendBatch` → `append_order_items` checks under lock, 409 `buffet_changed`) — never a version number; sushi round submit re-checks `isSushiRoundFreeMenuPrice` on resolved lines; merge rejects different buffets (`buffet_mismatch`); open carts follow prices via `repriceCartLines`.
 
-### 楼面同行组入口
+### 楼面 lane 条 + 同行组入口
 
-sole tab「同行组」+ 整页 `WaiterBoardPartyListPage`（创建只在列表顶）+ 既有 `WaiterBoardPartySections` 详情；lane/list/详情 meta 唯一 `formatWaiterBoardLaneCountLabel`（`{n} 桌` ± ` · A… C…`，同源 `sumWaiterBoardDiningHeadcount`）；无下拉 / 无 `WaiterBoardPartyLaneMenu`；详情回列表 sole `WaiterBoardBackControl`（`←` + `partyMenu`，`onBackToList`；与桌台详情回看板同一 soft+action），不要手写小 `‹`、不要「返回看板」；组消失（解散/空组）sole 回列表（`isMissingPartyLaneKey` + `partyListSurfaceOpen`），不落到楼面；加人套餐 sole `resolvePartyBuffetLock` / `isTableBuffetAllowedForPartyAdd`（与并台同口径，`buffet_mismatch`），勾选后不同套餐灰显。
+sole strip `WAITER_BOARD_LANE_TABLIST_CLASS` / `.mesa-board-lane-tablist`（窄屏竖排满宽 `BoardLaneTab`，`sm+` 横滑；勿 `mesa-chip-scroll` 画楼面 lane）+ 楼面簇 `WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS`；同行组仍同一条上的 tab → 整页 `WaiterBoardPartyListPage`（创建只在列表顶）+ 既有 `WaiterBoardPartySections` 详情；lane/list/详情 meta 唯一 `formatWaiterBoardLaneCountLabel`（`{n} 桌` ± ` · A… C…`，同源 `sumWaiterBoardDiningHeadcount`）；无下拉 / 无 `WaiterBoardPartyLaneMenu`；详情回列表 sole `WaiterBoardBackControl`（`←` + `partyMenu`，`onBackToList`；与桌台详情回看板同一 soft+action），不要手写小 `‹`、不要「返回看板」；组消失（解散/空组）sole 回列表（`isMissingPartyLaneKey` + `partyListSurfaceOpen`），不落到楼面；加人套餐 sole `resolvePartyBuffetLock` / `isTableBuffetAllowedForPartyAdd`（与并台同口径，`buffet_mismatch`），勾选后不同套餐灰显。
 
 ### 楼面跨端
 

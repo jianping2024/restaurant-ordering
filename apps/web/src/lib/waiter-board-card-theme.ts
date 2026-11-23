@@ -25,8 +25,12 @@ export const waiterBoardType = {
    */
   kpiCountRowWithWings: 'mt-2 flex items-center justify-center gap-x-1.5',
   kpiLabel: 'text-center text-sm font-medium',
-  /** No truncate — long names scroll the chip strip instead. */
-  laneLabel: 'shrink-0 text-sm',
+  /**
+   * Lane name — narrow: truncate inside full-width button; sm+: no truncate
+   * (long names scroll the horizontal chip strip).
+   */
+  laneLabel:
+    'min-w-0 flex-1 truncate text-left text-sm sm:flex-none sm:shrink-0 sm:overflow-visible sm:text-clip',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   /**
    * Sole floor-card title row — table number + optional dish qty (`×N`).
@@ -119,14 +123,28 @@ export const WAITER_BOARD_SELECTED_EMPHASIS =
   'border border-brand-ink bg-brand-ink text-brand-on-ink shadow-sm';
 
 /**
- * Lane tabs + together-group dropdown — shared geometry (height + font-weight);
+ * Lane tabs (floor groups + 同行组) — shared geometry (height + font-weight);
  * active = solid ink face only (colors), never a second weight that reflows width.
+ * Narrow: full-width row button; sm+: compact chip.
  */
 export const WAITER_BOARD_LANE_CHROME = {
-  base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] font-semibold transition-colors',
+  base: 'flex w-full shrink-0 items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] font-semibold transition-colors sm:inline-flex sm:w-auto sm:justify-start',
   idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted hover:border-brand-ink/35 hover:text-brand-text',
   active: WAITER_BOARD_SELECTED_EMPHASIS,
 } as const;
+
+/**
+ * Sole outer strip for floor lane tabs + 同行组 — class `mesa-board-lane-tablist`
+ * (narrow column / sm+ horizontal chip scroll). Do not reintroduce `mesa-chip-scroll` here.
+ */
+export const WAITER_BOARD_LANE_TABLIST_CLASS = 'mesa-board-lane-tablist pb-1';
+
+/**
+ * Sole floor-groups tablist cluster inside the strip (同行组 stays a sibling tab).
+ * Narrow: stacked full-width; sm+: horizontal chip row.
+ */
+export const WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS =
+  'flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row';
 
 /**
  * Sole lane→card clearance under the sticky dock (one spacing step, two faces).
@@ -144,15 +162,19 @@ export const WAITER_BOARD_LANE_TO_CARD_CLEARANCE = {
  * Opaque page bg paints the full dock (tabs + lane→card clearance) so cards never
  * show through a transparent margin gap; offset = `waiterStaffStickyChrome`.
  * Spacing before the grid is shell padding-bottom only — not exterior margin.
+ * Narrow: cap height + scroll inside so a tall vertical stack does not cover cards;
+ * sm+: uncapped (one horizontal chip row).
  */
 export const WAITER_BOARD_LANE_STICKY_SHELL =
-  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 min-w-0 border-b border-brand-border/40 bg-brand-bg pt-2 ${WAITER_BOARD_LANE_TO_CARD_CLEARANCE.shellPadBottom}`;
+  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 min-w-0 max-h-[min(40vh,16rem)] overflow-y-auto overscroll-y-contain border-b border-brand-border/40 bg-brand-bg pt-2 sm:max-h-none sm:overflow-y-visible ${WAITER_BOARD_LANE_TO_CARD_CLEARANCE.shellPadBottom}`;
 
 /**
  * Sole trailing scroll room for the sticky lane dock — enough that max-scroll can
  * park table cards fully below the opaque dock (no second spacer at call sites).
+ * Narrow matches sticky max-height; sm+ keeps the single-row `pb-24`.
  */
-export const WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE = 'pb-24';
+export const WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE =
+  'pb-[min(40vh,16rem)] sm:pb-24';
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =

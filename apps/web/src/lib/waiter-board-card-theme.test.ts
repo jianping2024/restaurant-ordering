@@ -12,8 +12,10 @@ import {
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_KPI_SURFACE_CLASS,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
+  WAITER_BOARD_LANE_TABLIST_CLASS,
   WAITER_BOARD_LANE_TO_CARD_CLEARANCE,
   WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
@@ -210,6 +212,10 @@ describe('waiter-board-card-theme theme tokens', () => {
     );
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /bg-brand-bg/);
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /z-20/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /max-h-\[min\(40vh,16rem\)\]/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /sm:max-h-none/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /overflow-y-auto/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /sm:overflow-y-visible/);
     // Sole lane→card clearance: shell pad from token; never exterior margin.
     assert.equal(WAITER_BOARD_LANE_TO_CARD_CLEARANCE.shellPadBottom, 'pb-8');
     assert.equal(WAITER_BOARD_LANE_TO_CARD_CLEARANCE.gridScrollMargin, 'scroll-mt-8');
@@ -219,8 +225,27 @@ describe('waiter-board-card-theme theme tokens', () => {
     );
     assert.doesNotMatch(WAITER_BOARD_LANE_STICKY_SHELL, /\bmb-/);
     assert.doesNotMatch(WAITER_BOARD_LANE_STICKY_SHELL, /\bpb-4\b/);
-    assert.match(WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE, /\bpb-24\b/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE, /pb-\[min\(40vh,16rem\)\]/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE, /\bsm:pb-24\b/);
     assertNoSkyPalette(WAITER_BOARD_LANE_STICKY_SHELL);
+  });
+
+  it('lane tablist is vertical full-width on narrow and horizontal chip scroll on sm+', () => {
+    assert.match(WAITER_BOARD_LANE_TABLIST_CLASS, /mesa-board-lane-tablist/);
+    assert.doesNotMatch(WAITER_BOARD_LANE_TABLIST_CLASS, /mesa-chip-scroll/);
+    assert.match(WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS, /flex-col/);
+    assert.match(WAITER_BOARD_LANE_FLOOR_TABLIST_CLASS, /sm:flex-row/);
+    assert.match(WAITER_BOARD_LANE_CHROME.base, /\bw-full\b/);
+    assert.match(WAITER_BOARD_LANE_CHROME.base, /sm:w-auto/);
+    assert.match(WAITER_BOARD_LANE_CHROME.base, /justify-between/);
+    assert.match(waiterBoardType.laneLabel, /truncate/);
+    assert.match(waiterBoardType.laneLabel, /sm:overflow-visible/);
+    const globals = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../app/globals.css'),
+      'utf8',
+    );
+    assert.match(globals, /\.mesa-board-lane-tablist\s*\{/);
+    assert.match(globals, /@media \(min-width:\s*640px\)\s*\{[\s\S]*?\.mesa-board-lane-tablist/);
   });
 
   it('selected lane face is solid ink without ring; KPI shares card status-face modifiers', () => {

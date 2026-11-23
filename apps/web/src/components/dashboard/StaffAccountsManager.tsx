@@ -190,6 +190,8 @@ export function StaffAccountsManager({ initialStaff, viewerIsStoreAdmin, embedde
   );
 
   const activeRoles = useMemo(() => roles.filter((r) => !r.disabled_at), [roles]);
+  /** Sole single/multi-store split for delete copy (confirm + success toast). */
+  const belongsToOtherStores = (row: RestaurantStaffAccount) => row.store_count > 1;
   const credentialsEditable = (row: RestaurantStaffAccount) =>
     staffCredentialsEditableByStore({
       storeCount: row.store_count,
@@ -368,7 +370,7 @@ export function StaffAccountsManager({ initialStaff, viewerIsStoreAdmin, embedde
       }
       setStaff((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setDeleteTarget(null);
-      showToast(t.deletedOk, 'success');
+      showToast(belongsToOtherStores(deleteTarget) ? t.removedFromStoreOk : t.deletedOk, 'success');
     } catch {
       showToast(t.saveFail, 'error');
     } finally {
@@ -735,7 +737,7 @@ export function StaffAccountsManager({ initialStaff, viewerIsStoreAdmin, embedde
 
       <Modal open={!!deleteTarget} onClose={() => !deleteSaving && setDeleteTarget(null)} title={t.delete}>
         <p className="text-sm text-brand-text-muted mb-4">
-          {deleteTarget && deleteTarget.store_count > 1 ? t.deleteConfirmMultiStore : t.deleteConfirm}
+          {deleteTarget && belongsToOtherStores(deleteTarget) ? t.deleteConfirmMultiStore : t.deleteConfirm}
         </p>
         <Button variant="outline" className="w-full" onClick={() => void runDelete()} disabled={deleteSaving}>
           {t.deleteConfirmBtn}

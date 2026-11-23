@@ -913,6 +913,7 @@ export const MESSAGES_ES = {
     "disabledOk": "Desactivado en este local",
     "enabledOk": "Activado",
     "deletedOk": "Cuenta eliminada",
+    "removedFromStoreOk": "Quitado de este local; los demás locales no se ven afectados",
     "disableConfirm": "No podrá entrar en este local; los demás locales vinculados no se ven afectados. ¿Continuar?",
     "enableConfirm": "¿Volver a activar esta cuenta?",
     "deleteConfirm": "Esta cuenta solo pertenece a este local; al eliminarla se da de baja. No se puede deshacer.",

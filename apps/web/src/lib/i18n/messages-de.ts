@@ -915,6 +915,7 @@ export const MESSAGES_DE = {
     "disabledOk": "In diesem Betrieb deaktiviert",
     "enabledOk": "Aktiviert",
     "deletedOk": "Konto gelöscht",
+    "removedFromStoreOk": "Aus diesem Betrieb entfernt; andere Betriebe sind nicht betroffen",
     "disableConfirm": "Kein Zugang mehr zu diesem Betrieb; andere verknüpfte Betriebe sind nicht betroffen. Fortfahren?",
     "enableConfirm": "Dieses Konto wieder aktivieren?",
     "deleteConfirm": "Dieses Konto gehört nur zu diesem Betrieb; Löschen deaktiviert es endgültig. Kann nicht rückgängig gemacht werden.",

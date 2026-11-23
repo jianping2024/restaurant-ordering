@@ -917,6 +917,7 @@ export const MESSAGES_FR = {
     "disabledOk": "Désactivé dans cet établissement",
     "enabledOk": "Compte activé",
     "deletedOk": "Compte supprimé",
+    "removedFromStoreOk": "Retiré de cet établissement ; les autres établissements ne sont pas affectés",
     "disableConfirm": "Il ne pourra plus accéder à cet établissement ; les autres établissements liés ne sont pas affectés. Continuer ?",
     "enableConfirm": "Réactiver ce compte ?",
     "deleteConfirm": "Ce compte n’appartient qu’à cet établissement ; la suppression le désactive définitivement. Action irréversible.",

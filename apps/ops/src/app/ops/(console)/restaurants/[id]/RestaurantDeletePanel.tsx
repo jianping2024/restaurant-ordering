@@ -61,7 +61,7 @@ export function RestaurantDeletePanel({
     <section className="mt-10 rounded-lg border border-red-900/60 bg-zinc-900 p-5">
       <h2 className="text-lg font-medium text-red-300">删除餐厅</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        不可恢复。将清除平台侧该店全部业务数据、员工/店主登录账号，以及菜单图片。本地安装门店的本机数据不会自动清除。
+        不可恢复。将清除平台侧该店全部业务数据、本店店籍与菜单图片；只属于本店的员工账号和本店管理员账号会注销，同时关联其他店的员工账号保留、其他店照常使用。本地安装门店的本机数据不会自动清除。
       </p>
 
       {!deletable ? (

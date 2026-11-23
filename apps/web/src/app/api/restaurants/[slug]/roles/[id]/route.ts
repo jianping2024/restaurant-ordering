@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { kickStaffUserSessions } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import {
   countStaffOnRole,
   deleteRestaurantRole,
   getRestaurantRole,
-  listStaffUserIdsOnRole,
   updateRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
 import {
@@ -114,11 +112,9 @@ export async function PATCH(
       params.id,
       patch,
     );
+    // No session kick (plan §7): role capabilities are resolved per request; the account's
+    // other stores must not be signed out.
     await bumpPermissionsVersion(admin, auth.restaurantId);
-    if (patch.permissions !== undefined) {
-      const userIds = await listStaffUserIdsOnRole(admin, auth.restaurantId, params.id);
-      await Promise.all(userIds.map((userId) => kickStaffUserSessions(admin, userId)));
-    }
     return NextResponse.json({ role });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'update_failed';

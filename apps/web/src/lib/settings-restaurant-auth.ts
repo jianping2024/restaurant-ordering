@@ -5,10 +5,12 @@ import { NextResponse } from 'next/server';
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { requirePermission } from '@/lib/permissions/require';
+import type { AuthorizedRestaurantPrincipal } from '@/lib/permissions/restaurant-access';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export type SettingsRestaurantAuthOk = {
   restaurantId: AuthorizedRestaurantId;
+  principal: AuthorizedRestaurantPrincipal['principal'];
 };
 
 export type SettingsRestaurantAuthResult = SettingsRestaurantAuthOk | NextResponse;
@@ -48,5 +50,5 @@ export async function requireSettingsRestaurantAuth(
     }
   }
 
-  return { restaurantId: scopedId };
+  return { restaurantId: scopedId, principal: auth.principal };
 }

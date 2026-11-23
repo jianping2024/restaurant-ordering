@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import {
+  countStaffMemberships,
   isPrintAgentStaffRole,
   kickStaffUserSessions,
   loadStaffIdentity,
   setStaffMustChangePassword,
+  staffCredentialsEditableByStore,
 } from '@mesa/shared';
 import {
   loadOwnerRestaurantWithSlug,
@@ -47,6 +49,11 @@ export async function POST(req: Request, { params }: { params: { slug: string; i
   }
 
   const userId = account.user_id as string;
+  const storeCount = (await countStaffMemberships(loaded.admin, [userId])).get(userId) ?? 1;
+  // Rule 4 (plan §3/§7): multi-store account → only a linked store's admin account (or ops / self).
+  if (!staffCredentialsEditableByStore({ storeCount, actor: loaded.actor })) {
+    return NextResponse.json({ error: 'multi_store_credentials_admin_only' }, { status: 403 });
+  }
   const identity = await loadStaffIdentity(loaded.admin, userId);
   const loginName = identity?.login_name ?? '';
   const passwordError = accountPasswordPolicyError(password, { loginName });
@@ -84,5 +91,5 @@ export async function POST(req: Request, { params }: { params: { slug: string; i
     .update({ updated_at: new Date().toISOString() })
     .eq('id', params.id);
 
-  return NextResponse.json({ staff: mapStaffRow(account as Record<string, unknown>, loginName) });
+  return NextResponse.json({ staff: mapStaffRow(account as Record<string, unknown>, loginName, storeCount) });
 }

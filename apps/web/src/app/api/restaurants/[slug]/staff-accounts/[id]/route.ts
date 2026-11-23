@@ -1,11 +1,5 @@
 import { NextResponse } from 'next/server';
-import {
-  isPrintAgentStaffRole,
-  kickStaffUserSessions,
-  loadStaffIdentity,
-  retireStaffAuthUser,
-  setStaffUserBanned,
-} from '@mesa/shared';
+import { isPrintAgentStaffRole, loadStaffIdentity, removeStaffMembership } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import {
@@ -67,8 +61,8 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
     if (error) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 });
     }
-    await setStaffUserBanned(loaded.admin, existing.user_id as string, true);
-    await kickStaffUserSessions(loaded.admin, existing.user_id as string);
+    // Store-level only (plan §7): no Auth ban, no session kick — other stores stay usable;
+    // this store refuses the account via `membershipIsEnterable`.
     return NextResponse.json({
       staff: (await loadStaffAccountViews(loaded.admin, [data as Record<string, unknown>]))[0],
     });
@@ -84,7 +78,6 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
     if (error) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 });
     }
-    await setStaffUserBanned(loaded.admin, existing.user_id as string, false);
     return NextResponse.json({
       staff: (await loadStaffAccountViews(loaded.admin, [data as Record<string, unknown>]))[0],
     });
@@ -135,7 +128,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
         identity?.must_change_password === true,
       ),
     });
-    await kickStaffUserSessions(loaded.admin, existing.user_id as string);
+    // No session kick (plan §7): capabilities are resolved from this store's row per request.
   }
 
   return NextResponse.json({
@@ -165,26 +158,15 @@ export async function DELETE(_req: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
-  const userId = existing.user_id as string;
-
-  await kickStaffUserSessions(loaded.admin, userId);
-  try {
-    await setStaffUserBanned(loaded.admin, userId, true);
-  } catch {
-    // Row delete + preflight still block login; ban is belt-and-suspenders.
+  // Removes this store's membership only; retires the account when it was the last store.
+  const removed = await removeStaffMembership(loaded.admin, {
+    restaurantId: loaded.restaurantId,
+    membershipId: params.id,
+    userId: existing.user_id as string,
+  });
+  if (!removed.ok) {
+    return NextResponse.json({ error: removed.error }, { status: 500 });
   }
 
-  const { error: delRowError } = await loaded.admin
-    .from('restaurant_staff_accounts')
-    .delete()
-    .eq('id', params.id);
-
-  if (delRowError) {
-    return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
-  }
-
-  // Sole Auth retirement — hard-delete or retain banned + free email; never fail the API.
-  await retireStaffAuthUser(loaded.admin, userId);
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, account_retired: removed.accountRetired });
 }

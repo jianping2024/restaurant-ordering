@@ -148,9 +148,15 @@ export {
   type ResolveLicenseCalendarDateResult,
 } from './license-calendar';
 export {
+  countStaffMemberships,
+  removeStaffMembership,
+  retireAccountsWithoutStoreLeft,
+  staffCredentialsEditableByStore,
+  type StaffCredentialActor,
+} from './staff-membership-removal';
+export {
   kickStaffUserSessions,
   retiredStaffAuthEmail,
-  retireStaffAuthUser,
   setStaffUserBanned,
 } from './staff-user-ban';
 export { signPrintAgentJwt, verifyPrintAgentJwt, type PrintAgentJwtClaims } from './print-agent-jwt';

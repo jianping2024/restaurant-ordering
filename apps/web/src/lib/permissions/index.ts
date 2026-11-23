@@ -67,7 +67,6 @@ export {
 export {
   loadStaffCapabilitiesForGateAccount,
 } from '@/lib/permissions/staff-landing';
-export { loadPrincipal, loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 export {
   listAuthorizedRestaurantsForUser,
   loadPrincipalForRestaurant,

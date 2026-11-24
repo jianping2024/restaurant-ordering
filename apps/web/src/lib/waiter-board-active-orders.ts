@@ -6,7 +6,8 @@ import {
 } from '@/lib/waiter-board-query';
 import type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
 
-const BOARD_ORDER_SELECT =
+/** Live-order columns (waiter board + home floor KPIs). */
+export const BOARD_ORDER_SELECT =
   'id, restaurant_id, session_id, table_id, display_name, status, items, total_amount, created_at, updated_at';
 
 export type ActiveSessionOrderScope = {

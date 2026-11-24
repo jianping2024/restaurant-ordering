@@ -1,59 +1,45 @@
+/**
+ * Sole sticker face for preview / print / ZIP.
+ * Physical target: aluminum plate 50mm × 55mm (W×H). Design: 8px = 1mm.
+ */
+export const TABLE_QR_PLATE_MM = {
+  widthMm: 50,
+  heightMm: 55,
+  /** Scan-first with side quiet margin — ~82% of plate width. */
+  qrMm: 41,
+  sideMarginMm: 4.5,
+  paddingTopMm: 2.5,
+  paddingBottomMm: 2.5,
+} as const;
+
+export const TABLE_QR_PX_PER_MM = 8;
+
 export const TABLE_QR_CARD_LAYOUT = {
-  width: 400,
-  padding: 28,
+  width: TABLE_QR_PLATE_MM.widthMm * TABLE_QR_PX_PER_MM,
+  height: TABLE_QR_PLATE_MM.heightMm * TABLE_QR_PX_PER_MM,
+  paddingX: TABLE_QR_PLATE_MM.sideMarginMm * TABLE_QR_PX_PER_MM,
+  paddingTop: TABLE_QR_PLATE_MM.paddingTopMm * TABLE_QR_PX_PER_MM,
+  paddingBottom: TABLE_QR_PLATE_MM.paddingBottomMm * TABLE_QR_PX_PER_MM,
+  qrSize: TABLE_QR_PLATE_MM.qrMm * TABLE_QR_PX_PER_MM,
   borderRadius: 12,
-  borderColor: '#9b2c2c',
-  innerBorderColor: '#c4a35a',
   backgroundColor: '#fbf5eb',
   displayNameColor: '#8e660b',
-  restaurantNameColor: '#2c2416',
-  productNameColor: '#8e660b',
-  scanCtaColor: '#9b2c2c',
-  displayNameFontSize: 54,
+  /** Fits the header band above the QR on a 50×55 face. */
+  displayNameFontSize: 48,
   displayNameFontSizeMin: 28,
   displayNameLineHeight: 1.02,
   displayNameFontWeight: 600,
   displayNameFontFamily:
     '"Jost", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif',
-  restaurantNameFontSize: 22,
-  restaurantNameFontSizeMin: 16,
-  restaurantNameLineHeight: 1.2,
-  restaurantNameFontWeight: 600,
-  restaurantNameFontFamily:
-    '"PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "Jost", sans-serif',
-  productNameFontSize: 16,
-  productNameFontSizeMin: 12,
-  productNameLineHeight: 1.2,
-  productNameFontWeight: 500,
-  productNameFontFamily: '"Jost", sans-serif',
-  scanCtaFontSize: 20,
-  scanCtaFontSizeMin: 14,
-  scanCtaLineHeight: 1.15,
-  scanCtaFontWeight: 500,
-  scanCtaFontFamily: '"Jost", sans-serif',
-  qrSize: 268,
-  topSectionGap: 16,
-  bottomSectionGap: 14,
-  brandStackGap: 6,
-  scanCtaSectionGap: 16,
   dividerLineWidth: 52,
   dividerGap: 14,
   dividerDiamondSize: 4,
-  cornerOrnamentInset: 14,
-  cornerOrnamentSize: 14,
-  sideOrnamentInset: 10,
-  sideOrnamentOffsetY: 164,
-  sideOrnamentHeight: 168,
-  sideOrnamentDotRadius: 2.5,
-  sideOrnamentAccentRadius: 3.5,
+  dividerColor: '#c4a35a',
 } as const;
 
 /** Sticker face only — one content shape for preview / print / ZIP. */
 export type TableQrCardContent = {
   displayName: string;
-  restaurantName: string;
-  productName: string;
-  scanCta: string;
   qrDataUrl: string;
 };
 
@@ -72,17 +58,12 @@ export function fitSingleLineFontSize(
   return minSize;
 }
 
+/** Fixed plate height — do not grow/shrink with font metrics. */
 export function estimateTableQrCardHeight(layout = TABLE_QR_CARD_LAYOUT): number {
-  return (
-    layout.padding * 2
-    + layout.displayNameFontSize * layout.displayNameLineHeight
-    + layout.topSectionGap
-    + layout.qrSize
-    + layout.bottomSectionGap
-    + layout.restaurantNameFontSize * layout.restaurantNameLineHeight
-    + layout.brandStackGap
-    + layout.productNameFontSize * layout.productNameLineHeight
-    + layout.scanCtaSectionGap
-    + layout.scanCtaFontSize * layout.scanCtaLineHeight
-  );
+  return layout.height;
+}
+
+/** Vertical space above the QR (desk # + divider). */
+export function tableQrHeaderBandHeight(layout = TABLE_QR_CARD_LAYOUT): number {
+  return layout.height - layout.paddingTop - layout.paddingBottom - layout.qrSize;
 }

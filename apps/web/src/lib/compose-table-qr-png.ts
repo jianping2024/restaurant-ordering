@@ -2,6 +2,7 @@ import {
   estimateTableQrCardHeight,
   fitSingleLineFontSize,
   TABLE_QR_CARD_LAYOUT,
+  tableQrHeaderBandHeight,
   type TableQrCardContent,
 } from '@/lib/table-qr-card-layout';
 
@@ -38,36 +39,6 @@ function roundedRectPath(
   ctx.closePath();
 }
 
-function strokeDiamond(
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
-  size: number,
-): void {
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY - size);
-  ctx.lineTo(centerX + size, centerY);
-  ctx.lineTo(centerX, centerY + size);
-  ctx.lineTo(centerX - size, centerY);
-  ctx.closePath();
-  ctx.stroke();
-}
-
-function fillDiamond(
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
-  size: number,
-): void {
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY - size);
-  ctx.lineTo(centerX + size, centerY);
-  ctx.lineTo(centerX, centerY + size);
-  ctx.lineTo(centerX - size, centerY);
-  ctx.closePath();
-  ctx.fill();
-}
-
 function drawDivider(
   ctx: CanvasRenderingContext2D,
   centerX: number,
@@ -88,104 +59,27 @@ function drawDivider(
   ctx.moveTo(centerX + halfGap, centerY);
   ctx.lineTo(centerX + halfWidth, centerY);
   ctx.stroke();
-  strokeDiamond(ctx, centerX, centerY, diamondSize);
-  ctx.restore();
-}
-
-function drawBottomAccent(
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
-  color: string,
-): void {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(centerX - 32, centerY);
-  ctx.lineTo(centerX - 10, centerY);
-  ctx.moveTo(centerX + 10, centerY);
-  ctx.lineTo(centerX + 32, centerY);
+  ctx.moveTo(centerX, centerY - diamondSize);
+  ctx.lineTo(centerX + diamondSize, centerY);
+  ctx.lineTo(centerX, centerY + diamondSize);
+  ctx.lineTo(centerX - diamondSize, centerY);
+  ctx.closePath();
   ctx.stroke();
-  strokeDiamond(ctx, centerX, centerY, 3);
-  ctx.restore();
-}
-
-function drawCornerOrnaments(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  inset: number,
-  size: number,
-  color: string,
-): void {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  const corners: Array<[number, number, number, number]> = [
-    [inset, inset, 1, 1],
-    [width - inset, inset, -1, 1],
-    [inset, height - inset, 1, -1],
-    [width - inset, height - inset, -1, -1],
-  ];
-  for (const [x, y, sx, sy] of corners) {
-    ctx.beginPath();
-    ctx.moveTo(x, y + sy * size);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x + sx * size, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x + sx * 4, y + sy * 4);
-    ctx.lineTo(x + sx * 4, y + sy * (size - 2));
-    ctx.moveTo(x + sx * 4, y + sy * 4);
-    ctx.lineTo(x + sx * (size - 2), y + sy * 4);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawSideOrnaments(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  centerY: number,
-  color: string,
-): void {
-  const layout = TABLE_QR_CARD_LAYOUT;
-  const leftX = layout.sideOrnamentInset;
-  const rightX = width - layout.sideOrnamentInset;
-  const topY = centerY - layout.sideOrnamentHeight / 2;
-  const bottomY = centerY + layout.sideOrnamentHeight / 2;
-
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = 1;
-  for (const x of [leftX, rightX]) {
-    ctx.beginPath();
-    ctx.moveTo(x, topY);
-    ctx.lineTo(x, bottomY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(x, centerY, layout.sideOrnamentDotRadius, 0, Math.PI * 2);
-    ctx.fill();
-    fillDiamond(ctx, x, centerY, layout.sideOrnamentAccentRadius);
-  }
   ctx.restore();
 }
 
 async function ensureTableQrFontsLoaded(): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts?.load) return;
   if (!fontsReady) {
-    fontsReady = Promise.all([
-      document.fonts.load(`600 54px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`),
-      document.fonts.load(`600 22px ${TABLE_QR_CARD_LAYOUT.restaurantNameFontFamily}`),
-      document.fonts.load(`500 16px ${TABLE_QR_CARD_LAYOUT.productNameFontFamily}`),
-      document.fonts.load(`500 20px ${TABLE_QR_CARD_LAYOUT.scanCtaFontFamily}`),
-    ]).then(() => undefined);
+    fontsReady = document.fonts
+      .load(`600 ${TABLE_QR_CARD_LAYOUT.displayNameFontSize}px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`)
+      .then(() => undefined);
   }
   await fontsReady;
 }
 
+/** One sticker face: desk number + QR, sized for 50×55mm aluminum plate. */
 export async function composeTableQrPng(content: TableQrCardContent): Promise<string> {
   const layout = TABLE_QR_CARD_LAYOUT;
   await ensureTableQrFontsLoaded();
@@ -201,30 +95,18 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
 
   ctx.scale(dpr, dpr);
   ctx.fillStyle = layout.backgroundColor;
+  ctx.fillRect(0, 0, layout.width, height);
   roundedRectPath(ctx, 0, 0, layout.width, height, layout.borderRadius);
   ctx.fill();
-  ctx.strokeStyle = layout.borderColor;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  roundedRectPath(ctx, 8, 8, layout.width - 16, height - 16, layout.borderRadius - 2);
-  ctx.strokeStyle = layout.innerBorderColor;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  drawCornerOrnaments(
-    ctx,
-    layout.width,
-    height,
-    layout.cornerOrnamentInset,
-    layout.cornerOrnamentSize,
-    layout.borderColor,
-  );
 
-  const innerWidth = layout.width - layout.padding * 2;
-  let y = layout.padding;
+  const qrY = height - layout.paddingBottom - layout.qrSize;
+  const qrX = (layout.width - layout.qrSize) / 2;
+  const headerBand = tableQrHeaderBandHeight(layout);
+  const innerWidth = layout.width - layout.paddingX * 2;
 
   ctx.fillStyle = layout.displayNameColor;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'middle';
   const displayFontSize = fitSingleLineFontSize(
     content.displayName,
     innerWidth,
@@ -236,73 +118,23 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
     },
   );
   ctx.font = `${layout.displayNameFontWeight} ${displayFontSize}px ${layout.displayNameFontFamily}`;
-  ctx.fillText(content.displayName.trim(), layout.width / 2, y);
-  y += displayFontSize * layout.displayNameLineHeight + layout.topSectionGap * 0.45;
+
+  // Desk # + divider centered in the band above the QR.
+  const dividerReserve = layout.dividerDiamondSize * 2 + 10;
+  const nameCenterY =
+    layout.paddingTop + (headerBand - dividerReserve) / 2;
+  ctx.fillText(content.displayName.trim(), layout.width / 2, nameCenterY);
   drawDivider(
     ctx,
     layout.width / 2,
-    y,
+    layout.paddingTop + headerBand - dividerReserve / 2,
     layout.dividerLineWidth,
     layout.dividerGap,
     layout.dividerDiamondSize,
-    layout.innerBorderColor,
+    layout.dividerColor,
   );
-  y += layout.topSectionGap * 0.55;
 
-  const qrX = (layout.width - layout.qrSize) / 2;
-  ctx.drawImage(qrImage, qrX, y, layout.qrSize, layout.qrSize);
-  drawSideOrnaments(
-    ctx,
-    layout.width,
-    y + layout.sideOrnamentOffsetY,
-    layout.innerBorderColor,
-  );
-  y += layout.qrSize + layout.bottomSectionGap;
-
-  ctx.fillStyle = layout.restaurantNameColor;
-  const restaurantFontSize = fitSingleLineFontSize(
-    content.restaurantName,
-    innerWidth,
-    layout.restaurantNameFontSize,
-    layout.restaurantNameFontSizeMin,
-    (value, fontSize) => {
-      ctx.font = `${layout.restaurantNameFontWeight} ${fontSize}px ${layout.restaurantNameFontFamily}`;
-      return ctx.measureText(value).width;
-    },
-  );
-  ctx.font = `${layout.restaurantNameFontWeight} ${restaurantFontSize}px ${layout.restaurantNameFontFamily}`;
-  ctx.fillText(content.restaurantName.trim(), layout.width / 2, y);
-  y += restaurantFontSize * layout.restaurantNameLineHeight + layout.brandStackGap;
-
-  ctx.fillStyle = layout.productNameColor;
-  const productFontSize = fitSingleLineFontSize(
-    content.productName,
-    innerWidth,
-    layout.productNameFontSize,
-    layout.productNameFontSizeMin,
-    (value, fontSize) => {
-      ctx.font = `${layout.productNameFontWeight} ${fontSize}px ${layout.productNameFontFamily}`;
-      return ctx.measureText(value).width;
-    },
-  );
-  ctx.font = `${layout.productNameFontWeight} ${productFontSize}px ${layout.productNameFontFamily}`;
-  ctx.fillText(content.productName.trim(), layout.width / 2, y);
-  y += productFontSize * layout.productNameLineHeight + layout.scanCtaSectionGap;
-
-  drawBottomAccent(ctx, layout.width / 2, y - 9, layout.innerBorderColor);
-  ctx.fillStyle = layout.scanCtaColor;
-  const scanCtaFontSize = fitSingleLineFontSize(
-    content.scanCta,
-    innerWidth,
-    layout.scanCtaFontSize,
-    layout.scanCtaFontSizeMin,
-    (value, fontSize) => {
-      ctx.font = `${layout.scanCtaFontWeight} ${fontSize}px ${layout.scanCtaFontFamily}`;
-      return ctx.measureText(value).width;
-    },
-  );
-  ctx.font = `${layout.scanCtaFontWeight} ${scanCtaFontSize}px ${layout.scanCtaFontFamily}`;
-  ctx.fillText(content.scanCta.trim(), layout.width / 2, y);
+  ctx.drawImage(qrImage, qrX, qrY, layout.qrSize, layout.qrSize);
 
   return canvas.toDataURL('image/png');
 }

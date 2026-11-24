@@ -4,6 +4,9 @@ import {
   estimateTableQrCardHeight,
   fitSingleLineFontSize,
   TABLE_QR_CARD_LAYOUT,
+  TABLE_QR_PLATE_MM,
+  TABLE_QR_PX_PER_MM,
+  tableQrHeaderBandHeight,
 } from './table-qr-card-layout';
 
 describe('fitSingleLineFontSize', () => {
@@ -20,16 +23,19 @@ describe('fitSingleLineFontSize', () => {
   });
 });
 
-describe('estimateTableQrCardHeight', () => {
-  it('includes restaurant, product, and scan CTA sections', () => {
-    const height = estimateTableQrCardHeight();
-    const minimumExpected =
-      TABLE_QR_CARD_LAYOUT.padding * 2
-      + TABLE_QR_CARD_LAYOUT.qrSize
-      + TABLE_QR_CARD_LAYOUT.restaurantNameFontSize * TABLE_QR_CARD_LAYOUT.restaurantNameLineHeight
-      + TABLE_QR_CARD_LAYOUT.productNameFontSize * TABLE_QR_CARD_LAYOUT.productNameLineHeight
-      + TABLE_QR_CARD_LAYOUT.scanCtaFontSize * TABLE_QR_CARD_LAYOUT.scanCtaLineHeight;
-
-    assert.ok(height > minimumExpected);
+describe('TABLE_QR_CARD_LAYOUT aluminum 50×55', () => {
+  it('locks face to plate aspect and 41mm QR', () => {
+    const { width, height, qrSize, paddingX, paddingTop, paddingBottom } = TABLE_QR_CARD_LAYOUT;
+    assert.equal(width, TABLE_QR_PLATE_MM.widthMm * TABLE_QR_PX_PER_MM);
+    assert.equal(height, TABLE_QR_PLATE_MM.heightMm * TABLE_QR_PX_PER_MM);
+    assert.equal(qrSize, TABLE_QR_PLATE_MM.qrMm * TABLE_QR_PX_PER_MM);
+    assert.equal(paddingX, TABLE_QR_PLATE_MM.sideMarginMm * TABLE_QR_PX_PER_MM);
+    assert.equal(width / TABLE_QR_PLATE_MM.widthMm, height / TABLE_QR_PLATE_MM.heightMm);
+    assert.equal((width - qrSize) / 2, paddingX);
+    assert.equal(
+      height,
+      paddingTop + paddingBottom + qrSize + tableQrHeaderBandHeight(),
+    );
+    assert.equal(estimateTableQrCardHeight(), height);
   });
 });

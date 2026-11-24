@@ -40,7 +40,7 @@ export function TableQrPreviewModal({
         <img
           src={target.stickerSrc}
           alt={`${t.table} ${target.table.display_name}`}
-          className="mx-auto w-full max-w-[400px] rounded-lg border border-brand-border"
+          className="mx-auto w-full max-w-[400px] rounded-lg"
         />
         <PreferBrowserHttpLink
           href={buildTableMenuQrUrl(restaurantSlug, target.table.id, webOrigin)}

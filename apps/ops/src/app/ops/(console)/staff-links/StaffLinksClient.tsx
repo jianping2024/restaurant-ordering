@@ -5,6 +5,7 @@ import {
   linkPlanReady,
   matchRoleByName,
   planStaffMembershipLinks,
+  storeMatchesSearch,
   type LinkOverride,
   type LinkableRole,
 } from '@mesa/shared';
@@ -49,10 +50,6 @@ function errorLabel(code: string | undefined): string {
 }
 
 const NO_CITY = '未知城市';
-
-function fold(text: string): string {
-  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-}
 
 export function StaffLinksClient({ canManage }: { canManage: boolean }) {
   const [stores, setStores] = useState<Store[]>([]);
@@ -144,10 +141,9 @@ export function StaffLinksClient({ canManage }: { canManage: boolean }) {
   );
 
   const filteredByCity = useMemo(() => {
-    const q = fold(query.trim());
     const groups = new Map<string, Store[]>();
     for (const s of stores) {
-      if (q && !fold(`${s.name} ${s.city} ${s.slug}`).includes(q)) continue;
+      if (!storeMatchesSearch(s, query)) continue;
       const city = s.city || NO_CITY;
       groups.set(city, [...(groups.get(city) ?? []), s]);
     }

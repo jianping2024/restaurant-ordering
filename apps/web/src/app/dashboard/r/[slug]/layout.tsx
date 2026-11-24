@@ -10,6 +10,7 @@ import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequest
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
+import { loadStoreSwitchData } from '@/lib/store-switch-server';
 import {
   computePremiumLockedNavIds,
   loadRestaurantProEntitledKeys,
@@ -50,7 +51,10 @@ export default async function DashboardStoreLayout({
   const showSuspensionBanner =
     isRestaurantSuspended(access.restaurant.suspended_at);
 
-  const entitledKeys = await loadRestaurantProEntitledKeys(access.restaurant.id);
+  const [entitledKeys, storeSwitch] = await Promise.all([
+    loadRestaurantProEntitledKeys(access.restaurant.id),
+    loadStoreSwitchData(principalCaps.principal),
+  ]);
   const premiumLockedNavIds = computePremiumLockedNavIds(access.restaurant, entitledKeys);
 
   return (
@@ -71,6 +75,7 @@ export default async function DashboardStoreLayout({
           roleLabel={roleLabel}
           capabilities={toCapabilitiesPayload(caps)}
           premiumLockedNavIds={premiumLockedNavIds}
+          storeSwitch={storeSwitch}
         >
           {showSuspensionBanner ? (
             <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />

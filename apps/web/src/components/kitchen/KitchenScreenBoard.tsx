@@ -113,6 +113,8 @@ type Props = {
   };
   asOwner?: boolean;
   isDemo?: boolean;
+  /** ≥2 enterable stores → «切换店铺» in the account menu. */
+  showSwitchStore?: boolean;
   screen: KitchenScreen;
   stations: PrintStation[];
   initialOrders?: Order[];
@@ -164,6 +166,7 @@ function KitchenScreenBoardInner({
   restaurant,
   asOwner = false,
   isDemo = false,
+  showSwitchStore = false,
   screen,
   stations,
   initialOrders = [],
@@ -431,6 +434,7 @@ function KitchenScreenBoardInner({
       confirmSignOut={confirmBeforeSignOut}
       compact
       allowChangePassword={!isDemo}
+      showSwitchStore={showSwitchStore}
       printAgentDevicesUrl={restaurantApiPath(restaurant.slug, '/print-agent/devices')}
     />
   );

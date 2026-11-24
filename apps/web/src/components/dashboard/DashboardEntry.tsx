@@ -1,12 +1,17 @@
 import { redirect } from 'next/navigation';
 import { RestaurantOnboarding } from '@/components/dashboard/RestaurantOnboarding';
 import { resolveDashboardEntry } from '@/lib/dashboard-entry';
-import { dashboardStoreHref, type DashboardPagePath } from '@/lib/dashboard-store-routes';
+import {
+  STORE_PICKER_PATH,
+  dashboardStoreHref,
+  type DashboardPagePath,
+} from '@/lib/dashboard-store-routes';
 import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
 
 /**
  * Sole store-less dashboard entry: `/dashboard` (PWA start, post-login) and legacy
- * `/dashboard/*` bookmarks → same page of the account's store; else onboarding.
+ * `/dashboard/*` bookmarks → same page of the landing store, or the store picker when
+ * several stores and no usable last store; else onboarding.
  */
 export async function DashboardEntry({
   page,
@@ -18,6 +23,7 @@ export async function DashboardEntry({
   const decision = await resolveDashboardEntry();
   if (decision.kind === 'login') redirect('/auth/login');
   if (decision.kind === 'store') redirect(`${dashboardStoreHref(decision.slug, page)}${search}`);
+  if (decision.kind === 'select') redirect(STORE_PICKER_PATH);
   // On-prem empty host: sole path is /setup claim — not free-name RestaurantOnboarding.
   if (isOnPremInstallHost()) redirect('/setup');
   return (

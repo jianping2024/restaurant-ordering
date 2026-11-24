@@ -15,7 +15,7 @@ export type AuthLoginResponse = {
   ok?: boolean;
   kind?: 'owner' | 'onboarding' | 'staff';
   path?: string;
-  slug?: string;
+  slug?: string | null;
   role?: string;
   error?: string;
   suspension_reason?: string | null;
@@ -47,7 +47,11 @@ export function useAuthLogin(options: Options = {}) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ account: account.trim(), password }),
+        body: JSON.stringify({
+          account: account.trim(),
+          password,
+          ...(options.storeSlug ? { store_slug: options.storeSlug } : {}),
+        }),
       });
 
       const json = (await res.json().catch(() => ({}))) as AuthLoginResponse;

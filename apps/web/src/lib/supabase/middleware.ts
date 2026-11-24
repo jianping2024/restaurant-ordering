@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { dashboardCapabilityMiddlewareRedirectPath } from '@/lib/dashboard-feature-registry';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { DASHBOARD_ENTRY_PATH, parseDashboardStorePath } from '@/lib/dashboard-store-routes';
+import { DASHBOARD_ENTRY_PATH, parseStoreScopedPath } from '@/lib/dashboard-store-routes';
 import {
   loadOwnerRestaurantForUser,
   loadRestaurantRefBySlug,
@@ -13,6 +13,12 @@ import {
   shouldBypassMiddlewareSession,
 } from '@/lib/supabase/middleware-session-policy';
 import { signOutThisDevice } from '@/lib/supabase/sign-out';
+import {
+  LAST_RESTAURANT_COOKIE,
+  LAST_RESTAURANT_COOKIE_OPTIONS,
+  formatLastRestaurantCookie,
+  parseLastRestaurantCookie,
+} from '@/lib/last-restaurant-cookie';
 import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 import { createServerClient } from '@supabase/ssr';
 
@@ -66,9 +72,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Store pages: the store is the URL slug (never user_metadata). Capability gate per store;
-  // unknown slug / no access → store-less entry, which lands on the account's store.
-  const storePath = sessionUser ? parseDashboardStorePath(pathname) : null;
+  // Store-scoped pages: the store is the URL slug (never user_metadata). Dashboard pages get
+  // the capability gate (unknown slug / no access → store-less entry); workbench + kitchen
+  // pages gate themselves. All three record «上次所在店» here — the cookie's sole writer.
+  const storePath = sessionUser ? parseStoreScopedPath(pathname) : null;
   if (sessionUser && storePath) {
     let admin;
     try {
@@ -89,33 +96,50 @@ export async function updateSession(request: NextRequest) {
           }),
         })
       : null;
-    const redirectPath = access
-      ? dashboardCapabilityMiddlewareRedirectPath(
-          access.capabilities,
-          storePath.page,
-          access.restaurant.slug,
-        )
-      : DASHBOARD_ENTRY_PATH;
+    const redirectPath =
+      storePath.dashboardPage === null
+        ? null
+        : access
+          ? dashboardCapabilityMiddlewareRedirectPath(
+              access.capabilities,
+              storePath.dashboardPage,
+              access.restaurant.slug,
+            )
+          : DASHBOARD_ENTRY_PATH;
+    let response = supabaseResponse;
     if (redirectPath) {
       const url = request.nextUrl.clone();
       url.pathname = redirectPath;
-      return NextResponse.redirect(url);
+      response = NextResponse.redirect(url);
     }
+    if (access) {
+      // «上次所在店» (plan §6.3): UX default only, rewritten only when it changes.
+      const value = formatLastRestaurantCookie(sessionUser.id, access.restaurant.id);
+      if (request.cookies.get(LAST_RESTAURANT_COOKIE)?.value !== value) {
+        response.cookies.set(LAST_RESTAURANT_COOKIE, value, LAST_RESTAURANT_COOKIE_OPTIONS);
+      }
+    }
+    return response;
   }
 
   // Logged-in users accessing login pages → redirect to their workspace
   // Aligns with mainstream SaaS behavior (GitHub, Slack, etc.)
   // Reuses resolvePostLoginRedirect to handle must_change_password correctly
-  if (
-    sessionUser &&
-    (pathname === '/auth/login' || pathname.match(/^\/[^/]+\/staff\/login$/))
-  ) {
+  const storeLoginSlug = pathname.match(/^\/([^/]+)\/staff\/login$/)?.[1] ?? null;
+  if (sessionUser && (pathname === '/auth/login' || storeLoginSlug)) {
     try {
       const redirect = await resolvePostLoginRedirect(
         supabase,
         sessionUser.id,
         sessionUser.user_metadata as Record<string, unknown>,
-        { email: sessionUser.email },
+        {
+          email: sessionUser.email,
+          lastRestaurantId: parseLastRestaurantCookie(
+            request.cookies.get(LAST_RESTAURANT_COOKIE)?.value,
+            sessionUser.id,
+          ),
+          preferredSlug: storeLoginSlug ? decodeURIComponent(storeLoginSlug) : null,
+        },
       );
 
       if (redirect.kind === 'staff_error') {

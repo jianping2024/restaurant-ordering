@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   dashboardStoreHref,
   parseDashboardStorePath,
+  parseStoreScopedPath,
   restaurantApiPath,
 } from './dashboard-store-routes';
 
@@ -23,4 +24,22 @@ describe('dashboard-store-routes', () => {
     assert.equal(parseDashboardStorePath('/dashboard/r/'), null);
   });
 
+
+  it('store-scoped pages: dashboard, staff workbench, kitchen (last-store cookie)', () => {
+    assert.deepEqual(parseStoreScopedPath('/dashboard/r/cafe/orders'), {
+      slug: 'cafe',
+      dashboardPage: '/orders',
+    });
+    assert.deepEqual(parseStoreScopedPath('/cafe/kitchen'), { slug: 'cafe', dashboardPage: null });
+    assert.deepEqual(parseStoreScopedPath('/cafe/kitchen/screen-1'), {
+      slug: 'cafe',
+      dashboardPage: null,
+    });
+    assert.deepEqual(parseStoreScopedPath('/cafe/staff/waiter'), { slug: 'cafe', dashboardPage: null });
+    assert.equal(parseStoreScopedPath('/cafe/staff/login'), null);
+    assert.equal(parseStoreScopedPath('/auth/staff/change-password'), null);
+    assert.equal(parseStoreScopedPath('/dashboard/select-store'), null);
+    assert.equal(parseStoreScopedPath('/cafe/menu'), null);
+    assert.equal(parseStoreScopedPath('/api/restaurants/cafe/staff/x'), null);
+  });
 });

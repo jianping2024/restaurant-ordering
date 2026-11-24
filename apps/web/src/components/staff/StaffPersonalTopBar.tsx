@@ -12,6 +12,8 @@ import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 type Props = {
   logoHref: string;
   restaurantName: string;
+  /** Replaces the plain store name in the brand (multi-store switcher). */
+  restaurantNameSlot?: ReactNode;
   navItems: ProductTopNavItem[];
   settingsMenu: ReactNode;
   /** Optional chrome before the account menu (e.g. license expiry). */
@@ -27,6 +29,7 @@ type Props = {
 export function StaffPersonalTopBar({
   logoHref,
   restaurantName,
+  restaurantNameSlot,
   navItems,
   settingsMenu,
   trailingStart,
@@ -47,7 +50,11 @@ export function StaffPersonalTopBar({
     <header className={staffTopBarChrome.headerClassName}>
       <div className={staffTopBarChrome.rowClassName}>
         <div className={staffTopBarChrome.brandClassName}>
-          <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
+          <ProductTopBarBrand
+            href={logoHref}
+            restaurantName={restaurantName}
+            nameSlot={restaurantNameSlot}
+          />
         </div>
 
         <div className={staffTopBarChrome.navClassName}>

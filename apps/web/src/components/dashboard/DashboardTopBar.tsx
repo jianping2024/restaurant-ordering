@@ -14,6 +14,8 @@ import {
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
 import { restaurantApiPath } from '@/lib/dashboard-store-routes';
+import { StoreSwitcher } from '@/components/store-picker/StoreSwitcher';
+import type { StoreSwitchData } from '@/lib/store-list-model';
 import { dashboardShellRoleLabel } from '@/lib/top-bar-role-label';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
@@ -25,6 +27,7 @@ type Props = {
   roleLabel?: string;
   capabilities: CapabilitiesPayload;
   premiumLockedNavIds?: ReadonlySet<string>;
+  storeSwitch?: StoreSwitchData | null;
 };
 
 export function DashboardTopBar({
@@ -33,6 +36,7 @@ export function DashboardTopBar({
   roleLabel,
   capabilities,
   premiumLockedNavIds,
+  storeSwitch,
 }: Props) {
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
@@ -56,6 +60,16 @@ export function DashboardTopBar({
         <StaffPersonalTopBar
           logoHref={logoHref}
           restaurantName={restaurant.name}
+          restaurantNameSlot={
+            storeSwitch ? (
+              <StoreSwitcher
+                restaurantName={restaurant.name}
+                currentRestaurantId={restaurant.id}
+                stores={storeSwitch.stores}
+                userId={storeSwitch.userId}
+              />
+            ) : undefined
+          }
           navItems={navItems}
           navOpen={openPanel === 'nav'}
           onNavOpenChange={(open) => setOpenPanel(open ? 'nav' : 'none')}

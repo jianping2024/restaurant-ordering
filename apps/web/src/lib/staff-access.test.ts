@@ -5,7 +5,6 @@ import {
   resolveOwnerRestaurantFromLoads,
   type OwnerGateRestaurant,
 } from './staff-identity-gate';
-import { can } from './permissions/can';
 import type { StaffMembershipRow } from './permissions/restaurant-access-rules';
 
 const SLUG = 'restaurant-mohnrib5';
@@ -20,7 +19,8 @@ function membership(overrides: Partial<StaffMembershipRow> = {}): StaffMembershi
     role: 'kitchen',
     role_id: ROLE_ID,
     disabled_at: null,
-    restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: null },
+    favorited_at: null,
+    restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: null, name: 'Baiyun', address: null },
     role_row: {
       id: ROLE_ID,
       restaurant_id: RESTAURANT_ID,
@@ -49,18 +49,36 @@ describe('deriveStaffLoginContext', () => {
     });
   });
 
-  it('lands in the enterable store with role label and capabilities', () => {
+  it('single store: lands on its capability landing page', () => {
     const result = deriveStaffLoginContext({
       identity: IDENTITY,
       memberships: [membership({ role: 'custom' })],
     });
-    assert.equal(result.kind, 'staff');
-    if (result.kind === 'staff') {
-      assert.equal(result.context.roleLabel, 'custom');
-      assert.equal(result.context.slug, SLUG);
-      assert.equal(result.context.mustChangePassword, false);
-      assert.equal(can(result.context.capabilities, 'floor.kitchen_board.view'), true);
-    }
+    assert.deepEqual(result, {
+      kind: 'staff',
+      context: {
+        mustChangePassword: false,
+        landing: { kind: 'store', slug: SLUG, path: `/${SLUG}/kitchen`, roleLabel: 'custom' },
+      },
+    });
+  });
+
+  it('two stores: last store when enterable, else the store picker', () => {
+    const second = membership({
+      id: 'staff-2',
+      restaurant_id: 'rest-2',
+      role_id: 'role-2',
+      restaurant: { id: 'rest-2', slug: 'second', suspended_at: null, name: 'Second', address: null },
+      role_row: { ...membership().role_row!, id: 'role-2', restaurant_id: 'rest-2' },
+    });
+    const memberships = [membership(), second];
+    const picker = deriveStaffLoginContext({ identity: IDENTITY, memberships });
+    assert.equal(picker.kind === 'staff' && picker.context.landing.kind, 'select');
+    const last = deriveStaffLoginContext({ identity: IDENTITY, memberships, lastRestaurantId: 'rest-2' });
+    assert.equal(
+      last.kind === 'staff' && last.context.landing.kind === 'store' && last.context.landing.slug,
+      'second',
+    );
   });
 
   it('reads must_change_password from the identity row', () => {
@@ -90,20 +108,14 @@ describe('deriveStaffLoginContext', () => {
     }
   });
 
-  it('can skip suspend check after preflight', () => {
+  it('only suspended stores → restaurant_suspended', () => {
     const suspended = membership({
-      restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: SUSPENDED },
+      restaurant: { id: RESTAURANT_ID, slug: SLUG, suspended_at: SUSPENDED, name: 'Baiyun', address: null },
     });
     assert.deepEqual(
       deriveStaffLoginContext({ identity: IDENTITY, memberships: [suspended] }),
       { kind: 'staff_error', code: 'restaurant_suspended' },
     );
-    const skipped = deriveStaffLoginContext({
-      identity: IDENTITY,
-      memberships: [suspended],
-      options: { skipSuspendCheck: true },
-    });
-    assert.equal(skipped.kind, 'staff');
   });
 });
 

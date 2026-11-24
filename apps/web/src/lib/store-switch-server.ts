@@ -1,8 +1,7 @@
 import 'server-only';
 
 import { listAuthorizedRestaurantsForUser } from '@/lib/permissions/restaurant-access';
-import { restaurantIsEnterable } from '@/lib/permissions/restaurant-access-rules';
-import type { StoreSwitchData } from '@/lib/store-list-model';
+import { accountHasMultiStoreEntry, type StoreSwitchData } from '@/lib/store-list-model';
 
 /**
  * Store switch entry for a store page (plan §8.2, §1): the account's store list when it can
@@ -14,6 +13,6 @@ export async function loadStoreSwitchData(principal: {
 }): Promise<StoreSwitchData | null> {
   if (principal.kind !== 'staff') return null;
   const stores = await listAuthorizedRestaurantsForUser(principal.userId);
-  if (stores.filter(restaurantIsEnterable).length < 2) return null;
+  if (!accountHasMultiStoreEntry(stores)) return null;
   return { stores, userId: principal.userId };
 }

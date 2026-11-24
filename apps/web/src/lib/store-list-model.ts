@@ -4,10 +4,21 @@
  * entries come from `listAuthorizedRestaurantsForUser`.
  */
 import { isRestaurantSuspended, storeMatchesSearch } from '@mesa/shared';
-import type { AuthorizedRestaurant } from '@/lib/permissions/restaurant-access-rules';
+import {
+  restaurantIsEnterable,
+  type AuthorizedRestaurant,
+} from '@/lib/permissions/restaurant-access-rules';
 
 /** Store switch data for a page — present only when the account can enter ≥2 stores. */
 export type StoreSwitchData = { stores: AuthorizedRestaurant[]; userId: string };
+
+/**
+ * Sole multi-store UX gate (plan §8.2, §8.4): store switcher + multi-store overview entries
+ * and page show only when the account can enter ≥2 stores. UX only — never authorization.
+ */
+export function accountHasMultiStoreEntry(stores: readonly AuthorizedRestaurant[]): boolean {
+  return stores.filter(restaurantIsEnterable).length >= 2;
+}
 
 /** Picker switches from cards to the searchable list above this many stores. */
 export const STORE_PICKER_CARD_MAX = 6;

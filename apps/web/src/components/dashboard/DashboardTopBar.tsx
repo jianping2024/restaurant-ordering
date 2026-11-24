@@ -45,6 +45,7 @@ export function DashboardTopBar({
     capabilities,
     restaurantSlug: restaurant.slug,
     premiumLockedNavIds,
+    multiStoreOverview: storeSwitch != null,
   });
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 

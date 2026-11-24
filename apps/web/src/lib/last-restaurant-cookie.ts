@@ -1,7 +1,8 @@
 /**
  * «上次所在店» cookie (multi-store plan §6.3): `userId:restaurantId`, ~90 days, HttpOnly,
  * SameSite=Lax. Only picks the default store after login / at the store-less entry —
- * never part of auth. Edge-safe; sole writer is middleware on store pages.
+ * never part of auth. Edge-safe; sole writer is middleware on store-scoped pages
+ * (`parseStoreScopedPath`: dashboard, staff workbench, kitchen).
  */
 export const LAST_RESTAURANT_COOKIE = 'mesa_last_restaurant_id';
 

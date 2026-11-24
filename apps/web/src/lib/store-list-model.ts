@@ -3,7 +3,7 @@
  * store picker page and the top-bar store switcher. Pure + client-safe; no auth here —
  * entries come from `listAuthorizedRestaurantsForUser`.
  */
-import { isRestaurantSuspended } from '@mesa/shared';
+import { isRestaurantSuspended, storeMatchesSearch } from '@mesa/shared';
 import type { AuthorizedRestaurant } from '@/lib/permissions/restaurant-access-rules';
 
 /** Store switch data for a page — present only when the account can enter ≥2 stores. */
@@ -14,39 +14,8 @@ export const STORE_PICKER_CARD_MAX = 6;
 /** «最近进过» keeps at most this many stores. */
 export const RECENT_STORES_MAX = 5;
 
-const POSTAL_CODE = /\b\d{4}-\d{3}\b/g;
-const COUNTRY_SUFFIX = /^(portugal|pt)$/i;
-
-/**
- * City from a free-text store address: last comma segment that is not the country, with
- * the PT postal code stripped («Rua Augusta 100, 1100-053 Lisboa» → «Lisboa»). Empty when
- * unknown.
- */
-export function restaurantCityFromAddress(address: string | null | undefined): string {
-  if (!address) return '';
-  const segments = address
-    .split(/[,\n]/)
-    .map((s) => s.replace(POSTAL_CODE, '').replace(/\s+/g, ' ').trim())
-    .filter((s) => s && !COUNTRY_SUFFIX.test(s));
-  return segments[segments.length - 1] ?? '';
-}
-
-function fold(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
-}
-
 export function storeDisplayName(store: AuthorizedRestaurant): string {
   return store.name?.trim() || store.slug;
-}
-
-/** Instant filter on store name / city / slug (case- and accent-insensitive). */
-export function storeMatchesQuery(store: AuthorizedRestaurant, query: string): boolean {
-  const q = fold(query.trim());
-  if (!q) return true;
-  return fold(`${storeDisplayName(store)} ${store.city} ${store.slug}`).includes(q);
 }
 
 export function storeIsSuspended(store: AuthorizedRestaurant): boolean {
@@ -77,7 +46,9 @@ export function buildStoreListGroups(
   stores: readonly AuthorizedRestaurant[],
   input: { query: string; recentIds: readonly string[] },
 ): StoreListGroup[] {
-  const matched = stores.filter((s) => storeMatchesQuery(s, input.query));
+  const matched = stores.filter((s) =>
+    storeMatchesSearch({ name: storeDisplayName(s), city: s.city, slug: s.slug }, input.query),
+  );
   if (input.query.trim()) {
     return [{ kind: 'results', items: matched.slice().sort(byCityThenName) }];
   }

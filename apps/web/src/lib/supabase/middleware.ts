@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { dashboardCapabilityMiddlewareRedirectPath } from '@/lib/dashboard-feature-registry';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { DASHBOARD_ENTRY_PATH, parseDashboardStorePath } from '@/lib/dashboard-store-routes';
+import { DASHBOARD_ENTRY_PATH, parseStoreScopedPath } from '@/lib/dashboard-store-routes';
 import {
   loadOwnerRestaurantForUser,
   loadRestaurantRefBySlug,
@@ -72,9 +72,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Store pages: the store is the URL slug (never user_metadata). Capability gate per store;
-  // unknown slug / no access → store-less entry, which lands on the account's store.
-  const storePath = sessionUser ? parseDashboardStorePath(pathname) : null;
+  // Store-scoped pages: the store is the URL slug (never user_metadata). Dashboard pages get
+  // the capability gate (unknown slug / no access → store-less entry); workbench + kitchen
+  // pages gate themselves. All three record «上次所在店» here — the cookie's sole writer.
+  const storePath = sessionUser ? parseStoreScopedPath(pathname) : null;
   if (sessionUser && storePath) {
     let admin;
     try {
@@ -95,13 +96,16 @@ export async function updateSession(request: NextRequest) {
           }),
         })
       : null;
-    const redirectPath = access
-      ? dashboardCapabilityMiddlewareRedirectPath(
-          access.capabilities,
-          storePath.page,
-          access.restaurant.slug,
-        )
-      : DASHBOARD_ENTRY_PATH;
+    const redirectPath =
+      storePath.dashboardPage === null
+        ? null
+        : access
+          ? dashboardCapabilityMiddlewareRedirectPath(
+              access.capabilities,
+              storePath.dashboardPage,
+              access.restaurant.slug,
+            )
+          : DASHBOARD_ENTRY_PATH;
     let response = supabaseResponse;
     if (redirectPath) {
       const url = request.nextUrl.clone();

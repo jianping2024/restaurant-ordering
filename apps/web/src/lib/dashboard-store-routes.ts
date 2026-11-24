@@ -54,6 +54,29 @@ export function parseDashboardStorePath(pathname: string): DashboardStorePathPar
   return { slug, page };
 }
 
+/** First path segments that are app namespaces, never a store slug. */
+const NON_STORE_SEGMENTS = new Set(['api', 'auth', 'dashboard', 'setup', '_next']);
+
+/**
+ * Any store-scoped page (multi-store plan §6.1): dashboard `/dashboard/r/{slug}…` (with its
+ * page), staff workbench `/{slug}/staff…` (not its login) and kitchen `/{slug}/kitchen…`
+ * (`dashboardPage` null). Null for every other path. Middleware's sole store-page parse.
+ */
+export function parseStoreScopedPath(
+  pathname: string,
+): { slug: string; dashboardPage: DashboardPagePath | null } | null {
+  const dashboard = parseDashboardStorePath(pathname);
+  if (dashboard) return { slug: dashboard.slug, dashboardPage: dashboard.page };
+  const match = /^\/([^/]+)\/(staff|kitchen)(?:\/([^/]*))?/.exec(pathname);
+  if (!match || NON_STORE_SEGMENTS.has(match[1])) return null;
+  if (match[2] === 'staff' && match[3] === 'login') return null;
+  try {
+    return { slug: decodeURIComponent(match[1]), dashboardPage: null };
+  } catch {
+    return null;
+  }
+}
+
 /** Store-relative page of a dashboard pathname (null when not a store page). */
 export function dashboardStorePage(pathname: string): DashboardPagePath | null {
   return parseDashboardStorePath(pathname)?.page ?? null;

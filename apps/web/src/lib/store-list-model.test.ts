@@ -4,8 +4,6 @@ import type { AuthorizedRestaurant } from '@/lib/permissions/restaurant-access-r
 import {
   buildStoreListGroups,
   nextRecentStoreIds,
-  restaurantCityFromAddress,
-  storeMatchesQuery,
 } from '@/lib/store-list-model';
 import { formatLastRestaurantCookie, parseLastRestaurantCookie } from '@/lib/last-restaurant-cookie';
 
@@ -23,16 +21,6 @@ function s(id: string, name: string, city: string, over: Partial<AuthorizedResta
     ...over,
   };
 }
-
-describe('restaurantCityFromAddress', () => {
-  it('last segment without postal code / country', () => {
-    assert.equal(restaurantCityFromAddress('Rua Augusta 100, 1100-053 Lisboa'), 'Lisboa');
-    assert.equal(restaurantCityFromAddress('Av. da Boavista 1, Porto, Portugal'), 'Porto');
-    assert.equal(restaurantCityFromAddress('1000-001 Lisboa'), 'Lisboa');
-    assert.equal(restaurantCityFromAddress(null), '');
-    assert.equal(restaurantCityFromAddress('  '), '');
-  });
-});
 
 describe('buildStoreListGroups', () => {
   const stores = [
@@ -57,8 +45,10 @@ describe('buildStoreListGroups', () => {
   it('query: one results group, accent/case-insensitive on name and city', () => {
     const groups = buildStoreListGroups(stores, { query: 'evora', recentIds: [] });
     assert.deepEqual(groups.map((g) => [g.kind, g.items.map((x) => x.id)]), [['results', ['2']]]);
-    assert.ok(storeMatchesQuery(stores[0], 'PORTO'));
-    assert.ok(!storeMatchesQuery(stores[0], 'lisboa'));
+    assert.deepEqual(
+      buildStoreListGroups(stores, { query: 'PORTO', recentIds: [] })[0].items.map((x) => x.id),
+      ['1'],
+    );
   });
 
   it('recent list moves entered store to front, capped at 5', () => {

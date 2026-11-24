@@ -3,7 +3,7 @@
  * (`restaurant-access.ts`; docs/technical/multi-store-access-plan.zh.md §6.2).
  * No I/O here — loaders hand in rows, these decide. Edge-safe (no server-only).
  */
-import { isRestaurantSuspended } from '@mesa/shared';
+import { isRestaurantSuspended, restaurantCityFromAddress } from '@mesa/shared';
 import type { Capabilities } from '@/lib/permissions/can';
 import {
   normalizeStoredPermissions,
@@ -11,7 +11,6 @@ import {
   resolveCapabilitiesFromRolePermissions,
   staffLandingPathFromCapabilities,
 } from '@/lib/permissions/resolve';
-import { restaurantCityFromAddress } from '@/lib/store-list-model';
 import { staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { isRolePresetKey, type RolePresetKey } from '@/lib/permissions/role-templates';
 import type { Principal } from '@/lib/permissions/types';

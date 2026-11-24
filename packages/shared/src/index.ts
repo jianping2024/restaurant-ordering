@@ -253,7 +253,7 @@ export {
   toMenuImagePublicRef,
   type MenuImagePublicRefOptions,
 } from './menu-image-public-ref';
-export { restaurantCityFromAddress } from './restaurant-city';
+export { restaurantCityFromAddress, storeMatchesSearch } from './restaurant-city';
 export {
   linkPlanReady,
   linkStaffMembership,

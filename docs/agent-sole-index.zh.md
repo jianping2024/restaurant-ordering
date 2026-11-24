@@ -524,7 +524,7 @@ sole `KitchenGroupHeader` cluster: 36×36 chevron + `gap-3` + `KitchenGroupSelec
 
 ### 多店选店 / 切店
 
-落地店唯一规则 `pickLandingRestaurant`（店自己的登录页 → 唯一可进店 → `mesa_last_restaurant_id` 上次所在店 → 选店页 `/dashboard/select-store`；登录、`/dashboard` 入口、旧接口别名共用）；员工进暂停店唯一拒绝点 `resolveRestaurantMembershipPrincipal`（管理员仍只读进入）；店铺列表唯一组件 `StoreList` + 模型 `store-list-model`（收藏 → 最近 ≤5 → 全部按城市；选店页 >6 家与顶栏 `StoreSwitcher` 共用，≤6 家为卡片）；last cookie 唯一写入点 middleware 店页；工作台只在 `PersonalSettingsMenu` 加「切换店铺」跳选店页。不要另写第二套店铺列表 / 第一家店兜底。
+落地店唯一规则 `pickLandingRestaurant`（店自己的登录页 → 唯一可进店 → `mesa_last_restaurant_id` 上次所在店 → 选店页 `/dashboard/select-store`；登录、`/dashboard` 入口、旧接口别名共用）；员工进暂停店唯一拒绝点 `resolveRestaurantMembershipPrincipal`（管理员仍只读进入）；店铺列表唯一组件 `StoreList` + 模型 `store-list-model`（城市 / 搜索匹配只用 `@mesa/shared` 的 `restaurantCityFromAddress` / `storeMatchesSearch`，ops 关联页同源；收藏 → 最近 ≤5 → 全部按城市；选店页 >6 家与顶栏 `StoreSwitcher` 共用，≤6 家为卡片）；last cookie 唯一写入点 middleware（`parseStoreScopedPath`：后台 `/dashboard/r/[slug]`、工作台 `/[slug]/staff`、厨房 `/[slug]/kitchen` 三种店作用域网址）；工作台只在 `PersonalSettingsMenu` 加「切换店铺」跳选店页。不要另写第二套店铺列表 / 第一家店兜底。
 
 ## 后台看板 / 列表 / 分析
 

@@ -1,16 +1,21 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { MultiStoreOverviewEntryRow } from '@/components/multi-store-overview/MultiStoreOverviewEntry';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import { StoreList } from '@/components/store-picker/StoreList';
 import { ProductTopBarRestaurantName } from '@/components/ui/ProductTopBarRestaurantName';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { MULTI_STORE_OVERVIEW_PATH } from '@/lib/dashboard-store-routes';
 import { STORE_PICKER_MESSAGES } from '@/lib/i18n/store-picker-messages';
 import type { AuthorizedRestaurant } from '@/lib/permissions/restaurant-access-rules';
 
 /**
  * Top-bar store name as a switcher (plan §8.2) — only mounted when the account can enter
- * ≥2 stores. Opens the sole `StoreList` (search focused, list ≤60vh).
+ * ≥2 stores. Opens the sole `StoreList` (search focused, list ≤60vh) with the multi-store
+ * overview entry fixed below it (hidden on that page). On the overview page there is no
+ * current store (`currentRestaurantId` null).
  */
 export function StoreSwitcher({
   restaurantName,
@@ -19,13 +24,14 @@ export function StoreSwitcher({
   userId,
 }: {
   restaurantName: string;
-  currentRestaurantId: string;
+  currentRestaurantId: string | null;
   stores: readonly AuthorizedRestaurant[];
   userId: string;
 }) {
   const { lang } = useLanguage();
   const t = STORE_PICKER_MESSAGES[lang];
   const [open, setOpen] = useState(false);
+  const onOverview = usePathname() === MULTI_STORE_OVERVIEW_PATH;
   const rootRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -60,6 +66,7 @@ export function StoreSwitcher({
             scrollClassName="max-h-[60vh]"
             onClose={() => setOpen(false)}
           />
+          {onOverview ? null : <MultiStoreOverviewEntryRow onNavigate={() => setOpen(false)} />}
         </div>
       </DashboardTopBarDropdownPanel>
     </div>

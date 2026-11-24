@@ -77,6 +77,14 @@ describe('buildDashboardTopNavItems', () => {
     assert.equal(items[2]?.id, 'checkout');
   });
 
+  it('appends the store-less multi-store overview last only when asked', () => {
+    const capabilities = toCapabilitiesPayload(capabilitiesFromKeys(['dashboard.checkout.view']));
+    const without = buildDashboardTopNavItems({ capabilities, restaurantSlug: 'demo' });
+    assert.equal(without.some((i) => i.id === 'multiStoreOverview'), false);
+    const withEntry = buildDashboardTopNavItems({ capabilities, restaurantSlug: 'demo', multiStoreOverview: true });
+    assert.equal(withEntry.at(-1)?.href, '/dashboard/multi-store');
+  });
+
   it('omits kitchen top-nav entry without board capability', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),

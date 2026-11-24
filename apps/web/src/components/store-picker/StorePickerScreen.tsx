@@ -2,8 +2,8 @@
 
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StoreList, enterStore } from '@/components/store-picker/StoreList';
-import { ProductLogo } from '@/components/ui/ProductLogo';
-import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
+import { MultiStoreOverviewEntryCard } from '@/components/multi-store-overview/MultiStoreOverviewEntry';
+import { StoreLessHeader } from '@/components/store-picker/StoreLessHeader';
 import { STORE_PICKER_MESSAGES } from '@/lib/i18n/store-picker-messages';
 import type { AuthorizedRestaurant } from '@/lib/permissions/restaurant-access-rules';
 import {
@@ -17,7 +17,7 @@ const PILL = 'rounded-full border px-2 py-0.5 text-xs';
 /**
  * Store picker page body (plan §8.1): ≤6 stores as cards, more as the sole searchable
  * `StoreList`. Entering navigates to the store's landing page (middleware records it as
- * the last store).
+ * the last store). With enterable stores (≥2 here) the multi-store overview card sits last.
  */
 export function StorePickerScreen({
   stores,
@@ -35,18 +35,7 @@ export function StorePickerScreen({
 
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text">
-      <header className="sticky top-0 z-10 border-b border-brand-border bg-brand-bg/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between gap-3 px-4">
-          <ProductLogo size="sm" tone="ink" />
-          <button
-            type="button"
-            onClick={() => void dashboardSignOutAndRedirect()}
-            className="min-h-11 rounded-lg px-3 text-sm text-brand-text-muted hover:bg-brand-border/40 hover:text-brand-text"
-          >
-            {t.logout}
-          </button>
-        </div>
-      </header>
+      <StoreLessHeader />
       <main className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-6">
         <div>
           <h1 className="text-2xl font-medium">{t.pageTitle}</h1>
@@ -96,6 +85,7 @@ export function StorePickerScreen({
             <StoreList stores={stores} userId={userId} autoFocus scrollClassName="max-h-[56vh]" />
           </div>
         )}
+        {hasEnterable ? <MultiStoreOverviewEntryCard /> : null}
       </main>
     </div>
   );

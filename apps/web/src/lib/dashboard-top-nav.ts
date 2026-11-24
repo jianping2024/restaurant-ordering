@@ -4,7 +4,11 @@ import {
   buttonPressReliefStrongClass,
 } from '@/components/ui/button-press-relief';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
-import { dashboardStoreHref, dashboardStorePage } from '@/lib/dashboard-store-routes';
+import {
+  dashboardStoreHref,
+  dashboardStorePage,
+  MULTI_STORE_OVERVIEW_PATH,
+} from '@/lib/dashboard-store-routes';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
@@ -192,13 +196,18 @@ export function topNavItemLabel(
   return typeof navT[key] === 'string' ? (navT[key] as string) : item.labelKey;
 }
 
-/** Sole top-nav gate: capabilities (+ optional Pro lock href). Owner `*` and staff Sets share this path. */
+/**
+ * Sole top-nav gate: capabilities (+ optional Pro lock href). Owner `*` and staff Sets share this path.
+ * `multiStoreOverview` (account can enter ≥2 stores, `accountHasMultiStoreEntry`) appends the
+ * store-less multi-store overview last — UX only; the page authorizes per store.
+ */
 export function buildDashboardTopNavItems(input: {
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
   premiumLockedNavIds?: ReadonlySet<string>;
+  multiStoreOverview?: boolean;
 }): ProductTopNavItem[] {
-  const { capabilities: capsPayload, restaurantSlug, premiumLockedNavIds } = input;
+  const { capabilities: capsPayload, restaurantSlug, premiumLockedNavIds, multiStoreOverview } = input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
@@ -236,6 +245,16 @@ export function buildDashboardTopNavItems(input: {
       exact: item.exact,
       matchPrefix: item.matchPage ? dashboardStoreHref(restaurantSlug, item.matchPage) : undefined,
       checkoutBadge: item.checkoutBadge,
+    });
+  }
+
+  if (multiStoreOverview) {
+    items.push({
+      id: 'multiStoreOverview',
+      href: MULTI_STORE_OVERVIEW_PATH,
+      labelKey: 'multiStoreOverview',
+      icon: '▤',
+      exact: true,
     });
   }
 

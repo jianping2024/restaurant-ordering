@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import {
   loadClosedSessionRevenueBundle,
-  loadClosedSessionRevenueBundleRpc,
+  loadClosedSessionRevenueBundlesRpc,
   todayRevenueFromBundle,
 } from '../apps/web/src/lib/analytics/closed-session-revenue.ts';
 import { resolveTodayLisbonWindow } from '../apps/web/src/lib/analytics/date-window.ts';
@@ -37,7 +37,7 @@ const multi = await loadClosedSessionRevenueBundle(admin, id, w.startUtc, w.endE
 const multiMs = Math.round(performance.now() - t0);
 
 const t1 = performance.now();
-const rpc = await loadClosedSessionRevenueBundleRpc(admin, id, w.startUtc, w.endExclusiveUtc);
+const rpc = (await loadClosedSessionRevenueBundlesRpc(admin, [id], w.startUtc, w.endExclusiveUtc)).get(id)!;
 const rpcMs = Math.round(performance.now() - t1);
 
 const a = multi.ok ? todayRevenueFromBundle(multi.bundle, w.today) : null;

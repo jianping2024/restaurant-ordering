@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict og2yiMG4U3CHCAD5YaPaQDpok12r8U9kOdb4fEPahTowQqpWCN5bbaHi9XIXsDP
+\restrict ArHmoQ04fhtfF3BFtfpSmNOP3kh3H5HBWqs257hYAA6KPt3vX6aApFBI0FLOp8J
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.6
@@ -1749,6 +1749,25 @@ BEGIN
     'unpaid_session_ids', v_unpaid
   );
 END;
+$$;
+
+
+--
+-- Name: dashboard_overview_revenue_bundles(uuid[], timestamp with time zone, timestamp with time zone, integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.dashboard_overview_revenue_bundles(p_restaurant_ids uuid[], p_start_utc timestamp with time zone, p_end_exclusive_utc timestamp with time zone, p_max_sessions integer DEFAULT 2000) RETURNS jsonb
+    LANGUAGE sql STABLE
+    SET search_path TO 'public'
+    AS $$
+  SELECT coalesce(
+    jsonb_object_agg(
+      rid::text,
+      public.dashboard_overview_revenue_bundle(rid, p_start_utc, p_end_exclusive_utc, p_max_sessions)
+    ),
+    '{}'::jsonb
+  )
+    FROM (SELECT DISTINCT unnest(coalesce(p_restaurant_ids, '{}'::uuid[])) AS rid) ids;
 $$;
 
 
@@ -11528,7 +11547,7 @@ CREATE POLICY table_sessions_staff_select ON public.table_sessions FOR SELECT TO
 -- PostgreSQL database dump complete
 --
 
-\unrestrict og2yiMG4U3CHCAD5YaPaQDpok12r8U9kOdb4fEPahTowQqpWCN5bbaHi9XIXsDP
+\unrestrict ArHmoQ04fhtfF3BFtfpSmNOP3kh3H5HBWqs257hYAA6KPt3vX6aApFBI0FLOp8J
 
 
 -- Triggers on non-public tables calling public functions (not in --schema=public dump).

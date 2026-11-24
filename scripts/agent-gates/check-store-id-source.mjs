@@ -3,9 +3,11 @@
  * Store-id source check (multi-store plan §6.2) — supplement to the branded type
  * `AuthorizedRestaurantId`, which is the primary (compile-time) enforcement.
  *
- * 1. `mintAuthorizedRestaurantId(` may only appear in its own module and in
+ * 1. `mintAuthorizedRestaurantId(` may only appear in its own module, in
  *    `lib/staff-gate-db.ts` (`resolvePrincipalForRestaurantWith`, the body of
- *    `loadPrincipalForRestaurant`).
+ *    `loadPrincipalForRestaurant`) and in `lib/permissions/restaurant-access.ts`
+ *    (`listAuthorizedRestaurantIdsWithPermission`, the batch entry for the multi-store
+ *    overview — same admission rule, one membership→role join; plan §6.2b).
  * 2. Store-gated routes (any `app/api/restaurants/[slug]/**` route that calls
  *    `requireStoreRestaurantId`):
  *    - the slug-resolved `storeId` may only feed the auth gate / context loaders;
@@ -23,6 +25,7 @@ const webSrc = join(root, 'apps/web/src');
 const MINT_ALLOWED = new Set([
   'apps/web/src/lib/permissions/authorized-restaurant-id.ts',
   'apps/web/src/lib/staff-gate-db.ts',
+  'apps/web/src/lib/permissions/restaurant-access.ts',
 ]);
 const PUBLIC_MINT_ALLOWED = new Set([
   'apps/web/src/lib/permissions/authorized-restaurant-id.ts',

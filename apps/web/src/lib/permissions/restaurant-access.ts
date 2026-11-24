@@ -11,8 +11,15 @@ import {
   loadStaffMembershipsForUser,
   resolvePrincipalForRestaurantWith,
 } from '@/lib/staff-gate-db';
+import { can } from '@/lib/permissions/can';
+import {
+  mintAuthorizedRestaurantId,
+  type AuthorizedRestaurantId,
+} from '@/lib/permissions/authorized-restaurant-id';
+import type { PermissionKey } from '@/lib/permissions/registry';
 import {
   authorizedRestaurantsFromLoads,
+  resolveRestaurantMembershipPrincipal,
   deriveStaffLoginTarget,
   type AuthorizedRestaurant,
   type AuthorizedRestaurantPrincipal,
@@ -74,8 +81,39 @@ export const listAuthorizedRestaurantsForUser = cache(
   async (userId: string): Promise<AuthorizedRestaurant[]> => {
     const owned = await loadOwnedRestaurant(userId);
     if (owned) return authorizedRestaurantsFromLoads({ owned, memberships: [] });
-    const memberships = await loadStaffMembershipsForUser(createAdminClient(), userId);
-    return authorizedRestaurantsFromLoads({ owned: null, memberships });
+    return authorizedRestaurantsFromLoads({ owned: null, memberships: await loadMemberships(userId) });
+  },
+);
+
+/** Request-scoped: every membership row (店籍 + store + role) — one query. */
+const loadMemberships = cache((userId: string) =>
+  loadStaffMembershipsForUser(createAdminClient(), userId),
+);
+
+/**
+ * Batch auth (multi-store plan §6.2b): every store where this account holds `key`, from one
+ * membership → role join — never a principal call per store. Same admission rule as
+ * {@link loadPrincipalForRestaurant} (admin of its store → `*`, suspended store admits the
+ * admin but refuses staff). Besides `resolvePrincipalForRestaurantWith`, the only producer of
+ * `AuthorizedRestaurantId` (allow-listed in `check-store-id-source`). Not cached across requests.
+ */
+export const listAuthorizedRestaurantIdsWithPermission = cache(
+  async (userId: string, key: PermissionKey): Promise<AuthorizedRestaurantId[]> => {
+    const owned = await loadOwnedRestaurant(userId);
+    const memberships = owned ? [] : await loadMemberships(userId);
+    const candidates = owned
+      ? [{ restaurantId: owned.id, membership: null }]
+      : memberships.map((membership) => ({ restaurantId: membership.restaurant_id, membership }));
+    const ids: AuthorizedRestaurantId[] = [];
+    const seen = new Set<string>();
+    for (const { restaurantId, membership } of candidates) {
+      if (seen.has(restaurantId)) continue;
+      const access = resolveRestaurantMembershipPrincipal({ userId, restaurantId, owned, membership });
+      if (!access || !can(access.capabilities, key)) continue;
+      seen.add(restaurantId);
+      ids.push(mintAuthorizedRestaurantId(access.restaurant.id));
+    }
+    return ids;
   },
 );
 

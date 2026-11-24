@@ -44,27 +44,48 @@ type RevenueBundleRpcPayload = {
 };
 
 /**
- * One-RTT revenue raw materials for a Lisbon window (dashboard overview primary).
- * Qualifying / forced-close math stays in todayRevenueFromBundle — not duplicated in SQL.
+ * One-RTT revenue raw materials for a Lisbon window, many stores at once
+ * (dashboard overview: single-store home passes one id, multi-store overview passes all).
+ * RPC `dashboard_overview_revenue_bundles` runs the per-store `dashboard_overview_revenue_bundle`
+ * for each id. Qualifying / forced-close math stays in todayRevenueFromBundle — not in SQL.
+ * Every requested id gets a result (missing payload → `query_failed`).
+ * GET (function is STABLE): the gateway retries an idempotent request when it hits a
+ * keep-alive socket the API server just closed; a POST would surface that as a failure.
  */
-export async function loadClosedSessionRevenueBundleRpc(
+export async function loadClosedSessionRevenueBundlesRpc(
   admin: SupabaseClient,
-  restaurantId: string,
+  restaurantIds: readonly string[],
   startUtc: string,
   endExclusiveUtc: string,
-): Promise<ClosedSessionRevenueLoadResult> {
-  const { data, error } = await admin.rpc('dashboard_overview_revenue_bundle', {
-    p_restaurant_id: restaurantId,
+): Promise<Map<string, ClosedSessionRevenueLoadResult>> {
+  const out = new Map<string, ClosedSessionRevenueLoadResult>();
+  if (restaurantIds.length === 0) return out;
+
+  const { data, error } = await admin.rpc('dashboard_overview_revenue_bundles', {
+    p_restaurant_ids: [...restaurantIds],
     p_start_utc: startUtc,
     p_end_exclusive_utc: endExclusiveUtc,
     p_max_sessions: ANALYTICS_MAX_CLOSED_SESSIONS,
-  });
+  }, { get: true });
 
-  if (error) {
-    return { ok: false, code: 'query_failed', message: error.message };
+  const byId = (data || {}) as Record<string, RevenueBundleRpcPayload | undefined>;
+  for (const id of restaurantIds) {
+    if (error) {
+      out.set(id, { ok: false, code: 'query_failed', message: error.message });
+      continue;
+    }
+    const payload = byId[id];
+    out.set(
+      id,
+      payload ? revenueBundleFromRpcPayload(payload) : { ok: false, code: 'query_failed', message: 'rpc_missing_store' },
+    );
   }
+  return out;
+}
 
-  const payload = (data || {}) as RevenueBundleRpcPayload;
+function revenueBundleFromRpcPayload(
+  payload: RevenueBundleRpcPayload,
+): ClosedSessionRevenueLoadResult {
   if (payload.ok === false) {
     if (payload.code === 'query_limit_exceeded') {
       return { ok: false, code: 'query_limit_exceeded' };

@@ -528,6 +528,10 @@ sole `KitchenGroupHeader` cluster: 36×36 chevron + `gap-3` + `KitchenGroupSelec
 
 ## 后台看板 / 列表 / 分析
 
+### 多店概览与首页同一批量 KPI 实现
+
+首页「已收 / 未收 / 今日桌·人 / 当前用餐桌·人」唯一口径 `loadTodayKpisForRestaurants(admin, restaurantIds[])`（单店首页传 `[id]`，多店概览传全部）；营收原料唯一批量 RPC `dashboard_overview_revenue_bundles`（逐店调单店 `dashboard_overview_revenue_bundle`，SQL 不另写口径；GET 调用，网关可重试）；多店概览唯一 loader `loadMultiStoreOverview`（页面服务端与 `GET /api/multi-store/overview` 共用，KPI 缓存约 30 秒，授权每次重判）；批量授权唯一入口 `listAuthorizedRestaurantIdsWithPermission`（店籍 → 角色一次查出，与 principal 同一准入规则）。改首页数字前后跑 `scripts/verify-multi-store-kpi-parity.mts`（全部门店逐字段）。不要再写单店版 KPI 或逐店调 principal / 逐店串行计算。
+
 ### 自助餐价格规则有效期与审计
 
 sole 结束日：`buffet_price_rules.valid_to` 可空 = 长期（`resolve_buffet_prices`：≥ `valid_from` 且无结束或 ≤ 结束）；新建默认空结束日；禁止再默认「今天→一年后」或假远日。sole 确认行：规则弹窗 `Modal` `footer` + `ModalConfirmActions`（不放可滚正文）。sole 配置审计：`BUFFET_PRICE_RULE` / `BUFFET_CALENDAR` / `BUFFET_FRIDAY_POLICY` → `operation_logs`（页面写入；迁移批量清空结束日不记）。

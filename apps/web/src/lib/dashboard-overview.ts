@@ -4,10 +4,11 @@ import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/
 import {
   fetchItemOrdersBySessionIds,
   groupOrdersBySession,
+  type AnalyticsItemOrder,
 } from '@/lib/analytics/analytics.repository';
 import {
   filterQualifyingClosedSessions,
-  loadClosedSessionRevenueBundleRpc,
+  loadClosedSessionRevenueBundlesRpc,
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { revenueByOrderingChannel } from '@/lib/analytics/revenue-ordering-channel';
@@ -32,7 +33,12 @@ import {
 } from '@/lib/checkout-session-payments';
 import type { BillSplit, Order, OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
-import { loadOrdersForActiveWaiterBoardSessions } from '@/lib/waiter-board-active-orders';
+import {
+  activeSessionOrderScope,
+  activeSessionOrdersOrFilter,
+  BOARD_ORDER_SELECT,
+} from '@/lib/waiter-board-active-orders';
+import { ACTIVE_ORDER_STATUSES, filterOrdersInActiveSessions } from '@/lib/waiter-board-query';
 import type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
 
 export type { TrilingualName };
@@ -321,45 +327,123 @@ export function computeTodayKpis(
 const DINING_REQUESTED_SPLIT_SELECT =
   'id, restaurant_id, order_ids, split_mode, persons, result, total_amount, status, created_at, session_id, table_id, display_name, discount_rate';
 
-async function loadDiningFloorKpis(
+/** PostgREST page size (≤ platform max-rows) and session-id chunk for `.in()` URLs. */
+const BATCH_PAGE_SIZE = 1000;
+const BATCH_SESSION_CHUNK = 100;
+
+/** Read every page of a range-able query (stable `order` required by caller). */
+async function fetchAllPages<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: unknown; error: { message: string } | null }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += BATCH_PAGE_SIZE) {
+    const { data, error } = await page(from, from + BATCH_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    const chunk = (data || []) as T[];
+    rows.push(...chunk);
+    if (chunk.length < BATCH_PAGE_SIZE) return rows;
+  }
+}
+
+function chunked<T>(rows: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < rows.length; i += size) out.push(rows.slice(i, i + size));
+  return out;
+}
+
+type DiningSessionRow = WaiterTableSessionRow & { restaurant_id: string };
+
+type DiningFloorKpis = Pick<
+  DashboardTodayKpis,
+  'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'
+>;
+
+type CollectedPaymentRaw = NonNullable<Parameters<typeof parseSessionCollectedPaymentsWithSession>[0]>[number];
+
+const EMPTY_DINING_FLOOR: DiningFloorKpis = {
+  diningTableCount: 0,
+  diningGuests: { adults: 0, children: 0 },
+  diningUncollectedAmount: 0,
+};
+
+/**
+ * Floor KPIs for many stores: open|billing sessions via one `.in('restaurant_id')`, then
+ * orders / requested splits / ledger per session chunk (restaurant-scoped to the chunk's
+ * stores), grouped back per store into {@link computeDiningFloorKpis}. Orphan orders
+ * (no session) on an active table follow the same rule as the waiter board.
+ */
+async function loadDiningFloorKpisForRestaurants(
   admin: SupabaseClient,
-  restaurantId: AuthorizedRestaurantId,
-): Promise<
-  Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'>
-> {
-  const { data } = await admin
-    .from('table_sessions')
-    .select('id, table_id, opened_at, status')
-    .eq('restaurant_id', restaurantId)
-    .in('status', ['open', 'billing']);
-  const sessionRows = (data || []) as WaiterTableSessionRow[];
-  if (sessionRows.length === 0) {
-    return {
-      diningTableCount: 0,
-      diningGuests: { adults: 0, children: 0 },
-      diningUncollectedAmount: 0,
-    };
+  restaurantIds: readonly AuthorizedRestaurantId[],
+): Promise<Map<string, DiningFloorKpis>> {
+  // Read-failure policy kept from the single-store home: sessions / requested splits / ledger
+  // read errors count as empty; the live-orders read throws.
+  const sessionRows = await fetchAllPages<DiningSessionRow>((from, to) =>
+    admin
+      .from('table_sessions')
+      .select('id, restaurant_id, table_id, opened_at, status')
+      .in('restaurant_id', [...restaurantIds])
+      .in('status', ['open', 'billing'])
+      .order('restaurant_id', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, to),
+  ).catch(() => [] as DiningSessionRow[]);
+
+  const chunks = chunked(sessionRows, BATCH_SESSION_CHUNK);
+  const perChunk = await Promise.all(
+    chunks.map(async (chunk) => {
+      const storeIds = Array.from(new Set(chunk.map((row) => row.restaurant_id)));
+      const sessionIds = chunk.map((row) => row.id);
+      const scope = activeSessionOrderScope(chunk);
+      const [orders, splits, payments] = await Promise.all([
+        scope
+          ? fetchAllPages<Order>((from, to) =>
+              admin
+                .from('orders')
+                .select(BOARD_ORDER_SELECT)
+                .in('restaurant_id', storeIds)
+                .in('status', [...ACTIVE_ORDER_STATUSES])
+                .or(activeSessionOrdersOrFilter(scope))
+                .order('id', { ascending: true })
+                .range(from, to),
+            )
+          : Promise.resolve([] as Order[]),
+        fetchAllPages<BillSplit>((from, to) =>
+          admin
+            .from('bill_splits')
+            .select(DINING_REQUESTED_SPLIT_SELECT)
+            .in('restaurant_id', storeIds)
+            .eq('status', 'requested')
+            .in('session_id', sessionIds)
+            .order('id', { ascending: true })
+            .range(from, to),
+        ).catch(() => [] as BillSplit[]),
+        fetchAllPages<CollectedPaymentRaw>((from, to) =>
+          admin
+            .from('session_collected_payments')
+            .select(SESSION_COLLECTED_PAYMENT_SELECT)
+            .in('restaurant_id', storeIds)
+            .in('session_id', sessionIds)
+            .order('id', { ascending: true })
+            .range(from, to),
+        ).catch(() => [] as CollectedPaymentRaw[]),
+      ]);
+      return { orders, splits, payments };
+    }),
+  );
+
+  const ordersById = new Map<string, Order>();
+  const splits: BillSplit[] = [];
+  const payments: CollectedPaymentRaw[] = [];
+  for (const part of perChunk) {
+    // An orphan order can match two chunks when one table has two live sessions.
+    for (const order of part.orders) ordersById.set(order.id, order);
+    splits.push(...part.splits);
+    payments.push(...part.payments);
   }
 
-  const sessionIds = sessionRows.map((row) => row.id);
-  const [orders, splitsResult, paymentsResult] = await Promise.all([
-    loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows),
-    admin
-      .from('bill_splits')
-      .select(DINING_REQUESTED_SPLIT_SELECT)
-      .eq('restaurant_id', restaurantId)
-      .eq('status', 'requested')
-      .in('session_id', sessionIds),
-    admin
-      .from('session_collected_payments')
-      .select(SESSION_COLLECTED_PAYMENT_SELECT)
-      .eq('restaurant_id', restaurantId)
-      .in('session_id', sessionIds)
-      .order('created_at', { ascending: true }),
-  ]);
-
   const billSplitBySessionId = new Map<string, BillSplit>();
-  for (const row of (splitsResult.data || []) as BillSplit[]) {
+  for (const row of splits) {
     if (!row.session_id) continue;
     // One requested split per session in practice; keep latest if duplicates.
     const prev = billSplitBySessionId.get(row.session_id);
@@ -367,15 +451,137 @@ async function loadDiningFloorKpis(
       billSplitBySessionId.set(row.session_id, row);
     }
   }
-
   const collectedBySessionId = groupCollectedPaymentsBySession(
-    parseSessionCollectedPaymentsWithSession(paymentsResult.data),
+    // Same order as the single-store ledger read (created_at ascending).
+    parseSessionCollectedPaymentsWithSession(payments).sort((a, b) =>
+      a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0,
+    ),
   );
 
-  return computeDiningFloorKpis(sessionRows, orders, {
-    billSplitBySessionId,
-    collectedBySessionId,
-  });
+  const sessionsByStore = new Map<string, DiningSessionRow[]>();
+  for (const row of sessionRows) {
+    const list = sessionsByStore.get(row.restaurant_id);
+    if (list) list.push(row);
+    else sessionsByStore.set(row.restaurant_id, [row]);
+  }
+  const ordersByStore = new Map<string, Order[]>();
+  const liveOrders = Array.from(ordersById.values()).sort((a, b) =>
+    a.updated_at < b.updated_at ? 1 : a.updated_at > b.updated_at ? -1 : 0,
+  );
+  for (const order of liveOrders) {
+    const list = ordersByStore.get(order.restaurant_id);
+    if (list) list.push(order);
+    else ordersByStore.set(order.restaurant_id, [order]);
+  }
+
+  const out = new Map<string, DiningFloorKpis>();
+  for (const restaurantId of restaurantIds) {
+    const storeSessions = sessionsByStore.get(restaurantId) ?? [];
+    const storeOrders = filterOrdersInActiveSessions(
+      ordersByStore.get(restaurantId) ?? [],
+      storeSessions,
+    );
+    out.set(
+      restaurantId,
+      computeDiningFloorKpis(storeSessions, storeOrders, {
+        billSplitBySessionId,
+        collectedBySessionId,
+      }),
+    );
+  }
+  return out;
+}
+
+type TodayRevenueKpis = {
+  todayRevenue: number;
+  revenueSessionCount: number;
+  todayGuests: BuffetGuestHeadcount;
+  revenueByChannel: { dine_in: number; takeaway: number } | null;
+};
+
+/** Revenue KPIs for many stores: one bundles RPC + item orders for stores with closed sessions. */
+async function loadTodayRevenueKpisForRestaurants(
+  admin: SupabaseClient,
+  restaurantIds: readonly AuthorizedRestaurantId[],
+  todayWindow: ReturnType<typeof resolveTodayLisbonWindow>,
+  takeawayEnabledIds: ReadonlySet<string>,
+): Promise<Map<string, TodayRevenueKpis | null>> {
+  const bundles = await loadClosedSessionRevenueBundlesRpc(
+    admin,
+    restaurantIds,
+    todayWindow.startUtc,
+    todayWindow.endExclusiveUtc,
+  );
+  const entries = await Promise.all(
+    restaurantIds.map(async (restaurantId): Promise<[string, TodayRevenueKpis | null]> => {
+      const result = bundles.get(restaurantId);
+      if (!result?.ok) return [restaurantId, null];
+      const { bundle } = result;
+      const sessionIds = bundle.sessions.map((session) => session.id);
+      let itemOrdersBySession: Map<string, AnalyticsItemOrder[]> | undefined;
+      if (sessionIds.length > 0) {
+        const itemOrdersResult = await fetchItemOrdersBySessionIds(admin, restaurantId, sessionIds);
+        if (!itemOrdersResult.ok) return [restaurantId, null];
+        itemOrdersBySession = groupOrdersBySession(itemOrdersResult.rows);
+      }
+      const base = todayRevenueFromBundle(bundle, todayWindow.today, itemOrdersBySession);
+      const revenueByChannel = takeawayEnabledIds.has(restaurantId)
+        ? (() => {
+            const qualifying = filterQualifyingClosedSessions(
+              bundle.sessions,
+              bundle.ordersBySession,
+              bundle.splitsBySession,
+            );
+            const split = revenueByOrderingChannel(bundle, qualifying, {
+              dateKey: todayWindow.today,
+            });
+            return { dine_in: split.dine_in, takeaway: split.takeaway };
+          })()
+        : null;
+      return [restaurantId, { ...base, revenueByChannel }];
+    }),
+  );
+  return new Map(entries);
+}
+
+/**
+ * Sole today-KPI 口径 (home 「已收 / 未收 / 今日桌·人 / 当前用餐桌·人」) for one or many
+ * stores: single-store home passes `[restaurantId]`, multi-store overview passes all.
+ * Every input id gets a row.
+ */
+export async function loadTodayKpisForRestaurants(
+  admin: SupabaseClient,
+  restaurantIds: readonly AuthorizedRestaurantId[],
+  now = new Date(),
+): Promise<{ todayDateKey: string; kpisByRestaurantId: Map<AuthorizedRestaurantId, DashboardTodayKpis> }> {
+  const todayWindow = resolveTodayLisbonWindow(now);
+  const ids = Array.from(new Set(restaurantIds));
+  const kpisByRestaurantId = new Map<AuthorizedRestaurantId, DashboardTodayKpis>();
+  if (ids.length === 0) return { todayDateKey: todayWindow.today, kpisByRestaurantId };
+
+  const [flagsResult, diningByStore] = await Promise.all([
+    admin.from('restaurants').select('id, feature_flags').in('id', ids),
+    loadDiningFloorKpisForRestaurants(admin, ids),
+  ]);
+  const takeawayEnabledIds = new Set(
+    ((flagsResult.data || []) as Array<{ id: string; feature_flags: unknown }>)
+      .filter((row) => isRestaurantFeatureEnabled(row.feature_flags, 'takeaway_ordering'))
+      .map((row) => row.id),
+  );
+  const revenueByStore = await loadTodayRevenueKpisForRestaurants(
+    admin,
+    ids,
+    todayWindow,
+    takeawayEnabledIds,
+  );
+
+  for (const id of ids) {
+    kpisByRestaurantId.set(
+      id,
+      computeTodayKpis(revenueByStore.get(id) ?? null, diningByStore.get(id) ?? EMPTY_DINING_FLOOR),
+    );
+  }
+  return { todayDateKey: todayWindow.today, kpisByRestaurantId };
 }
 
 export function buildTodayTopSellingItems(
@@ -482,77 +688,19 @@ export function pendingActionsTotal(actions: DashboardPendingActions): number {
   );
 }
 
-async function loadTodayRevenueKpis(
-  admin: SupabaseClient,
-  restaurantId: AuthorizedRestaurantId,
-  startUtc: string,
-  endExclusiveUtc: string,
-  todayDateKey: string,
-  takeawayOrderingEnabled: boolean,
-): Promise<{
-  todayRevenue: number;
-  revenueSessionCount: number;
-  todayGuests: BuffetGuestHeadcount;
-  revenueByChannel: { dine_in: number; takeaway: number } | null;
-} | null> {
-  const revenueBundleResult = await loadClosedSessionRevenueBundleRpc(
-    admin,
-    restaurantId,
-    startUtc,
-    endExclusiveUtc,
-  );
-  if (!revenueBundleResult.ok) return null;
-
-  const { bundle } = revenueBundleResult;
-  const sessionIds = bundle.sessions.map((session) => session.id);
-  const base =
-    sessionIds.length === 0
-      ? todayRevenueFromBundle(bundle, todayDateKey)
-      : await (async () => {
-          const itemOrdersResult = await fetchItemOrdersBySessionIds(
-            admin,
-            restaurantId,
-            sessionIds,
-          );
-          if (!itemOrdersResult.ok) return null;
-          return todayRevenueFromBundle(
-            bundle,
-            todayDateKey,
-            groupOrdersBySession(itemOrdersResult.rows),
-          );
-        })();
-  if (!base) return null;
-
-  const revenueByChannel = takeawayOrderingEnabled
-    ? (() => {
-        const qualifying = filterQualifyingClosedSessions(
-          bundle.sessions,
-          bundle.ordersBySession,
-          bundle.splitsBySession,
-        );
-        const split = revenueByOrderingChannel(bundle, qualifying, { dateKey: todayDateKey });
-        return { dine_in: split.dine_in, takeaway: split.takeaway };
-      })()
-    : null;
-
-  return { ...base, revenueByChannel };
-}
-
 export async function loadDashboardOverviewPrimary(
   admin: SupabaseClient,
   restaurantId: AuthorizedRestaurantId,
   now = new Date(),
   options?: { includePendingAbnormal?: boolean },
 ): Promise<DashboardOverviewPrimaryView> {
-  const todayWindow = resolveTodayLisbonWindow(now);
   const includePendingAbnormal = options?.includePendingAbnormal === true;
 
   const [
     pendingCheckoutCount,
     pendingAbnormalCount,
     { count: pendingPrintCount },
-    flagsRow,
-    diningFloor,
+    { todayDateKey, kpisByRestaurantId },
   ] = await Promise.all([
     countPendingCheckoutRequests(admin, restaurantId),
     includePendingAbnormal
@@ -569,31 +717,19 @@ export async function loadDashboardOverviewPrimary(
       .eq('restaurant_id', restaurantId)
       .eq('status', 'pending')
       .gte('created_at', printJobMaxAgeCutoffIso(now)),
-    admin.from('restaurants').select('feature_flags').eq('id', restaurantId).maybeSingle(),
-    loadDiningFloorKpis(admin, restaurantId),
+    loadTodayKpisForRestaurants(admin, [restaurantId], now),
   ]);
-
-  const takeawayOrderingEnabled = isRestaurantFeatureEnabled(
-    flagsRow.data?.feature_flags,
-    'takeaway_ordering',
-  );
-  const todayRevenue = await loadTodayRevenueKpis(
-    admin,
-    restaurantId,
-    todayWindow.startUtc,
-    todayWindow.endExclusiveUtc,
-    todayWindow.today,
-    takeawayOrderingEnabled,
-  );
+  const todayKpis = kpisByRestaurantId.get(restaurantId);
+  if (!todayKpis) throw new Error('today_kpis_missing');
 
   return {
-    todayKpis: computeTodayKpis(todayRevenue, diningFloor),
+    todayKpis,
     pendingActions: {
       pendingCheckout: pendingCheckoutCount,
       pendingAbnormal: pendingAbnormalCount,
       pendingPrint: pendingPrintCount ?? 0,
     },
-    todayDateKey: todayWindow.today,
+    todayDateKey,
   };
 }
 

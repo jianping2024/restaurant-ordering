@@ -144,17 +144,9 @@ export function TablesTabPanel({
         slug: restaurant.slug,
         webOrigin,
         rows,
-        restaurantName: restaurant.name,
-        uiLocale: lang,
         resolveDisplayName: tableLabelForInput,
       }),
-    [
-      lang,
-      restaurant.name,
-      restaurant.slug,
-      tableLabelForInput,
-      webOrigin,
-    ],
+    [restaurant.slug, tableLabelForInput, webOrigin],
   );
 
   useEffect(() => {

@@ -30,7 +30,7 @@ test('getPrintAgentVersion returns env pin when set', () => {
   }
 });
 
-test('GitHub assets are Farvoo Fiscal Agent amd64 only', () => {
+test('GitHub assets are OULIN Fiscal Agent amd64 only', () => {
   assert.equal(PRINT_AGENT_GITHUB_ASSETS.setupAmd64, 'FarvooFiscalAgent-Setup-amd64.exe');
   assert.equal(PRINT_AGENT_GITHUB_ASSETS.portableAmd64, 'FarvooFiscalAgent-windows-amd64.zip');
   assert.equal('setupArm64' in PRINT_AGENT_GITHUB_ASSETS, false);

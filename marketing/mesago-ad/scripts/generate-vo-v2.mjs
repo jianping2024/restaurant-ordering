@@ -15,10 +15,10 @@ mkdirSync(outDir, { recursive: true });
 
 const VOICE = 'zh-CN-YunyangNeural';
 
-/** One line per scene VO — sell FARVOO for large buffet (经济·安全·稳定·便捷). */
+/** One line per scene VO — sell OULIN for large buffet (经济·安全·稳定·便捷). */
 const tracks = [
   { file: 'v2-01.mp3', text: '大型自助，平板太贵。一块平板就要四百欧，一百张桌就是四万欧起。' },
-  { file: 'v2-02.mp3', text: 'FARVOO 让客人手机扫码点，不用买一整面平板墙，省下来的钱更实在。' },
+  { file: 'v2-02.mp3', text: 'OULIN 让客人手机扫码点，不用买一整面平板墙，省下来的钱更实在。' },
   { file: 'v2-03.mp3', text: '三语菜单，点一下就能下单，酒水订单直达吧台，不用服务员来回跑。' },
   { file: 'v2-04.mp3', text: '系统装在自己店里，数据在本地，外网断了，店照样营业。' },
   { file: 'v2-05.mp3', text: '服务员开台确认人数，开台后二维码才生效，带走也点不了。' },

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import { ProductTopBarRestaurantName } from '@/components/ui/ProductTopBarRestaurantName';
 
-/** Logo + restaurant name — FARVOO ink wordmark + fitted store name (yields width). */
+/** Logo + restaurant name — OULIN ink wordmark + fitted store name (yields width). */
 export function ProductTopBarBrand({
   href,
   restaurantName,

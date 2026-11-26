@@ -53,7 +53,7 @@ export function LandingHeroStage() {
       <div className="absolute right-[-6px] top-[62px] z-[1] w-[92%] rounded-2xl rounded-b-md bg-[#0f161b] p-[9px] pb-3 shadow-[0_2px_6px_rgba(22,34,43,0.05),0_30px_60px_-20px_rgba(22,34,43,0.28)] after:absolute after:-bottom-[11px] after:-left-[5%] after:-right-[5%] after:h-[11px] after:rounded-b-[14px] after:bg-gradient-to-b after:from-[#d8d2c6] after:to-[#aaa294] after:content-['']">
         <div className="grid min-h-[330px] grid-cols-[62px_1fr] overflow-hidden rounded-lg bg-brand-bg sm:grid-cols-[96px_1fr]">
           <div className="flex flex-col gap-1 bg-[#1f3e52] p-2 text-[9px] text-[#c4d0d8] sm:p-[14px_9px] sm:text-[10.5px]">
-            <b className="mb-2 px-1 text-[11px] tracking-[0.14em] text-white">FARVOO</b>
+            <b className="mb-2 px-1 text-[11px] tracking-[0.14em] text-white">OULIN</b>
             {a.nav.map((label, i) => (
               <span
                 key={label}

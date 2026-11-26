@@ -10,7 +10,7 @@ const SIZE_CLASS = {
 const TONE_CLASS = {
   /** Marketing / auth / landing accent. */
   gold: 'text-brand-gold',
-  /** Staff chrome wordmark — FARVOO floor mockup (azulejo ink). */
+  /** Staff chrome wordmark — OULIN floor mockup (azulejo ink). */
   ink: 'font-semibold text-brand-ink',
 } as const;
 

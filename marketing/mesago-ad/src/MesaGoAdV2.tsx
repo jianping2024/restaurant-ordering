@@ -16,7 +16,7 @@ import { assets } from "./components/V2Visuals";
 import { AdProps, FPS, defaultAdProps } from "./theme";
 
 /**
- * FARVOO ad v4 — 经济·安全·稳定·便捷 · 全流程点击 · 无店名
+ * OULIN ad v4 — 经济·安全·稳定·便捷 · 全流程点击 · 无店名
  *
  * S1  0–6    经济 €400（店面 2.jpg）
  * S2  6–15   经济 €40k（航拍 3.jpg · 100 桌）

@@ -13,7 +13,7 @@
 /**
  * Sole staff content column (floor 6-col dense: `max-w-[120rem]` ≈ 1920).
  * Used by DashboardShell main inner + staff top-bar row — one left edge for
- * FARVOO / KPI / search. Do not redeclare max-w or a second X-pad on
+ * OULIN / KPI / search. Do not redeclare max-w or a second X-pad on
  * dashboard feature pages or on the top-bar row.
  */
 export const STAFF_SHELL_CONTENT_CLASS =

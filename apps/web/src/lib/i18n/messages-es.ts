@@ -181,7 +181,7 @@ export const MESSAGES_ES = {
   },
   "authLogin": {
     "title": "Bienvenido de nuevo",
-    "subtitle": "Accede al centro de gestión FARVOO",
+    "subtitle": "Accede al centro de gestión OULIN",
     "account": "Cuenta",
     "accountPlaceholder": "Correo o nombre de usuario",
     "clearAccount": "Borrar cuenta",
@@ -200,7 +200,7 @@ export const MESSAGES_ES = {
     "securityNote": "El acceso está protegido con cifrado HTTPS",
     "staffSecurityNote": "Solo para personal autorizado de este local",
     "hero": {
-      "eyebrow": "FARVOO RESTAURANT OS",
+      "eyebrow": "OULIN RESTAURANT OS",
       "headline": "Haz más eficiente la operación del restaurante",
       "body": "Pedidos, operación y servicio — un solo back office."
     },
@@ -484,7 +484,7 @@ export const MESSAGES_ES = {
     "downloadVersionHint": "Descarga la versión recomendada. Tras instalarla, consulta la versión en uso en la lista de PC de TPV emparejados de arriba.",
     "downloadReleasePending": "La v{version} se está preparando y aún no está disponible. Usa la versión publicada de abajo o vuelve más tarde.",
     "downloadSubtitle": "En el paso de tareas opcionales del instalador puedes añadir un acceso directo en el escritorio o iniciarlo al arrancar Windows (ambas opciones desmarcadas por defecto). El zip portable no incluye ninguna. Haz doble clic en el agente y completa el emparejamiento en el navegador.",
-    "downloadUpgradeSteps": "Para actualizar: sal desde el menú de la bandeja → ejecuta el nuevo instalador de abajo → se conserva la configuración. Los dispositivos emparejados comparan con la versión recomendada (Farvoo Fiscal Agent).",
+    "downloadUpgradeSteps": "Para actualizar: sal desde el menú de la bandeja → ejecuta el nuevo instalador de abajo → se conserva la configuración. Los dispositivos emparejados comparan con la versión recomendada (OULIN Fiscal Agent).",
     "downloadSetupAmd64": "Instalador (64 bits, recomendado)",
     "downloadZipAmd64": "Zip portable (64 bits)",
     "downloadAllReleases": "Todas las versiones",

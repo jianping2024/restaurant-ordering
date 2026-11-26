@@ -1,5 +1,5 @@
 /** User-facing product name (web, ops console, print-agent UI). */
-export const PRODUCT_NAME = 'FARVOO';
+export const PRODUCT_NAME = 'OULIN';
 
 export const OPS_CONSOLE_NAME = `${PRODUCT_NAME} Ops`;
 

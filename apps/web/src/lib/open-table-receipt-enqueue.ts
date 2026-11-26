@@ -43,7 +43,7 @@ async function findOpenTableReceiptJobId(
 /**
  * Sole enqueue for cold-open table slip — gated by open_table_receipt_print.
  * Headcount notice only (adult/child); no portion qty, no amount due.
- * Paper is rendered by Farvoo Fiscal Agent (`farvoo-fatura`), not this repo.
+ * Paper is rendered by OULIN Fiscal Agent (`farvoo-fatura`), not this repo.
  */
 export async function enqueueOpenTableReceiptPrint(params: {
   admin: SupabaseClient;

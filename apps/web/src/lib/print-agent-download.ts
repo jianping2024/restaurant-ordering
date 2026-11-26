@@ -1,6 +1,6 @@
 /**
  * Store cashier agent download + recommended version.
- * Sole product line: Farvoo Fiscal Agent (farvoo-fatura `fiscal-agent-v*`).
+ * Sole product line: OULIN Fiscal Agent (farvoo-fatura `fiscal-agent-v*`).
  * Legacy Mesa `print-agent-v*` / `apps/print-agent/VERSION` is not used here.
  */
 

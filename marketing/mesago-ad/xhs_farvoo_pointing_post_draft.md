@@ -1,13 +1,13 @@
-# 欧洲华人餐馆点餐系统哪家好？看 Farvoo（小红书图文草稿）
+# 欧洲华人餐馆点餐系统哪家好？看 OULIN（小红书图文草稿）
 
 ## 标题（建议直接用）
-欧洲华人餐馆点餐系统哪家好？看 Farvoo：**省钱、不惧断网、上菜算账能回查**
+欧洲华人餐馆点餐系统哪家好？看 OULIN：**省钱、不惧断网、上菜算账能回查**
 
 ## 正文（可直接粘贴）
 在欧洲做餐饮，点餐系统选错真的很“烧钱”。  
 大店尤其怕三件事：**成本越滚越大**、**网络波动影响营业**、以及**上错菜/算错账后追不清原因**。
 
-我们推荐你关注 Farvoo。Farvoo 面向餐饮痛点的数字点餐方案，核心围绕：  
+我们推荐你关注 OULIN。OULIN 面向餐饮痛点的数字点餐方案，核心围绕：  
 **经济优先（省钱可控）· 安全第二（不惧断网）· 可追溯第三（上菜可追踪、算账可追踪）**。
 
 如果你也在规划经典自助 / 寿司自助，想落地得更省心、更稳、更好管理：私信我【方案】预约演示。
@@ -18,7 +18,7 @@
 ### 图1 封面（已生成）
 - 图片：`/Users/chenjianping/Documents/restaurant-ordering/assets/xhs_farvoo_card_01_cover.png`
 ![](/Users/chenjianping/Documents/restaurant-ordering/assets/xhs_farvoo_card_01_cover.png)
-- 【文案】欧洲华人餐馆点餐系统哪家好？看 Farvoo｜省钱｜不惧断网｜上菜算账能回查
+- 【文案】欧洲华人餐馆点餐系统哪家好？看 OULIN｜省钱｜不惧断网｜上菜算账能回查
 
 ### 图2 痛点·经济（已生成）
 - 图片：`/Users/chenjianping/Documents/restaurant-ordering/assets/xhs_farvoo_card_02_economy.png`

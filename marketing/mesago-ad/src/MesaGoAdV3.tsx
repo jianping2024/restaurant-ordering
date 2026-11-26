@@ -16,7 +16,7 @@ import { v3Assets } from "./components/V3Visuals";
 import { AdProps, FPS, defaultAdProps } from "./theme";
 
 /**
- * FARVOO buffet promo v3 — ~77s · 9:16 · 左右分屏对比
+ * OULIN buffet promo v3 — ~77s · 9:16 · 左右分屏对比
  *
  * S1  0–8    开店成本 €40k
  * S2  8–15   断网仍可营业

@@ -69,7 +69,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
       { title: '葡 · 英 · 中', desc: '菜单一键切换' },
     ],
     pain: {
-      kicker: '为什么选择 FARVOO',
+      kicker: '为什么选择 OULIN',
       title: '堂食点餐系统，\n最容易踩的六个坑',
       subtitle: '设备成本、营业连续性、责任追溯与数据安全，再加上难用和不稳——我们把餐厅真正踩过的坑，一次说清、一次解决。',
       items: [
@@ -136,7 +136,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     team: {
       kicker: '创始团队',
       title: '懂餐厅的人，\n加上能把系统做稳的人',
-      subtitle: 'FARVOO 由餐饮实战经验与资深软件工程能力共同打造，把效率、稳定性与服务体验真正落地。',
+      subtitle: 'OULIN 由餐饮实战经验与资深软件工程能力共同打造，把效率、稳定性与服务体验真正落地。',
       founders: [
         {
           name: '李先生',
@@ -149,14 +149,14 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           points: ['专注系统架构、稳定性与数据安全', '擅长企业级软件与复杂业务流程设计', '让系统在真实门店环境中长期稳定运行'],
         },
       ],
-      formulaTitle: 'FARVOO = 餐饮经验 × 稳定安全工程',
+      formulaTitle: 'OULIN = 餐饮经验 × 稳定安全工程',
       formulaDesc: '懂餐厅的人定义问题，懂技术的人把它在真实门店里做稳。',
     },
     caseStudy: {
       kicker: '客户案例',
       title: '稳定运行半年，0 故障',
       placeLine: 'Torres Vedras · 中餐 + 寿司自助',
-      desc: '自助餐、寿司与 Grill & Marisco 同店经营，开台、点餐、出票与结账由 FARVOO 一套系统承接。',
+      desc: '自助餐、寿司与 Grill & Marisco 同店经营，开台、点餐、出票与结账由 OULIN 一套系统承接。',
       results: [
         { title: '6 个月', desc: '稳定运行，0 故障' },
         { title: '省人工', desc: '点餐、传菜少跑腿' },
@@ -260,7 +260,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
       { title: 'PT · EN · 中文', desc: 'Menu in one tap' },
     ],
     pain: {
-      kicker: 'Why FARVOO',
+      kicker: 'Why OULIN',
       title: 'Six traps of dine-in ordering systems',
       subtitle: 'Hardware cost, uptime, accountability and data safety — plus clunky or fragile software. We name the traps restaurants actually hit, and fix them.',
       items: [
@@ -327,7 +327,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     team: {
       kicker: 'Founding team',
       title: 'Someone who knows restaurants, and someone who makes systems solid',
-      subtitle: 'FARVOO combines hands-on restaurant experience with senior software engineering — efficiency, stability and service that actually land.',
+      subtitle: 'OULIN combines hands-on restaurant experience with senior software engineering — efficiency, stability and service that actually land.',
       founders: [
         {
           name: 'Mr. Li',
@@ -340,14 +340,14 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           points: ['Focus on architecture, stability and data security', 'Strong in enterprise software and complex business flows', 'Keeps systems running reliably in real stores'],
         },
       ],
-      formulaTitle: 'FARVOO = restaurant experience × reliable, secure engineering',
+      formulaTitle: 'OULIN = restaurant experience × reliable, secure engineering',
       formulaDesc: 'The restaurant person defines the problem; the engineer makes it solid in a live store.',
     },
     caseStudy: {
       kicker: 'Customer story',
       title: 'Half a year running, 0 faults',
       placeLine: 'Torres Vedras · Chinese + sushi buffet',
-      desc: 'Buffet, sushi and Grill & Marisco under one roof — opening tables, ordering, printing and checkout all run on FARVOO.',
+      desc: 'Buffet, sushi and Grill & Marisco under one roof — opening tables, ordering, printing and checkout all run on OULIN.',
       results: [
         { title: '6 months', desc: 'Stable, 0 faults' },
         { title: 'Less labor', desc: 'Fewer trips for ordering and serving' },
@@ -451,7 +451,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
       { title: 'PT · EN · 中文', desc: 'Menu num toque' },
     ],
     pain: {
-      kicker: 'Porquê FARVOO',
+      kicker: 'Porquê OULIN',
       title: 'Seis armadilhas dos sistemas de pedidos no salão',
       subtitle: 'Custo de equipamento, continuidade do serviço, responsabilidade e segurança dos dados — e ainda software confuso ou instável. Dizemos as armadilhas em que os restaurantes realmente caem, e resolvemo-las.',
       items: [
@@ -518,7 +518,7 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
     team: {
       kicker: 'Equipa fundadora',
       title: 'Quem conhece restaurantes e quem torna o sistema sólido',
-      subtitle: 'A FARVOO junta experiência real de restauração com engenharia de software sénior — eficiência, estabilidade e serviço que realmente funcionam.',
+      subtitle: 'A OULIN junta experiência real de restauração com engenharia de software sénior — eficiência, estabilidade e serviço que realmente funcionam.',
       founders: [
         {
           name: 'Sr. Li',
@@ -531,14 +531,14 @@ const LANDING_COPY: Record<AuthoredLandingLanguage, LandingCopy> = {
           points: ['Foco em arquitetura, estabilidade e segurança de dados', 'Forte em software empresarial e fluxos complexos', 'Mantém o sistema estável em lojas reais'],
         },
       ],
-      formulaTitle: 'FARVOO = experiência de restauração × engenharia estável e segura',
+      formulaTitle: 'OULIN = experiência de restauração × engenharia estável e segura',
       formulaDesc: 'Quem conhece restaurantes define o problema; quem conhece tecnologia torna-o sólido numa loja real.',
     },
     caseStudy: {
       kicker: 'Cliente',
       title: 'Meio ano a funcionar, 0 falhas',
       placeLine: 'Torres Vedras · Chinês + buffet de sushi',
-      desc: 'Buffet, sushi e Grill & Marisco na mesma casa — abertura de mesa, pedidos, impressão e pagamento correm na FARVOO.',
+      desc: 'Buffet, sushi e Grill & Marisco na mesma casa — abertura de mesa, pedidos, impressão e pagamento correm na OULIN.',
       results: [
         { title: '6 meses', desc: 'Estável, 0 falhas' },
         { title: 'Menos mão de obra', desc: 'Menos idas e vindas a pedir e servir' },

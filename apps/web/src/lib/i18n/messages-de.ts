@@ -181,7 +181,7 @@ export const MESSAGES_DE = {
   },
   "authLogin": {
     "title": "Willkommen zurück",
-    "subtitle": "Bei FARVOO Management anmelden",
+    "subtitle": "Bei OULIN Management anmelden",
     "account": "Konto",
     "accountPlaceholder": "E-Mail oder Anmeldename",
     "clearAccount": "Konto löschen",
@@ -200,7 +200,7 @@ export const MESSAGES_DE = {
     "securityNote": "Die Anmeldung ist mit HTTPS-Verschlüsselung geschützt",
     "staffSecurityNote": "Nur für autorisiertes Personal dieses Standorts",
     "hero": {
-      "eyebrow": "FARVOO RESTAURANT OS",
+      "eyebrow": "OULIN RESTAURANT OS",
       "headline": "Restaurantbetrieb effizienter gestalten",
       "body": "Bestellung, Betrieb und Service — ein Backoffice."
     },
@@ -484,7 +484,7 @@ export const MESSAGES_DE = {
     "downloadVersionHint": "Laden Sie die empfohlene Version herunter. Nach der Installation sehen Sie die laufende Version oben in der Liste der gekoppelten Kassen-PCs.",
     "downloadReleasePending": "v{version} wird noch vorbereitet und ist derzeit nicht verfügbar. Verwenden Sie die unten veröffentlichte Version oder versuchen Sie es später erneut.",
     "downloadSubtitle": "Im Schritt „Optionale Aufgaben“ des Installationsprogramms können Sie eine Desktop-Verknüpfung anlegen und/oder den Start bei der Windows-Anmeldung aktivieren (beides standardmäßig deaktiviert). Das portable ZIP enthält beides nicht. Doppelklicken Sie auf den Agenten und schließen Sie die Kopplung im Browser ab.",
-    "downloadUpgradeSteps": "Zum Aktualisieren: über das Menü im Systemtray beenden → das neue Installationsprogramm unten ausführen → die Konfiguration bleibt erhalten. Gekoppelte Geräte vergleichen mit der empfohlenen Farvoo-Fiscal-Agent-Version.",
+    "downloadUpgradeSteps": "Zum Aktualisieren: über das Menü im Systemtray beenden → das neue Installationsprogramm unten ausführen → die Konfiguration bleibt erhalten. Gekoppelte Geräte vergleichen mit der empfohlenen OULIN-Fiscal-Agent-Version.",
     "downloadSetupAmd64": "Installationsprogramm (64 Bit, empfohlen)",
     "downloadZipAmd64": "Portables ZIP (64 Bit)",
     "downloadAllReleases": "Alle Versionen",

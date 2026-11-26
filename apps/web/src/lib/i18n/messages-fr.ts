@@ -181,7 +181,7 @@ export const MESSAGES_FR = {
   },
   "authLogin": {
     "title": "Bon retour",
-    "subtitle": "Connectez-vous au centre de gestion FARVOO",
+    "subtitle": "Connectez-vous au centre de gestion OULIN",
     "account": "Compte",
     "accountPlaceholder": "E-mail ou identifiant",
     "clearAccount": "Effacer le compte",
@@ -200,7 +200,7 @@ export const MESSAGES_FR = {
     "securityNote": "La connexion est protégée par un chiffrement HTTPS",
     "staffSecurityNote": "Réservé au personnel autorisé de cet établissement",
     "hero": {
-      "eyebrow": "FARVOO RESTAURANT OS",
+      "eyebrow": "OULIN RESTAURANT OS",
       "headline": "Gérez votre restaurant plus efficacement",
       "body": "Commandes, opérations et service — un seul back-office."
     },
@@ -484,7 +484,7 @@ export const MESSAGES_FR = {
     "downloadVersionHint": "Téléchargez la version recommandée. Après l'installation, vérifiez la version en cours d'exécution dans la liste des PC de caisse appairés ci-dessus.",
     "downloadReleasePending": "La version v{version} est encore en préparation et n'est pas encore disponible. Utilisez la version publiée ci-dessous ou actualisez plus tard.",
     "downloadSubtitle": "À l'étape des tâches optionnelles de l'installateur, vous pouvez ajouter un raccourci sur le bureau et/ou un lancement à l'ouverture de session Windows (les deux décochés par défaut). L'archive portable ne propose ni l'un ni l'autre. Double-cliquez sur l'agent et terminez l'appairage dans le navigateur.",
-    "downloadUpgradeSteps": "Pour mettre à jour : quittez via le menu de la zone de notification → lancez le nouvel installateur ci-dessous → la configuration est conservée. Les appareils appairés comparent la version à celle recommandée (Farvoo Fiscal Agent).",
+    "downloadUpgradeSteps": "Pour mettre à jour : quittez via le menu de la zone de notification → lancez le nouvel installateur ci-dessous → la configuration est conservée. Les appareils appairés comparent la version à celle recommandée (OULIN Fiscal Agent).",
     "downloadSetupAmd64": "Installateur (64 bits, recommandé)",
     "downloadZipAmd64": "Archive portable (64 bits)",
     "downloadAllReleases": "Toutes les versions",

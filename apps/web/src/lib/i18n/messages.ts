@@ -232,7 +232,7 @@ export const MESSAGES = {
     },
     authLogin: {
       title: '欢迎回来',
-      subtitle: '登录 FARVOO 管理中心',
+      subtitle: '登录 OULIN 管理中心',
       account: '账号',
       accountPlaceholder: '邮箱或登录名',
       clearAccount: '清除账号',
@@ -251,7 +251,7 @@ export const MESSAGES = {
       securityNote: '登录全程 HTTPS 加密传输，保障数据安全',
       staffSecurityNote: '仅限本店授权员工登录',
       hero: {
-        eyebrow: 'FARVOO RESTAURANT OS',
+        eyebrow: 'OULIN RESTAURANT OS',
         headline: '让餐厅运营更高效',
         body: '点餐、运营与服务管理集中在一个后台。',
       },
@@ -659,7 +659,7 @@ export const MESSAGES = {
       downloadSubtitle:
         '安装包向导「附加任务」页可选：创建桌面快捷方式、登录 Windows 时自动运行（均默认不勾选）；免安装 zip 不含这些选项。安装或解压后双击程序，按浏览器配对页完成连接。',
       downloadUpgradeSteps:
-        '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（Farvoo 开票助手 Fiscal Agent）。',
+        '升级：托盘右键退出 → 运行下方新版本安装包 → 配置保留。已配对收银机列表会对比推荐版本（OULIN 开票助手 Fiscal Agent）。',
       downloadSetupAmd64: '下载安装包（64 位，推荐）',
       downloadZipAmd64: '免安装 zip（64 位）',
       downloadAllReleases: '全部版本',
@@ -2207,7 +2207,7 @@ export const MESSAGES = {
     },
     authLogin: {
       title: 'Welcome back',
-      subtitle: 'Sign in to FARVOO management',
+      subtitle: 'Sign in to OULIN management',
       account: 'Account',
       accountPlaceholder: 'Email or login name',
       clearAccount: 'Clear account',
@@ -2226,7 +2226,7 @@ export const MESSAGES = {
       securityNote: 'Sign-in is protected with HTTPS encryption',
       staffSecurityNote: 'Authorized staff at this location only',
       hero: {
-        eyebrow: 'FARVOO RESTAURANT OS',
+        eyebrow: 'OULIN RESTAURANT OS',
         headline: 'Run your restaurant more efficiently',
         body: 'Ordering, operations, and service — one back office.',
       },
@@ -2595,7 +2595,7 @@ export const MESSAGES = {
       downloadSubtitle:
         'On the installer’s optional tasks step you can add a desktop shortcut and/or run at Windows sign-in (both unchecked by default). Portable zip has neither. Double-click the agent and complete pairing in the browser.',
       downloadUpgradeSteps:
-        'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended Farvoo Fiscal Agent build.',
+        'To upgrade: exit from the tray menu → run the new installer below → config is kept. Paired devices compare agent version to the recommended OULIN Fiscal Agent build.',
       downloadSetupAmd64: 'Installer (64-bit, recommended)',
       downloadZipAmd64: 'Portable zip (64-bit)',
       downloadAllReleases: 'All releases',
@@ -3685,7 +3685,7 @@ export const MESSAGES = {
     },
     authLogin: {
       title: 'Bem-vindo de volta',
-      subtitle: 'Entre no centro de gestao FARVOO',
+      subtitle: 'Entre no centro de gestao OULIN',
       account: 'Conta',
       accountPlaceholder: 'Email ou nome de login',
       clearAccount: 'Limpar conta',
@@ -3704,7 +3704,7 @@ export const MESSAGES = {
       securityNote: 'Login protegido com encriptacao HTTPS',
       staffSecurityNote: 'Apenas funcionarios autorizados deste estabelecimento',
       hero: {
-        eyebrow: 'FARVOO RESTAURANT OS',
+        eyebrow: 'OULIN RESTAURANT OS',
         headline: 'Opere o restaurante com mais eficiencia',
         body: 'Pedidos, operacao e servico — um so backoffice.',
       },
@@ -4073,7 +4073,7 @@ export const MESSAGES = {
       downloadSubtitle:
         'No passo de tarefas opcionais do instalador pode adicionar atalho no ambiente de trabalho e/ou executar ao iniciar sessao no Windows (ambos desmarcados por defeito). O zip portatil nao inclui estas opcoes. Duplo clique no agente e emparelhe no browser.',
       downloadUpgradeSteps:
-        'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados comparam com a versao recomendada do Farvoo Fiscal Agent.',
+        'Atualizar: sair pelo menu da bandeja → executar o novo instalador abaixo → a configuracao mantem-se. Os dispositivos emparelhados comparam com a versao recomendada do OULIN Fiscal Agent.',
       downloadSetupAmd64: 'Instalador (64 bits, recomendado)',
       downloadZipAmd64: 'Zip portatil (64 bits)',
       downloadAllReleases: 'Todas as versoes',

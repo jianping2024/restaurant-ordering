@@ -30,7 +30,7 @@
    * Do not redeclare that name here — literal overrides leave next/font unloaded.
    */
   --font-cjk-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-  /* FARVOO paper / azulejo — dark theme (default :root) */
+  /* OULIN paper / azulejo — dark theme (default :root) */
   --color-brand-bg: 27 26 22;
   --color-brand-card: 35 32 25;
   --color-brand-ink: 155 192 216;
@@ -47,7 +47,7 @@
   --color-brand-placeholder: 148 142 130;
   --color-on-gold: 27 26 22;
   --color-on-ink: 27 26 22;
-  /* Floor / badge status — pre-FARVOO saturated checkout / dining / idle */
+  /* Floor / badge status — pre-OULIN saturated checkout / dining / idle */
   --color-status-warning-fg: 253 230 138;
   --color-status-warning-bg: 69 45 12;
   --color-status-warning-border: 217 119 6;

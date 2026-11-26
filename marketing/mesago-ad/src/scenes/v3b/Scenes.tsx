@@ -144,7 +144,7 @@ const V3bS09EndImpl: React.FC<
           }),
         }}
       >
-        FARVOO
+        OULIN
       </Interactive.Div>
 
       <Interactive.Div

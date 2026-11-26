@@ -53,7 +53,7 @@ export const SceneEnd: React.FC<AdProps> = ({
           }),
         }}
       >
-        FARVOO
+        OULIN
       </Interactive.Div>
 
       <Interactive.Div

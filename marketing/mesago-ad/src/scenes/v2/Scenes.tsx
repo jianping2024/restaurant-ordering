@@ -101,7 +101,7 @@ export const S03Menu: React.FC = () => {
           <ContrastSplit
             badTitle="旧做法"
             badBody="平板墙 €40,000+"
-            goodTitle="FARVOO"
+            goodTitle="OULIN"
             goodBody="客人手机扫码点"
             delay={hookEnd + 6}
           />
@@ -214,7 +214,7 @@ export const S08Proof: React.FC = () => {
           }),
         }}
       >
-        FARVOO
+        OULIN
       </Interactive.Div>
       <div
         style={{
@@ -307,7 +307,7 @@ export const S09End: React.FC<AdProps> = ({ ctaLine, whatsapps, wechats }) => {
           }),
         }}
       >
-        FARVOO
+        OULIN
       </Interactive.Div>
       <Interactive.Div
         name="Tag"

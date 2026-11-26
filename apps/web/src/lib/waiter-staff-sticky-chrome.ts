@@ -52,7 +52,7 @@ export const staffTopBarChrome = {
    */
   brandClassName: 'flex min-w-0 flex-1 items-center lg:flex-initial',
   /**
-   * Fitted store name beside FARVOO — one line; text from
+   * Fitted store name beside OULIN — one line; text from
    * `fitStaffTopBarRestaurantName` only (ProductTopBarRestaurantName).
    * Full literal for Tailwind JIT (do not compose with ${}).
    */

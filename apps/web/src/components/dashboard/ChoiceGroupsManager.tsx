@@ -94,9 +94,13 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const inUseCount =
+          typeof data.referenced_item_count === 'number' ? data.referenced_item_count : 0;
         showToast(
-          data.error === 'choice_group_has_options'
-            ? '请先删掉组内口味'
+          data.error === 'choice_group_in_use'
+            ? inUseCount > 0
+              ? `请先到菜品里取消勾选该分组（${inUseCount}道菜在用）`
+              : '请先到菜品里取消勾选该分组'
             : data.error || '删除失败',
           'error',
         );
@@ -222,7 +226,7 @@ export function ChoiceGroupsManager({ groups, options, onChange }: Props) {
         title="删除口味分组"
         message={
           deleteGroup
-            ? `确定删除「${menuChoiceLocalizedName(deleteGroup, lang)}」？组内不能有口味。`
+            ? `确定删除「${menuChoiceLocalizedName(deleteGroup, lang)}」？没有菜挂着这组时才能删；组里的口味会一并清掉。`
             : ''
         }
         confirmLabel="删除"

@@ -2,6 +2,7 @@ import type { AuthorizedRestaurantId } from '@/lib/permissions/authorized-restau
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import {
+  normalizeChoiceBindings,
   parseMenuChoiceNameFields,
   type MenuChoiceGroup,
   type MenuChoiceNameFields,
@@ -130,6 +131,11 @@ export async function updateMenuChoiceGroup(
   return { group: data as MenuChoiceGroup };
 }
 
+/**
+ * Delete a choice group when no dish binds it.
+ * Bound dishes (choice_bindings.group_id) → 409 choice_group_in_use.
+ * Unbound → delete options first (FK RESTRICT), then the group.
+ */
 export async function deleteMenuChoiceGroup(
   admin: SupabaseClient,
   restaurantId: AuthorizedRestaurantId,
@@ -137,26 +143,43 @@ export async function deleteMenuChoiceGroup(
 ): Promise<{ ok: true } | MenuChoiceMutationError> {
   const id = parseTableIdParam(groupId);
   if (!id) return { error: 'invalid_choice_group_id', status: 400 };
-  const { count } = await admin
-    .from('menu_choice_options')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', restaurantId)
-    .eq('group_id', id);
-  if ((count ?? 0) > 0) {
+
+  const { data: itemRows, error: itemsError } = await admin
+    .from('menu_items')
+    .select('id, choice_bindings')
+    .eq('restaurant_id', restaurantId);
+  if (itemsError) {
+    return { error: 'choice_group_delete_failed', message: itemsError.message, status: 500 };
+  }
+  const boundCount = (itemRows ?? []).filter((row) =>
+    normalizeChoiceBindings(row.choice_bindings).some((b) => b.group_id === id),
+  ).length;
+  if (boundCount > 0) {
     return {
-      error: 'choice_group_has_options',
+      error: 'choice_group_in_use',
       status: 409,
-      referenced_item_count: count ?? 0,
+      referenced_item_count: boundCount,
     };
   }
-  const { error } = await admin
-    .from('menu_choice_groups')
+
+  const { error: optionsError } = await admin
+    .from('menu_choice_options')
     .delete()
+    .eq('restaurant_id', restaurantId)
+    .eq('group_id', id);
+  if (optionsError) {
+    return { error: 'choice_group_delete_failed', message: optionsError.message, status: 500 };
+  }
+
+  const { error, count: deleted } = await admin
+    .from('menu_choice_groups')
+    .delete({ count: 'exact' })
     .eq('restaurant_id', restaurantId)
     .eq('id', id);
   if (error) {
     return { error: 'choice_group_delete_failed', message: error.message, status: 500 };
   }
+  if (!deleted) return { error: 'choice_group_not_found', status: 404 };
   await invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }

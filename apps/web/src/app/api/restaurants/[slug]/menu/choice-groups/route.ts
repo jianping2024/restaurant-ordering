@@ -88,6 +88,15 @@ export async function DELETE(req: Request, { params }: { params: { slug: string 
   }
 
   const result = await deleteMenuChoiceGroup(ctx.admin, ctx.restaurantId, groupId);
-  if ('error' in result) return menuApiError(result);
+  if ('error' in result) {
+    return NextResponse.json(
+      {
+        error: result.error,
+        message: result.message,
+        referenced_item_count: result.referenced_item_count,
+      },
+      { status: result.status },
+    );
+  }
   return NextResponse.json(result);
 }

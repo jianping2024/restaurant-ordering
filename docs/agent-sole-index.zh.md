@@ -538,6 +538,10 @@ sole `KitchenGroupHeader` cluster: 36×36 chevron + `gap-3` + `KitchenGroupSelec
 
 sole 结束日：`buffet_price_rules.valid_to` 可空 = 长期（`resolve_buffet_prices`：≥ `valid_from` 且无结束或 ≤ 结束）；新建默认空结束日；禁止再默认「今天→一年后」或假远日。sole 确认行：规则弹窗 `Modal` `footer` + `ModalConfirmActions`（不放可滚正文）。sole 配置审计：`BUFFET_PRICE_RULE` / `BUFFET_CALENDAR` / `BUFFET_FRIDAY_POLICY` → `operation_logs`（页面写入；迁移批量清空结束日不记）。
 
+### 桌位二维码贴纸
+
+sole face `composeTableQrPng` + `TableQrCardContent` `{ displayName, restaurantName, qrDataUrl }`（50×55mm；桌号 → QR → 店名）；预览/打印/ZIP 同图。弹窗「打开点餐页」只作电脑测试链接，禁止画进贴纸或另叠 HTML 店名。
+
 ### Dashboard list pagination
 
 sole Web footer is `ListPaginationBar` (icon first/prev/next/last + aria-labels; no visible prev/next text; no parallel pager in `TablesQrTable`); Ops sole `OpsListPagination` same four icons. MenuManager 菜品 tab：内存 `paginateList(visibleItems)` + 同脚；批量上下架/动图仍对筛选全集，拖排序用页偏移换绝对下标——禁止第二套页码或「仅本页」批量平行语义。

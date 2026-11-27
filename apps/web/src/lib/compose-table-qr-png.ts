@@ -2,6 +2,7 @@ import {
   estimateTableQrCardHeight,
   fitSingleLineFontSize,
   TABLE_QR_CARD_LAYOUT,
+  tableQrFooterBandHeight,
   tableQrHeaderBandHeight,
   type TableQrCardContent,
 } from '@/lib/table-qr-card-layout';
@@ -72,14 +73,19 @@ function drawDivider(
 async function ensureTableQrFontsLoaded(): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts?.load) return;
   if (!fontsReady) {
-    fontsReady = document.fonts
-      .load(`600 ${TABLE_QR_CARD_LAYOUT.displayNameFontSize}px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`)
-      .then(() => undefined);
+    fontsReady = Promise.all([
+      document.fonts.load(
+        `600 ${TABLE_QR_CARD_LAYOUT.displayNameFontSize}px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`,
+      ),
+      document.fonts.load(
+        `600 ${TABLE_QR_CARD_LAYOUT.restaurantNameFontSize}px ${TABLE_QR_CARD_LAYOUT.restaurantNameFontFamily}`,
+      ),
+    ]).then(() => undefined);
   }
   await fontsReady;
 }
 
-/** One sticker face: desk number + QR, sized for 50×55mm aluminum plate. */
+/** One sticker face: desk number + QR + restaurant name, sized for 50×55mm aluminum plate. */
 export async function composeTableQrPng(content: TableQrCardContent): Promise<string> {
   const layout = TABLE_QR_CARD_LAYOUT;
   await ensureTableQrFontsLoaded();
@@ -99,9 +105,10 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
   roundedRectPath(ctx, 0, 0, layout.width, height, layout.borderRadius);
   ctx.fill();
 
-  const qrY = height - layout.paddingBottom - layout.qrSize;
-  const qrX = (layout.width - layout.qrSize) / 2;
   const headerBand = tableQrHeaderBandHeight(layout);
+  const footerBand = tableQrFooterBandHeight(layout);
+  const qrY = layout.paddingTop + headerBand;
+  const qrX = (layout.width - layout.qrSize) / 2;
   const innerWidth = layout.width - layout.paddingX * 2;
 
   ctx.fillStyle = layout.displayNameColor;
@@ -121,8 +128,7 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
 
   // Desk # + divider centered in the band above the QR.
   const dividerReserve = layout.dividerDiamondSize * 2 + 10;
-  const nameCenterY =
-    layout.paddingTop + (headerBand - dividerReserve) / 2;
+  const nameCenterY = layout.paddingTop + (headerBand - dividerReserve) / 2;
   ctx.fillText(content.displayName.trim(), layout.width / 2, nameCenterY);
   drawDivider(
     ctx,
@@ -135,6 +141,24 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
   );
 
   ctx.drawImage(qrImage, qrX, qrY, layout.qrSize, layout.qrSize);
+
+  const restaurant = content.restaurantName.trim();
+  if (restaurant) {
+    const footerTop = qrY + layout.qrSize;
+    const restaurantFontSize = fitSingleLineFontSize(
+      restaurant,
+      innerWidth,
+      layout.restaurantNameFontSize,
+      layout.restaurantNameFontSizeMin,
+      (value, fontSize) => {
+        ctx.font = `${layout.restaurantNameFontWeight} ${fontSize}px ${layout.restaurantNameFontFamily}`;
+        return ctx.measureText(value).width;
+      },
+    );
+    ctx.fillStyle = layout.restaurantNameColor;
+    ctx.font = `${layout.restaurantNameFontWeight} ${restaurantFontSize}px ${layout.restaurantNameFontFamily}`;
+    ctx.fillText(restaurant, layout.width / 2, footerTop + footerBand / 2);
+  }
 
   return canvas.toDataURL('image/png');
 }

@@ -143,10 +143,11 @@ export function TablesTabPanel({
       buildTableQrStickerAssets({
         slug: restaurant.slug,
         webOrigin,
+        restaurantName: restaurant.name,
         rows,
         resolveDisplayName: tableLabelForInput,
       }),
-    [restaurant.slug, tableLabelForInput, webOrigin],
+    [restaurant.name, restaurant.slug, tableLabelForInput, webOrigin],
   );
 
   useEffect(() => {

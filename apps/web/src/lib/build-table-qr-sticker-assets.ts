@@ -5,6 +5,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 export type BuildTableQrStickerAssetsInput = {
   slug: string;
   webOrigin: string;
+  restaurantName: string;
   rows: RestaurantTableRow[];
   resolveDisplayName?: (row: RestaurantTableRow) => string;
 };
@@ -12,7 +13,7 @@ export type BuildTableQrStickerAssetsInput = {
 export async function buildTableQrStickerAssets(
   input: BuildTableQrStickerAssetsInput,
 ): Promise<Record<string, string>> {
-  const { slug, webOrigin, rows, resolveDisplayName } = input;
+  const { slug, webOrigin, restaurantName, rows, resolveDisplayName } = input;
   if (rows.length === 0) return {};
 
   const qrCodes = await ensureTableQrCodes(
@@ -28,6 +29,7 @@ export async function buildTableQrStickerAssets(
       const displayName = resolveDisplayName?.(row) ?? row.display_name;
       const stickerDataUrl = await composeTableQrPng({
         displayName,
+        restaurantName,
         qrDataUrl,
       });
       return [row.id, stickerDataUrl] as const;
